@@ -1,0 +1,3 @@
+operation_id,attempt_id,server_outcome,record_id,response_delivery
+op_demo_007,att_demo_01,committed,record_demo_A,not_delivered
+op_demo_007,att_demo_02,committed,record_demo_B,delivered
