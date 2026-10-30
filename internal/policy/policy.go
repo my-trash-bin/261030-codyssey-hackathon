@@ -10,8 +10,14 @@ import (
 )
 
 func Project(c domain.Candidate, r domain.Representation) (domain.Projection, error) {
+	if c.Kind == "timeline" {
+		return Timeline(c, r)
+	}
+	if c.Kind == "config_example" {
+		return ConfigProjection(c, r)
+	}
 	p := domain.Projection{Columns: []string{}, Rows: [][]string{}}
-	if len(r.Parameters) > 1 {
+	if len(r.Parameters) > 5 {
 		return p, errors.New("INVALID_DECISION")
 	}
 	switch r.Kind {
@@ -49,13 +55,59 @@ func Project(c domain.Candidate, r domain.Representation) (domain.Projection, er
 		if c.Kind == "series" {
 			p.Columns = []string{"관찰", "요청량"}
 			for i, v := range c.Values {
-				if _, ok := new(big.Rat).SetString(v); !ok {
+				if _, ok := new(big.Rat).SetString(v); !ok || !domain.IsDecimal(v) {
 					return p, errors.New("INCOMPLETE")
 				}
 				p.Rows = append(p.Rows, []string{fmt.Sprint(i + 1), v})
 			}
 		} else {
 			p.Statement = c.Statement
+		}
+
+	case "selected_fields":
+		if c.Kind != "series" || r.TransformID != "" || len(c.Values) == 0 {
+			return p, errors.New("INVALID_DECISION")
+		}
+		allowed := map[string]bool{"include_observation": true, "include_count": true, "include_unit": true, "start_row": true, "end_row": true}
+		for key := range r.Parameters {
+			if !allowed[key] {
+				return p, errors.New("INVALID_DECISION")
+			}
+		}
+		observation, count, unit := r.Parameters["include_observation"], r.Parameters["include_count"], r.Parameters["include_unit"]
+		if observation < 0 || observation > 1 || count < 0 || count > 1 || unit < 0 || unit > 1 || observation+count == 0 || unit == 1 && count == 0 {
+			return p, errors.New("INVALID_DECISION")
+		}
+		start := r.Parameters["start_row"]
+		end, exists := r.Parameters["end_row"]
+		if !exists {
+			end = len(c.Values)
+		}
+		if start < 0 || end > len(c.Values) || start >= end {
+			return p, errors.New("INVALID_DECISION")
+		}
+		if observation == 1 {
+			p.Columns = append(p.Columns, "관찰")
+		}
+		if count == 1 {
+			header := "요청량"
+			if unit == 1 && strings.HasSuffix(c.Selector, ":requests_per_minute") {
+				header = "분당 요청량"
+			}
+			p.Columns = append(p.Columns, header)
+		}
+		for i := start; i < end; i++ {
+			row := []string{}
+			if observation == 1 {
+				row = append(row, fmt.Sprint(i+1))
+			}
+			if count == 1 {
+				if !domain.IsDecimal(c.Values[i]) {
+					return p, errors.New("INCOMPLETE")
+				}
+				row = append(row, c.Values[i])
+			}
+			p.Rows = append(p.Rows, row)
 		}
 	case "derived_table":
 		if c.Kind != "series" || len(c.Values) == 0 {
@@ -64,7 +116,7 @@ func Project(c domain.Candidate, r domain.Representation) (domain.Projection, er
 		nums := make([]*big.Rat, len(c.Values))
 		for i, v := range c.Values {
 			n, ok := new(big.Rat).SetString(v)
-			if !ok {
+			if !ok || !domain.IsDecimal(v) {
 				return p, errors.New("INCOMPLETE")
 			}
 			nums[i] = n
@@ -91,7 +143,7 @@ func Project(c domain.Candidate, r domain.Representation) (domain.Projection, er
 			}
 		case "series_index_base100.v1":
 			dp, ok := r.Parameters["decimal_places"]
-			if !ok || dp < 0 || dp > 4 || nums[0].Sign() == 0 {
+			if !ok || dp < 0 || dp > 4 || len(r.Parameters) != 1 || nums[0].Sign() == 0 {
 				return p, errors.New("UNDEFINED_PROJECTION")
 			}
 			p.Columns = []string{"관찰", "첫 관찰=100 지수"}
@@ -145,6 +197,7 @@ func Active(d domain.Decision, t domain.Task, rules []domain.Rule, now time.Time
 }
 func Pack(t domain.Task, rules []domain.Rule, now time.Time) (domain.FactPack, error) {
 	p := domain.FactPack{Schema: "fact_pack.v1", Revision: t.Revision, TemplateID: t.Scope.PurposeID + ".v1", Audience: t.Scope.Audience, Language: t.Language, Brief: "관찰된 현상과 미확인 사항을 정리하고 조사를 요청한다.", Facts: []domain.Fact{}, Required: []string{}, Tables: []domain.Table{}, Excerpts: []domain.Slot{}, Assets: []domain.Slot{}, ToolResults: []any{}}
+	allowedConflicts := map[string]bool{}
 	for _, c := range t.Candidates {
 		d, ok := t.Decisions[c.ID]
 		if !ok {
@@ -162,12 +215,21 @@ func Pack(t domain.Task, rules []domain.Rule, now time.Time) (domain.FactPack, e
 		if d.Disposition == "exclude" {
 			continue
 		}
+		if c.ConflictGroup != "" {
+			if allowedConflicts[c.ConflictGroup] {
+				return p, errors.New("SOURCE_CONFLICT")
+			}
+			allowedConflicts[c.ConflictGroup] = true
+		}
 		pr, e := ProjectFor(t, c, d.Representation, d.RawGrants)
 		if e != nil {
 			return p, e
 		}
 		if domain.Hash(domain.Canonical(pr)) != d.ProjectionSHA {
 			return p, errors.New("INVALID_DECISION")
+		}
+		if c.Kind == "config_example" {
+			p.Assets = append(p.Assets, domain.Slot{ID: "config_example", Bytes: ConfigBytes()})
 		}
 		if len(pr.Excerpt) > 0 {
 			p.Excerpts = append(p.Excerpts, domain.Slot{ID: fmt.Sprintf("ex_%d", len(p.Excerpts)+1), Bytes: pr.Excerpt})
@@ -180,7 +242,24 @@ func Pack(t domain.Task, rules []domain.Rule, now time.Time) (domain.FactPack, e
 			}
 		}
 		if len(pr.Columns) > 0 {
-			p.Tables = append(p.Tables, domain.Table{ID: fmt.Sprintf("tb_%d", len(p.Tables)+1), Columns: pr.Columns, Rows: pr.Rows})
+			numeric := []int{}
+			if d.Representation.Kind == "selected_fields" && d.Representation.Parameters["include_count"] == 1 {
+				col := 0
+				if d.Representation.Parameters["include_observation"] == 1 {
+					col = 1
+				}
+				numeric = []int{col}
+			}
+			if d.Representation.Kind == "exact_value" || d.Representation.TransformID == "series_index_base100.v1" {
+				numeric = []int{1}
+			}
+			name := "observations.csv"
+			if c.Kind == "timeline" {
+				name = "timeline.csv"
+			} else if len(p.Tables) > 0 {
+				name = fmt.Sprintf("observations-%d.csv", len(p.Tables)+1)
+			}
+			p.Tables = append(p.Tables, domain.Table{FileName: name, NumericColumns: numeric, ID: fmt.Sprintf("tb_%d", len(p.Tables)+1), Columns: pr.Columns, Rows: pr.Rows})
 		}
 	}
 	if len(p.Facts)+len(p.Tables)+len(p.Excerpts) == 0 {

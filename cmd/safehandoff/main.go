@@ -54,6 +54,12 @@ func main() {
 	c.Provider = llm.DefaultConfig()
 	c.Workflow.Repairs = 2
 	c.Workflow.Calls = 12
+	c.Reproduction.Enabled = true
+	c.Reproduction.Runner = "docker"
+	c.Limits.Files = 10
+	c.Limits.FileBytes = 262144
+	c.Limits.SourceBytes = 1048576
+	c.Limits.ExportBytes = 20971520
 	if b, e := os.ReadFile(*path); e == nil {
 		if e = domain.Strict(b, &c); e != nil {
 			log.Fatal("설정 파일 형식 오류: ", e)
@@ -91,6 +97,14 @@ func main() {
 	svc.MaxCalls = c.Workflow.Calls
 	svc.Repairs = c.Workflow.Repairs
 	svc.Attempts = c.Provider.MaxAttempts
+	svc.ReproductionEnabled = c.Reproduction.Enabled
+	svc.MaxFiles = c.Limits.Files
+	svc.MaxFileBytes = c.Limits.FileBytes
+	svc.MaxSourceBytes = c.Limits.SourceBytes
+	svc.MaxExportBytes = c.Limits.ExportBytes
+	if svc.MaxFiles < 1 || svc.MaxFileBytes < 1 || svc.MaxSourceBytes < 1 || svc.MaxExportBytes < 1 || svc.MaxCalls < 1 || svc.Attempts < 1 || svc.Attempts > 2 || svc.Repairs < 0 {
+		log.Fatal("설정 상한은 양수이며 단계 시도는 1~2회여야 합니다")
+	}
 	defer svc.Close()
 	if *seed {
 		if c.DataDir != "./var/demo" {

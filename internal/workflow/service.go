@@ -15,27 +15,33 @@ import (
 	"safehandoff.local/poc/internal/store"
 	"safehandoff.local/poc/internal/tools"
 	"safehandoff.local/poc/prompts"
+	"safehandoff.local/poc/skills"
 	"strings"
 	"sync"
 	"time"
 )
 
 type Service struct {
-	Store    *store.Store
-	Provider llm.Provider
-	queue    chan string
-	ctx      context.Context
-	cancel   context.CancelFunc
-	wg       sync.WaitGroup
-	MaxInput int
-	MaxCalls int
-	Repairs  int
-	Attempts int
+	ReproductionEnabled bool
+	MaxFiles            int
+	MaxFileBytes        int
+	MaxSourceBytes      int
+	MaxExportBytes      int
+	Store               *store.Store
+	Provider            llm.Provider
+	queue               chan string
+	ctx                 context.Context
+	cancel              context.CancelFunc
+	wg                  sync.WaitGroup
+	MaxInput            int
+	MaxCalls            int
+	Repairs             int
+	Attempts            int
 }
 
 func New(s *store.Store, p llm.Provider) *Service {
 	ctx, c := context.WithCancel(context.Background())
-	v := &Service{Store: s, Provider: p, queue: make(chan string, 100), ctx: ctx, cancel: c, MaxInput: 24576, MaxCalls: 12, Repairs: 2, Attempts: 2}
+	v := &Service{ReproductionEnabled: true, MaxFiles: 10, MaxFileBytes: 262144, MaxSourceBytes: 1048576, MaxExportBytes: 20971520, Store: s, Provider: p, queue: make(chan string, 100), ctx: ctx, cancel: c, MaxInput: 24576, MaxCalls: 12, Repairs: 2, Attempts: 2}
 	v.wg.Add(1)
 	go v.worker()
 	return v
@@ -45,13 +51,19 @@ func (s *Service) Create(title string, scope domain.Scope, lang string) (domain.
 	if scope.ProjectID == "" || scope.RecipientID == "" || (scope.Audience != "public" && scope.Audience != "named_external") || (scope.PurposeID != "oss_issue" && scope.PurposeID != "vendor_support" && scope.PurposeID != "operations_advice") || (lang != "ko" && lang != "en") {
 		return domain.Task{}, errors.New("INVALID_REQUEST")
 	}
-	scope.SkillSetHash = domain.Hash([]byte("builtin-skills.v1"))
+	if s.Provider.Mode() == "fixture" && lang != "ko" {
+		return domain.Task{}, errors.New("UNSUPPORTED_OUTPUT_LANGUAGE")
+	}
+	scope.SkillSetHash = skills.Hash()
 	t := domain.Task{ID: domain.ID("task"), Title: title, Scope: scope, Language: lang, Revision: 1, Phase: "needs_analysis", Mode: s.Provider.Mode(), Decisions: map[string]domain.Decision{}, Previews: map[string]domain.Preview{}, Reproduction: domain.ReproResult{Schema: "repro_result.v1", Status: "not_run", Reason: "no_environment"}}
 	t.Event("task.created")
 	e := s.Store.Save(t, 0)
 	return t, e
 }
 func (s *Service) Start(id string, rev int, kind string) (domain.Job, error) {
+	return s.StartWithArguments(id, rev, kind, domain.JobArguments{})
+}
+func (s *Service) StartWithArguments(id string, rev int, kind string, args domain.JobArguments) (domain.Job, error) {
 	s.Store.Mu.Lock()
 	defer s.Store.Mu.Unlock()
 	t, e := s.Store.Get(id)
@@ -61,7 +73,7 @@ func (s *Service) Start(id string, rev int, kind string) (domain.Job, error) {
 	if t.Revision != rev {
 		return domain.Job{}, errors.New("REVISION_CONFLICT")
 	}
-	if kind != "analyze" && kind != "compose" && kind != "review" && kind != "reproduce" {
+	if kind != "analyze" && kind != "compose" && kind != "review" && kind != "reproduce" && kind != "provider_check" && kind != "interpret_disclosure" {
 		return domain.Job{}, errors.New("INVALID_REQUEST")
 	}
 	for _, j := range t.Jobs {
@@ -76,16 +88,16 @@ func (s *Service) Start(id string, rev int, kind string) (domain.Job, error) {
 	if e != nil {
 		return domain.Job{}, e
 	}
-	if kind == "compose" || kind == "review" {
+	if kind == "compose" || kind == "review" || kind == "reproduce" {
 		if _, e = policy.Pack(t, rules, time.Now()); e != nil {
 			return domain.Job{}, e
 		}
 	}
 	old := t.Revision
-	if kind == "analyze" && len(t.Candidates) > 0 || kind == "compose" && (t.Phase == "ready_to_finalize" || t.Phase == "finalized") {
+	if kind == "analyze" && len(t.Candidates) > 0 || (kind == "compose" || kind == "reproduce") && (t.Phase == "ready_to_finalize" || t.Phase == "finalized") {
 		t.Invalidate("needs_decisions")
 	}
-	j := domain.Job{ID: domain.ID("job"), TaskID: t.ID, Revision: t.Revision, Kind: kind, Status: "queued", Started: time.Now().UTC()}
+	j := domain.Job{Arguments: args, PreviousPhase: t.Phase, ID: domain.ID("job"), TaskID: t.ID, Revision: t.Revision, Kind: kind, Status: "queued", Started: time.Now().UTC()}
 	t.CurrentJobID = j.ID
 	t.Jobs = append(t.Jobs, j)
 	t.Phase = "processing"
@@ -162,12 +174,16 @@ func (s *Service) run(id string) {
 				return errors.New("MODEL_CALL_BUDGET_EXCEEDED")
 			}
 			calls++
-			r := llm.Request{Role: role, PromptVersion: role + ".v1", Messages: []llm.Message{{Role: "system", Content: prompts.Get(role)}, {Role: "user", Content: string(domain.Canonical(payload))}}}
+			r := llm.Request{Role: role, PromptVersion: role + ".v1", Messages: []llm.Message{{Role: "system", Content: prompts.Get(role) + "\n" + skills.RoleDocs(t.Scope.PurposeID, role)}, {Role: "user", Content: string(domain.Canonical(payload))}}}
 			if len(domain.Canonical(r)) > s.MaxInput {
 				return errors.New("CONTEXT_BUDGET_EXCEEDED")
 			}
 			res, err := s.Provider.Generate(s.ctx, r)
-			trace := domain.Trace{JobID: j.ID, Role: role, Mode: s.Provider.Mode(), Request: domain.Canonical(r), Response: res.Text, ElapsedMS: res.ElapsedMS}
+			trace := domain.Trace{InputTokens: res.InputTokens, OutputTokens: res.OutputTokens, JobID: j.ID, Role: role, Mode: s.Provider.Mode(), Request: domain.Canonical(r), Response: res.Text, ElapsedMS: res.ElapsedMS}
+			if live, ok := s.Provider.(*llm.Live); ok {
+				trace.Model = live.Model
+				trace.ProviderConfigHash = domain.Hash(domain.Canonical(live.Config))
+			}
 			if err == nil {
 				err = llm.Parse(res.Text, out)
 			}
@@ -185,6 +201,7 @@ func (s *Service) run(id string) {
 		}
 		return last
 	}
+	var interpretation *llm.Disclosure
 	var generated *domain.Artifact
 	var ascii, multi []byte
 	var reproduction *runner.Repro
@@ -196,7 +213,7 @@ func (s *Service) run(id string) {
 			break
 		}
 		var a llm.Analysis
-		e = call("analyst", map[string]any{"task": domain.Task{Scope: t.Scope, Sources: t.Sources, Evidence: t.Evidence}}, &a)
+		e = call("analyst", map[string]any{"purpose_id": t.Scope.PurposeID, "sources": domain.ModelSources(t), "evidence": t.Evidence}, &a)
 		if e != nil {
 			break
 		}
@@ -205,27 +222,38 @@ func (s *Service) run(id string) {
 			break
 		}
 		keys := map[string]bool{}
+		candidateByKey := map[string]int{}
 		for _, c := range a.Candidates {
 			if c.LocalKey == "" || keys[c.LocalKey] || c.Statement == "" || (c.Kind != "observation" && c.Kind != "constraint" && c.Kind != "unknown" && c.Kind != "identifier") || (c.Uncertainty != "observed" && c.Uncertainty != "reported" && c.Uncertainty != "inferred" && c.Uncertainty != "unknown") || (c.Relevance != "required" && c.Relevance != "optional") {
 				e = errors.New("SCHEMA_INVALID")
 				break
 			}
 			keys[c.LocalKey] = true
+			candidateByKey[c.LocalKey] = len(candidates)
 			if e = domain.ValidateEvidence(t, c.EvidenceIDs); e != nil {
 				break
 			}
 			candidates = append(candidates, domain.Candidate{ID: domain.ID("cand"), Kind: c.Kind, Statement: c.Statement, Uncertainty: c.Uncertainty, EvidenceIDs: c.EvidenceIDs, Required: c.Relevance == "required", Origin: "model"})
 		}
+
 		for _, conf := range a.Conflicts {
+			if len(conf.Keys) < 2 {
+				e = errors.New("SCHEMA_INVALID")
+				break
+			}
+			group := domain.ID("conflict")
 			for _, key := range conf.Keys {
 				if !keys[key] {
 					e = errors.New("REFERENCE_INVALID")
+					break
 				}
+				index := candidateByKey[key]
+				candidates[index].ConflictGroup = group
+				candidates[index].ConflictReason = conf.Reason
+				candidates[index].Required = true
 			}
 		}
-		if len(a.Conflicts) > 0 {
-			e = errors.New("SOURCE_CONFLICT")
-		}
+
 		if e != nil {
 			break
 		}
@@ -233,7 +261,7 @@ func (s *Service) run(id string) {
 			if !src.Included || src.Format != "csv" {
 				continue
 			}
-			rows, err := csv.NewReader(strings.NewReader(string(src.Raw))).ReadAll()
+			rows, err := csv.NewReader(strings.NewReader(strings.TrimPrefix(string(src.Raw), "\ufeff"))).ReadAll()
 			if err != nil || len(rows) < 2 {
 				continue
 			}
@@ -257,7 +285,65 @@ func (s *Service) run(id string) {
 		if t.Scope.PurposeID == "oss_issue" && len(t.Evidence) > 0 {
 			candidates = append(candidates, domain.Candidate{ID: domain.ID("cand"), Kind: "synthetic", Statement: "공개 toy 계약으로 원문과 무관한 6코드포인트 합성 입력을 만들고 고정 대상의 결함·수정 버전을 실행합니다. 합성 입력과 공개 재현 코드를 첨부합니다.", Uncertainty: "reported", EvidenceIDs: []string{t.Evidence[0].ID}, Origin: "app"})
 		}
-	case "compose", "review":
+
+		for _, src := range t.Sources {
+			if !src.Included {
+				continue
+			}
+			obs := policy.Observations(string(src.Raw))
+			if len(obs) > 0 {
+				evs := []string{}
+				for _, ev := range t.Evidence {
+					if ev.SourceVersionID == src.ID {
+						evs = append(evs, ev.ID)
+					}
+				}
+				labels := []string{}
+				for _, ev := range obs {
+					labels = append(labels, ev.Statement)
+				}
+				candidates = append(candidates, domain.Candidate{ID: domain.ID("cand"), Kind: "timeline", Statement: "관찰된 사건 순서: " + strings.Join(labels, " → ") + "。", Uncertainty: "observed", EvidenceIDs: evs, Observations: obs, Origin: "app"})
+			}
+		}
+		if t.Scope.PurposeID == "vendor_support" && len(t.Evidence) > 0 {
+			candidates = append(candidates, domain.Candidate{ID: domain.ID("cand"), Kind: "config_example", Statement: "현재 공급사 문의에 문서용 IP 대역을 사용하는 새 설정 예시를 첨부합니다. 실제 접속 로그의 주소를 공개하는 승인은 아닙니다.", Uncertainty: "reported", EvidenceIDs: []string{t.Evidence[0].ID}, Origin: "app"})
+		}
+
+	case "interpret_disclosure":
+		var candidate *domain.Candidate
+		for i := range t.Candidates {
+			if t.Candidates[i].ID == j.Arguments.CandidateID {
+				candidate = &t.Candidates[i]
+			}
+		}
+		if candidate == nil || j.Arguments.Text == "" {
+			e = errors.New("INVALID_REQUEST")
+			break
+		}
+		var proposal llm.Disclosure
+		e = call("disclosure", map[string]any{"candidate": candidate, "user_input": j.Arguments.Text, "allowed_transforms": []string{"series_direction_only.v1", "series_index_base100.v1"}}, &proposal)
+		if e != nil {
+			break
+		}
+		if proposal.Schema != "disclosure_proposal.v1" || proposal.CandidateID != candidate.ID || (proposal.Status != "supported" && proposal.Status != "ambiguous" && proposal.Status != "unsupported") {
+			e = errors.New("SCHEMA_INVALID")
+			break
+		}
+		if proposal.Status == "supported" {
+			if proposal.Representation == nil || proposal.Clarify {
+				e = errors.New("SCHEMA_INVALID")
+				break
+			}
+			_, e = policy.ProjectFor(t, *candidate, *proposal.Representation, nil)
+			if e != nil {
+				break
+			}
+		} else if proposal.Representation != nil {
+			e = errors.New("SCHEMA_INVALID")
+			break
+		}
+		interpretation = &proposal
+	case "compose", "review", "reproduce":
 		var pack domain.FactPack
 		pack, e = policy.Pack(t, rules, time.Now())
 		if e != nil {
@@ -267,19 +353,30 @@ func (s *Service) run(id string) {
 		for _, c := range t.Candidates {
 			if c.Kind == "synthetic" {
 				if d, ok := t.Decisions[c.ID]; ok && d.Disposition == "allow" && policy.Active(d, t, rules, time.Now()) {
-					ascii, multi, e = tools.Synthetic(41, 6)
+					seed := uint64(41)
+					if j.Arguments.Seed != nil {
+						seed = *j.Arguments.Seed
+					}
+					ascii, multi, e = tools.Synthetic(seed, 6)
 					if e != nil {
 						break
 					}
 					result := runner.Repro{Schema: "repro_result.v1", Status: "not_run", Reason: "no_environment", Runs: []runner.RunObservation{}}
 					var reg runner.TargetRegistration
-					if b, err := os.ReadFile("var/runners/targets.json"); err == nil && domain.Strict(b, &reg) == nil {
+					if b, err := os.ReadFile("var/runners/targets.json"); err == nil && domain.Strict(b, &reg) == nil && s.ReproductionEnabled {
 						result = runner.RunRepro(s.ctx, reg, ascii, multi)
+					}
+					if !s.ReproductionEnabled {
+						result.Reason = "disabled_by_configuration"
 					}
 					reproduction = &result
 					pack.ToolResults = append(pack.ToolResults, map[string]string{"status": result.Status, "reason_code": result.Reason})
 				}
 			}
+		}
+		if j.Kind == "reproduce" && reproduction == nil {
+			e = errors.New("NEEDS_DISCLOSURE_DECISION")
+			break
 		}
 		var draft domain.Draft
 		if j.Kind == "review" {
@@ -314,7 +411,7 @@ func (s *Service) run(id string) {
 			ar.Status = "blocked"
 			generated = &ar
 			var rev llm.Review
-			e = call("reviewer", map[string]any{"sources": t.Sources, "decisions": t.Decisions, "fact_pack": pack, "document": draft, "document_hash": ar.DocumentHash}, &rev)
+			e = call("reviewer", map[string]any{"sources": domain.ModelSources(t), "decisions": t.Decisions, "fact_pack": pack, "document": draft, "document_hash": ar.DocumentHash}, &rev)
 			if e != nil {
 				break
 			}
@@ -324,7 +421,7 @@ func (s *Service) run(id string) {
 			ar.Reviews = append(ar.Reviews, domain.Review{ID: domain.ID("review"), TargetKind: "document", TargetHash: ar.DocumentHash, Mode: s.Provider.Mode(), Result: rev.Result})
 			if rev.Result == "pass" {
 				var final llm.Review
-				e = call("reviewer", map[string]any{"sources": t.Sources, "decisions": t.Decisions, "fact_pack": pack, "files": ar.Files, "artifact_set_hash": ar.SetHash}, &final)
+				e = call("reviewer", map[string]any{"sources": domain.ModelSources(t), "decisions": t.Decisions, "fact_pack": pack, "files": domain.ModelFiles(ar.Files), "artifact_set_hash": ar.SetHash}, &final)
 				if e != nil {
 					break
 				}
@@ -334,6 +431,14 @@ func (s *Service) run(id string) {
 				ar.Reviews = append(ar.Reviews, domain.Review{ID: domain.ID("review"), TargetKind: "files", TargetHash: ar.SetHash, Mode: s.Provider.Mode(), Result: final.Result})
 				if final.Result != "pass" {
 					e = errors.New("REVIEW_UNRESOLVED")
+					break
+				}
+				totalBytes := 0
+				for _, f := range ar.Files {
+					totalBytes += len(f.Bytes)
+				}
+				if totalBytes > s.MaxExportBytes || len(ar.ZIP) > s.MaxExportBytes {
+					e = errors.New("EXPORT_TOO_LARGE")
 					break
 				}
 				if e = artifact.Check(ar); e != nil {
@@ -357,8 +462,14 @@ func (s *Service) run(id string) {
 			}
 		}
 
-	case "reproduce":
-		t.Reproduction = domain.ReproResult{Schema: "repro_result.v1", Status: "not_run", Reason: "no_environment"}
+	case "provider_check":
+		var result struct {
+			OK bool `json:"ok"`
+		}
+		e = call("check", map[string]string{"request": "비민감 연결 확인"}, &result)
+		if e == nil && !result.OK {
+			e = errors.New("SCHEMA_INVALID")
+		}
 	}
 
 	s.Store.Mu.Lock()
@@ -388,6 +499,8 @@ func (s *Service) run(id string) {
 			if e.Error() == "NEEDS_DECISIONS" {
 				current.Phase = "needs_decisions"
 			}
+		} else if interpretation != nil {
+			current.Phase = j.PreviousPhase
 		} else if j.Kind == "analyze" {
 			current.Candidates = candidates
 			current.Decisions = map[string]domain.Decision{}
@@ -430,6 +543,9 @@ func (s *Service) run(id string) {
 	for i := range current.Jobs {
 		if current.Jobs[i].ID == j.ID {
 			current.Jobs[i].Status = status
+			if interpretation != nil {
+				current.Jobs[i].Result = domain.Canonical(interpretation)
+			}
 			now := time.Now().UTC()
 			current.Jobs[i].Finished = &now
 			if e != nil {

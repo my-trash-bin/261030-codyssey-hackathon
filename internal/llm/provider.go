@@ -86,9 +86,32 @@ func (Fixture) Generate(ctx context.Context, r Request) (Response, error) {
 	start := time.Now()
 	var result any
 	switch r.Role {
+	case "disclosure":
+		var input struct {
+			Candidate domain.Candidate `json:"candidate"`
+			Text      string           `json:"user_input"`
+		}
+		if json.Unmarshal([]byte(r.Messages[len(r.Messages)-1].Content), &input) != nil {
+			return Response{}, errors.New("SCHEMA_INVALID")
+		}
+		proposal := Disclosure{Schema: "disclosure_proposal.v1", Status: "unsupported", CandidateID: input.Candidate.ID}
+		if input.Candidate.Kind == "series" {
+			if input.Text == "첫 관찰을 100으로 한 비율만 공개" {
+				proposal.Status = "supported"
+				proposal.Representation = &domain.Representation{Kind: "derived_table", TransformID: "series_index_base100.v1", Parameters: map[string]int{"decimal_places": 2}}
+			}
+			if input.Text == "방향만 공개" {
+				proposal.Status = "supported"
+				proposal.Representation = &domain.Representation{Kind: "derived_table", TransformID: "series_direction_only.v1", Parameters: map[string]int{}}
+			}
+		}
+		result = proposal
+	case "check":
+		result = map[string]bool{"ok": true}
 	case "analyst":
 		var payload struct {
-			Task domain.Task `json:"task"`
+			Sources  []domain.ModelSource `json:"sources"`
+			Evidence []domain.Evidence    `json:"evidence"`
 		}
 		if json.Unmarshal([]byte(r.Messages[len(r.Messages)-1].Content), &payload) != nil {
 			return Response{}, errors.New("SCHEMA_INVALID")
@@ -101,17 +124,17 @@ func (Fixture) Generate(ctx context.Context, r Request) (Response, error) {
 			}
 			a.Candidates = append(a.Candidates, Proposal{LocalKey: domain.ID("local"), Kind: kind, Uncertainty: "observed", Statement: statement, EvidenceIDs: ev, Relevance: rel, PurposeRelevance: "조사를 위한 관찰 정보"})
 		}
-		for _, s := range payload.Task.Sources {
+		for _, s := range payload.Sources {
 			if !s.Included || s.Format == "csv" {
 				continue
 			}
 			evs := []string{}
-			for _, ev := range payload.Task.Evidence {
+			for _, ev := range payload.Evidence {
 				if ev.SourceVersionID == s.ID {
 					evs = append(evs, ev.ID)
 				}
 			}
-			raw := string(s.Raw)
+			raw := string([]byte(s.Content))
 			if strings.Contains(raw, "response_timeout") {
 				add("첫 요청에서 클라이언트 응답 대기 시간이 초과됐습니다.", "observation", evs, true)
 				if strings.Contains(raw, "status=200") {
@@ -139,12 +162,30 @@ func (Fixture) Generate(ctx context.Context, r Request) (Response, error) {
 					}
 				}
 			}
+			if strings.Contains(raw, "toyrecord 0.1.0-demo") {
+				add("가상 공개 제품 toyrecord 0.1.0-demo이며 입력 계약은 1–8 코드포인트입니다.", "constraint", evs, true)
+			}
 			if strings.Contains(raw, "E_ENCODE_SHORT_BUFFER") {
 				add("다중 바이트 입력에서 encode 단계 E_ENCODE_SHORT_BUFFER 오류를 관찰했습니다. 근본 원인은 아직 조사 중입니다.", "observation", evs, true)
 				add("ASCII 입력의 저장은 성공했습니다.", "observation", evs, true)
 			}
 			if strings.Contains(raw, "중복 입력") {
 				add("같은 요청을 접수표와 처리 시스템에 중복 입력하고 사람이 상태를 대조합니다.", "observation", evs, true)
+			}
+
+			if strings.Contains(raw, "충돌 자료:") {
+				key := ""
+				for _, candidate := range a.Candidates {
+					if candidate.Kind == "unknown" {
+						key = candidate.LocalKey
+						break
+					}
+				}
+				add("별도 메모는 최초 요청의 완료를 주장하지만 확인이 필요합니다.", "observation", evs, true)
+				a.Candidates[len(a.Candidates)-1].Uncertainty = "reported"
+				if key != "" {
+					a.Conflicts = append(a.Conflicts, Conflict{Keys: []string{key, a.Candidates[len(a.Candidates)-1].LocalKey}, Reason: "완료 여부에 관한 원자료 주장 충돌"})
+				}
 			}
 			if strings.Contains(raw, "채널을 유지") {
 				add("기존 메일·메신저 접수 채널을 유지해야 합니다.", "constraint", evs, true)
@@ -157,6 +198,12 @@ func (Fixture) Generate(ctx context.Context, r Request) (Response, error) {
 			return Response{}, e
 		}
 		d := domain.Draft{Schema: "draft.v1", Blocks: []domain.Block{}}
+		if len(p.Facts) > 0 {
+			title := map[string]string{"vendor_support.v1": "저장 요청 시간 초과 문의", "oss_issue.v1": "문자열 저장 오류 제보", "operations_advice.v1": "운영 흐름 개선 자문 요청"}[p.TemplateID]
+			if title != "" {
+				d.Blocks = append(d.Blocks, domain.Block{Type: "heading", Level: 1, Text: title, FactIDs: []string{p.Facts[0].ID}})
+			}
+		}
 		for _, f := range p.Facts {
 			d.Blocks = append(d.Blocks, domain.Block{Type: "paragraph", Text: f.Statement, FactIDs: []string{f.ID}})
 		}
@@ -165,6 +212,25 @@ func (Fixture) Generate(ctx context.Context, r Request) (Response, error) {
 		}
 		for _, slot := range p.Excerpts {
 			d.Blocks = append(d.Blocks, domain.Block{Type: "excerpt_ref", ExcerptID: slot.ID})
+		}
+		for _, slot := range p.Assets {
+			d.Blocks = append(d.Blocks, domain.Block{Type: "asset_ref", AssetID: slot.ID})
+		}
+		if len(p.Facts) > 0 {
+			question := "관찰된 현상과 미확인 사항에 대해 확인을 부탁드립니다."
+			if p.TemplateID == "vendor_support.v1" {
+				hasIDs := false
+				for _, fact := range p.Facts {
+					hasIDs = hasIDs || fact.Kind == "identifier"
+				}
+				if !hasIDs {
+					question = "조회에 필요한 최소 진단 항목과 안전한 재시도 조건을 알려 주세요."
+				}
+			}
+			if p.TemplateID == "operations_advice.v1" {
+				question = "기존 채널 유지 제약을 지키면서 중복 입력과 상태 대조를 줄일 개선 방안을 제안해 주세요."
+			}
+			d.Blocks = append(d.Blocks, domain.Block{Type: "paragraph", Text: question, FactIDs: []string{p.Facts[0].ID}})
 		}
 		result = d
 	case "reviewer":

@@ -21,5 +21,9 @@ func WriterPack(p FactPack) FactPack {
 	for i := range p.Excerpts {
 		p.Excerpts[i].Bytes = nil
 	}
+	p.Assets = append([]Slot{}, p.Assets...)
+	for i := range p.Assets {
+		p.Assets[i].Bytes = nil
+	}
 	return p
 }

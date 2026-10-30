@@ -1,0 +1,273 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "candidate_id": {
+      "maxLength": 8192,
+      "type": "string"
+    },
+    "input_revision": {
+      "type": "integer"
+    },
+    "preview_id": {
+      "maxLength": 8192,
+      "type": "string"
+    },
+    "projection": {
+      "additionalProperties": false,
+      "properties": {
+        "columns": {
+          "items": {
+            "maxLength": 8192,
+            "type": "string"
+          },
+          "maxItems": 100,
+          "type": [
+            "array",
+            "null"
+          ]
+        },
+        "excerpt": {
+          "contentEncoding": "base64",
+          "maxLength": 349528,
+          "type": "string"
+        },
+        "rows": {
+          "items": {
+            "items": {
+              "maxLength": 8192,
+              "type": "string"
+            },
+            "maxItems": 100,
+            "type": [
+              "array",
+              "null"
+            ]
+          },
+          "maxItems": 100,
+          "type": [
+            "array",
+            "null"
+          ]
+        },
+        "statement": {
+          "maxLength": 8192,
+          "type": "string"
+        }
+      },
+      "required": [
+        "statement",
+        "columns",
+        "rows"
+      ],
+      "type": "object"
+    },
+    "projection_sha256": {
+      "maxLength": 8192,
+      "type": "string"
+    },
+    "raw_grants": {
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "byte_range": {
+            "additionalProperties": false,
+            "properties": {
+              "end": {
+                "type": "integer"
+              },
+              "start": {
+                "type": "integer"
+              }
+            },
+            "required": [
+              "start",
+              "end"
+            ],
+            "type": "object"
+          },
+          "expires_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "hidden_ranges": {
+            "items": {
+              "additionalProperties": false,
+              "properties": {
+                "end": {
+                  "type": "integer"
+                },
+                "start": {
+                  "type": "integer"
+                }
+              },
+              "required": [
+                "start",
+                "end"
+              ],
+              "type": "object"
+            },
+            "maxItems": 100,
+            "type": [
+              "array",
+              "null"
+            ]
+          },
+          "rendered_sha256": {
+            "maxLength": 8192,
+            "type": "string"
+          },
+          "scope": {
+            "additionalProperties": false,
+            "properties": {
+              "audience": {
+                "enum": [
+                  "public",
+                  "named_external"
+                ],
+                "maxLength": 8192,
+                "type": "string"
+              },
+              "project_id": {
+                "maxLength": 8192,
+                "type": "string"
+              },
+              "purpose_id": {
+                "enum": [
+                  "oss_issue",
+                  "vendor_support",
+                  "operations_advice"
+                ],
+                "maxLength": 8192,
+                "type": "string"
+              },
+              "recipient_id": {
+                "maxLength": 8192,
+                "type": "string"
+              },
+              "skill_set_hash": {
+                "maxLength": 8192,
+                "type": "string"
+              }
+            },
+            "required": [
+              "project_id",
+              "purpose_id",
+              "recipient_id",
+              "audience",
+              "skill_set_hash"
+            ],
+            "type": "object"
+          },
+          "source_sha256": {
+            "maxLength": 8192,
+            "type": "string"
+          },
+          "source_version_id": {
+            "maxLength": 8192,
+            "type": "string"
+          }
+        },
+        "required": [
+          "source_version_id",
+          "source_sha256",
+          "byte_range",
+          "hidden_ranges",
+          "rendered_sha256",
+          "scope",
+          "expires_at"
+        ],
+        "type": "object"
+      },
+      "maxItems": 100,
+      "type": [
+        "array",
+        "null"
+      ]
+    },
+    "representation": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "enum": [
+            "fact_summary",
+            "derived_table",
+            "selected_fields",
+            "exact_value",
+            "approved_excerpt"
+          ],
+          "maxLength": 8192,
+          "type": "string"
+        },
+        "parameters": {
+          "additionalProperties": false,
+          "maxProperties": 5,
+          "properties": {
+            "decimal_places": {
+              "maximum": 4,
+              "minimum": 0,
+              "type": "integer"
+            },
+            "end_row": {
+              "minimum": 1,
+              "type": "integer"
+            },
+            "include_count": {
+              "maximum": 1,
+              "minimum": 0,
+              "type": "integer"
+            },
+            "include_observation": {
+              "maximum": 1,
+              "minimum": 0,
+              "type": "integer"
+            },
+            "include_unit": {
+              "maximum": 1,
+              "minimum": 0,
+              "type": "integer"
+            },
+            "start_row": {
+              "minimum": 0,
+              "type": "integer"
+            }
+          },
+          "type": "object"
+        },
+        "transform_id": {
+          "enum": [
+            "",
+            "series_direction_only.v1",
+            "series_index_base100.v1"
+          ],
+          "maxLength": 8192,
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "transform_id",
+        "parameters"
+      ],
+      "type": "object"
+    }
+  },
+  "required": [
+    "raw_grants",
+    "preview_id",
+    "input_revision",
+    "candidate_id",
+    "representation",
+    "projection",
+    "projection_sha256"
+  ],
+  "title": "disclosure_preview.v1",
+  "type": "object"
+}

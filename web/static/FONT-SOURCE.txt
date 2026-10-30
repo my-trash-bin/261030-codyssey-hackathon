@@ -1,0 +1,5 @@
+Noto Sans KR variable TrueType
+Source: https://github.com/google/fonts/tree/main/ofl/notosanskr
+Downloaded: 2026-10-30
+License: SIL Open Font License 1.1; see NotoSansKR-OFL.txt
+Bundled for offline Korean rendering; no runtime font network requests.

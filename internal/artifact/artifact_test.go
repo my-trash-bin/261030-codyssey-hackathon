@@ -2,6 +2,7 @@ package artifact
 
 import (
 	"safehandoff.local/poc/internal/domain"
+	"strings"
 	"testing"
 )
 
@@ -46,5 +47,18 @@ func TestZIPDeterministic(t *testing.T) {
 	a.Files[0].Bytes[0] ^= 1
 	if Check(a) == nil {
 		t.Fatal("tamper")
+	}
+}
+func TestTypedNegativeCSV(t *testing.T) {
+	p := domain.FactPack{TemplateID: "operations_advice.v1", Tables: []domain.Table{{ID: "t", Columns: []string{"관찰", "건수"}, Rows: [][]string{{"first", "-82"}}, NumericColumns: []int{1}}}}
+	d := domain.Draft{Schema: "draft.v1", Blocks: []domain.Block{{Type: "table_ref", TableID: "t"}}}
+	a, e := Build(d, p)
+	if e != nil {
+		t.Fatal(e)
+	}
+	for _, f := range a.Files {
+		if f.Path == "observations.csv" && strings.Contains(string(f.Bytes), "'-82") {
+			t.Fatal("numeric value escaped as text")
+		}
 	}
 }

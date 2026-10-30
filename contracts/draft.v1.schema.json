@@ -78,7 +78,8 @@
               "paragraph",
               "list",
               "table_ref",
-              "excerpt_ref"
+              "excerpt_ref",
+              "asset_ref"
             ],
             "maxLength": 8192,
             "type": "string"

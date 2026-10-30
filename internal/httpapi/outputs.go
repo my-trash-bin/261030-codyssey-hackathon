@@ -13,14 +13,15 @@ import (
 
 func (s *Server) startJob(w http.ResponseWriter, r *http.Request) {
 	var v struct {
-		Revision int    `json:"expected_revision"`
-		Kind     string `json:"kind"`
+		Revision  int                 `json:"expected_revision"`
+		Kind      string              `json:"kind"`
+		Arguments domain.JobArguments `json:"arguments"`
 	}
 	if e := decode(r, &v); e != nil {
 		fail(w, e, 400)
 		return
 	}
-	j, e := s.Service.Start(r.PathValue("id"), v.Revision, v.Kind)
+	j, e := s.Service.StartWithArguments(r.PathValue("id"), v.Revision, v.Kind, v.Arguments)
 	if e != nil {
 		fail(w, e, 409)
 		return
@@ -87,18 +88,28 @@ func (s *Server) events(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/event-stream")
 	ticker := time.NewTicker(time.Second)
 	defer ticker.Stop()
+	nextHeartbeat := time.Now()
+	first := true
 	for {
 		t, e := s.Service.Store.Get(r.PathValue("id"))
 		if e != nil {
 			return
 		}
+		if first && last > len(t.Events) {
+			fmt.Fprintf(w, "event: resync_required\ndata: %s\n\n", domain.Canonical(map[string]any{"revision": t.Revision, "state": t.Phase}))
+			last = 0
+		}
+		first = false
 		for _, ev := range t.Events {
 			if ev.Seq > last {
 				fmt.Fprintf(w, "id: %d\nevent: %s\ndata: %s\n\n", ev.Seq, ev.Type, domain.Canonical(ev))
 				last = ev.Seq
 			}
 		}
-		fmt.Fprint(w, ": heartbeat\n\n")
+		if !time.Now().Before(nextHeartbeat) {
+			fmt.Fprint(w, ": heartbeat\n\n")
+			nextHeartbeat = time.Now().Add(15 * time.Second)
+		}
 		fl.Flush()
 		select {
 		case <-r.Context().Done():
@@ -305,7 +316,7 @@ func (s *Server) humanReview(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	a := t.Artifact()
-	if a == nil || a.ID != r.PathValue("artifact") || t.Revision != v.Revision || a.SetHash != v.Hash || !v.Confirmed || v.Reason == "" {
+	if a == nil || a.ID != r.PathValue("artifact") || t.Revision != v.Revision || a.SetHash != v.Hash || !v.Confirmed || v.Reason == "" || t.Phase == "needs_decisions" {
 		fail(w, errors.New("FINALIZATION_BLOCKED"), 409)
 		return
 	}
@@ -349,8 +360,18 @@ func (s *Server) revokeRule(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	found := false
+	latest := 0
 	for _, rule := range rules {
-		if rule.ID == r.PathValue("rule") && rule.Version == v.Version {
+		if rule.ID == r.PathValue("rule") && rule.Version > latest {
+			latest = rule.Version
+		}
+	}
+	if latest != v.Version {
+		fail(w, errors.New("REVISION_CONFLICT"), 409)
+		return
+	}
+	for _, rule := range rules {
+		if rule.ID == r.PathValue("rule") {
 			rule.Revoked = true
 			found = true
 			if e = s.Service.Store.PutRule(rule); e != nil {

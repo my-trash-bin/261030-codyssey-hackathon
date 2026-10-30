@@ -6,10 +6,10 @@ setup:
 	$(GO) mod verify
 build:
 	@mkdir -p bin
-	$(GO) build -trimpath -o bin/safehandoff ./cmd/safehandoff
-	$(GO) build -trimpath -o bin/safehandoff-fixtures ./cmd/safehandoff-fixtures
-	$(GO) build -trimpath -o bin/safehandoff-eval ./cmd/safehandoff-eval
-	$(GO) build -trimpath -o bin/safehandoff-checker ./cmd/safehandoff-checker
+	$(GO) build -buildvcs=false -trimpath -o bin/safehandoff ./cmd/safehandoff
+	$(GO) build -buildvcs=false -trimpath -o bin/safehandoff-fixtures ./cmd/safehandoff-fixtures
+	$(GO) build -buildvcs=false -trimpath -o bin/safehandoff-eval ./cmd/safehandoff-eval
+	$(GO) build -buildvcs=false -trimpath -o bin/safehandoff-checker ./cmd/safehandoff-checker
 fixtures: build
 	./bin/safehandoff-fixtures --scenario b2b-timeout --seed 41 --variation baseline --out var/demo-inputs
 prepare-runners: build

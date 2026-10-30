@@ -11,6 +11,84 @@
     }
   ],
   "paths": {
+    "/api/v1/provider/check": {
+      "post": {
+        "operationId": "providerCheck",
+        "summary": "providerCheck (구현된 API)",
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 160
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 8192
+            }
+          }
+        ],
+        "responses": {
+          "202": {
+            "description": "정상 응답. data 객체. 파일 응답은 실제 저장 바이트.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data"
+                  ],
+                  "properties": {
+                    "data": {
+                      "$ref": "./job.v1.schema.json"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error"
+          },
+          "413": {
+            "$ref": "#/components/responses/Error"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {},
+                "required": [],
+                "additionalProperties": false
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/catalog": {
       "get": {
         "operationId": "catalog",
@@ -182,7 +260,9 @@
                     "data"
                   ],
                   "properties": {
-                    "data": {}
+                    "data": {
+                      "$ref": "./task.v1.schema.json"
+                    }
                   },
                   "additionalProperties": false
                 }
@@ -278,7 +358,12 @@
                     "data"
                   ],
                   "properties": {
-                    "data": {}
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "./task.v1.schema.json"
+                      }
+                    }
                   },
                   "additionalProperties": false
                 }
@@ -332,7 +417,9 @@
                     "data"
                   ],
                   "properties": {
-                    "data": {}
+                    "data": {
+                      "$ref": "./task.v1.schema.json"
+                    }
                   },
                   "additionalProperties": false
                 }
@@ -402,7 +489,9 @@
                     "data"
                   ],
                   "properties": {
-                    "data": {}
+                    "data": {
+                      "$ref": "./task.v1.schema.json"
+                    }
                   },
                   "additionalProperties": false
                 }
@@ -999,7 +1088,9 @@
                     "data"
                   ],
                   "properties": {
-                    "data": {}
+                    "data": {
+                      "$ref": "./disclosure_preview.v1.schema.json"
+                    }
                   },
                   "additionalProperties": false
                 }
@@ -1041,37 +1132,7 @@
                     "maxLength": 8192
                   },
                   "representation": {
-                    "type": "object",
-                    "additionalProperties": false,
-                    "properties": {
-                      "kind": {
-                        "enum": [
-                          "fact_summary",
-                          "derived_table",
-                          "exact_value",
-                          "approved_excerpt"
-                        ]
-                      },
-                      "transform_id": {
-                        "type": "string",
-                        "maxLength": 8192
-                      },
-                      "parameters": {
-                        "type": "object",
-                        "properties": {
-                          "decimal_places": {
-                            "type": "integer",
-                            "minimum": 0,
-                            "maximum": 4
-                          }
-                        },
-                        "required": [],
-                        "additionalProperties": false
-                      }
-                    },
-                    "required": [
-                      "kind"
-                    ]
+                    "$ref": "./decision.v1.schema.json#/properties/representation"
                   },
                   "raw_grants": {
                     "type": "array",
@@ -1192,37 +1253,7 @@
                           ]
                         },
                         "representation": {
-                          "type": "object",
-                          "additionalProperties": false,
-                          "properties": {
-                            "kind": {
-                              "enum": [
-                                "fact_summary",
-                                "derived_table",
-                                "exact_value",
-                                "approved_excerpt"
-                              ]
-                            },
-                            "transform_id": {
-                              "type": "string",
-                              "maxLength": 8192
-                            },
-                            "parameters": {
-                              "type": "object",
-                              "properties": {
-                                "decimal_places": {
-                                  "type": "integer",
-                                  "minimum": 0,
-                                  "maximum": 4
-                                }
-                              },
-                              "required": [],
-                              "additionalProperties": false
-                            }
-                          },
-                          "required": [
-                            "kind"
-                          ]
+                          "$ref": "./decision.v1.schema.json#/properties/representation"
                         },
                         "preview_id": {
                           "type": "string",
@@ -1234,6 +1265,14 @@
                         },
                         "save_reusable_rule": {
                           "type": "boolean"
+                        },
+                        "applied_rule_id": {
+                          "type": "string",
+                          "maxLength": 8192
+                        },
+                        "applied_rule_version": {
+                          "type": "integer",
+                          "minimum": 1
                         },
                         "raw_grants": {
                           "type": "array",
@@ -1414,7 +1453,9 @@
                     "data"
                   ],
                   "properties": {
-                    "data": {}
+                    "data": {
+                      "$ref": "./job.v1.schema.json"
+                    }
                   },
                   "additionalProperties": false
                 }
@@ -1456,13 +1497,34 @@
                       "analyze",
                       "compose",
                       "review",
-                      "reproduce"
+                      "reproduce",
+                      "interpret_disclosure"
                     ]
+                  },
+                  "arguments": {
+                    "type": "object",
+                    "properties": {
+                      "candidate_id": {
+                        "type": "string",
+                        "maxLength": 8192
+                      },
+                      "text": {
+                        "type": "string",
+                        "maxLength": 8192
+                      },
+                      "seed": {
+                        "type": "integer",
+                        "minimum": 0
+                      }
+                    },
+                    "required": [],
+                    "additionalProperties": false
                   }
                 },
                 "required": [
                   "expected_revision",
-                  "kind"
+                  "kind",
+                  "arguments"
                 ],
                 "additionalProperties": false
               }
@@ -1497,7 +1559,9 @@
                     "data"
                   ],
                   "properties": {
-                    "data": {}
+                    "data": {
+                      "$ref": "./job.v1.schema.json"
+                    }
                   },
                   "additionalProperties": false
                 }
@@ -1569,7 +1633,9 @@
                     "data"
                   ],
                   "properties": {
-                    "data": {}
+                    "data": {
+                      "$ref": "./job.v1.schema.json"
+                    }
                   },
                   "additionalProperties": false
                 }
@@ -1699,7 +1765,9 @@
                     "data"
                   ],
                   "properties": {
-                    "data": {}
+                    "data": {
+                      "$ref": "./artifact.v1.schema.json"
+                    }
                   },
                   "additionalProperties": false
                 }
@@ -1828,7 +1896,9 @@
                     "data"
                   ],
                   "properties": {
-                    "data": {}
+                    "data": {
+                      "$ref": "./artifact.v1.schema.json"
+                    }
                   },
                   "additionalProperties": false
                 }
@@ -2030,7 +2100,9 @@
                     "data"
                   ],
                   "properties": {
-                    "data": {}
+                    "data": {
+                      "$ref": "./artifact.v1.schema.json"
+                    }
                   },
                   "additionalProperties": false
                 }
@@ -2213,7 +2285,12 @@
                     "data"
                   ],
                   "properties": {
-                    "data": {}
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "./rule.v1.schema.json"
+                      }
+                    }
                   },
                   "additionalProperties": false
                 }
@@ -2237,6 +2314,206 @@
           },
           "500": {
             "$ref": "#/components/responses/Error"
+          }
+        }
+      },
+      "post": {
+        "operationId": "saveRule",
+        "summary": "saveRule (구현된 API)",
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 160
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 8192
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "정상 응답. data 객체. 파일 응답은 실제 저장 바이트.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data"
+                  ],
+                  "properties": {
+                    "data": {
+                      "$ref": "./rule.v1.schema.json"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error"
+          },
+          "413": {
+            "$ref": "#/components/responses/Error"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "task_id": {
+                    "type": "string",
+                    "maxLength": 8192
+                  },
+                  "candidate_id": {
+                    "type": "string",
+                    "maxLength": 8192
+                  },
+                  "decision_id": {
+                    "type": "string",
+                    "maxLength": 8192
+                  },
+                  "expected_revision": {
+                    "type": "integer",
+                    "minimum": 1
+                  }
+                },
+                "required": [
+                  "task_id",
+                  "candidate_id",
+                  "decision_id",
+                  "expected_revision"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/rules/{rule}/versions": {
+      "post": {
+        "operationId": "ruleVersion",
+        "summary": "ruleVersion (구현된 API)",
+        "parameters": [
+          {
+            "name": "rule",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 8192
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 160
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 8192
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "정상 응답. data 객체. 파일 응답은 실제 저장 바이트.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data"
+                  ],
+                  "properties": {
+                    "data": {
+                      "$ref": "./rule.v1.schema.json"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error"
+          },
+          "413": {
+            "$ref": "#/components/responses/Error"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "expected_rule_version": {
+                    "type": "integer",
+                    "minimum": 1
+                  },
+                  "expires_at": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "format": "date-time"
+                  }
+                },
+                "required": [
+                  "expected_rule_version",
+                  "expires_at"
+                ],
+                "additionalProperties": false
+              }
+            }
           }
         }
       }

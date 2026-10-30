@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"io"
 	"reflect"
+	"regexp"
 	"strings"
 	"unicode/utf8"
 )
@@ -195,3 +196,7 @@ func required(v any, t reflect.Type) error {
 	}
 	return nil
 }
+
+var decimalPattern = regexp.MustCompile(`^-?(0|[1-9][0-9]*)(\.[0-9]+)?$`)
+
+func IsDecimal(s string) bool { return decimalPattern.MatchString(s) }

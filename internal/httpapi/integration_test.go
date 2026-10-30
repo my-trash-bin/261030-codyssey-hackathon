@@ -306,3 +306,118 @@ func TestReuseAndRevocation(t *testing.T) {
 		t.Fatal("dependent task not invalidated")
 	}
 }
+
+func TestHumanReviewCannotBypassHardChecks(t *testing.T) {
+	h := newHarness(t)
+	id := h.task("b2b-timeout", "vendor_support")
+	h.decisions(id, "direction", false)
+	h.job(id, "compose")
+	task := h.get(id)
+	a := task.Artifact()
+	a.Reviews = nil
+	a.Status = "blocked"
+	task.Phase = "needs_attention"
+	h.db.Save(task, task.Revision)
+	body := map[string]any{"expected_revision": task.Revision, "expected_artifact_set_hash": a.SetHash, "fallback_reason": "실제 파일의 미확인 사항과 공개 범위를 사람이 확인함", "confirmed": true}
+	w := h.req("POST", "/artifacts/"+a.ID+"/human-review", body, "human1")
+	if w.Code != 200 {
+		t.Fatal(w.Code, w.Body.String())
+	}
+	task = h.get(id)
+	a = task.Artifact()
+	if len(a.Reviews) != 2 || a.Reviews[0].Mode != "human" {
+		t.Fatal(a.Reviews)
+	}
+	a.Files[0].Bytes[0] ^= 1
+	h.db.Save(task, task.Revision)
+	w = h.req("POST", "/artifacts/"+a.ID+"/human-review", body, "human2")
+	if w.Code != 409 {
+		t.Fatal("bypassed hard check", w.Code)
+	}
+}
+func TestRawExcerptAPIAndWriterIsolation(t *testing.T) {
+	h := newHarness(t)
+	id := h.task("oss-encoding", "oss_issue")
+	task := h.get(id)
+	var c domain.Candidate
+	for _, v := range task.Candidates {
+		if strings.Contains(v.Statement, "E_ENCODE") {
+			c = v
+			break
+		}
+	}
+	var ev domain.Evidence
+	for _, v := range task.Evidence {
+		if v.ID == c.EvidenceIDs[0] {
+			ev = v
+		}
+	}
+	var src domain.Source
+	for _, v := range task.Sources {
+		if v.ID == ev.SourceVersionID {
+			src = v
+		}
+	}
+	raw := src.Raw[ev.Start:ev.End]
+	grant := domain.RawGrant{SourceVersionID: src.ID, SourceSHA: src.SHA, Range: domain.ByteRange{Start: ev.Start, End: ev.End}, Hidden: []domain.ByteRange{}, RenderedSHA: domain.Hash(raw), Scope: task.Scope}
+	r := domain.Representation{Kind: "approved_excerpt", Parameters: map[string]int{}}
+	p := payload[domain.Preview](t, h.req("POST", "/tasks/"+id+"/disclosure-previews", map[string]any{"expected_revision": task.Revision, "candidate_id": c.ID, "representation": r, "raw_grants": []domain.RawGrant{grant}}, "raw-preview"))
+	ops := []map[string]any{}
+	for _, candidate := range task.Candidates {
+		if candidate.ID == c.ID {
+			ops = append(ops, map[string]any{"candidate_id": c.ID, "disposition": "allow", "representation": r, "raw_grants": []domain.RawGrant{grant}, "preview_id": p.ID, "projection_sha256": p.SHA})
+		} else {
+			ops = append(ops, map[string]any{"candidate_id": candidate.ID, "disposition": "exclude"})
+		}
+	}
+	payload[map[string]any](t, h.req("POST", "/tasks/"+id+"/decision-batches", map[string]any{"expected_revision": task.Revision, "operations": ops}, "raw-decisions"))
+	h.job(id, "compose")
+	h.finalize(id)
+	task = h.get(id)
+	found := false
+	for _, f := range task.Artifact().Files {
+		if f.Path == "approved-excerpt.txt" {
+			found = true
+			if !bytes.Equal(f.Bytes, raw) {
+				t.Fatal("excerpt changed")
+			}
+		}
+	}
+	if !found {
+		t.Fatal("missing excerpt")
+	}
+	for _, tr := range task.Traces {
+		if tr.Role == "writer" && bytes.Contains(tr.Request, []byte("source_version_id")) {
+			t.Fatal("raw provenance leaked into writer")
+		}
+	}
+}
+func TestInterpretationIsProposalNotApproval(t *testing.T) {
+	h := newHarness(t)
+	id := h.task("internal-operations", "operations_advice")
+	task := h.get(id)
+	var c domain.Candidate
+	for _, candidate := range task.Candidates {
+		if candidate.Kind == "series" {
+			c = candidate
+		}
+	}
+	j := payload[domain.Job](t, h.req("POST", "/tasks/"+id+"/jobs", map[string]any{"expected_revision": task.Revision, "kind": "interpret_disclosure", "arguments": map[string]any{"candidate_id": c.ID, "text": "첫 관찰을 100으로 한 비율만 공개"}}, "interpret"))
+	for i := 0; i < 100; i++ {
+		next := h.get(id)
+		for _, job := range next.Jobs {
+			if job.ID == j.ID && job.Status == "succeeded" {
+				var result llm.Disclosure
+				if json.Unmarshal(job.Result, &result) != nil || result.Status != "supported" {
+					t.Fatal(string(job.Result))
+				}
+				if len(next.Decisions) != 0 || next.Revision != task.Revision {
+					t.Fatal("proposal changed permissions")
+				}
+				return
+			}
+		}
+		time.Sleep(5 * time.Millisecond)
+	}
+	t.Fatal("interpretation did not complete")
+}

@@ -96,13 +96,19 @@ func (s *Store) List() ([]domain.Task, error) {
 	}
 	return out, rows.Err()
 }
-func (s *Store) Save(t domain.Task, expected int) error {
+func (s *Store) Save(t domain.Task, expected int) error { return s.SaveWithRules(t, expected, nil) }
+func (s *Store) SaveWithRules(t domain.Task, expected int, rules []domain.Rule) error {
 	tx, e := s.DB.Begin()
 	if e != nil {
 		return e
 	}
 	defer tx.Rollback()
 	b := domain.Canonical(t)
+	for _, rule := range rules {
+		if _, e = tx.Exec("INSERT INTO rules VALUES(?,?,?)", rule.ID, rule.Version, domain.Canonical(rule)); e != nil {
+			return e
+		}
+	}
 	if expected == 0 {
 		_, e = tx.Exec("INSERT INTO tasks VALUES(?,?,?,?)", t.ID, t.Revision, t.Phase, b)
 	} else {

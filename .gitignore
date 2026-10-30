@@ -3,3 +3,5 @@ var/
 bin/
 .env
 *.db*
+
+config.json

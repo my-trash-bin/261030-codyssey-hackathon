@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"io"
+	"net"
 	"net/http"
 	"net/url"
 	"os"
@@ -44,6 +45,9 @@ type Live struct {
 }
 
 func NewLive(c Config) (*Live, error) {
+	if c.Type != "openai_compatible" || c.ResponseMode != "text" || c.Concurrency != 1 {
+		return nil, errors.New("PROVIDER_CONFIG_UNSUPPORTED")
+	}
 	u, e := url.Parse(os.Getenv(c.BaseURLEnv))
 	if e != nil || u.Host == "" || u.User != nil || u.RawQuery != "" || u.Fragment != "" || (u.Scheme != "https" && !(u.Scheme == "http" && c.AllowHTTP)) || os.Getenv(c.ModelEnv) == "" {
 		return nil, errors.New("PROVIDER_CONFIG_UNSUPPORTED")
@@ -90,6 +94,10 @@ func (p *Live) Generate(ctx context.Context, r Request) (Response, error) {
 	if e != nil {
 		if ctx.Err() != nil {
 			return Response{}, errors.New("CANCELLED")
+		}
+		var networkError net.Error
+		if errors.As(e, &networkError) && networkError.Timeout() {
+			return Response{}, errors.New("PROVIDER_TIMEOUT")
 		}
 		return Response{}, errors.New("PROVIDER_UNAVAILABLE")
 	}

@@ -1,0 +1,150 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "expires_at": {
+      "anyOf": [
+        {
+          "format": "date-time",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "id": {
+      "maxLength": 8192,
+      "type": "string"
+    },
+    "representation": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "enum": [
+            "fact_summary",
+            "derived_table",
+            "selected_fields",
+            "exact_value",
+            "approved_excerpt"
+          ],
+          "maxLength": 8192,
+          "type": "string"
+        },
+        "parameters": {
+          "additionalProperties": false,
+          "maxProperties": 5,
+          "properties": {
+            "decimal_places": {
+              "maximum": 4,
+              "minimum": 0,
+              "type": "integer"
+            },
+            "end_row": {
+              "minimum": 1,
+              "type": "integer"
+            },
+            "include_count": {
+              "maximum": 1,
+              "minimum": 0,
+              "type": "integer"
+            },
+            "include_observation": {
+              "maximum": 1,
+              "minimum": 0,
+              "type": "integer"
+            },
+            "include_unit": {
+              "maximum": 1,
+              "minimum": 0,
+              "type": "integer"
+            },
+            "start_row": {
+              "minimum": 0,
+              "type": "integer"
+            }
+          },
+          "type": "object"
+        },
+        "transform_id": {
+          "enum": [
+            "",
+            "series_direction_only.v1",
+            "series_index_base100.v1"
+          ],
+          "maxLength": 8192,
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "transform_id",
+        "parameters"
+      ],
+      "type": "object"
+    },
+    "revoked": {
+      "type": "boolean"
+    },
+    "scope": {
+      "additionalProperties": false,
+      "properties": {
+        "audience": {
+          "enum": [
+            "public",
+            "named_external"
+          ],
+          "maxLength": 8192,
+          "type": "string"
+        },
+        "project_id": {
+          "maxLength": 8192,
+          "type": "string"
+        },
+        "purpose_id": {
+          "enum": [
+            "oss_issue",
+            "vendor_support",
+            "operations_advice"
+          ],
+          "maxLength": 8192,
+          "type": "string"
+        },
+        "recipient_id": {
+          "maxLength": 8192,
+          "type": "string"
+        },
+        "skill_set_hash": {
+          "maxLength": 8192,
+          "type": "string"
+        }
+      },
+      "required": [
+        "project_id",
+        "purpose_id",
+        "recipient_id",
+        "audience",
+        "skill_set_hash"
+      ],
+      "type": "object"
+    },
+    "selector": {
+      "maxLength": 8192,
+      "type": "string"
+    },
+    "version": {
+      "type": "integer"
+    }
+  },
+  "required": [
+    "id",
+    "version",
+    "scope",
+    "selector",
+    "representation",
+    "expires_at",
+    "revoked"
+  ],
+  "title": "rule.v1",
+  "type": "object"
+}

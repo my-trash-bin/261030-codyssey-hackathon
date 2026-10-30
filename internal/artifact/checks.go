@@ -7,6 +7,7 @@ import (
 	"strings"
 )
 
+var observationFile = regexp.MustCompile(`^observations-[2-9][0-9]*\.csv$`)
 var number = regexp.MustCompile(`[0-9]+(?:\.[0-9]+)?`)
 
 // Numeric claims must occur in the facts cited by that block. This is a hard

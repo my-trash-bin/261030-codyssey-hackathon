@@ -58,7 +58,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			fail(w, errors.New("IDEMPOTENCY_KEY_REQUIRED"), 400)
 			return
 		}
-		r.Body = http.MaxBytesReader(w, r.Body, 2<<20)
+		r.Body = http.MaxBytesReader(w, r.Body, int64(s.Service.MaxSourceBytes+s.Service.MaxFiles*4096+65536))
 		b, e := io.ReadAll(r.Body)
 		if e != nil {
 			fail(w, errors.New("INPUT_TOO_LARGE"), 413)
@@ -159,6 +159,7 @@ func (s *Server) routes() {
 		http.SetCookie(w, &http.Cookie{Name: "safehandoff_session", Value: s.Session, Path: "/", HttpOnly: true, SameSite: http.SameSiteStrictMode})
 		respond(w, 200, map[string]string{"csrf_token": s.Token})
 	})
+	m.HandleFunc("POST /api/v1/provider/check", s.providerCheck)
 	m.HandleFunc("GET /api/v1/catalog", s.catalog)
 	m.HandleFunc("POST /api/v1/catalog/{kind}", s.addCatalog)
 	m.HandleFunc("POST /api/v1/tasks", s.create)
@@ -186,6 +187,8 @@ func (s *Server) routes() {
 	m.HandleFunc("GET /api/v1/exports/{export}/archive", s.download)
 	m.HandleFunc("GET /api/v1/exports/{export}/files/{file}", s.download)
 	m.HandleFunc("GET /api/v1/rules", s.rules)
+	m.HandleFunc("POST /api/v1/rules", s.saveRule)
+	m.HandleFunc("POST /api/v1/rules/{rule}/versions", s.ruleVersion)
 	m.HandleFunc("POST /api/v1/rules/{rule}/revoke", s.revokeRule)
 	m.HandleFunc("GET /static/", func(w http.ResponseWriter, r *http.Request) { http.FileServerFS(web.Static).ServeHTTP(w, r) })
 	m.HandleFunc("GET /", s.page)
@@ -349,4 +352,23 @@ func (s *Server) patch(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	respond(w, 200, t)
+}
+
+func (s *Server) providerCheck(w http.ResponseWriter, r *http.Request) {
+	var v struct{}
+	if e := decode(r, &v); e != nil {
+		fail(w, e, 400)
+		return
+	}
+	t, e := s.Service.Create("모델 연결 검사", domain.Scope{ProjectID: "project_demo", PurposeID: "operations_advice", RecipientID: "public", Audience: "public"}, "ko")
+	if e != nil {
+		fail(w, e, 500)
+		return
+	}
+	j, e := s.Service.Start(t.ID, t.Revision, "provider_check")
+	if e != nil {
+		fail(w, e, 409)
+		return
+	}
+	respond(w, 202, j)
 }

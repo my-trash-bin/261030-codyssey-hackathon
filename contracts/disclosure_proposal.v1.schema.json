@@ -13,6 +13,7 @@
           "enum": [
             "fact_summary",
             "derived_table",
+            "selected_fields",
             "exact_value",
             "approved_excerpt"
           ],
@@ -21,10 +22,33 @@
         },
         "parameters": {
           "additionalProperties": false,
-          "maxProperties": 1,
+          "maxProperties": 5,
           "properties": {
             "decimal_places": {
               "maximum": 4,
+              "minimum": 0,
+              "type": "integer"
+            },
+            "end_row": {
+              "minimum": 1,
+              "type": "integer"
+            },
+            "include_count": {
+              "maximum": 1,
+              "minimum": 0,
+              "type": "integer"
+            },
+            "include_observation": {
+              "maximum": 1,
+              "minimum": 0,
+              "type": "integer"
+            },
+            "include_unit": {
+              "maximum": 1,
+              "minimum": 0,
+              "type": "integer"
+            },
+            "start_row": {
               "minimum": 0,
               "type": "integer"
             }

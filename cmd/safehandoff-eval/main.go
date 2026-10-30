@@ -55,6 +55,7 @@ type caseResult struct {
 
 func main() {
 	mode := flag.String("mode", "fixture", "fixture/live/extensions/prepare")
+	configPath := flag.String("config", "config.json", "live provider 설정 파일")
 	out := flag.String("out", "evaluation/results", "내부 평가 보고서 폴더")
 	flag.Parse()
 	r := report{RunID: domain.ID("eval"), Mode: *mode, Started: time.Now().UTC(), Checks: []item{}, Cases: []caseResult{}}
@@ -107,7 +108,11 @@ func main() {
 				status = "fail"
 				code = 1
 			}
-			r.Checks = append(r.Checks, item{"process-checker-" + variant, status, string(raw)})
+			evidence := string(raw)
+			if e != nil {
+				evidence = e.Error()
+			}
+			r.Checks = append(r.Checks, item{"process-checker-" + variant, status, evidence})
 		}
 		reg.PairDigest = "wrong"
 		wrong := runner.RunRepro(context.Background(), reg, a, b)
@@ -121,7 +126,19 @@ func main() {
 		var p llm.Provider = llm.Fixture{}
 		if *mode == "live" {
 			var e error
-			p, e = llm.NewLive(llm.DefaultConfig())
+			cfg := llm.DefaultConfig()
+			if b, err := os.ReadFile(*configPath); err == nil {
+				var root map[string]json.RawMessage
+				if json.Unmarshal(b, &root) != nil {
+					panic("설정 JSON 오류")
+				}
+				if raw, ok := root["provider"]; ok {
+					if err = domain.Strict(raw, &cfg); err != nil {
+						panic("provider 설정 오류")
+					}
+				}
+			}
+			p, e = llm.NewLive(cfg)
 			if e != nil {
 				r.Checks = append(r.Checks, item{"live-provider", "not_run", "PROVIDER_CONFIG_UNSUPPORTED: endpoint 또는 모델 설정 필요"})
 				code = 2
@@ -181,12 +198,12 @@ func prepare() error {
 		return e
 	}
 	for _, v := range []string{"buggy", "fixed", "probe"} {
-		out, e := command("fixtures/public/targets/toyrecord", "go", "build", "-trimpath", "-o", "../../../../bin/toy-"+v, "./cmd/"+v)
+		out, e := command("fixtures/public/targets/toyrecord", "go", "build", "-buildvcs=false", "-trimpath", "-o", "../../../../bin/toy-"+v, "./cmd/"+v)
 		if e != nil {
 			return fmt.Errorf("target build: %s", out)
 		}
 	}
-	out, e := command(".", "go", "build", "-trimpath", "-o", "bin/safehandoff-checker", "./cmd/safehandoff-checker")
+	out, e := command(".", "go", "build", "-buildvcs=false", "-trimpath", "-o", "bin/safehandoff-checker", "./cmd/safehandoff-checker")
 	if e != nil {
 		return fmt.Errorf("checker build: %s", out)
 	}
@@ -253,12 +270,28 @@ func runCase(p llm.Provider, scenario, purpose, volume string, ids bool, out str
 	}
 	defer db.Close()
 	svc := workflow.New(db, p)
+	if live, ok := p.(*llm.Live); ok {
+		svc.MaxInput = live.Config.MaxInput
+		svc.Attempts = live.Config.MaxAttempts
+	}
 	defer svc.Close()
 	task, e := svc.Create("가상 평가 내부 작업", domain.Scope{ProjectID: "project_demo", PurposeID: purpose, RecipientID: "recipient_vendorstore", Audience: "named_external"}, "ko")
 	if e != nil {
 		res.Error = e.Error()
 		return
 	}
+	defer func() {
+		current, err := db.Get(task.ID)
+		if err != nil {
+			return
+		}
+		res.ModelCalls = len(current.Traces)
+		res.Repro = current.Reproduction
+		os.MkdirAll(out, 0700)
+		trace, _ := json.MarshalIndent(current.Traces, "", "  ")
+		os.WriteFile(filepath.Join(out, res.CaseID+"-internal-traces.json"), append(trace, '\n'), 0600)
+	}()
+
 	entries, e := os.ReadDir("fixtures/author/" + scenario)
 	if e != nil {
 		res.Error = e.Error()
@@ -296,6 +329,9 @@ func runCase(p llm.Provider, scenario, purpose, volume string, ids bool, out str
 	old := task.Revision
 	for _, c := range task.Candidates {
 		d := domain.Decision{ID: domain.ID("dec"), CandidateID: c.ID, Disposition: "allow", Scope: task.Scope, SourceHash: task.SourceHash(), Representation: domain.Representation{Kind: "fact_summary", Parameters: map[string]int{}}}
+		if c.Kind == "config_example" {
+			d.Disposition = "exclude"
+		}
 		if c.Kind == "identifier" {
 			if !ids {
 				d.Disposition = "exclude"

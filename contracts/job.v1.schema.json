@@ -1,0 +1,60 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "cancel_requested": {
+      "type": "boolean"
+    },
+    "error_code": {
+      "maxLength": 8192,
+      "type": "string"
+    },
+    "finished_at": {
+      "anyOf": [
+        {
+          "format": "date-time",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "id": {
+      "maxLength": 8192,
+      "type": "string"
+    },
+    "input_revision": {
+      "type": "integer"
+    },
+    "kind": {
+      "maxLength": 8192,
+      "type": "string"
+    },
+    "started_at": {
+      "format": "date-time",
+      "type": "string"
+    },
+    "status": {
+      "maxLength": 8192,
+      "type": "string"
+    },
+    "task_id": {
+      "maxLength": 8192,
+      "type": "string"
+    }
+  },
+  "required": [
+    "id",
+    "task_id",
+    "input_revision",
+    "kind",
+    "status",
+    "cancel_requested",
+    "error_code",
+    "started_at",
+    "finished_at"
+  ],
+  "title": "job.v1",
+  "type": "object"
+}

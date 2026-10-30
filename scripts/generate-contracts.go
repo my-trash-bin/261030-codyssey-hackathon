@@ -53,7 +53,7 @@ type evalCase struct {
 }
 
 func main() {
-	types := map[string]any{"candidate_proposals.v1": llm.Analysis{}, "disclosure_proposal.v1": disclosure{}, "decision.v1": domain.Decision{}, "fact_pack.v1": domain.FactPack{}, "draft.v1": domain.Draft{}, "review.v1": llm.Review{}, "tool_request.v1": toolRequest{}, "context_check.v1": tools.ContextResult{}, "context_check_request.v1": tools.ContextRequest{}, "target_run.v1": runner.TargetRun{}, "repro_request.v1": reproRequest{}, "repro_result.v1": runner.Repro{}, "evaluation_case.v1": evalCase{}}
+	types := map[string]any{"task.v1": domain.Task{}, "artifact.v1": domain.Artifact{}, "job.v1": domain.Job{}, "rule.v1": domain.Rule{}, "disclosure_preview.v1": domain.Preview{}, "candidate_proposals.v1": llm.Analysis{}, "disclosure_proposal.v1": llm.Disclosure{}, "decision.v1": domain.Decision{}, "fact_pack.v1": domain.FactPack{}, "draft.v1": domain.Draft{}, "review.v1": llm.Review{}, "tool_request.v1": toolRequest{}, "context_check.v1": tools.ContextResult{}, "context_check_request.v1": tools.ContextRequest{}, "target_run.v1": runner.TargetRun{}, "repro_request.v1": reproRequest{}, "repro_result.v1": runner.Repro{}, "evaluation_case.v1": evalCase{}}
 	for name, v := range types {
 		s := schema(reflect.TypeOf(v))
 		s["$schema"] = "https://json-schema.org/draft/2020-12/schema"
@@ -108,7 +108,7 @@ func schema(t reflect.Type) map[string]any {
 				required = append(required, name)
 			}
 			if name == "parameters" {
-				p[name] = map[string]any{"type": "object", "additionalProperties": false, "properties": map[string]any{"decimal_places": map[string]any{"type": "integer", "minimum": 0, "maximum": 4}}, "maxProperties": 1}
+				p[name] = map[string]any{"type": "object", "additionalProperties": false, "properties": map[string]any{"decimal_places": map[string]any{"type": "integer", "minimum": 0, "maximum": 4}, "include_observation": map[string]any{"type": "integer", "minimum": 0, "maximum": 1}, "include_count": map[string]any{"type": "integer", "minimum": 0, "maximum": 1}, "include_unit": map[string]any{"type": "integer", "minimum": 0, "maximum": 1}, "start_row": map[string]any{"type": "integer", "minimum": 0}, "end_row": map[string]any{"type": "integer", "minimum": 1}, "base_epoch_seconds": map[string]any{"type": "integer"}}, "maxProperties": 5}
 			}
 		}
 		return map[string]any{"type": "object", "additionalProperties": false, "properties": p, "required": required}
@@ -133,13 +133,13 @@ func schema(t reflect.Type) map[string]any {
 
 func enums(parent, key string) []string {
 	m := map[string]string{
-		"Representation.kind":         "fact_summary derived_table exact_value approved_excerpt",
-		"Representation.transform_id": " series_direction_only.v1 series_index_base100.v1",
+		"Representation.kind":         "fact_summary derived_table selected_fields exact_value approved_excerpt",
+		"Representation.transform_id": " series_direction_only.v1 series_index_base100.v1 timeline_sequence_only.v1 timeline_relative_intervals.v1 timeline_shifted_absolute.v1 timeline_synthetic_schedule.v1",
 		"Decision.disposition":        "allow exclude defer",
 		"Proposal.kind":               "observation constraint unknown identifier",
 		"Proposal.uncertainty":        "observed reported inferred unknown",
 		"Proposal.relevance":          "required optional",
-		"Block.type":                  "heading paragraph list table_ref excerpt_ref",
+		"Block.type":                  "heading paragraph list table_ref excerpt_ref asset_ref",
 		"Review.result":               "pass needs_changes needs_decision error",
 		"Issue.reason_code":           "UNAPPROVED_DISCLOSURE UNSUPPORTED_CAUSAL_CLAIM MISSING_REQUIRED_FACT SOURCE_CONFLICT UNCERTAINTY_REMOVED INCORRECT_PROJECTION UNAPPROVED_REFERENCE NEEDS_DISCLOSURE_DECISION",
 		"Target.kind":                 "block document file",
@@ -148,7 +148,7 @@ func enums(parent, key string) []string {
 		"ContextResult.status":        "allowed denied unknown error",
 		"Repro.status":                "not_requested not_run running reproduced not_reproduced inconclusive error",
 		"ReproResult.status":          "not_requested not_run running reproduced not_reproduced inconclusive error",
-		"disclosure.status":           "supported ambiguous unsupported",
+		"Disclosure.status":           "supported ambiguous unsupported",
 		"Scope.audience":              "public named_external",
 		"Scope.purpose_id":            "oss_issue vendor_support operations_advice",
 	}

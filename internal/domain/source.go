@@ -11,16 +11,14 @@ import (
 )
 
 func ValidateSource(format string, b []byte) error {
-	if len(b) > 262144 {
-		return errors.New("INPUT_TOO_LARGE")
-	}
+
 	if !utf8.Valid(b) {
 		return errors.New("SOURCE_PARSE_FAILED")
 	}
 	switch format {
 	case "txt", "log", "md":
 	case "csv":
-		r := csv.NewReader(bytes.NewReader(b))
+		r := csv.NewReader(bytes.NewReader(bytes.TrimPrefix(b, []byte{0xef, 0xbb, 0xbf})))
 		rows, e := r.ReadAll()
 		if e != nil || len(rows) < 1 {
 			return errors.New("SOURCE_PARSE_FAILED")
@@ -46,11 +44,17 @@ func ValidateSource(format string, b []byte) error {
 	return nil
 }
 func EvidenceFor(s Source) []Evidence {
+	if s.Format == "csv" {
+		return CSVCellEvidence(s)
+	}
+	if s.Format == "json" {
+		return JSONPointerEvidence(s)
+	}
 	out := []Evidence{}
 	start := 0
 	for _, line := range bytes.SplitAfter(s.Raw, []byte("\n")) {
 		if len(line) > 0 {
-			out = append(out, Evidence{ID: ID("ev"), SourceVersionID: s.ID, Start: start, End: start + len(line), SHA: Hash(line)})
+			out = append(out, Evidence{Locator: Locator{Kind: "byte_range"}, ID: ID("ev"), SourceVersionID: s.ID, Start: start, End: start + len(line), SHA: Hash(line)})
 		}
 		start += len(line)
 	}
@@ -68,7 +72,7 @@ func ValidateEvidence(t Task, ids []string) error {
 			}
 			for _, s := range t.Sources {
 				if s.ID == ev.SourceVersionID && s.Included && Hash(s.Raw) == s.SHA && ev.Start >= 0 && ev.End <= len(s.Raw) && ev.Start < ev.End && utf8.Valid(s.Raw[:ev.Start]) && utf8.Valid(s.Raw[:ev.End]) && Hash(s.Raw[ev.Start:ev.End]) == ev.SHA {
-					found = true
+					found = CheckLocator(s, ev.Locator) == nil
 				}
 			}
 		}

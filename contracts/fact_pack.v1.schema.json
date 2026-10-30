@@ -150,6 +150,16 @@
             "maxLength": 8192,
             "type": "string"
           },
+          "numeric_columns": {
+            "items": {
+              "type": "integer"
+            },
+            "maxItems": 100,
+            "type": [
+              "array",
+              "null"
+            ]
+          },
           "rows": {
             "items": {
               "items": {

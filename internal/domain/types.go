@@ -1,6 +1,9 @@
 package domain
 
-import "time"
+import (
+	"encoding/json"
+	"time"
+)
 
 type Scope struct {
 	ProjectID    string `json:"project_id"`
@@ -21,22 +24,30 @@ type Source struct {
 	Included bool   `json:"included"`
 }
 type Evidence struct {
-	ID              string `json:"id"`
-	SourceVersionID string `json:"source_version_id"`
-	Start           int    `json:"start"`
-	End             int    `json:"end"`
-	SHA             string `json:"evidence_sha256"`
+	Locator         Locator `json:"locator"`
+	ID              string  `json:"id"`
+	SourceVersionID string  `json:"source_version_id"`
+	Start           int     `json:"start"`
+	End             int     `json:"end"`
+	SHA             string  `json:"evidence_sha256"`
+}
+type Observation struct {
+	Time      string `json:"time"`
+	Statement string `json:"statement"`
 }
 type Candidate struct {
-	ID          string   `json:"id"`
-	Kind        string   `json:"kind"`
-	Statement   string   `json:"statement"`
-	Uncertainty string   `json:"uncertainty"`
-	EvidenceIDs []string `json:"evidence_ids"`
-	Required    bool     `json:"required"`
-	Selector    string   `json:"selector"`
-	Values      []string `json:"values,omitempty"`
-	Origin      string   `json:"origin"`
+	Observations   []Observation `json:"observations,omitempty"`
+	ConflictGroup  string        `json:"conflict_group,omitempty"`
+	ConflictReason string        `json:"conflict_reason,omitempty"`
+	ID             string        `json:"id"`
+	Kind           string        `json:"kind"`
+	Statement      string        `json:"statement"`
+	Uncertainty    string        `json:"uncertainty"`
+	EvidenceIDs    []string      `json:"evidence_ids"`
+	Required       bool          `json:"required"`
+	Selector       string        `json:"selector"`
+	Values         []string      `json:"values,omitempty"`
+	Origin         string        `json:"origin"`
 }
 type Representation struct {
 	Kind        string         `json:"kind"`
@@ -88,9 +99,11 @@ type Fact struct {
 	Statement string `json:"statement"`
 }
 type Table struct {
-	ID      string     `json:"id"`
-	Columns []string   `json:"columns"`
-	Rows    [][]string `json:"rows"`
+	FileName       string     `json:"file_name,omitempty"`
+	NumericColumns []int      `json:"numeric_columns,omitempty"`
+	ID             string     `json:"id"`
+	Columns        []string   `json:"columns"`
+	Rows           [][]string `json:"rows"`
 }
 type Slot struct {
 	ID    string `json:"id"`
@@ -159,25 +172,37 @@ type Artifact struct {
 	Status       string   `json:"status"`
 	Reviews      []Review `json:"reviews"`
 }
+type JobArguments struct {
+	CandidateID string  `json:"candidate_id,omitempty"`
+	Text        string  `json:"text,omitempty"`
+	Seed        *uint64 `json:"seed,omitempty"`
+}
 type Job struct {
-	ID       string     `json:"id"`
-	TaskID   string     `json:"task_id"`
-	Revision int        `json:"input_revision"`
-	Kind     string     `json:"kind"`
-	Status   string     `json:"status"`
-	Cancel   bool       `json:"cancel_requested"`
-	Error    string     `json:"error_code"`
-	Started  time.Time  `json:"started_at"`
-	Finished *time.Time `json:"finished_at"`
+	Arguments     JobArguments    `json:"arguments"`
+	Result        json.RawMessage `json:"result"`
+	PreviousPhase string          `json:"previous_phase"`
+	ID            string          `json:"id"`
+	TaskID        string          `json:"task_id"`
+	Revision      int             `json:"input_revision"`
+	Kind          string          `json:"kind"`
+	Status        string          `json:"status"`
+	Cancel        bool            `json:"cancel_requested"`
+	Error         string          `json:"error_code"`
+	Started       time.Time       `json:"started_at"`
+	Finished      *time.Time      `json:"finished_at"`
 }
 type Trace struct {
-	JobID     string `json:"job_id"`
-	Role      string `json:"role"`
-	Mode      string `json:"mode"`
-	Request   []byte `json:"request_payload"`
-	Response  string `json:"response_payload"`
-	Error     string `json:"error_code"`
-	ElapsedMS int64  `json:"elapsed_ms"`
+	InputTokens        *int   `json:"input_tokens"`
+	OutputTokens       *int   `json:"output_tokens"`
+	ProviderConfigHash string `json:"provider_config_hash"`
+	Model              string `json:"model"`
+	JobID              string `json:"job_id"`
+	Role               string `json:"role"`
+	Mode               string `json:"mode"`
+	Request            []byte `json:"request_payload"`
+	Response           string `json:"response_payload"`
+	Error              string `json:"error_code"`
+	ElapsedMS          int64  `json:"elapsed_ms"`
 }
 type Event struct {
 	Seq      int    `json:"seq"`

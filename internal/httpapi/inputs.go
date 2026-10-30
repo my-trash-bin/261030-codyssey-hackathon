@@ -29,7 +29,7 @@ func (s *Server) sources(w http.ResponseWriter, r *http.Request) {
 		fail(w, e, 400)
 		return
 	}
-	if len(meta.Items) == 0 || len(meta.Items) > 10 {
+	if len(meta.Items) == 0 || len(meta.Items) > s.Service.MaxFiles {
 		fail(w, errors.New("INPUT_TOO_LARGE"), 413)
 		return
 	}
@@ -46,10 +46,14 @@ func (s *Server) sources(w http.ResponseWriter, r *http.Request) {
 			fail(w, e, 400)
 			return
 		}
-		b, e := io.ReadAll(io.LimitReader(f, 262145))
+		b, e := io.ReadAll(io.LimitReader(f, int64(s.Service.MaxFileBytes+1)))
 		f.Close()
 		if e != nil {
 			fail(w, e, 400)
+			return
+		}
+		if len(b) > s.Service.MaxFileBytes {
+			fail(w, errors.New("INPUT_TOO_LARGE"), 413)
 			return
 		}
 		if e = domain.ValidateSource(it.Format, b); e != nil {
@@ -101,7 +105,7 @@ func (s *Server) sources(w http.ResponseWriter, r *http.Request) {
 			count++
 		}
 	}
-	if total > 1048576 || count > 10 {
+	if total > s.Service.MaxSourceBytes || count > s.Service.MaxFiles {
 		fail(w, errors.New("INPUT_TOO_LARGE"), 413)
 		return
 	}
@@ -288,14 +292,16 @@ func (s *Server) preview(w http.ResponseWriter, r *http.Request) {
 }
 
 type operation struct {
-	RawGrants      []domain.RawGrant     `json:"raw_grants"`
-	CandidateID    string                `json:"candidate_id"`
-	Disposition    string                `json:"disposition"`
-	Representation domain.Representation `json:"representation"`
-	PreviewID      string                `json:"preview_id"`
-	SHA            string                `json:"projection_sha256"`
-	SaveRule       bool                  `json:"save_reusable_rule"`
-	ExpiresAt      *time.Time            `json:"expires_at"`
+	AppliedRuleID      string                `json:"applied_rule_id"`
+	AppliedRuleVersion int                   `json:"applied_rule_version"`
+	RawGrants          []domain.RawGrant     `json:"raw_grants"`
+	CandidateID        string                `json:"candidate_id"`
+	Disposition        string                `json:"disposition"`
+	Representation     domain.Representation `json:"representation"`
+	PreviewID          string                `json:"preview_id"`
+	SHA                string                `json:"projection_sha256"`
+	SaveRule           bool                  `json:"save_reusable_rule"`
+	ExpiresAt          *time.Time            `json:"expires_at"`
 }
 
 func (s *Server) decide(w http.ResponseWriter, r *http.Request) {
@@ -346,6 +352,33 @@ func (s *Server) decide(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 			d.ProjectionSHA = sha
+
+			if op.AppliedRuleID != "" {
+				if op.SaveRule {
+					fail(w, errors.New("INVALID_DECISION"), 400)
+					return
+				}
+				registered, err := s.Service.Store.Rules()
+				if err != nil {
+					fail(w, err, 500)
+					return
+				}
+				matched := false
+				for _, rule := range registered {
+					if rule.ID == op.AppliedRuleID && rule.Version == op.AppliedRuleVersion && !rule.Revoked && rule.Scope == t.Scope && rule.Selector == c.Selector && (rule.ExpiresAt == nil || time.Now().Before(*rule.ExpiresAt)) && string(domain.Canonical(rule.Representation)) == string(domain.Canonical(op.Representation)) && policy.Reusable(*c, op.Representation) {
+						matched = true
+						d.RuleID = rule.ID
+						d.RuleVersion = rule.Version
+						if rule.ExpiresAt != nil && (d.ExpiresAt == nil || rule.ExpiresAt.Before(*d.ExpiresAt)) {
+							d.ExpiresAt = rule.ExpiresAt
+						}
+					}
+				}
+				if !matched {
+					fail(w, errors.New("SCOPE_MISMATCH"), 409)
+					return
+				}
+			}
 			if op.SaveRule {
 				if !policy.Reusable(*c, op.Representation) {
 					fail(w, errors.New("INVALID_DECISION"), 400)
@@ -363,21 +396,16 @@ func (s *Server) decide(w http.ResponseWriter, r *http.Request) {
 		t.Decisions[c.ID] = d
 	}
 	t.Invalidate("needs_decisions")
-	for _, rule := range rules {
-		if e = s.Service.Store.PutRule(rule); e != nil {
-			fail(w, e, 500)
-			return
-		}
-	}
 	allRules, e := s.Service.Store.Rules()
 	if e != nil {
 		fail(w, e, 500)
 		return
 	}
+	allRules = append(allRules, rules...)
 	if _, e = policy.Pack(t, allRules, time.Now()); e == nil {
 		t.Phase = "ready_to_generate"
 	}
-	if e = s.Service.Store.Save(t, v.Revision); e != nil {
+	if e = s.Service.Store.SaveWithRules(t, v.Revision, rules); e != nil {
 		fail(w, e, 409)
 		return
 	}
