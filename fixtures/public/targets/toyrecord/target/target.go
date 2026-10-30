@@ -37,7 +37,13 @@ func Run(input []byte, out string, fixed bool) (Result, int) {
 			return fail("parse", "E_INPUT_PARSE")
 		}
 		seen = true
-		if dec.Decode(&value) != nil {
+		token, e := dec.Token()
+		if e != nil {
+			return fail("parse", "E_INPUT_PARSE")
+		}
+		var ok bool
+		value, ok = token.(string)
+		if !ok {
 			return fail("parse", "E_INPUT_PARSE")
 		}
 	}
@@ -67,9 +73,19 @@ func Run(input []byte, out string, fixed bool) (Result, int) {
 	return Result{"target_run.v1", "ok", "persist", nil}, 0
 }
 func Main(fixed bool) {
+	executionError := func() {
+		code := "E_EXECUTION"
+		json.NewEncoder(os.Stdout).Encode(Result{"target_run.v1", "execution_error", "parse", &code})
+		os.Exit(3)
+	}
+	if len(os.Args) != 3 {
+		executionError()
+		return
+	}
 	b, e := os.ReadFile(os.Args[1])
 	if e != nil {
-		b = nil
+		executionError()
+		return
 	}
 	r, code := Run(b, os.Args[2], fixed)
 	json.NewEncoder(os.Stdout).Encode(r)

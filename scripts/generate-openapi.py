@@ -5,7 +5,7 @@ I={'type':'integer','minimum':1};B={'type':'boolean'}
 ref=lambda name:{'$ref':'./'+name+'.schema.json'}
 R={'expected_revision':I}
 def obj(fields,required=None):return {'type':'object','properties':fields,'required':list(fields) if required is None else required,'additionalProperties':False}
-representation={'$ref':'./decision.v1.schema.json#/properties/representation'}
+representation={'type':'object','additionalProperties':False,'required':['kind'],'properties':{k:{'$ref':'./decision.v1.schema.json#/properties/representation/properties/'+k} for k in ['kind','transform_id','parameters']}}
 requests={
 'providerCheck':obj({}),'saveRule':obj({'task_id':S(),'candidate_id':S(),'decision_id':S(),'expected_revision':I}),'ruleVersion':obj({'expected_rule_version':I,'expires_at':{'type':['string','null'],'format':'date-time'}}),
 'create':obj({x:S() for x in ['internal_title','project_id','purpose_id','recipient_id','audience','output_language']}|{'skill_ids':{'type':'array','items':S(),'maxItems':0}}),
@@ -31,7 +31,7 @@ for method,path,handler in routes:
  params=[{'name':v,'in':'path','required':True,'schema':S()} for v in re.findall(r'{(\w+)}',path)]
  if method!='GET':params.append({'name':'Idempotency-Key','in':'header','required':True,'schema':{'type':'string','maxLength':160}});params.append({'name':'X-CSRF-Token','in':'header','required':True,'schema':S()})
  status='202' if handler in ['startJob','providerCheck'] else '201' if handler in ['create','sources','manual','finalize','addCatalog','saveRule','ruleVersion'] else '200'
- responses={status:{'description':'정상 응답. data 객체. 파일 응답은 실제 저장 바이트.', 'content':{'application/json':{'schema':{'type':'object','required':['data'],'properties':{'data':{}},'additionalProperties':False}}}},'400':{'$ref':'#/components/responses/Error'},'403':{'$ref':'#/components/responses/Error'},'404':{'$ref':'#/components/responses/Error'},'409':{'$ref':'#/components/responses/Error'},'413':{'$ref':'#/components/responses/Error'},'500':{'$ref':'#/components/responses/Error'}}
+ responses={status:{'description':'정상 응답. data 객체. 파일 응답은 실제 저장 바이트.', 'content':{'application/json':{'schema':{'type':'object','required':['data'],'properties':{'data':{}},'additionalProperties':False}}}},'400':{'$ref':'#/components/responses/Error'},'403':{'$ref':'#/components/responses/Error'},'404':{'$ref':'#/components/responses/Error'},'409':{'$ref':'#/components/responses/Error'},'413':{'$ref':'#/components/responses/Error'},'415':{'$ref':'#/components/responses/Error'},'422':{'$ref':'#/components/responses/Error'},'503':{'$ref':'#/components/responses/Error'},'500':{'$ref':'#/components/responses/Error'}}
  response_schema={'create':ref('task.v1'),'get':ref('task.v1'),'patch':ref('task.v1'),'list':{'type':'array','items':ref('task.v1')},'startJob':ref('job.v1'),'job':ref('job.v1'),'cancelJob':ref('job.v1'),'providerCheck':ref('job.v1'),'getArtifact':ref('artifact.v1'),'edit':ref('artifact.v1'),'humanReview':ref('artifact.v1'),'saveRule':ref('rule.v1'),'ruleVersion':ref('rule.v1'),'rules':{'type':'array','items':ref('rule.v1')},'preview':ref('disclosure_preview.v1')}.get(handler,{})
  responses[status]['content']['application/json']['schema']['properties']['data']=response_schema
  op={'operationId':handler,'summary':handler+' (구현된 API)','parameters':params,'responses':responses}

@@ -158,7 +158,7 @@ func (Fixture) Generate(ctx context.Context, r Request) (Response, error) {
 						}
 					}
 					if len(vals) > 0 {
-						add("추적 식별자: "+strings.Join(vals, ", "), "identifier", evs, false)
+						add(strings.TrimSuffix(prefix, "=")+" (관찰 순서): "+strings.Join(vals, ", "), "identifier", evs, false)
 					}
 				}
 			}

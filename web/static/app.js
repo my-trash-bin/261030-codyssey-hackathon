@@ -75,10 +75,40 @@ async function newPage() {
 		catalog.entries
 			.filter((v) => v.kind === k)
 			.map(
-				(v) => `<option value="${esc(v.id)}">${esc(v.display_name)}</option>`,
+				(v) =>
+					`<option value="${esc(v.id)}" ${v.id === "recipient_vendorstore" ? "selected" : ""}>${esc(v.display_name)}</option>`,
 			)
 			.join("");
-	root.innerHTML = `<div class="narrow"><div class="intro"><span class="badge">01 · 새 작업</span><h1>무엇을 공유하시나요?</h1><p class="muted">자료를 추가해도 공개가 승인되지는 않습니다. 다음 단계에서 공개할 내용을 선택합니다.</p></div><form id="new" class="panel"><div class="form-grid"><div><label for="title">내부 작업 이름</label><input id="title" required value="공급사 문의 준비"><label for="project">프로젝트</label><select id="project">${options("project")}</select><label for="purpose">공유 목적</label><select id="purpose"><option value="vendor_support">공급사 문의</option><option value="oss_issue">오픈소스 버그 제보</option><option value="operations_advice">외부 운영 자문</option></select></div><div><label for="recipient">수신자</label><select id="recipient">${options("recipient")}</select><label for="audience">공개 범위</label><select id="audience"><option value="named_external">지정 외부 수신자</option><option value="public">전체 공개</option></select><label for="language">결과 언어</label><select id="language"><option value="ko">한국어</option><option value="en">English (live 모델)</option></select></div><div class="wide"><label for="files">자료 파일 (UTF-8 txt, log, md, csv, json)</label><input id="files" type="file" multiple accept=".txt,.log,.md,.csv,.json"><label for="paste">또는 텍스트 붙여넣기</label><textarea id="paste" placeholder="사내 자료를 입력하세요"></textarea><p class="muted">파일당 256 KiB · 최대 10개 · 전체 1 MiB. 모델 입력 크기 제한은 별도입니다.</p></div></div><button class="primary" id="create">작업 만들기 및 자료 분석</button><p id="form-error" role="alert"></p></form></div>`;
+	root.innerHTML = `<div class="narrow"><div class="intro"><span class="badge">01 · 새 작업</span><h1>무엇을 공유하시나요?</h1><p class="muted">자료를 추가해도 공개가 승인되지는 않습니다. 다음 단계에서 공개할 내용을 선택합니다.</p></div><form id="new" class="panel"><div class="form-grid"><div><label for="title">내부 작업 이름</label><input id="title" required value="공급사 문의 준비"><label for="project">프로젝트</label><select id="project">${options("project")}</select><label for="purpose">공유 목적</label><select id="purpose"><option value="vendor_support">공급사 문의</option><option value="oss_issue">오픈소스 버그 제보</option><option value="operations_advice">외부 운영 자문</option></select></div><div><label for="recipient">수신자</label><select id="recipient">${options("recipient")}</select><label for="audience">공개 범위</label><select id="audience"><option value="named_external">지정 외부 수신자</option><option value="public">전체 공개</option></select><label for="language">결과 언어</label><select id="language"><option value="ko">한국어</option><option value="en">English (live 모델)</option></select></div><div class="wide"><details><summary>새 프로젝트·수신자 등록</summary><label for="project-name">새 프로젝트 이름 (내부 전용)</label><input id="project-name"><button type="button" id="add-project">프로젝트 등록</button><label for="recipient-name">새 외부 수신자 이름 (내부 전용)</label><input id="recipient-name"><button type="button" id="add-recipient">수신자 등록</button></details><label for="files">자료 파일 (UTF-8 txt, log, md, csv, json)</label><input id="files" type="file" multiple accept=".txt,.log,.md,.csv,.json"><label for="paste">또는 텍스트 붙여넣기</label><textarea id="paste" placeholder="사내 자료를 입력하세요"></textarea><p class="muted">파일당 256 KiB · 최대 10개 · 전체 1 MiB. 모델 입력 크기 제한은 별도입니다.</p></div></div><button class="primary" id="create">작업 만들기 및 자료 분석</button><p id="form-error" role="alert"></p></form></div>`;
+
+	for (const [kind, input, select, button] of [
+		["projects", "project-name", "project", "add-project"],
+		["recipients", "recipient-name", "recipient", "add-recipient"],
+	])
+		on(button, async () => {
+			const name = document.getElementById(input).value.trim();
+			if (!name) throw Error("등록할 이름을 입력하세요.");
+			const created = await api("/catalog/" + kind, {
+				method: "POST",
+				body: { display_name: name },
+			});
+			document
+				.getElementById(select)
+				.add(new Option(name, created.id, true, true));
+			if (kind === "recipients")
+				document.getElementById("audience").value = "named_external";
+			notice("등록한 항목을 선택했습니다.");
+		});
+	document.getElementById("recipient").addEventListener("change", (e) => {
+		document.getElementById("audience").value =
+			e.target.value === "public" ? "public" : "named_external";
+	});
+	document.getElementById("purpose").addEventListener("change", (e) => {
+		if (e.target.value === "oss_issue") {
+			document.getElementById("recipient").value = "public";
+			document.getElementById("audience").value = "public";
+		}
+	});
 	document.querySelector("#new").addEventListener("submit", async (e) => {
 		e.preventDefault();
 		const button = document.querySelector("#create");
@@ -178,6 +208,7 @@ async function load() {
 				api("/rules"),
 				api("/catalog"),
 			]);
+			if (interpreting) return;
 			const next = JSON.stringify([
 				task.revision,
 				task.phase,
@@ -202,7 +233,7 @@ async function load() {
 function workspace() {
 	const t = task;
 	const a = t.artifacts?.find((a) => a.id === t.current_artifact_id);
-	root.innerHTML = `<div class="heading-row"><div><span class="badge">02 · 공개 선택과 작성</span><h1>${esc(t.internal_title)}</h1><p class="muted">판본 ${t.revision} · ${esc(purposeNames[t.scope.purpose_id] || t.scope.purpose_id)} · ${esc(entityName(t.scope.recipient_id))}</p></div><div><a class="button" href="/tasks/${t.id}/final">최종 파일 확인 →</a></div></div><div class="status">${esc(phases[t.phase])} · 재현: ${esc(reproNames[t.reproduction.status] || t.reproduction.status)} / ${esc(reproReasons[t.reproduction.reason_code] || t.reproduction.reason_code)}</div><div class="grid"><section class="panel"><h2>공개 선택</h2><p class="muted">선택을 변경하면 모든 파일을 새로 작성합니다. 직접 편집한 문장도 교체될 수 있습니다.</p><div id="cards">${
+	root.innerHTML = `<div class="heading-row"><div><span class="badge">02 · 공개 선택과 작성</span><h1>${esc(t.internal_title)}</h1><p class="muted">판본 ${t.revision} · ${esc(purposeNames[t.scope.purpose_id] || t.scope.purpose_id)} · ${esc(entityName(t.scope.recipient_id))}</p></div><div><a class="button" href="/tasks/${t.id}/final">최종 파일 확인 →</a></div></div><div class="status">${esc(phases[t.phase])} · 재현: ${t.reproduction.revision && t.reproduction.revision !== t.revision ? "이전 판본의 참고 기록 · " : ""}${esc(reproNames[t.reproduction.status] || t.reproduction.status)} / ${esc(reproReasons[t.reproduction.reason_code] || t.reproduction.reason_code)}</div><div class="grid"><section class="panel"><h2>공개 선택</h2><p class="muted">선택을 변경하면 모든 파일을 새로 작성합니다. 직접 편집한 문장도 교체될 수 있습니다.</p><div id="cards">${
 		(t.candidates || [])
 			.map((c, i) => {
 				const d = t.decisions?.[c.id];
@@ -213,7 +244,7 @@ function workspace() {
 						r.selector === c.selector &&
 						JSON.stringify(r.scope) === JSON.stringify(t.scope),
 				);
-				return `<article class="card"><span class="badge">${c.required ? "핵심 정보" : "선택 정보"} · ${esc(kindNames[c.kind] || c.kind)}</span><h3>${esc(c.statement)}</h3>${c.conflict_group ? `<p class="warn">상충 근거: ${esc(c.conflict_reason)}. 같은 충돌 묶음의 주장을 동시에 허용할 수 없습니다. 근거를 확인하고 제외·보류 또는 수동 후보 추가로 정리하세요.</p>` : ""}<p class="muted">조사에 필요한 관찰과 제약을 전달합니다. 선택한 미리보기만 공개되며 원본 파일은 포함하지 않습니다.</p><p>현재 선택: <strong>${esc(d?.revoked ? "철회됨" : decisionNames[d?.disposition] || "미선택")}</strong></p><label for="choice-${i}">공개 방법</label><select id="choice-${i}">${c.kind === "series" ? '<option value="summary">구체적인 데이터 없이 사실만</option><option value="direction">추이만 보이게 나머지 마스킹</option><option value="ratio">첫 관찰을 100으로 한 비율</option><option value="exact">정확한 값</option><option value="fields">요청 정보 마스킹 · 열과 관찰 선택</option><option value="custom">기타 직접 입력</option>' : c.kind === "timeline" ? '<option value="summary">순서 문장만</option><option value="timeseq">사건 순서 표 · 실제 간격 제외</option><option value="relative">실제 시간 간격 공개</option><option value="shifted">새 기준 시각 · 실제 간격 유지</option><option value="schedule">원래 간격과 무관한 합성 시각</option>' : `<option value="${c.kind === "identifier" ? "exact" : "summary"}">이 문장 / 값 그대로 허용</option>`}<option value="excerpt">승인 원문 구간 · 고급</option><option value="exclude">이번 결과에서 제외</option><option value="defer">보류</option></select><p class="muted">${c.kind === "series" ? "방향 표는 관찰 개수와 순서를 포함합니다. 실제 값·비율·시간 간격은 제외됩니다." : "정확한 값은 이 자료와 현재 수신자에만 적용됩니다."}</p>${c.kind === "series" ? `<label><input type="checkbox" id="reuse-${i}">같은 범위·필드에서 표현 기준 재사용</label>` : ""}${c.kind === "series" ? `<details><summary>남길 열·단위·관찰 범위</summary><label><input type="checkbox" id="keep-order-${i}" checked>관찰 순서</label><label><input type="checkbox" id="keep-count-${i}" checked>실제 건수</label><label><input type="checkbox" id="keep-unit-${i}">분당 단위 (해당 자료에 있는 경우)</label><label for="row-start-${i}">시작 관찰 (0부터)</label><input type="number" id="row-start-${i}" value="0" min="0"><label for="row-end-${i}">끝 관찰 (미포함)</label><input type="number" id="row-end-${i}" value="${c.values?.length || 0}" min="1"><small>실제 시각은 공개하지 않습니다. 미리보기의 건수와 선택한 관찰만 공개합니다.</small></details><details><summary>직접 입력 조건</summary><textarea id="custom-${i}" placeholder="첫 관찰을 100으로 한 비율만 공개 / 방향만 공개"></textarea><small>조건 해석기가 등록된 변환으로 제안한 후 실제 미리보기를 확인합니다. fixture는 안내한 두 문장만 지원하며, live는 동일한 계약으로 해석합니다.</small></details>` : ""}${matchingRules.length ? `<details><summary>저장 기준 판본 적용</summary><select id="rule-choice-${i}">${matchingRules.map((r) => `<option value="${esc(r.id)}:${r.version}">${esc(r.representation.transform_id || r.representation.kind)} · v${r.version}</option>`).join("")}</select><button id="apply-rule-${i}">이 판본으로 새 미리보기·적용</button><small>현재 자료의 값을 다시 계산하며 이전 결과를 복사하지 않습니다.</small></details>` : ""}<details><summary>원문 구간 선택 · UTF-8 바이트</summary><label for="raw-ev-${i}">근거 구간</label><select id="raw-ev-${i}">${c.evidence_ids
+				return `<article class="card"><span class="badge">${c.required ? "핵심 정보" : "선택 정보"} · ${esc(kindNames[c.kind] || c.kind)}</span><h3>${esc(c.statement)}</h3>${c.needs_decision ? '<p class="warn">검토에서 이 공개 선택의 재확인을 요청했습니다. 새 미리보기를 확인하고 허용하거나 이번 결과에서 제외하세요.</p>' : ""}${c.conflict_group ? `<p class="warn">상충 근거: ${esc(c.conflict_reason)}. 같은 충돌 묶음의 주장을 동시에 허용할 수 없습니다. 근거를 확인하고 제외·보류 또는 수동 후보 추가로 정리하세요.</p>` : ""}<p class="muted">조사에 필요한 관찰과 제약을 전달합니다. 선택한 미리보기만 공개되며 원본 파일은 포함하지 않습니다.</p><p>현재 선택: <strong>${esc(d?.revoked ? "철회됨" : decisionNames[d?.disposition] || "미선택")}</strong></p><label for="choice-${i}">공개 방법</label><select id="choice-${i}">${c.kind === "series" ? '<option value="summary">구체적인 데이터 없이 사실만</option><option value="direction">추이만 보이게 나머지 마스킹</option><option value="ratio">첫 관찰을 100으로 한 비율</option><option value="exact">정확한 값</option><option value="fields">요청 정보 마스킹 · 열과 관찰 선택</option><option value="custom">기타 직접 입력</option>' : c.kind === "timeline" ? '<option value="summary">순서 문장만</option><option value="timeseq">사건 순서 표 · 실제 간격 제외</option><option value="relative">실제 시간 간격 공개</option><option value="shifted">새 기준 시각 · 실제 간격 유지</option><option value="schedule">원래 간격과 무관한 합성 시각</option>' : `<option value="${c.kind === "identifier" ? "exact" : "summary"}">이 문장 / 값 그대로 허용</option>`}<option value="excerpt">승인 원문 구간 · 고급</option><option value="exclude">이번 결과에서 제외</option><option value="defer">보류</option></select><p class="muted">${c.kind === "series" ? "방향 표는 관찰 개수와 순서를 포함합니다. 실제 값·비율·시간 간격은 제외됩니다." : "정확한 값은 이 자료와 현재 수신자에만 적용됩니다."}</p>${c.kind === "series" ? `<label><input type="checkbox" id="reuse-${i}">같은 범위·필드에서 표현 기준 재사용</label>` : ""}${c.kind === "series" ? `<details><summary>남길 열·단위·관찰 범위</summary><label><input type="checkbox" id="keep-order-${i}" checked>관찰 순서</label><label><input type="checkbox" id="keep-count-${i}" checked>실제 건수</label><label><input type="checkbox" id="keep-unit-${i}">분당 단위 (해당 자료에 있는 경우)</label><label for="row-start-${i}">시작 관찰 (0부터)</label><input type="number" id="row-start-${i}" value="0" min="0"><label for="row-end-${i}">끝 관찰 (미포함)</label><input type="number" id="row-end-${i}" value="${c.values?.length || 0}" min="1"><small>실제 시각은 공개하지 않습니다. 미리보기의 건수와 선택한 관찰만 공개합니다.</small></details><details><summary>직접 입력 조건</summary><textarea id="custom-${i}" placeholder="첫 관찰을 100으로 한 비율만 공개 / 방향만 공개"></textarea><small>조건 해석기가 등록된 변환으로 제안한 후 실제 미리보기를 확인합니다. fixture는 안내한 두 문장만 지원하며, live는 동일한 계약으로 해석합니다.</small></details>` : ""}${matchingRules.length ? `<details><summary>저장 기준 판본 적용</summary><select id="rule-choice-${i}">${matchingRules.map((r) => `<option value="${esc(r.id)}:${r.version}">${esc(r.representation.transform_id || r.representation.kind)} · v${r.version}</option>`).join("")}</select><button id="apply-rule-${i}">이 판본으로 새 미리보기·적용</button><small>현재 자료의 값을 다시 계산하며 이전 결과를 복사하지 않습니다.</small></details>` : ""}<details><summary>원문 구간 선택 · UTF-8 바이트</summary><label for="raw-ev-${i}">근거 구간</label><select id="raw-ev-${i}">${c.evidence_ids
 					.map((id) => {
 						const ev = t.evidence.find((e) => e.id === id);
 						return `<option value="${esc(id)}">${esc(ev?.source_version_id)} · ${ev?.start}–${ev?.end}</option>`;
@@ -233,7 +264,15 @@ function workspace() {
 						.join("\n"),
 				)}</pre><details><summary>문장 직접 편집</summary><p class="warn">저장하면 새 판본이 되며 다시 검토해야 합니다. 추가 사실은 공개 결정에서 승인해야 합니다.</p>${a.document.blocks.map((b, i) => (b.type === "paragraph" || b.type === "heading" ? `<label for="edit-block-${i}">${b.type === "heading" ? "제목" : "문단"} ${i + 1}</label><textarea id="edit-block-${i}">${esc(b.text)}</textarea>` : b.type === "list" ? b.items.map((item, j) => `<label for="edit-item-${i}-${j}">목록 항목 ${j + 1}</label><textarea id="edit-item-${i}-${j}">${esc(item.text)}</textarea>`).join("") : `<p class="muted">표·원문·설정 첨부는 공개 선택에서 수정하세요.</p>`)).join("")}<button id="edit">편집 저장</button></details>`
 			: '<p class="muted">공개할 정보를 선택한 뒤 새 초안을 작성하세요. 이전 결과는 현재 결과로 사용할 수 없습니다.</p>'
-	}<div class="actions"><button class="primary" id="compose" ${t.phase === "processing" || t.phase === "needs_analysis" ? "disabled" : ""}>현재 선택으로 작성</button>${["draft", "blocked"].includes(a?.status) ? '<button id="review">편집 초안 재검토</button>' : ""}</div><small>필수 미결정·보류·만료 승인이 있으면 작성과 확정이 차단됩니다.</small></section><aside class="panel"><h2>근거와 실행 기록</h2><details open><summary>원자료 · 내부 전용</summary>${(t.sources || []).map((src) => `<details><summary>${esc(src.display_name)} · ${src.included ? "사용" : "제외"} · ${src.format} · ${atob(src.raw_bytes).length} B</summary><pre>${esc(text(src.raw_bytes))}</pre></details>`).join("")}<input type="file" id="more-files" multiple accept=".txt,.log,.md,.csv,.json"><div class="actions"><button id="add-files">자료 추가</button><button id="analyze">자료 분석 / 재시도</button></div></details><details open><summary>실행 · ${esc(t.provider_mode)}</summary>${(t.jobs || []).map((j) => `<p><span class="badge">${esc(jobNames[j.kind] || j.kind)}</span> ${esc(jobStates[j.status] || j.status)} ${esc(j.error_code || "")}</p>`).join("")}</details><details><summary>공개 범위 변경</summary><label for="new-recipient">수신자 ID</label><input id="new-recipient" value="${esc(t.scope.recipient_id)}"><button id="scope">수신자 변경 및 재선택</button><button id="skills-update">설치된 제품 지침 판본 적용</button><small>지침 판본을 바꾸면 자료를 재분석하고 공개 선택을 다시 확인합니다.</small></details><details><summary>선택 변경 기록</summary>${(t.events || []).map((e) => `<p>r${e.revision} · ${esc(e.type)}</p>`).join("")}</details></aside></div>`;
+	}<div class="actions"><button class="primary" id="compose" ${t.phase === "processing" || t.phase === "needs_analysis" ? "disabled" : ""}>현재 선택으로 작성</button>${["draft", "blocked"].includes(a?.status) ? '<button id="review">편집 초안 재검토</button>' : ""}</div><small>필수 미결정·보류·만료 승인이 있으면 작성과 확정이 차단됩니다.</small></section><aside class="panel"><h2>근거와 실행 기록</h2><details open><summary>원자료 · 내부 전용</summary>${(t.sources || []).map((src) => `<details><summary>${esc(src.display_name)} · ${src.included ? "사용" : "제외"} · ${src.format} · ${atob(src.raw_bytes).length} B</summary><pre>${esc(text(src.raw_bytes))}</pre>${src.included ? `<button id="remove-source-${src.id}">이번 자료에서 제외</button>` : ""}</details>`).join("")}<input type="file" id="more-files" multiple accept=".txt,.log,.md,.csv,.json"><div class="actions"><button id="add-files">자료 추가</button><button id="analyze">자료 분석 / 재시도</button></div></details><details open><summary>실행 · ${esc(t.provider_mode)}</summary>${(t.jobs || []).map((j) => `<p><span class="badge">${esc(jobNames[j.kind] || j.kind)}</span> ${esc(jobStates[j.status] || j.status)} ${esc(j.error_code || "")}${j.cancel_requested ? " · 취소 요청됨" : ""}${j.id === t.current_job_id && ["queued", "running"].includes(j.status) && !j.cancel_requested ? `<button id="cancel-job-${j.id}">실행 취소</button>` : ""}</p>`).join("")}</details><details><summary>공개 범위 변경</summary><label for="new-recipient">수신자</label><select id="new-recipient">${catalogCache.entries
+		.filter((e) => e.kind === "recipient")
+		.map(
+			(e) =>
+				`<option value="${esc(e.id)}" ${e.id === t.scope.recipient_id ? "selected" : ""}>${esc(e.display_name)}</option>`,
+		)
+		.join(
+			"",
+		)}</select><label for="new-audience">공개 범위</label><select id="new-audience"><option value="public" ${t.scope.audience === "public" ? "selected" : ""}>전체 공개</option><option value="named_external" ${t.scope.audience === "named_external" ? "selected" : ""}>지정 외부 수신자</option></select><button id="scope">수신자 변경 및 재선택</button><button id="skills-update">설치된 제품 지침 판본 적용</button><small>지침 판본을 바꾸면 자료를 재분석하고 공개 선택을 다시 확인합니다.</small></details><details><summary>선택 변경 기록</summary>${(t.events || []).map((e) => `<p>r${e.revision} · ${esc(e.type)}</p>`).join("")}</details></aside></div>`;
 	(t.candidates || []).forEach((c, i) => {
 		let preview = null;
 		let rawGrants = [];
@@ -572,6 +611,33 @@ function workspace() {
 					.join("");
 			});
 	});
+	(t.sources || [])
+		.filter((src) => src.included)
+		.forEach((src) =>
+			on("remove-source-" + src.id, async () => {
+				await api(`/tasks/${t.id}/sources/${src.source_id}`, {
+					method: "DELETE",
+					body: { expected_revision: t.revision },
+				});
+				await load();
+			}),
+		);
+	(t.jobs || [])
+		.filter(
+			(j) =>
+				j.id === t.current_job_id &&
+				["queued", "running"].includes(j.status) &&
+				!j.cancel_requested,
+		)
+		.forEach((j) =>
+			on("cancel-job-" + j.id, async () => {
+				await api("/jobs/" + j.id + "/cancel", {
+					method: "POST",
+					body: { expected_revision: t.revision },
+				});
+				await load();
+			}),
+		);
 	on("compose", () => start("compose"));
 	on("review", () => start("review"));
 	on("analyze", () => start("analyze"));
@@ -588,12 +654,17 @@ function workspace() {
 		});
 		await load();
 	});
+	document.querySelector("#new-recipient")?.addEventListener("change", (e) => {
+		document.querySelector("#new-audience").value =
+			e.target.value === "public" ? "public" : "named_external";
+	});
 	on("scope", async () => {
 		await api("/tasks/" + t.id, {
 			method: "PATCH",
 			body: {
 				expected_revision: t.revision,
 				recipient_id: document.querySelector("#new-recipient").value,
+				audience: document.querySelector("#new-audience").value,
 			},
 		});
 		await load();
@@ -645,7 +716,7 @@ async function start(kind) {
 async function finalPage() {
 	const t = task;
 	const a = t.artifacts?.find((a) => a.id === t.current_artifact_id);
-	root.innerHTML = `<div class="narrow"><span class="badge">03 · 최종 확인</span><h1>이 파일들을 공유합니다</h1><p><a href="/tasks/${t.id}">← 공개 선택으로 돌아가기</a></p><div class="status">${esc(phases[t.phase])} · 판본 ${t.revision}</div><p>목적: ${esc(purposeNames[t.scope.purpose_id] || t.scope.purpose_id)} / 수신자: ${esc(entityName(t.scope.recipient_id))} / 범위: ${t.scope.audience === "public" ? "전체 공개" : "지정 외부 수신자"}</p><p>재현: ${esc(reproNames[t.reproduction.status] || t.reproduction.status)} (${esc(reproReasons[t.reproduction.reason_code] || t.reproduction.reason_code)}). 실제 재현 성공을 뜻하지 않습니다.</p>${a ? `<section class="panel"><h2>실제 저장 파일</h2><p class="muted">아래 내용과 해시를 확인하세요. 확정 후에도 승인 상태가 바뀌면 다운로드가 차단됩니다.</p>${a.files.map((f) => `<article class="file"><strong>${esc(f.path)}</strong> · ${f.size} B<details><summary>실제 파일 내용 및 SHA-256</summary><pre>${esc(f.sha256)}\n\n${esc(text(f.bytes))}</pre></details>${t.export_id ? `<a class="button" href="/api/v1/exports/${t.export_id}/files/${f.id}">파일 다운로드</a>` : ""}</article>`).join("")}<p>파일 집합 해시</p><pre>${esc(a.artifact_set_hash)}</pre>${a.status === "blocked" ? `<details><summary>사람 의미 검토로 전환</summary><p>실제 파일의 미승인 정보·추가 단정·누락된 제약을 확인하세요. 승인과 판본 및 파일 검사는 생략할 수 없습니다.</p><textarea id="human-reason" placeholder="모델 검토를 대신한 사유와 확인 내용"></textarea><button id="human">이 파일 해시에 사람 검토 기록</button></details>` : ""}<label><input type="checkbox" id="confirmed">실제 파일과 현재 공개 선택을 확인했습니다.</label><div class="actions"><button class="primary" id="finalize" ${t.phase !== "ready_to_finalize" ? "disabled" : ""}>이 파일들로 확정</button>${t.export_id ? `<a class="button primary" href="/api/v1/exports/${t.export_id}/archive">공개 ZIP 다운로드</a><button id="copy">본문 복사</button>` : ""}</div><p class="muted">검사 미완료 또는 보류·만료·철회가 있으면 확정할 수 없습니다.</p></section>` : '<p class="warn">현재 선택에 유효한 결과가 없습니다. 공개 선택 화면에서 다시 작성하세요.</p>'}</div>`;
+	root.innerHTML = `<div class="narrow"><span class="badge">03 · 최종 확인</span><h1>이 파일들을 공유합니다</h1><p><a href="/tasks/${t.id}">← 공개 선택으로 돌아가기</a></p><div class="status">${esc(phases[t.phase])} · 판본 ${t.revision}</div><p>목적: ${esc(purposeNames[t.scope.purpose_id] || t.scope.purpose_id)} / 수신자: ${esc(entityName(t.scope.recipient_id))} / 범위: ${t.scope.audience === "public" ? "전체 공개" : "지정 외부 수신자"}</p><p>재현: ${t.reproduction.revision && t.reproduction.revision !== t.revision ? "이전 판본의 참고 기록 · " : ""}${esc(reproNames[t.reproduction.status] || t.reproduction.status)} (${esc(reproReasons[t.reproduction.reason_code] || t.reproduction.reason_code)}). 실제 재현 성공을 뜻하지 않습니다.</p>${a ? `<section class="panel"><h2>실제 저장 파일</h2><p class="muted">아래 내용과 해시를 확인하세요. 확정 후에도 승인 상태가 바뀌면 다운로드가 차단됩니다.</p>${a.files.map((f) => `<article class="file"><strong>${esc(f.path)}</strong> · ${f.size} B<details><summary>실제 파일 내용 및 SHA-256</summary><pre>${esc(f.sha256)}\n\n${esc(text(f.bytes))}</pre></details>${t.export_id ? `<a class="button" href="/api/v1/exports/${t.export_id}/files/${f.id}">파일 다운로드</a>` : ""}</article>`).join("")}<p>파일 집합 해시</p><pre>${esc(a.artifact_set_hash)}</pre>${a.status === "blocked" ? `<details><summary>사람 의미 검토로 전환</summary><p>실제 파일의 미승인 정보·추가 단정·누락된 제약을 확인하세요. 승인과 판본 및 파일 검사는 생략할 수 없습니다.</p><textarea id="human-reason" placeholder="모델 검토를 대신한 사유와 확인 내용"></textarea><button id="human">이 파일 해시에 사람 검토 기록</button></details>` : ""}<label><input type="checkbox" id="confirmed">실제 파일과 현재 공개 선택을 확인했습니다.</label><div class="actions"><button class="primary" id="finalize" ${t.phase !== "ready_to_finalize" ? "disabled" : ""}>이 파일들로 확정</button>${t.export_id ? `<a class="button primary" href="/api/v1/exports/${t.export_id}/archive">공개 ZIP 다운로드</a><button id="copy">본문 복사</button>` : ""}</div><p class="muted">검사 미완료 또는 보류·만료·철회가 있으면 확정할 수 없습니다.</p></section>` : '<p class="warn">현재 선택에 유효한 결과가 없습니다. 공개 선택 화면에서 다시 작성하세요.</p>'}</div>`;
 	on("human", async () => {
 		if (!document.querySelector("#confirmed").checked)
 			throw Error("실제 파일 확인에 체크해 주세요.");

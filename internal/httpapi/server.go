@@ -132,6 +132,17 @@ func fail(w http.ResponseWriter, e error, status int) {
 	if strings.ContainsAny(code, " :\n") || len(code) > 80 {
 		code = "INVALID_REQUEST"
 	}
+	if status == 400 {
+		switch code {
+		case "UNSUPPORTED_SOURCE_TYPE":
+			status = 415
+		case "INVALID_DECISION", "BROKEN_EVIDENCE_REFERENCE", "REFERENCE_INVALID", "SCOPE_MISMATCH", "UNDEFINED_PROJECTION", "INCOMPLETE":
+			status = 422
+		}
+	}
+	if code == "QUEUE_FULL" {
+		status = 503
+	}
 	if errors.Is(e, sql.ErrNoRows) {
 		status = 404
 		code = "NOT_FOUND"
@@ -253,6 +264,10 @@ func (s *Server) create(w http.ResponseWriter, r *http.Request) {
 		fail(w, errors.New("UNSUPPORTED_SKILL_SELECTION"), 400)
 		return
 	}
+	if !s.knownCatalog("project", v.Project) || !s.knownCatalog("recipient", v.Recipient) {
+		fail(w, errors.New("REFERENCE_INVALID"), 422)
+		return
+	}
 	t, e := s.Service.Create(v.Title, domain.Scope{ProjectID: v.Project, PurposeID: v.Purpose, RecipientID: v.Recipient, Audience: v.Audience}, v.Language)
 	if e != nil {
 		fail(w, e, 400)
@@ -323,6 +338,10 @@ func (s *Server) patch(w http.ResponseWriter, r *http.Request) {
 			fail(w, errors.New("INVALID_REQUEST"), 400)
 			return
 		}
+		if !s.knownCatalog("recipient", *v.Recipient) {
+			fail(w, errors.New("REFERENCE_INVALID"), 422)
+			return
+		}
 		t.Scope.RecipientID = *v.Recipient
 	}
 	if v.Audience != nil {
@@ -356,6 +375,10 @@ func (s *Server) patch(w http.ResponseWriter, r *http.Request) {
 		}
 		t.Language = *v.Language
 	}
+	if t.Scope.RecipientID == "public" && t.Scope.Audience != "public" {
+		fail(w, errors.New("SCOPE_MISMATCH"), 422)
+		return
+	}
 	t.Invalidate(phase)
 	if e = s.Service.Store.Save(t, v.Revision); e != nil {
 		fail(w, e, 409)
@@ -381,4 +404,12 @@ func (s *Server) providerCheck(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	respond(w, 202, j)
+}
+
+func (s *Server) knownCatalog(kind, id string) bool {
+	if kind == "project" && id == "project_demo" || kind == "recipient" && (id == "public" || id == "recipient_vendorstore") {
+		return true
+	}
+	var found string
+	return s.Service.Store.DB.QueryRow("SELECT id FROM catalog WHERE id=? AND kind=?", id, kind).Scan(&found) == nil
 }

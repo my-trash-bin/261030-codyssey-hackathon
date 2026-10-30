@@ -1,0 +1,23 @@
+{
+  "schema_version": "heldout_plan.v1",
+  "status": "not_run",
+  "reason": "실제 사내 모델이 제공되지 않아 동결 후 live 보류 사례는 미수행",
+  "cases": [
+    {
+      "variation": "middle-decrease",
+      "expected": "감소·증가를 새 자료에서 다시 계산"
+    },
+    {
+      "variation": "source-conflict",
+      "expected": "충돌 묶음 표시·상충 주장 동시 허용 차단"
+    },
+    {
+      "variation": "recipient-changed",
+      "expected": "기존 정확한 값·원문 승인 확대 금지"
+    },
+    {
+      "variation": "wrong-target",
+      "expected": "digest 불일치로 실행 전 오류"
+    }
+  ]
+}

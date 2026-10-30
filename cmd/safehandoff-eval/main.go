@@ -40,7 +40,23 @@ type report struct {
 	Recipient any          `json:"recipient_evaluation"`
 	Cases     []caseResult `json:"cases"`
 }
+type expectedCase struct {
+	Schema     string   `json:"schema_version"`
+	ID         string   `json:"case_id"`
+	Required   []string `json:"required_semantics"`
+	Forbidden  []string `json:"forbidden_semantics"`
+	Literals   []string `json:"forbidden_literals"`
+	Disclosure struct {
+		Volume    string `json:"volume"`
+		Time      string `json:"time"`
+		Operation string `json:"operation_id"`
+		Attempt   string `json:"attempt_id"`
+	} `json:"expected_disclosure"`
+	Reproduction domain.ReproResult `json:"expected_reproduction"`
+}
 type caseResult struct {
+	ExpectedSHA        string             `json:"expected_case_sha256"`
+	OutputDirectory    string             `json:"output_directory,omitempty"`
 	CaseID             string             `json:"case_id"`
 	Status             string             `json:"status"`
 	Error              string             `json:"error_code"`
@@ -61,6 +77,10 @@ func main() {
 	r := report{RunID: domain.ID("eval"), Mode: *mode, Started: time.Now().UTC(), Checks: []item{}, Cases: []caseResult{}}
 	commit, _ := exec.Command("git", "rev-parse", "HEAD").Output()
 	r.Commit = strings.TrimSpace(string(commit))
+	runOutput := filepath.Join(*out, "runs", r.RunID)
+	if e := os.MkdirAll(runOutput, 0700); e != nil {
+		panic(e)
+	}
 	code := 0
 	switch *mode {
 	case "prepare":
@@ -85,6 +105,8 @@ func main() {
 		}
 		a, b, _ := tools.Synthetic(77, 6)
 		res := runner.RunRepro(context.Background(), reg, a, b)
+		seed := uint64(77)
+		res.Seed = &seed
 		status := "fail"
 		if res.Status == "reproduced" {
 			status = "pass"
@@ -149,7 +171,7 @@ func main() {
 			Scenario, Purpose, Volume string
 			IDs                       bool
 		}{{"oss-encoding", "oss_issue", "direction", true}, {"b2b-timeout", "vendor_support", "direction", true}, {"b2b-timeout", "vendor_support", "direction", false}, {"internal-operations", "operations_advice", "ratio", true}} {
-			res := runCase(p, c.Scenario, c.Purpose, c.Volume, c.IDs, *out)
+			res := runCase(p, c.Scenario, c.Purpose, c.Volume, c.IDs, runOutput, *out)
 			r.Cases = append(r.Cases, res)
 			if res.Status != "pass" {
 				code = 1
@@ -166,6 +188,7 @@ func main() {
 	}
 	b, _ := json.MarshalIndent(r, "", "  ")
 	write(filepath.Join(*out, *mode+"-"+r.RunID+".json"), r)
+	write(filepath.Join(runOutput, "run.json"), r)
 	name := filepath.Join(*out, *mode+"-run.json")
 	if e := os.WriteFile(name, append(b, '\n'), 0600); e != nil {
 		panic(e)
@@ -250,13 +273,20 @@ func wait(db *store.Store, id, job string) error {
 	}
 	return errors.New("EVALUATION_TIMEOUT")
 }
-func runCase(p llm.Provider, scenario, purpose, volume string, ids bool, out string) (res caseResult) {
+func runCase(p llm.Provider, scenario, purpose, volume string, ids bool, out string, latestOut string) (res caseResult) {
 	res.CaseID = scenario + "-" + volume
 	if !ids {
 		res.CaseID += "-ids-excluded"
 	}
 	res.Status = "fail"
 	res.SourceHashes = map[string]string{}
+	expectedBytes, err := os.ReadFile(filepath.Join("evaluation/expected", res.CaseID+".json"))
+	var expected expectedCase
+	if err != nil || domain.Strict(expectedBytes, &expected) != nil || expected.Schema != "evaluation_case.v1" || expected.ID != res.CaseID {
+		res.Error = "EVALUATION_EXPECTED_INVALID"
+		return
+	}
+	res.ExpectedSHA = domain.Hash(expectedBytes)
 	dir, e := os.MkdirTemp("", "safehandoff-eval-")
 	if e != nil {
 		res.Error = e.Error()
@@ -329,6 +359,9 @@ func runCase(p llm.Provider, scenario, purpose, volume string, ids bool, out str
 	old := task.Revision
 	for _, c := range task.Candidates {
 		d := domain.Decision{ID: domain.ID("dec"), CandidateID: c.ID, Disposition: "allow", Scope: task.Scope, SourceHash: task.SourceHash(), Representation: domain.Representation{Kind: "fact_summary", Parameters: map[string]int{}}}
+		if !c.Required && c.Kind != "identifier" && c.Kind != "synthetic" && c.Kind != "series" {
+			d.Disposition = "exclude"
+		}
 		if c.Kind == "config_example" {
 			d.Disposition = "exclude"
 		}
@@ -405,7 +438,7 @@ func runCase(p llm.Provider, scenario, purpose, volume string, ids bool, out str
 		return
 	}
 	for _, f := range a.Files {
-		for _, bad := range []string{"DEMO_ONLY_SECRET", "DEMO_CUSTOMER", "71%", "2031-03-15"} {
+		for _, bad := range expected.Literals {
 			if bytes.Contains(f.Bytes, []byte(bad)) {
 				res.Error = "FORBIDDEN_LITERAL:" + bad
 				return
@@ -421,6 +454,11 @@ func runCase(p llm.Provider, scenario, purpose, volume string, ids bool, out str
 	os.WriteFile(filepath.Join(destination, "public.zip"), a.ZIP, 0600)
 	trace, _ := json.MarshalIndent(task.Traces, "", "  ")
 	os.WriteFile(filepath.Join(out, res.CaseID+"-internal-traces.json"), append(trace, '\n'), 0600)
+	res.OutputDirectory = destination
+	if e = publishLatestCase(a, res.CaseID, latestOut); e != nil {
+		res.Error = e.Error()
+		return
+	}
 	res.Status = "pass"
 	res.Revision = task.Revision
 	res.SetHash = a.SetHash
@@ -428,4 +466,50 @@ func runCase(p llm.Provider, scenario, purpose, volume string, ids bool, out str
 	res.ModelCalls = len(task.Traces)
 	res.Repro = task.Reproduction
 	return
+}
+
+// Keep each immutable run directory and atomically replace the convenience sample.
+// Prior sample directories are moved aside, never deleted.
+func publishLatestCase(a *domain.Artifact, caseID, out string) error {
+	parent := filepath.Join(out, "examples")
+	if e := os.MkdirAll(parent, 0700); e != nil {
+		return e
+	}
+	stage, e := os.MkdirTemp(parent, ".stage-"+caseID+"-")
+	if e != nil {
+		return e
+	}
+	for _, f := range a.Files {
+		path := filepath.Join(stage, f.Path)
+		if e = os.MkdirAll(filepath.Dir(path), 0700); e != nil {
+			return e
+		}
+		if e = os.WriteFile(path, f.Bytes, 0600); e != nil {
+			return e
+		}
+	}
+	if e = os.WriteFile(filepath.Join(stage, "public.zip"), a.ZIP, 0600); e != nil {
+		return e
+	}
+	destination := filepath.Join(parent, caseID)
+	backup := ""
+	if _, e = os.Lstat(destination); e == nil {
+		history := filepath.Join(out, "previous-examples")
+		if e = os.MkdirAll(history, 0700); e != nil {
+			return e
+		}
+		backup = filepath.Join(history, caseID+"-"+domain.ID("prior"))
+		if e = os.Rename(destination, backup); e != nil {
+			return e
+		}
+	} else if !os.IsNotExist(e) {
+		return e
+	}
+	if e = os.Rename(stage, destination); e != nil {
+		if backup != "" {
+			os.Rename(backup, destination)
+		}
+		return e
+	}
+	return nil
 }

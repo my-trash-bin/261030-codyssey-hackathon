@@ -41,6 +41,9 @@
           "maxLength": 8192,
           "type": "string"
         },
+        "revision": {
+          "type": "integer"
+        },
         "schema_version": {
           "maxLength": 8192,
           "type": "string"

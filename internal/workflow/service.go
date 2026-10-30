@@ -51,6 +51,9 @@ func (s *Service) Create(title string, scope domain.Scope, lang string) (domain.
 	if scope.ProjectID == "" || scope.RecipientID == "" || (scope.Audience != "public" && scope.Audience != "named_external") || (scope.PurposeID != "oss_issue" && scope.PurposeID != "vendor_support" && scope.PurposeID != "operations_advice") || (lang != "ko" && lang != "en") {
 		return domain.Task{}, errors.New("INVALID_REQUEST")
 	}
+	if scope.RecipientID == "public" && scope.Audience != "public" {
+		return domain.Task{}, errors.New("SCOPE_MISMATCH")
+	}
 	if s.Provider.Mode() == "fixture" && lang != "ko" {
 		return domain.Task{}, errors.New("UNSUPPORTED_OUTPUT_LANGUAGE")
 	}
@@ -96,8 +99,14 @@ func (s *Service) StartWithArguments(id string, rev int, kind string, args domai
 			return domain.Job{}, e
 		}
 	}
+	if kind == "review" {
+		a := t.Artifact()
+		if a == nil || (a.Status != "draft" && a.Status != "blocked") {
+			return domain.Job{}, errors.New("ARTIFACT_STALE")
+		}
+	}
 	old := t.Revision
-	if kind == "analyze" && len(t.Candidates) > 0 || (kind == "compose" || kind == "reproduce") && (t.Phase == "ready_to_finalize" || t.Phase == "finalized") {
+	if kind == "analyze" && len(t.Candidates) > 0 || (kind == "compose" || kind == "reproduce") && (t.Phase == "ready_to_finalize" || t.Phase == "finalized" || (t.Artifact() != nil && (t.Artifact().Status == "ready" || t.Artifact().Status == "finalized"))) {
 		t.Invalidate("needs_decisions")
 	}
 	j := domain.Job{Arguments: args, PreviousPhase: t.Phase, ID: domain.ID("job"), TaskID: t.ID, Revision: t.Revision, Kind: kind, Status: "queued", Started: time.Now().UTC()}
@@ -181,11 +190,13 @@ func (s *Service) run(id string) {
 			if len(domain.Canonical(r)) > s.MaxInput {
 				return errors.New("CONTEXT_BUDGET_EXCEEDED")
 			}
+			callStarted := time.Now()
 			res, err := s.Provider.Generate(s.ctx, r)
-			trace := domain.Trace{InputTokens: res.InputTokens, OutputTokens: res.OutputTokens, JobID: j.ID, Role: role, Mode: s.Provider.Mode(), Request: domain.Canonical(r), Response: res.Text, ElapsedMS: res.ElapsedMS}
+			elapsed := time.Since(callStarted).Milliseconds()
+			trace := domain.Trace{InputTokens: res.InputTokens, OutputTokens: res.OutputTokens, JobID: j.ID, Role: role, Mode: s.Provider.Mode(), Request: domain.Canonical(r), Response: res.Text, ElapsedMS: elapsed}
 			if live, ok := s.Provider.(*llm.Live); ok {
 				trace.Model = live.Model
-				trace.ProviderConfigHash = domain.Hash(domain.Canonical(live.Config))
+				trace.ProviderConfigHash = domain.Hash(domain.Canonical(map[string]any{"config": live.Config, "base_url": live.Base, "model": live.Model}))
 			}
 			if err == nil {
 				err = llm.Parse(res.Text, out)
@@ -204,6 +215,7 @@ func (s *Service) run(id string) {
 		}
 		return last
 	}
+	var pendingDecisions []string
 	var interpretation *llm.Disclosure
 	var generated *domain.Artifact
 	var ascii, multi []byte
@@ -312,6 +324,9 @@ func (s *Service) run(id string) {
 			candidates = append(candidates, domain.Candidate{ID: domain.ID("cand"), Kind: "config_example", Statement: "현재 공급사 문의에 문서용 IP 대역을 사용하는 새 설정 예시를 첨부합니다. 실제 접속 로그의 주소를 공개하는 승인은 아닙니다.", Uncertainty: "reported", EvidenceIDs: []string{t.Evidence[0].ID}, Origin: "app"})
 		}
 
+		if len(candidates) > 30 {
+			e = errors.New("CANDIDATE_LIMIT")
+		}
 	case "interpret_disclosure":
 		var candidate *domain.Candidate
 		for i := range t.Candidates {
@@ -369,6 +384,9 @@ func (s *Service) run(id string) {
 					if b, err := os.ReadFile("var/runners/targets.json"); err == nil && domain.Strict(b, &reg) == nil && s.ReproductionEnabled {
 						result = runner.RunRepro(s.ctx, reg, ascii, multi)
 					}
+					result.Seed = &seed
+					result.Inputs = runner.DescribeInputs(ascii, multi)
+					result.InputSetSHA = domain.Hash(domain.Canonical([]string{domain.Hash(ascii), domain.Hash(multi)}))
 					if !s.ReproductionEnabled {
 						result.Reason = "disabled_by_configuration"
 					}
@@ -395,6 +413,12 @@ func (s *Service) run(id string) {
 			break
 		}
 
+		versionBase := 0
+		for _, prior := range t.Artifacts {
+			if prior.Revision == j.Revision && prior.Version > versionBase {
+				versionBase = prior.Version
+			}
+		}
 		for repair := 0; repair <= s.Repairs; repair++ {
 			for i := range draft.Blocks {
 				draft.Blocks[i].ID = domain.ID("block")
@@ -410,6 +434,7 @@ func (s *Service) run(id string) {
 					break
 				}
 			}
+			ar.Version = versionBase + repair + 1
 			draft = ar.Draft
 			ar.Status = "blocked"
 			generated = &ar
@@ -432,6 +457,13 @@ func (s *Service) run(id string) {
 					break
 				}
 				ar.Reviews = append(ar.Reviews, domain.Review{ID: domain.ID("review"), TargetKind: "files", TargetHash: ar.SetHash, Mode: s.Provider.Mode(), Result: final.Result})
+				if final.Result == "needs_decision" {
+					for _, issue := range final.Issues {
+						pendingDecisions = append(pendingDecisions, issue.Candidates...)
+					}
+					e = errors.New("NEEDS_DECISIONS")
+					break
+				}
 				if final.Result != "pass" {
 					e = errors.New("REVIEW_UNRESOLVED")
 					break
@@ -451,6 +483,9 @@ func (s *Service) run(id string) {
 				break
 			}
 			if rev.Result == "needs_decision" {
+				for _, issue := range rev.Issues {
+					pendingDecisions = append(pendingDecisions, issue.Candidates...)
+				}
 				e = errors.New("NEEDS_DECISIONS")
 				break
 			}
@@ -490,8 +525,25 @@ func (s *Service) run(id string) {
 			status = "cancelled"
 		}
 	}
+	current.Traces = append(current.Traces, traces...)
 	if status == "succeeded" {
-		current.Traces = append(current.Traces, traces...)
+		if reproduction != nil {
+			current.Reproduction = domain.ReproResult{Revision: j.Revision, Schema: "repro_result.v1", Status: reproduction.Status, Reason: reproduction.Reason}
+		}
+		for _, id := range pendingDecisions {
+			exists := false
+			for _, old := range current.PendingDecisionIDs {
+				exists = exists || old == id
+			}
+			if !exists {
+				current.PendingDecisionIDs = append(current.PendingDecisionIDs, id)
+			}
+			for i := range current.Candidates {
+				if current.Candidates[i].ID == id {
+					current.Candidates[i].NeedsDecision = true
+				}
+			}
+		}
 		if e != nil {
 			status = "failed"
 			current.Phase = "needs_attention"
@@ -506,6 +558,7 @@ func (s *Service) run(id string) {
 			current.Phase = j.PreviousPhase
 		} else if j.Kind == "analyze" {
 			current.Candidates = candidates
+			current.PendingDecisionIDs = nil
 			current.Decisions = map[string]domain.Decision{}
 			current.Previews = map[string]domain.Preview{}
 			current.Phase = "needs_decisions"
@@ -531,7 +584,14 @@ func (s *Service) run(id string) {
 				current.Artifacts = append(current.Artifacts, *generated)
 				current.CurrentArtifactID = generated.ID
 				if reproduction != nil {
-					current.Reproduction = domain.ReproResult{Schema: "repro_result.v1", Status: reproduction.Status, Reason: reproduction.Reason}
+					current.Reproduction = domain.ReproResult{Revision: j.Revision, Schema: "repro_result.v1", Status: reproduction.Status, Reason: reproduction.Reason}
+				}
+				if reproduction == nil {
+					status, reason := "not_run", "no_environment"
+					if current.Scope.PurposeID == "oss_issue" {
+						status, reason = "not_requested", "user_not_requested"
+					}
+					current.Reproduction = domain.ReproResult{Revision: j.Revision, Schema: "repro_result.v1", Status: status, Reason: reason}
 				}
 				current.Phase = "ready_to_finalize"
 			}
@@ -561,12 +621,21 @@ func (s *Service) run(id string) {
 }
 
 func safeCode(e error) string {
-	v := e.Error()
-	if len(v) < 80 && !strings.ContainsAny(v, " :\n\r\t") {
-		return v
+	if errors.Is(e, context.Canceled) {
+		return "CANCELLED"
+	}
+	if errors.Is(e, context.DeadlineExceeded) {
+		return "PROVIDER_TIMEOUT"
+	}
+	allowed := "CANDIDATE_LIMIT INPUT_TOO_LARGE INVALID_REQUEST SCHEMA_INVALID INVALID_JSON SOURCE_CONFLICT REFERENCE_INVALID INVALID_DECISION BROKEN_EVIDENCE_REFERENCE SCOPE_MISMATCH APPROVAL_EXPIRED NO_SOURCES NO_SUPPORTED_CANDIDATES NEEDS_DECISIONS NEEDS_DISCLOSURE_DECISION NO_PUBLIC_FACTS MODEL_CALL_BUDGET_EXCEEDED CONTEXT_BUDGET_EXCEEDED OUTPUT_TRUNCATED PROVIDER_UNAVAILABLE PROVIDER_AUTH_FAILED PROVIDER_CONFIG_UNSUPPORTED PROVIDER_TIMEOUT CANCELLED INTERRUPTED REVIEW_UNRESOLVED ARTIFACT_STALE FINALIZATION_BLOCKED UNAPPROVED_DISCLOSURE UNAPPROVED_REFERENCE MISSING_REQUIRED_FACT INCORRECT_PROJECTION EXPORT_TOO_LARGE TOOL_TIMEOUT TOOL_SCHEMA_INVALID TOOL_ENVIRONMENT_UNAVAILABLE TARGET_DIGEST_MISMATCH"
+	for _, code := range strings.Fields(allowed) {
+		if e.Error() == code {
+			return code
+		}
 	}
 	return "SCHEMA_INVALID"
 }
+
 func validateReview(r llm.Review, d domain.Draft, p domain.FactPack, c []domain.Candidate, files []domain.File) error {
 	if r.Schema != "review.v1" {
 		return errors.New("SCHEMA_INVALID")

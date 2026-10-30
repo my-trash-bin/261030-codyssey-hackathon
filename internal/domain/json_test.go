@@ -1,12 +1,15 @@
 package domain
 
-import "testing"
+import (
+	"testing"
+	"time"
+)
 
 func TestStrict(t *testing.T) {
 	type V struct {
 		Value string `json:"value"`
 	}
-	for _, s := range []string{`{"value":"a","value":"b"}`, `{"Value":"a"}`, `{"value":1}`, `{"value":"a","extra":2}`, `{"value":"a"}{}`} {
+	for _, s := range []string{`{"value":"a","value":"b"}`, `{"Value":"a"}`, `{"value":null}`, `{"value":1}`, `{"value":"a","extra":2}`, `{"value":"a"}{}`} {
 		var v V
 		if Strict([]byte(s), &v) == nil {
 			t.Errorf("accepted %s", s)
@@ -28,5 +31,20 @@ func TestEvidenceBytes(t *testing.T) {
 	task.Sources[0].Raw[0] = 'x'
 	if ValidateEvidence(task, []string{ev[0].ID}) == nil {
 		t.Fatal("changed bytes")
+	}
+}
+func TestStrictNullObjectAndNullableExpiry(t *testing.T) {
+	var v struct {
+		Representation Representation `json:"representation"`
+		Expiry         *time.Time     `json:"expires_at"`
+	}
+	if Strict([]byte(`{"representation":null,"expires_at":null}`), &v) == nil {
+		t.Fatal("null object accepted")
+	}
+	if Strict([]byte(`{"representation":{"kind":"fact_summary","parameters":null},"expires_at":null}`), &v) == nil {
+		t.Fatal("null map accepted")
+	}
+	if e := Strict([]byte(`{"representation":{"kind":"fact_summary","parameters":{}},"expires_at":null}`), &v); e != nil {
+		t.Fatal(e)
 	}
 }

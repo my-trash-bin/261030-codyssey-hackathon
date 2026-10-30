@@ -196,6 +196,9 @@ func Active(d domain.Decision, t domain.Task, rules []domain.Rule, now time.Time
 	return true
 }
 func Pack(t domain.Task, rules []domain.Rule, now time.Time) (domain.FactPack, error) {
+	if len(t.PendingDecisionIDs) > 0 {
+		return domain.FactPack{}, errors.New("NEEDS_DECISIONS")
+	}
 	p := domain.FactPack{Schema: "fact_pack.v1", Revision: t.Revision, TemplateID: t.Scope.PurposeID + ".v1", Audience: t.Scope.Audience, Language: t.Language, Brief: "관찰된 현상과 미확인 사항을 정리하고 조사를 요청한다.", Facts: []domain.Fact{}, Required: []string{}, Tables: []domain.Table{}, Excerpts: []domain.Slot{}, Assets: []domain.Slot{}, ToolResults: []any{}}
 	allowedConflicts := map[string]bool{}
 	for _, c := range t.Candidates {

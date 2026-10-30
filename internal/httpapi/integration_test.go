@@ -3,10 +3,12 @@ package httpapi
 import (
 	"archive/zip"
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
 	"mime/multipart"
+	"net/http"
 	"net/http/httptest"
 	"os"
 	"path/filepath"
@@ -15,6 +17,7 @@ import (
 	"safehandoff.local/poc/internal/store"
 	"safehandoff.local/poc/internal/workflow"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 )
@@ -224,7 +227,7 @@ func TestEndToEndDisclosureBytesAndInvalidation(t *testing.T) {
 }
 func TestIdempotencyAndCSRF(t *testing.T) {
 	h := newHarness(t)
-	v := map[string]any{"internal_title": "x", "project_id": "p", "purpose_id": "vendor_support", "recipient_id": "r", "audience": "named_external", "output_language": "ko", "skill_ids": []string{}}
+	v := map[string]any{"internal_title": "x", "project_id": "project_demo", "purpose_id": "vendor_support", "recipient_id": "recipient_vendorstore", "audience": "named_external", "output_language": "ko", "skill_ids": []string{}}
 	a := h.req("POST", "/tasks", v, "same")
 	b := h.req("POST", "/tasks", v, "same")
 	if a.Body.String() != b.Body.String() {
@@ -262,7 +265,8 @@ func TestFinalByteTamperAndScope(t *testing.T) {
 	if w.Code != 409 {
 		t.Fatal(w.Code, w.Body.String())
 	}
-	w = h.req("PATCH", "/tasks/"+id, map[string]any{"expected_revision": task.Revision, "recipient_id": "changed"}, "scope")
+	newRecipient := payload[map[string]string](t, h.req("POST", "/catalog/recipients", map[string]string{"display_name": "새 시험 수신자"}, "recipient"))["id"]
+	w = h.req("PATCH", "/tasks/"+id, map[string]any{"expected_revision": task.Revision, "recipient_id": newRecipient}, "scope")
 	if w.Code != 200 {
 		t.Fatal(w.Code, w.Body.String())
 	}
@@ -420,4 +424,171 @@ func TestInterpretationIsProposalNotApproval(t *testing.T) {
 		time.Sleep(5 * time.Millisecond)
 	}
 	t.Fatal("interpretation did not complete")
+}
+
+type fakeChatTransport func(*http.Request) (*http.Response, error)
+
+func (f fakeChatTransport) RoundTrip(r *http.Request) (*http.Response, error) { return f(r) }
+func TestWriterSerializedHTTPPayloadBoundary(t *testing.T) {
+	h := newHarness(t)
+	t.Setenv("SAFEHANDOFF_LLM_BASE_URL", "https://fake-endpoint.invalid/v1")
+	t.Setenv("SAFEHANDOFF_LLM_MODEL", "wire-contract-test")
+	p, e := llm.NewLive(llm.DefaultConfig())
+	if e != nil {
+		t.Fatal(e)
+	}
+	var captured [][]byte
+	var mu sync.Mutex
+	p.Client.Transport = fakeChatTransport(func(req *http.Request) (*http.Response, error) {
+		b, e := io.ReadAll(req.Body)
+		if e != nil {
+			return nil, e
+		}
+		var body struct {
+			Messages []llm.Message `json:"messages"`
+		}
+		if e = json.Unmarshal(b, &body); e != nil {
+			return nil, e
+		}
+		role := ""
+		prompt := body.Messages[0].Content
+		switch {
+		case strings.Contains(prompt, "당신은 분석기"):
+			role = "analyst"
+		case strings.Contains(prompt, "당신은 공개 작성기"):
+			role = "writer"
+		case strings.Contains(prompt, "당신은 내부 검토기"):
+			role = "reviewer"
+		default:
+			return nil, fmt.Errorf("unknown test role")
+		}
+		if role == "writer" {
+			mu.Lock()
+			captured = append(captured, append([]byte{}, b...))
+			mu.Unlock()
+		}
+		res, e := llm.Fixture{}.Generate(req.Context(), llm.Request{Role: role, Messages: body.Messages})
+		if e != nil {
+			return nil, e
+		}
+		wire := domain.Canonical(map[string]any{"choices": []map[string]any{{"finish_reason": "stop", "message": map[string]string{"content": res.Text}}}})
+		return &http.Response{StatusCode: 200, Body: io.NopCloser(bytes.NewReader(wire)), Header: http.Header{}}, nil
+	})
+	h.svc.Provider = p
+	id := h.task("b2b-timeout", "vendor_support")
+	h.decisions(id, "direction", false)
+	h.job(id, "compose")
+	mu.Lock()
+	defer mu.Unlock()
+	if len(captured) != 1 {
+		t.Fatal("missing actual serialized writer request", len(captured))
+	}
+	for _, bad := range []string{"DEMO_ONLY_SECRET", "INTERNAL_TITLE_CANARY", "client-log.txt", "raw_bytes", "source_version_id", "192.0.2.17", "internal_explanation"} {
+		if bytes.Contains(captured[0], []byte(bad)) {
+			t.Fatalf("writer HTTP body contains %s", bad)
+		}
+	}
+	if !bytes.Contains(captured[0], []byte("op_demo_007")) {
+		t.Fatal("approved ID was discarded")
+	}
+}
+
+type needsDecisionProvider struct{}
+
+func (needsDecisionProvider) Mode() string { return "fixture" }
+func (needsDecisionProvider) Generate(ctx context.Context, r llm.Request) (llm.Response, error) {
+	if r.Role != "reviewer" {
+		return llm.Fixture{}.Generate(ctx, r)
+	}
+	var payload struct {
+		Decisions map[string]domain.Decision `json:"decisions"`
+	}
+	if e := json.Unmarshal([]byte(r.Messages[len(r.Messages)-1].Content), &payload); e != nil {
+		return llm.Response{}, e
+	}
+	for id := range payload.Decisions {
+		action := "request_decision"
+		review := llm.Review{Schema: "review.v1", Result: "needs_decision", Issues: []llm.Issue{{Target: llm.Target{Kind: "document"}, Reason: "NEEDS_DISCLOSURE_DECISION", Action: &action, Facts: []string{}, Candidates: []string{id}, Explanation: "REVIEW_ONLY_DO_NOT_FORWARD"}}}
+		return llm.Response{Text: string(domain.Canonical(review))}, nil
+	}
+	return llm.Response{}, fmt.Errorf("test has no decision")
+}
+func TestReviewDecisionRequestBlocksUntilExplicitChoice(t *testing.T) {
+	h := newHarness(t)
+	id := h.task("b2b-timeout", "vendor_support")
+	h.decisions(id, "direction", false)
+	h.svc.Provider = needsDecisionProvider{}
+	task := h.get(id)
+	job := payload[domain.Job](t, h.req("POST", "/tasks/"+id+"/jobs", map[string]any{"expected_revision": task.Revision, "kind": "compose"}, "needs-choice"))
+	done := false
+	for i := 0; i < 100; i++ {
+		task = h.get(id)
+		for _, j := range task.Jobs {
+			if j.ID == job.ID && j.Status == "failed" {
+				done = true
+			}
+		}
+		if done {
+			break
+		}
+		time.Sleep(5 * time.Millisecond)
+	}
+	if !done || len(task.PendingDecisionIDs) != 1 || task.Phase != "needs_decisions" {
+		t.Fatal("decision request not retained", task.Phase, task.PendingDecisionIDs)
+	}
+	if w := h.req("POST", "/tasks/"+id+"/jobs", map[string]any{"expected_revision": task.Revision, "kind": "compose"}, "premature"); w.Code != 409 {
+		t.Fatal("pending choice bypassed", w.Code)
+	}
+	h.decisions(id, "direction", false)
+	h.svc.Provider = llm.Fixture{}
+	h.job(id, "compose")
+	task = h.get(id)
+	if len(task.PendingDecisionIDs) != 0 {
+		t.Fatal(task.PendingDecisionIDs)
+	}
+	for _, trace := range task.Traces {
+		if trace.Role == "writer" && bytes.Contains(trace.Request, []byte("REVIEW_ONLY_DO_NOT_FORWARD")) {
+			t.Fatal("review explanation reached writer")
+		}
+	}
+}
+func TestProcessingCannotFinalizeOrHumanApproveOldFiles(t *testing.T) {
+	h := newHarness(t)
+	id := h.task("b2b-timeout", "vendor_support")
+	h.decisions(id, "direction", false)
+	h.job(id, "compose")
+	task := h.get(id)
+	a := task.Artifact()
+	task.Phase = "processing"
+	h.db.Save(task, task.Revision)
+	w := h.req("POST", "/artifacts/"+a.ID+"/finalize", map[string]any{"expected_revision": task.Revision, "expected_artifact_set_hash": a.SetHash, "confirmed": true}, "processing-finalize")
+	if w.Code != 409 {
+		t.Fatal("processing finalize accepted", w.Code)
+	}
+	a.Status = "blocked"
+	h.db.Save(task, task.Revision)
+	w = h.req("POST", "/artifacts/"+a.ID+"/human-review", map[string]any{"expected_revision": task.Revision, "expected_artifact_set_hash": a.SetHash, "fallback_reason": "동시 실행 이전 파일 확인", "confirmed": true}, "processing-human")
+	if w.Code != 409 {
+		t.Fatal("processing human review accepted", w.Code)
+	}
+}
+func TestCompletedJobCannotDowngradeFinalizedTask(t *testing.T) {
+	h := newHarness(t)
+	id := h.task("b2b-timeout", "vendor_support")
+	h.decisions(id, "direction", false)
+	h.job(id, "compose")
+	export := h.finalize(id)
+	task := h.get(id)
+	w := h.req("POST", "/jobs/"+task.CurrentJobID+"/cancel", map[string]any{"expected_revision": task.Revision}, "cancel-finished")
+	if w.Code != 409 {
+		t.Fatal("finished job cancelled", w.Code)
+	}
+	w = h.req("POST", "/tasks/"+id+"/jobs", map[string]any{"expected_revision": task.Revision, "kind": "review"}, "review-final")
+	if w.Code != 409 {
+		t.Fatal("finalized document reviewed without new revision", w.Code)
+	}
+	task = h.get(id)
+	if task.Phase != "finalized" || task.ExportID != export {
+		t.Fatal("finalization changed")
+	}
 }

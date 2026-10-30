@@ -17,3 +17,11 @@ func TestOracleDoesNotCountOtherErrors(t *testing.T) {
 		t.Fatal(status, reason)
 	}
 }
+func TestSyntheticInputCharacteristicsUseNewBytes(t *testing.T) {
+	a := []byte("{\"value\":\"ABCDEF\"}\n")
+	b := []byte("{\"value\":\"하늘바다나무\"}\n")
+	shapes := DescribeInputs(a, b)
+	if shapes.ASCII.Codepoints != 6 || shapes.ASCII.UTF8Bytes != 6 || shapes.Multibyte.Codepoints != 6 || shapes.Multibyte.UTF8Bytes != 18 {
+		t.Fatal(shapes)
+	}
+}

@@ -8,6 +8,20 @@ const { chromium } = require("playwright");
 		viewport: { width: 1280, height: 720 },
 	});
 	const errors = [];
+	let dropped = false;
+	const retryPayloads = [];
+	await page.route("**/api/v1/tasks/*/source-batches", async (route) => {
+		const req = route.request();
+		retryPayloads.push({
+			key: req.headers()["idempotency-key"],
+			bytes: req.postDataBuffer(),
+		});
+		const response = await route.fetch();
+		if (!dropped) {
+			dropped = true;
+			await route.abort("failed");
+		} else await route.fulfill({ response });
+	});
 	page.on("pageerror", (e) => errors.push(e.message));
 	await page.goto("http://127.0.0.1:8080/tasks/new");
 	await page
@@ -71,12 +85,23 @@ const { chromium } = require("playwright");
 	await page.goto("http://127.0.0.1:8080/history");
 	await page.locator(".history .card").first().waitFor();
 	await browser.close();
+	if (
+		retryPayloads.length !== 2 ||
+		retryPayloads[0].key !== retryPayloads[1].key ||
+		!retryPayloads[0].bytes.equals(retryPayloads[1].bytes)
+	)
+		throw Error("multipart retry changed its key or bytes");
 	const report = {
 		status:
 			errors.length || widths.some((w) => w.scroll > w.width) ? "fail" : "pass",
 		widths,
 		errors,
 		download: dl.suggestedFilename(),
+		multipart_retry: {
+			attempts: retryPayloads.length,
+			same_key: true,
+			same_bytes: true,
+		},
 		checks: [
 			"업로드",
 			"분석",

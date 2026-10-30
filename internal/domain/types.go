@@ -36,6 +36,7 @@ type Observation struct {
 	Statement string `json:"statement"`
 }
 type Candidate struct {
+	NeedsDecision  bool          `json:"needs_decision,omitempty"`
 	Observations   []Observation `json:"observations,omitempty"`
 	ConflictGroup  string        `json:"conflict_group,omitempty"`
 	ConflictReason string        `json:"conflict_reason,omitempty"`
@@ -211,31 +212,33 @@ type Event struct {
 	State    string `json:"state"`
 }
 type Task struct {
-	ID                string              `json:"id"`
-	Title             string              `json:"internal_title"`
-	Scope             Scope               `json:"scope"`
-	Language          string              `json:"output_language"`
-	Revision          int                 `json:"revision"`
-	Phase             string              `json:"phase"`
-	Mode              string              `json:"provider_mode"`
-	Sources           []Source            `json:"sources"`
-	Evidence          []Evidence          `json:"evidence"`
-	Candidates        []Candidate         `json:"candidates"`
-	Decisions         map[string]Decision `json:"decisions"`
-	Previews          map[string]Preview  `json:"previews"`
-	CurrentJobID      string              `json:"current_job_id"`
-	Jobs              []Job               `json:"jobs"`
-	Artifacts         []Artifact          `json:"artifacts"`
-	CurrentArtifactID string              `json:"current_artifact_id"`
-	ExportID          string              `json:"export_id"`
-	Events            []Event             `json:"events"`
-	Traces            []Trace             `json:"run_traces"`
-	Reproduction      ReproResult         `json:"reproduction"`
+	PendingDecisionIDs []string            `json:"pending_decision_ids"`
+	ID                 string              `json:"id"`
+	Title              string              `json:"internal_title"`
+	Scope              Scope               `json:"scope"`
+	Language           string              `json:"output_language"`
+	Revision           int                 `json:"revision"`
+	Phase              string              `json:"phase"`
+	Mode               string              `json:"provider_mode"`
+	Sources            []Source            `json:"sources"`
+	Evidence           []Evidence          `json:"evidence"`
+	Candidates         []Candidate         `json:"candidates"`
+	Decisions          map[string]Decision `json:"decisions"`
+	Previews           map[string]Preview  `json:"previews"`
+	CurrentJobID       string              `json:"current_job_id"`
+	Jobs               []Job               `json:"jobs"`
+	Artifacts          []Artifact          `json:"artifacts"`
+	CurrentArtifactID  string              `json:"current_artifact_id"`
+	ExportID           string              `json:"export_id"`
+	Events             []Event             `json:"events"`
+	Traces             []Trace             `json:"run_traces"`
+	Reproduction       ReproResult         `json:"reproduction"`
 }
 type ReproResult struct {
-	Schema string `json:"schema_version"`
-	Status string `json:"status"`
-	Reason string `json:"reason_code"`
+	Revision int    `json:"revision,omitempty"`
+	Schema   string `json:"schema_version"`
+	Status   string `json:"status"`
+	Reason   string `json:"reason_code"`
 }
 
 func (t *Task) Event(kind string) {

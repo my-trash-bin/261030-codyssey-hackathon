@@ -57,7 +57,7 @@ mise exec -- make eval
 
 준비 단계에서만 고정 바이너리와 `scratch` Docker 이미지를 빌드합니다. 실행 단계에서는 이미지 pull·네트워크·코드 생성을 허용하지 않습니다. Docker daemon 권한이 없으면 `not_run/no_environment`입니다. 준비 뒤 코드를 바꾸면 등록 digest를 다시 준비해야 합니다.
 
-`make eval`은 가상 자료에 명시적인 테스트 공개 계획을 적용하고 앱의 확정·다운로드 경로로 실제 ZIP을 검사합니다. 제품 모델에는 평가 정답표가 제공되지 않습니다. 결과는 [evaluation/results](evaluation/results)에 저장됩니다. 각 실행 ID의 보고서와 최신 `*-run.json`을 함께 남기며 실패 실행을 지우지 않습니다. `pass`는 자동 검사 범위의 성공이고 사람 의미 평가·수신자 평가는 별도입니다.
+`make eval`은 가상 자료에 명시적인 테스트 공개 계획을 적용하고 앱의 확정·다운로드 경로로 실제 ZIP을 검사합니다. 제품 모델에는 평가 정답표가 제공되지 않습니다. 결과는 [evaluation/results](evaluation/results)에 저장됩니다. 각 실행 ID의 `runs/{run_id}` 보고서·trace·파일과 최신 `*-run.json`을 함께 남깁니다. 이전 예시는 `previous-examples`에 보존하며 실패 실행을 지우지 않습니다. `pass`는 자동 검사 범위의 성공이고 사람 의미 평가·수신자 평가는 별도입니다.
 
 공개 결과 예시는 [공급사 문의](evaluation/results/examples/b2b-timeout-direction/support-request.md), [방향 표](evaluation/results/examples/b2b-timeout-direction/observations.csv), [ID 미공개 문의](evaluation/results/examples/b2b-timeout-direction-ids-excluded/support-request.md), [운영 자문](evaluation/results/examples/internal-operations-ratio/operations-brief.md), [OSS 재현 패키지](evaluation/results/examples/oss-encoding-direction)입니다. ZIP과 manifest도 같은 폴더에 있습니다. 모두 가상 자료입니다.
 

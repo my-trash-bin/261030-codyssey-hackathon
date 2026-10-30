@@ -10,6 +10,7 @@ import (
 	"safehandoff.local/poc/internal/domain"
 	"strings"
 	"time"
+	"unicode/utf8"
 )
 
 type TargetRun struct {
@@ -26,11 +27,24 @@ type RunObservation struct {
 	OutputExists  bool      `json:"output_exists"`
 	OutputMatches bool      `json:"output_matches"`
 }
+type InputShape struct {
+	Codepoints int    `json:"codepoints"`
+	UTF8Bytes  int    `json:"utf8_bytes"`
+	SHA        string `json:"sha256"`
+}
+type InputShapes struct {
+	ASCII     InputShape `json:"ascii"`
+	Multibyte InputShape `json:"multibyte"`
+}
 type Repro struct {
-	Schema string           `json:"schema_version"`
-	Status string           `json:"status"`
-	Reason string           `json:"reason_code"`
-	Runs   []RunObservation `json:"runs"`
+	Seed             *uint64          `json:"seed"`
+	TargetPairDigest string           `json:"target_pair_digest"`
+	InputSetSHA      string           `json:"input_set_sha256"`
+	Inputs           InputShapes      `json:"inputs"`
+	Schema           string           `json:"schema_version"`
+	Status           string           `json:"status"`
+	Reason           string           `json:"reason_code"`
+	Runs             []RunObservation `json:"runs"`
 }
 type TargetRegistration struct {
 	Image      string `json:"image"`
@@ -40,7 +54,7 @@ type TargetRegistration struct {
 }
 
 func RunRepro(ctx context.Context, reg TargetRegistration, ascii, multi []byte) Repro {
-	r := Repro{Schema: "repro_result.v1", Status: "error", Reason: "TARGET_DIGEST_MISMATCH", Runs: []RunObservation{}}
+	r := Repro{TargetPairDigest: reg.PairDigest, InputSetSHA: domain.Hash(domain.Canonical([]string{domain.Hash(ascii), domain.Hash(multi)})), Inputs: DescribeInputs(ascii, multi), Schema: "repro_result.v1", Status: "error", Reason: "TARGET_DIGEST_MISMATCH", Runs: []RunObservation{}}
 	for path, sha := range map[string]string{"bin/toy-buggy": reg.BuggySHA, "bin/toy-fixed": reg.FixedSHA} {
 		b, e := os.ReadFile(path)
 		if e != nil || domain.Hash(b) != sha {
@@ -137,4 +151,15 @@ func Oracle(r []RunObservation) (string, string) {
 		return "reproduced", "EXPECTED_TARGET_OUTCOME"
 	}
 	return "inconclusive", "UNEXPECTED_TARGET_OUTCOME"
+}
+
+func DescribeInputs(ascii, multi []byte) InputShapes {
+	shape := func(b []byte) InputShape {
+		var v struct {
+			Value string `json:"value"`
+		}
+		json.Unmarshal(b, &v)
+		return InputShape{Codepoints: utf8.RuneCountInString(v.Value), UTF8Bytes: len(v.Value), SHA: domain.Hash(b)}
+	}
+	return InputShapes{ASCII: shape(ascii), Multibyte: shape(multi)}
 }

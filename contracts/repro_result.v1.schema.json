@@ -2,6 +2,62 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "additionalProperties": false,
   "properties": {
+    "input_set_sha256": {
+      "maxLength": 8192,
+      "type": "string"
+    },
+    "inputs": {
+      "additionalProperties": false,
+      "properties": {
+        "ascii": {
+          "additionalProperties": false,
+          "properties": {
+            "codepoints": {
+              "type": "integer"
+            },
+            "sha256": {
+              "maxLength": 8192,
+              "type": "string"
+            },
+            "utf8_bytes": {
+              "type": "integer"
+            }
+          },
+          "required": [
+            "codepoints",
+            "utf8_bytes",
+            "sha256"
+          ],
+          "type": "object"
+        },
+        "multibyte": {
+          "additionalProperties": false,
+          "properties": {
+            "codepoints": {
+              "type": "integer"
+            },
+            "sha256": {
+              "maxLength": 8192,
+              "type": "string"
+            },
+            "utf8_bytes": {
+              "type": "integer"
+            }
+          },
+          "required": [
+            "codepoints",
+            "utf8_bytes",
+            "sha256"
+          ],
+          "type": "object"
+        }
+      },
+      "required": [
+        "ascii",
+        "multibyte"
+      ],
+      "type": "object"
+    },
     "reason_code": {
       "maxLength": 8192,
       "type": "string"
@@ -93,6 +149,17 @@
     "schema_version": {
       "const": "repro_result.v1"
     },
+    "seed": {
+      "anyOf": [
+        {
+          "minimum": 0,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
     "status": {
       "enum": [
         "not_requested",
@@ -105,9 +172,17 @@
       ],
       "maxLength": 8192,
       "type": "string"
+    },
+    "target_pair_digest": {
+      "maxLength": 8192,
+      "type": "string"
     }
   },
   "required": [
+    "seed",
+    "target_pair_digest",
+    "input_set_sha256",
+    "inputs",
     "schema_version",
     "status",
     "reason_code",

@@ -25,13 +25,17 @@ export async function api(path, options = {}) {
 		...options,
 		headers: h,
 	});
-	let r;
-	try {
-		r = await fetch(request.clone());
-	} catch {
-		r = await fetch(request.clone());
+	let r, v;
+	for (let attempt = 0; attempt < 2; attempt++) {
+		try {
+			r = await fetch(request.clone());
+			v = await r.json();
+			break;
+		} catch (error) {
+			if (attempt === 1) throw error;
+		}
 	}
-	const v = await r.json();
+
 	if (!r.ok) throw Error(v.error?.code || r.status);
 	return v.data;
 }

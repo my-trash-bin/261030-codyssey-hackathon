@@ -65,8 +65,14 @@ func (s *Server) cancelJob(w http.ResponseWriter, r *http.Request) {
 					fail(w, errors.New("REVISION_CONFLICT"), 409)
 					return
 				}
+				if (t.Jobs[i].Status != "queued" && t.Jobs[i].Status != "running") || t.CurrentJobID != t.Jobs[i].ID {
+					fail(w, errors.New("JOB_NOT_RUNNING"), 409)
+					return
+				}
 				t.Jobs[i].Cancel = true
-				t.Phase = "needs_attention"
+				if t.Jobs[i].Revision == t.Revision {
+					t.Phase = "needs_attention"
+				}
 				t.Event("job.failed")
 				if e = s.Service.Store.Save(t, t.Revision); e != nil {
 					fail(w, e, 409)
@@ -212,7 +218,7 @@ func (s *Server) finalize(w http.ResponseWriter, r *http.Request) {
 		fail(w, e, 404)
 		return
 	}
-	if t.Revision != v.Revision || t.CurrentArtifactID != r.PathValue("artifact") || !v.Confirmed {
+	if t.Revision != v.Revision || t.CurrentArtifactID != r.PathValue("artifact") || !v.Confirmed || (t.Phase != "ready_to_finalize" && t.Phase != "finalized") {
 		fail(w, errors.New("FINALIZATION_BLOCKED"), 409)
 		return
 	}
@@ -290,6 +296,9 @@ func (s *Server) edit(w http.ResponseWriter, r *http.Request) {
 	old := t.Revision
 	pack := a.Pack
 	pack.Revision = old + 1
+	for i := range v.Document.Blocks {
+		v.Document.Blocks[i].ID = ""
+	}
 	ar, e := artifact.Build(v.Document, pack)
 	if e != nil {
 		fail(w, e, 400)
@@ -324,7 +333,7 @@ func (s *Server) humanReview(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	a := t.Artifact()
-	if a == nil || a.ID != r.PathValue("artifact") || t.Revision != v.Revision || a.SetHash != v.Hash || !v.Confirmed || v.Reason == "" || t.Phase == "needs_decisions" {
+	if a == nil || a.ID != r.PathValue("artifact") || t.Revision != v.Revision || a.SetHash != v.Hash || !v.Confirmed || v.Reason == "" || (t.Phase != "needs_attention" && t.Phase != "ready_to_finalize") {
 		fail(w, errors.New("FINALIZATION_BLOCKED"), 409)
 		return
 	}

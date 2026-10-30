@@ -7,7 +7,7 @@ import (
 )
 
 func TestOracle(t *testing.T) {
-	for _, v := range []struct{ input, stage, code string }{{`{"value":"ABCDEF"}`, "persist", ""}, {`{"value":"가나다라마바"}`, "encode", "E_ENCODE_SHORT_BUFFER"}, {`{"value":"ABCDEFGHI"}`, "validate", "E_INPUT_LIMIT"}, {`{`, "parse", "E_INPUT_PARSE"}, {`{"value":"a","value":"b"}`, "parse", "E_INPUT_PARSE"}} {
+	for _, v := range []struct{ input, stage, code string }{{`{"value":"ABCDEF"}`, "persist", ""}, {`{"value":"가나다라마바"}`, "encode", "E_ENCODE_SHORT_BUFFER"}, {`{"value":"ABCDEFGHI"}`, "validate", "E_INPUT_LIMIT"}, {`{`, "parse", "E_INPUT_PARSE"}, {`{"value":"a","value":"b"}`, "parse", "E_INPUT_PARSE"}, {`{"value":null}`, "parse", "E_INPUT_PARSE"}, {`{"value":""}`, "validate", "E_INPUT_LIMIT"}} {
 		for _, fixed := range []bool{false, true} {
 			dir := t.TempDir()
 			r, c := Run([]byte(v.input), dir, fixed)

@@ -110,8 +110,14 @@ func tokens(d *json.Decoder, depth int) error {
 	return err
 }
 func keys(v any, t reflect.Type) error {
+	if t.Kind() == reflect.Pointer && v == nil {
+		return nil
+	}
 	for t.Kind() == reflect.Pointer {
 		t = t.Elem()
+	}
+	if v == nil && t.Kind() != reflect.Slice && t.Kind() != reflect.Interface {
+		return errors.New("INVALID_JSON_TYPE")
 	}
 	switch x := v.(type) {
 	case map[string]any:

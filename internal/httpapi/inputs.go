@@ -160,6 +160,7 @@ func (s *Server) source(w http.ResponseWriter, r *http.Request) {
 	for _, src := range t.Sources {
 		if src.ID == r.PathValue("source") {
 			w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+			w.Header().Set("Content-Disposition", `inline; filename="source-preview.txt"`)
 			w.Write(src.Raw)
 			return
 		}
@@ -223,9 +224,24 @@ func (s *Server) manual(w http.ResponseWriter, r *http.Request) {
 		fail(w, errors.New("REVISION_CONFLICT"), 409)
 		return
 	}
+	if len(t.Candidates) >= 30 {
+		fail(w, errors.New("CANDIDATE_LIMIT"), 413)
+		return
+	}
 	if len(v.EvidenceIDs) == 0 {
 		if v.Note == "" {
 			fail(w, errors.New("BROKEN_EVIDENCE_REFERENCE"), 400)
+			return
+		}
+		total, count := len([]byte(v.Note)), 1
+		for _, source := range t.Sources {
+			if source.Included {
+				total += len(source.Raw)
+				count++
+			}
+		}
+		if len([]byte(v.Note)) > s.Service.MaxFileBytes || total > s.Service.MaxSourceBytes || count > s.Service.MaxFiles {
+			fail(w, errors.New("INPUT_TOO_LARGE"), 413)
 			return
 		}
 		src := domain.Source{ID: domain.ID("srcv"), SourceID: domain.ID("source"), Version: 1, Name: "사용자 내부 메모", Format: "txt", Raw: []byte(v.Note), SHA: domain.Hash([]byte(v.Note)), Included: true}
@@ -259,6 +275,9 @@ func (s *Server) preview(w http.ResponseWriter, r *http.Request) {
 	if e := decode(r, &v); e != nil {
 		fail(w, e, 400)
 		return
+	}
+	if v.Representation.Parameters == nil {
+		v.Representation.Parameters = map[string]int{}
 	}
 	s.Service.Store.Mu.Lock()
 	defer s.Service.Store.Mu.Unlock()
@@ -337,6 +356,16 @@ func (s *Server) decide(w http.ResponseWriter, r *http.Request) {
 			fail(w, errors.New("INVALID_DECISION"), 400)
 			return
 		}
+
+		if op.Disposition != "allow" {
+			if op.Representation.Kind != "" || op.Representation.TransformID != "" || len(op.Representation.Parameters) > 0 || len(op.RawGrants) > 0 || op.AppliedRuleID != "" {
+				fail(w, errors.New("INVALID_DECISION"), 400)
+				return
+			}
+			op.Representation = domain.Representation{Kind: "fact_summary", Parameters: map[string]int{}}
+		} else if op.Representation.Parameters == nil {
+			op.Representation.Parameters = map[string]int{}
+		}
 		seen[op.CandidateID] = true
 		d := domain.Decision{ID: domain.ID("dec"), RawGrants: op.RawGrants, SupersedesID: t.Decisions[c.ID].ID, CandidateID: c.ID, Disposition: op.Disposition, Representation: op.Representation, Scope: t.Scope, SourceHash: t.SourceHash(), ExpiresAt: op.ExpiresAt}
 		if op.Disposition == "allow" {
@@ -392,6 +421,16 @@ func (s *Server) decide(w http.ResponseWriter, r *http.Request) {
 		} else if op.SaveRule {
 			fail(w, errors.New("INVALID_DECISION"), 400)
 			return
+		}
+		if op.Disposition != "defer" {
+			pending := []string{}
+			for _, id := range t.PendingDecisionIDs {
+				if id != c.ID {
+					pending = append(pending, id)
+				}
+			}
+			t.PendingDecisionIDs = pending
+			c.NeedsDecision = false
 		}
 		t.Decisions[c.ID] = d
 	}
