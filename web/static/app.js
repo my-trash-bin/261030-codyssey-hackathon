@@ -179,7 +179,7 @@ function workspace() {
 						.join("\n"),
 				)}</pre><details><summary>직접 편집 (JSON 문서 블록)</summary><p class="warn">저장하면 새 판본이 되며 다시 검토해야 합니다. 추가 사실은 공개 결정에서 승인해야 합니다.</p><textarea id="edit-doc">${esc(JSON.stringify(a.document, null, 2))}</textarea><button id="edit">편집 저장</button></details>`
 			: '<p class="muted">공개할 정보를 선택한 뒤 새 초안을 작성하세요. 이전 결과는 현재 결과로 사용할 수 없습니다.</p>'
-	}<div class="actions"><button class="primary" id="compose" ${t.phase === "processing" || t.phase === "needs_analysis" ? "disabled" : ""}>현재 선택으로 작성</button>${["draft", "blocked"].includes(a?.status) ? '<button id="review">편집 초안 재검토</button>' : ""}</div><small>필수 미결정·보류·만료 승인이 있으면 작성과 확정이 차단됩니다.</small></section><aside class="panel"><h2>근거와 실행 기록</h2><details open><summary>원자료 · 내부 전용</summary>${(t.sources || []).map((src) => `<details><summary>${esc(src.display_name)} · ${src.included ? "사용" : "제외"} · ${src.format} · ${atob(src.raw_bytes).length} B</summary><pre>${esc(text(src.raw_bytes))}</pre></details>`).join("")}<input type="file" id="more-files" multiple accept=".txt,.log,.md,.csv,.json"><div class="actions"><button id="add-files">자료 추가</button><button id="analyze">자료 분석 / 재시도</button></div></details><details open><summary>실행 · ${esc(t.provider_mode)}</summary>${(t.jobs || []).map((j) => `<p><span class="badge">${esc(j.kind)}</span> ${esc(j.status)} ${esc(j.error_code || "")}</p>`).join("")}</details><details><summary>공개 범위 변경</summary><label for="new-recipient">수신자 ID</label><input id="new-recipient" value="${esc(t.scope.recipient_id)}"><button id="scope">수신자 변경 및 재선택</button></details><details><summary>선택 변경 기록</summary>${(t.events || []).map((e) => `<p>r${e.revision} · ${esc(e.type)}</p>`).join("")}</details></aside></div>`;
+	}<div class="actions"><button class="primary" id="compose" ${t.phase === "processing" || t.phase === "needs_analysis" ? "disabled" : ""}>현재 선택으로 작성</button>${["draft", "blocked"].includes(a?.status) ? '<button id="review">편집 초안 재검토</button>' : ""}</div><small>필수 미결정·보류·만료 승인이 있으면 작성과 확정이 차단됩니다.</small></section><aside class="panel"><h2>근거와 실행 기록</h2><details open><summary>원자료 · 내부 전용</summary>${(t.sources || []).map((src) => `<details><summary>${esc(src.display_name)} · ${src.included ? "사용" : "제외"} · ${src.format} · ${atob(src.raw_bytes).length} B</summary><pre>${esc(text(src.raw_bytes))}</pre></details>`).join("")}<input type="file" id="more-files" multiple accept=".txt,.log,.md,.csv,.json"><div class="actions"><button id="add-files">자료 추가</button><button id="analyze">자료 분석 / 재시도</button></div></details><details open><summary>실행 · ${esc(t.provider_mode)}</summary>${(t.jobs || []).map((j) => `<p><span class="badge">${esc(j.kind)}</span> ${esc(j.status)} ${esc(j.error_code || "")}</p>`).join("")}</details><details><summary>공개 범위 변경</summary><label for="new-recipient">수신자 ID</label><input id="new-recipient" value="${esc(t.scope.recipient_id)}"><button id="scope">수신자 변경 및 재선택</button><button id="skills-update">설치된 제품 지침 판본 적용</button><small>지침 판본을 바꾸면 자료를 재분석하고 공개 선택을 다시 확인합니다.</small></details><details><summary>선택 변경 기록</summary>${(t.events || []).map((e) => `<p>r${e.revision} · ${esc(e.type)}</p>`).join("")}</details></aside></div>`;
 	(t.candidates || []).forEach((c, i) => {
 		let preview = null;
 		let rawGrants = [];
@@ -516,6 +516,13 @@ function workspace() {
 		const files = [...document.querySelector("#more-files").files];
 		if (!files.length) throw Error("파일을 선택하세요.");
 		await upload(t.id, t.revision, files);
+		await load();
+	});
+	on("skills-update", async () => {
+		await api("/tasks/" + t.id, {
+			method: "PATCH",
+			body: { expected_revision: t.revision, skill_ids: [] },
+		});
 		await load();
 	});
 	on("scope", async () => {

@@ -35,6 +35,9 @@
           "additionalProperties": false,
           "maxProperties": 5,
           "properties": {
+            "base_epoch_seconds": {
+              "type": "integer"
+            },
             "decimal_places": {
               "maximum": 4,
               "minimum": 0,
@@ -70,7 +73,11 @@
           "enum": [
             "",
             "series_direction_only.v1",
-            "series_index_base100.v1"
+            "series_index_base100.v1",
+            "timeline_sequence_only.v1",
+            "timeline_relative_intervals.v1",
+            "timeline_shifted_absolute.v1",
+            "timeline_synthetic_schedule.v1"
           ],
           "maxLength": 8192,
           "type": "string"

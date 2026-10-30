@@ -12,6 +12,7 @@ import (
 	"net/url"
 	"safehandoff.local/poc/internal/domain"
 	"safehandoff.local/poc/internal/workflow"
+	"safehandoff.local/poc/skills"
 	"safehandoff.local/poc/web"
 	"strings"
 	"sync"
@@ -291,12 +292,13 @@ type revision struct {
 
 func (s *Server) patch(w http.ResponseWriter, r *http.Request) {
 	var v struct {
-		Revision  int     `json:"expected_revision"`
-		Title     *string `json:"internal_title"`
-		Recipient *string `json:"recipient_id"`
-		Audience  *string `json:"audience"`
-		Purpose   *string `json:"purpose_id"`
-		Language  *string `json:"output_language"`
+		SkillIDs  *[]string `json:"skill_ids"`
+		Revision  int       `json:"expected_revision"`
+		Title     *string   `json:"internal_title"`
+		Recipient *string   `json:"recipient_id"`
+		Audience  *string   `json:"audience"`
+		Purpose   *string   `json:"purpose_id"`
+		Language  *string   `json:"output_language"`
 	}
 	if e := decode(r, &v); e != nil {
 		fail(w, e, 400)
@@ -331,6 +333,14 @@ func (s *Server) patch(w http.ResponseWriter, r *http.Request) {
 		t.Scope.Audience = *v.Audience
 	}
 	phase := "needs_decisions"
+	if v.SkillIDs != nil {
+		if len(*v.SkillIDs) != 0 {
+			fail(w, errors.New("UNSUPPORTED_SKILL_SELECTION"), 400)
+			return
+		}
+		t.Scope.SkillSetHash = skills.Hash()
+		phase = "needs_analysis"
+	}
 	if v.Purpose != nil {
 		if *v.Purpose != "oss_issue" && *v.Purpose != "vendor_support" && *v.Purpose != "operations_advice" {
 			fail(w, errors.New("INVALID_REQUEST"), 400)

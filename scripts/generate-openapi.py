@@ -9,7 +9,7 @@ representation={'$ref':'./decision.v1.schema.json#/properties/representation'}
 requests={
 'providerCheck':obj({}),'saveRule':obj({'task_id':S(),'candidate_id':S(),'decision_id':S(),'expected_revision':I}),'ruleVersion':obj({'expected_rule_version':I,'expires_at':{'type':['string','null'],'format':'date-time'}}),
 'create':obj({x:S() for x in ['internal_title','project_id','purpose_id','recipient_id','audience','output_language']}|{'skill_ids':{'type':'array','items':S(),'maxItems':0}}),
-'patch':obj(R|{x:S() for x in ['internal_title','recipient_id','audience','purpose_id','output_language']},['expected_revision']),
+'patch':obj(R|{x:S() for x in ['internal_title','recipient_id','audience','purpose_id','output_language']}|{'skill_ids':{'type':'array','items':S(),'maxItems':0}},['expected_revision']),
 'addCatalog':obj({'display_name':S()}),
 'removeSource':obj(R),
 'manual':obj(R|{'statement':S(),'kind':{'enum':['observation','constraint','unknown','identifier']},'evidence_ids':{'type':'array','items':S()},'user_note':S()},['expected_revision','statement','kind']),

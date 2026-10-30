@@ -282,6 +282,10 @@
                         "null"
                       ]
                     },
+                    "file_name": {
+                      "maxLength": 8192,
+                      "type": "string"
+                    },
                     "id": {
                       "maxLength": 8192,
                       "type": "string"
@@ -486,6 +490,14 @@
       "items": {
         "additionalProperties": false,
         "properties": {
+          "conflict_group": {
+            "maxLength": 8192,
+            "type": "string"
+          },
+          "conflict_reason": {
+            "maxLength": 8192,
+            "type": "string"
+          },
           "evidence_ids": {
             "items": {
               "maxLength": 8192,
@@ -504,6 +516,31 @@
           "kind": {
             "maxLength": 8192,
             "type": "string"
+          },
+          "observations": {
+            "items": {
+              "additionalProperties": false,
+              "properties": {
+                "statement": {
+                  "maxLength": 8192,
+                  "type": "string"
+                },
+                "time": {
+                  "maxLength": 8192,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "time",
+                "statement"
+              ],
+              "type": "object"
+            },
+            "maxItems": 100,
+            "type": [
+              "array",
+              "null"
+            ]
           },
           "origin": {
             "maxLength": 8192,
@@ -749,6 +786,9 @@
                 "additionalProperties": false,
                 "maxProperties": 5,
                 "properties": {
+                  "base_epoch_seconds": {
+                    "type": "integer"
+                  },
                   "decimal_places": {
                     "maximum": 4,
                     "minimum": 0,
@@ -784,7 +824,11 @@
                 "enum": [
                   "",
                   "series_direction_only.v1",
-                  "series_index_base100.v1"
+                  "series_index_base100.v1",
+                  "timeline_sequence_only.v1",
+                  "timeline_relative_intervals.v1",
+                  "timeline_shifted_absolute.v1",
+                  "timeline_synthetic_schedule.v1"
                 ],
                 "maxLength": 8192,
                 "type": "string"
@@ -918,6 +962,34 @@
             "maxLength": 8192,
             "type": "string"
           },
+          "locator": {
+            "additionalProperties": false,
+            "properties": {
+              "column": {
+                "maxLength": 8192,
+                "type": "string"
+              },
+              "kind": {
+                "maxLength": 8192,
+                "type": "string"
+              },
+              "pointer": {
+                "maxLength": 8192,
+                "type": "string"
+              },
+              "row": {
+                "type": "integer"
+              },
+              "value_sha256": {
+                "maxLength": 8192,
+                "type": "string"
+              }
+            },
+            "required": [
+              "kind"
+            ],
+            "type": "object"
+          },
           "source_version_id": {
             "maxLength": 8192,
             "type": "string"
@@ -927,6 +999,7 @@
           }
         },
         "required": [
+          "locator",
           "id",
           "source_version_id",
           "start",
@@ -957,6 +1030,32 @@
       "items": {
         "additionalProperties": false,
         "properties": {
+          "arguments": {
+            "additionalProperties": false,
+            "properties": {
+              "candidate_id": {
+                "maxLength": 8192,
+                "type": "string"
+              },
+              "seed": {
+                "anyOf": [
+                  {
+                    "minimum": 0,
+                    "type": "integer"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "text": {
+                "maxLength": 8192,
+                "type": "string"
+              }
+            },
+            "required": [],
+            "type": "object"
+          },
           "cancel_requested": {
             "type": "boolean"
           },
@@ -986,6 +1085,130 @@
             "maxLength": 8192,
             "type": "string"
           },
+          "previous_phase": {
+            "maxLength": 8192,
+            "type": "string"
+          },
+          "result": {
+            "anyOf": [
+              {
+                "additionalProperties": false,
+                "properties": {
+                  "candidate_id": {
+                    "maxLength": 8192,
+                    "type": "string"
+                  },
+                  "representation": {
+                    "anyOf": [
+                      {
+                        "additionalProperties": false,
+                        "properties": {
+                          "kind": {
+                            "enum": [
+                              "fact_summary",
+                              "derived_table",
+                              "selected_fields",
+                              "exact_value",
+                              "approved_excerpt"
+                            ],
+                            "maxLength": 8192,
+                            "type": "string"
+                          },
+                          "parameters": {
+                            "additionalProperties": false,
+                            "maxProperties": 5,
+                            "properties": {
+                              "base_epoch_seconds": {
+                                "type": "integer"
+                              },
+                              "decimal_places": {
+                                "maximum": 4,
+                                "minimum": 0,
+                                "type": "integer"
+                              },
+                              "end_row": {
+                                "minimum": 1,
+                                "type": "integer"
+                              },
+                              "include_count": {
+                                "maximum": 1,
+                                "minimum": 0,
+                                "type": "integer"
+                              },
+                              "include_observation": {
+                                "maximum": 1,
+                                "minimum": 0,
+                                "type": "integer"
+                              },
+                              "include_unit": {
+                                "maximum": 1,
+                                "minimum": 0,
+                                "type": "integer"
+                              },
+                              "start_row": {
+                                "minimum": 0,
+                                "type": "integer"
+                              }
+                            },
+                            "type": "object"
+                          },
+                          "transform_id": {
+                            "enum": [
+                              "",
+                              "series_direction_only.v1",
+                              "series_index_base100.v1",
+                              "timeline_sequence_only.v1",
+                              "timeline_relative_intervals.v1",
+                              "timeline_shifted_absolute.v1",
+                              "timeline_synthetic_schedule.v1"
+                            ],
+                            "maxLength": 8192,
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "kind",
+                          "transform_id",
+                          "parameters"
+                        ],
+                        "type": "object"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "requires_clarification": {
+                    "type": "boolean"
+                  },
+                  "schema_version": {
+                    "maxLength": 8192,
+                    "type": "string"
+                  },
+                  "status": {
+                    "enum": [
+                      "supported",
+                      "ambiguous",
+                      "unsupported"
+                    ],
+                    "maxLength": 8192,
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "schema_version",
+                  "status",
+                  "candidate_id",
+                  "representation",
+                  "requires_clarification"
+                ],
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "started_at": {
             "format": "date-time",
             "type": "string"
@@ -1000,6 +1223,9 @@
           }
         },
         "required": [
+          "arguments",
+          "result",
+          "previous_phase",
           "id",
           "task_id",
           "input_revision",
@@ -1238,6 +1464,9 @@
                 "additionalProperties": false,
                 "maxProperties": 5,
                 "properties": {
+                  "base_epoch_seconds": {
+                    "type": "integer"
+                  },
                   "decimal_places": {
                     "maximum": 4,
                     "minimum": 0,
@@ -1273,7 +1502,11 @@
                 "enum": [
                   "",
                   "series_direction_only.v1",
-                  "series_index_base100.v1"
+                  "series_index_base100.v1",
+                  "timeline_sequence_only.v1",
+                  "timeline_relative_intervals.v1",
+                  "timeline_shifted_absolute.v1",
+                  "timeline_synthetic_schedule.v1"
                 ],
                 "maxLength": 8192,
                 "type": "string"

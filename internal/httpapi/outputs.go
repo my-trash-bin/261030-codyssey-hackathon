@@ -7,6 +7,7 @@ import (
 	"safehandoff.local/poc/internal/artifact"
 	"safehandoff.local/poc/internal/domain"
 	"safehandoff.local/poc/internal/policy"
+	"safehandoff.local/poc/skills"
 	"strconv"
 	"time"
 )
@@ -153,6 +154,9 @@ func (s *Server) previewFile(w http.ResponseWriter, r *http.Request) {
 	fail(w, errors.New("NOT_FOUND"), 404)
 }
 func (s *Server) valid(t domain.Task, hash string) error {
+	if t.Scope.SkillSetHash != skills.Hash() {
+		return errors.New("SKILL_VERSION_CHANGED")
+	}
 	a := t.Artifact()
 	if a == nil || a.Revision != t.Revision || a.SetHash != hash || (a.Status != "ready" && a.Status != "finalized") {
 		return errors.New("ARTIFACT_STALE")
@@ -214,6 +218,10 @@ func (s *Server) finalize(w http.ResponseWriter, r *http.Request) {
 	}
 	if e = s.valid(t, v.Hash); e != nil {
 		fail(w, e, 409)
+		return
+	}
+	if t.Phase == "finalized" && t.ExportID != "" {
+		respond(w, 201, map[string]string{"export_id": t.ExportID, "archive_sha256": t.Artifact().ZIPHash})
 		return
 	}
 	t.Artifact().Status = "finalized"

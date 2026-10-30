@@ -95,6 +95,9 @@ func schema(t reflect.Type) map[string]any {
 				name = f.Name
 			}
 			p[name] = schema(f.Type)
+			if t.Name() == "Job" && name == "result" {
+				p[name] = map[string]any{"anyOf": []any{schema(reflect.TypeOf(llm.Disclosure{})), map[string]any{"type": "null"}}}
+			}
 			if values := enums(t.Name(), name); len(values) > 0 {
 				p[name].(map[string]any)["enum"] = values
 			}
@@ -116,6 +119,8 @@ func schema(t reflect.Type) map[string]any {
 		return map[string]any{"type": "string", "maxLength": 8192}
 	case reflect.Bool:
 		return map[string]any{"type": "boolean"}
+	case reflect.Uint64, reflect.Uint, reflect.Uint32:
+		return map[string]any{"type": "integer", "minimum": 0}
 	case reflect.Int, reflect.Int64:
 		return map[string]any{"type": "integer"}
 	case reflect.Slice:

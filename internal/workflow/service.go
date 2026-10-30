@@ -70,6 +70,9 @@ func (s *Service) StartWithArguments(id string, rev int, kind string, args domai
 	if e != nil {
 		return domain.Job{}, e
 	}
+	if t.Scope.SkillSetHash != skills.Hash() {
+		return domain.Job{}, errors.New("SKILL_VERSION_CHANGED")
+	}
 	if t.Revision != rev {
 		return domain.Job{}, errors.New("REVISION_CONFLICT")
 	}

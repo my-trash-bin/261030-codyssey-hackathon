@@ -547,6 +547,14 @@
                   "output_language": {
                     "type": "string",
                     "maxLength": 8192
+                  },
+                  "skill_ids": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "maxLength": 8192
+                    },
+                    "maxItems": 0
                   }
                 },
                 "required": [

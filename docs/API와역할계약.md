@@ -8,7 +8,7 @@
 
 1. `POST /tasks`: 목적은 `oss_issue`, `vendor_support`, `operations_advice`; 범위는 `public`, `named_external`입니다. 기본 내장 제품 팩을 쓰며 `skill_ids`의 임의 선택은 거부합니다.
 2. `POST /tasks/{id}/source-batches`: multipart `meta` JSON과 `client_key` 이름의 파일 필드. 일괄 파싱·크기 확인 후 한 번의 revision 증가로 저장합니다. 붙여넣기도 파일 한 개입니다.
-3. `POST /tasks/{id}/jobs`: `analyze`, `compose`, `review`, `reproduce`. 접수는 202이며 실제 결과는 `/jobs/{id}`에 기록합니다. `reproduce`는 별도로 승인한 합성 입력 후보가 있어야 실행합니다.
+3. `POST /tasks/{id}/jobs`: `analyze`, `interpret_disclosure`, `compose`, `review`, `reproduce`. 접수는 202이며 실제 결과는 `/jobs/{id}`에 기록합니다. `reproduce`는 별도로 승인한 합성 입력 후보가 있어야 실행합니다.
 4. `POST /disclosure-previews`: 현재 후보와 표현에서 실제 공개 투영·해시·preview ID를 받습니다.
 5. `POST /decision-batches`: `allow/exclude/defer`. allow는 서버 미리보기와 동일한 해시·표현·grant가 필요합니다. 선택을 바꿀 때마다 새 미리보기를 만듭니다.
 6. `POST /artifacts/{id}/finalize`: `expected_revision`, `expected_artifact_set_hash`, `confirmed=true`. 확정 후 export 파일과 archive를 받을 수 있습니다.
@@ -37,7 +37,7 @@
 }
 ```
 
-범위는 원본 UTF-8의 반열린 바이트 구간이며 후보 근거 안에 있어야 합니다. 숨김 구간은 `[비공개]`로 대체한 **실제 바이트** 해시를 사용합니다. UTF-8 문자 경계를 나누거나 source 판본·hash·scope·expiry가 달라지면 거부합니다. writer에는 슬롯 ID만 주고, 파일 구성기가 `approved-excerpt.txt`를 삽입합니다. 현재 이 고급 기능의 완전한 입력 화면은 없으며 API 통합시험으로 검증합니다.
+범위는 원본 UTF-8의 반열린 바이트 구간이며 후보 근거 안에 있어야 합니다. 숨김 구간은 `[비공개]`로 대체한 **실제 바이트** 해시를 사용합니다. UTF-8 문자 경계를 나누거나 source 판본·hash·scope·expiry가 달라지면 거부합니다. writer에는 슬롯 ID만 주고, 파일 구성기가 `approved-excerpt.txt`를 삽입합니다. 브라우저의 원문 구간 선택에서 근거·시작·끝·숨김 범위를 지정하고 실제 렌더링 미리보기 후 적용할 수 있습니다. API 통합시험과 고급 브라우저 시험으로 검증합니다.
 
 ## 모델 역할
 
@@ -46,6 +46,7 @@
 | analyst | 선택한 원자료의 UTF-8 내용, 앱 evidence ID, 목적, 내부 제품 지침 | 근거 있는 후보·불확실성·충돌 |
 | writer | 새 messages의 승인팩, 공개 작성 지침 | 제한된 DocAST |
 | reviewer | 원자료, 현재 결정, 승인팩, 현재 문서 또는 실제 파일 텍스트·hash | 정형 검토 지적 |
+| disclosure | 직접 입력 조건·현재 후보·등록 변환 | 권한이 아닌 구조화 제안 |
 | check | 비민감 고정 연결 확인 | `{"ok":true}` |
 
 텍스트 HTTP 응답은 단일 JSON만 받습니다. 중복·알 수 없는 키·키 대소문자 변형·후행 JSON·형식 오류·잘림을 거부합니다. 전체를 감싼 단일 json fence만 제거할 수 있습니다. 문서 fact ID·슬롯·필수 사실·새 숫자는 앱이 별도로 검사합니다. 형식 복구는 기본 두 번, 전체 호출은 12번, 작성 수정은 두 번으로 제한합니다.

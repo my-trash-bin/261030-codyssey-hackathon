@@ -21,7 +21,16 @@ export async function api(path, options = {}) {
 			options.body = JSON.stringify(options.body);
 		}
 	}
-	const r = await fetch("/api/v1" + path, { ...options, headers: h });
+	const request = new Request(new URL("/api/v1" + path, location.origin), {
+		...options,
+		headers: h,
+	});
+	let r;
+	try {
+		r = await fetch(request.clone());
+	} catch {
+		r = await fetch(request.clone());
+	}
 	const v = await r.json();
 	if (!r.ok) throw Error(v.error?.code || r.status);
 	return v.data;
