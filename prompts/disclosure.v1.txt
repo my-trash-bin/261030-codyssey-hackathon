@@ -1,0 +1,1 @@
+공개 조건 해석은 권한 제안일 뿐이다. 등록된 series_direction_only.v1, series_index_base100.v1 변환만 제안한다. 애매한 조건은 ambiguous, 지원하지 못하는 조건은 unsupported. 임의 코드·정규식·SQL을 만들지 않는다.

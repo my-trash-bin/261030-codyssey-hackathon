@@ -1,0 +1,24 @@
+{
+  "server": {"listen":"127.0.0.1:8080"},
+  "data_dir":"./var/safehandoff",
+  "provider": {
+    "type":"openai_compatible",
+    "base_url_env":"SAFEHANDOFF_LLM_BASE_URL",
+    "model_env":"SAFEHANDOFF_LLM_MODEL",
+    "api_key_env":"SAFEHANDOFF_LLM_API_KEY",
+    "response_mode":"text",
+    "supports_system_role":true,
+    "send_temperature":true,
+    "output_limit_field":"max_tokens",
+    "allow_plain_http":false,
+    "temperature":0,
+    "max_output_tokens":2048,
+    "max_input_bytes":24576,
+    "request_timeout_seconds":120,
+    "max_attempts_per_step":2,
+    "global_concurrency":1
+  },
+  "workflow":{"max_review_repairs":2,"max_model_calls_per_run":12},
+  "limits":{"max_files":10,"max_file_bytes":262144,"max_task_source_bytes":1048576,"max_export_bytes":20971520},
+  "reproduction":{"enabled":true,"runner":"docker"}
+}
