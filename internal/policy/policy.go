@@ -20,7 +20,6 @@ func Project(c domain.Candidate, r domain.Representation) (domain.Projection, er
 			return p, errors.New("INVALID_DECISION")
 		}
 		if c.Kind == "series" {
-			p.Statement = "観察"
 			increasing, decreasing := true, true
 			for i := 1; i < len(c.Values); i++ {
 				a, b := new(big.Rat), new(big.Rat)
@@ -163,16 +162,19 @@ func Pack(t domain.Task, rules []domain.Rule, now time.Time) (domain.FactPack, e
 		if d.Disposition == "exclude" {
 			continue
 		}
-		pr, e := Project(c, d.Representation)
+		pr, e := ProjectFor(t, c, d.Representation, d.RawGrants)
 		if e != nil {
 			return p, e
 		}
 		if domain.Hash(domain.Canonical(pr)) != d.ProjectionSHA {
 			return p, errors.New("INVALID_DECISION")
 		}
+		if len(pr.Excerpt) > 0 {
+			p.Excerpts = append(p.Excerpts, domain.Slot{ID: fmt.Sprintf("ex_%d", len(p.Excerpts)+1), Bytes: pr.Excerpt})
+		}
 		if pr.Statement != "" {
 			id := fmt.Sprintf("f_%d", len(p.Facts)+1)
-			p.Facts = append(p.Facts, domain.Fact{id, c.Kind, pr.Statement})
+			p.Facts = append(p.Facts, domain.Fact{ID: id, Kind: c.Kind, Statement: pr.Statement})
 			if c.Required {
 				p.Required = append(p.Required, id)
 			}
@@ -181,7 +183,7 @@ func Pack(t domain.Task, rules []domain.Rule, now time.Time) (domain.FactPack, e
 			p.Tables = append(p.Tables, domain.Table{ID: fmt.Sprintf("tb_%d", len(p.Tables)+1), Columns: pr.Columns, Rows: pr.Rows})
 		}
 	}
-	if len(p.Facts)+len(p.Tables) == 0 {
+	if len(p.Facts)+len(p.Tables)+len(p.Excerpts) == 0 {
 		return p, errors.New("NO_PUBLIC_FACTS")
 	}
 	return p, nil

@@ -1,0 +1,58 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "arguments": {
+      "additionalProperties": false,
+      "properties": {
+        "codepoint_count": {
+          "type": "integer"
+        },
+        "seed": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "seed",
+        "codepoint_count"
+      ],
+      "type": "object"
+    },
+    "grant_ids": {
+      "items": {
+        "maxLength": 8192,
+        "type": "string"
+      },
+      "maxItems": 100,
+      "type": [
+        "array",
+        "null"
+      ]
+    },
+    "revision": {
+      "type": "integer"
+    },
+    "task_id": {
+      "maxLength": 8192,
+      "type": "string"
+    },
+    "tool_id": {
+      "maxLength": 8192,
+      "type": "string"
+    },
+    "tool_version": {
+      "maxLength": 8192,
+      "type": "string"
+    }
+  },
+  "required": [
+    "tool_id",
+    "tool_version",
+    "task_id",
+    "revision",
+    "grant_ids",
+    "arguments"
+  ],
+  "title": "tool_request.v1",
+  "type": "object"
+}

@@ -44,6 +44,8 @@ type Representation struct {
 	Parameters  map[string]int `json:"parameters"`
 }
 type Decision struct {
+	RawGrants      []RawGrant     `json:"raw_grants"`
+	SupersedesID   string         `json:"supersedes_id"`
 	ID             string         `json:"id"`
 	CandidateID    string         `json:"candidate_id"`
 	Disposition    string         `json:"disposition"`
@@ -57,6 +59,7 @@ type Decision struct {
 	RuleVersion    int            `json:"applied_rule_version"`
 }
 type Preview struct {
+	RawGrants      []RawGrant     `json:"raw_grants"`
 	ID             string         `json:"preview_id"`
 	Revision       int            `json:"input_revision"`
 	CandidateID    string         `json:"candidate_id"`
@@ -91,7 +94,7 @@ type Table struct {
 }
 type Slot struct {
 	ID    string `json:"id"`
-	Bytes []byte `json:"bytes"`
+	Bytes []byte `json:"bytes,omitempty"`
 }
 type FactPack struct {
 	Schema      string   `json:"schema_version"`

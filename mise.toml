@@ -1,5 +1,6 @@
 [tools]
 go = "1.27.3"
+make = "4.4.1"
 
 [env]
 GOCACHE = "{{config_root}}/var/cache/go-build"

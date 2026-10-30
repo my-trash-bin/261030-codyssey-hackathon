@@ -154,6 +154,7 @@ func (s *Server) valid(t domain.Task, hash string) error {
 	if e != nil {
 		return e
 	}
+	p.ToolResults = a.Pack.ToolResults
 	if string(domain.Canonical(p)) != string(domain.Canonical(a.Pack)) {
 		return errors.New("FINALIZATION_BLOCKED")
 	}
@@ -295,9 +296,35 @@ func (s *Server) humanReview(w http.ResponseWriter, r *http.Request) {
 	if e := decode(r, &v); e != nil {
 		fail(w, e, 400)
 		return
-	} // Manual edits need semantic review by the provider; this endpoint deliberately does not bypass failed hard checks.
-	fail(w, errors.New("HUMAN_FALLBACK_NOT_IMPLEMENTED"), 501)
+	}
+	s.Service.Store.Mu.Lock()
+	defer s.Service.Store.Mu.Unlock()
+	t, e := s.Service.Store.FindArtifact(r.PathValue("artifact"))
+	if e != nil {
+		fail(w, e, 404)
+		return
+	}
+	a := t.Artifact()
+	if a == nil || a.ID != r.PathValue("artifact") || t.Revision != v.Revision || a.SetHash != v.Hash || !v.Confirmed || v.Reason == "" {
+		fail(w, errors.New("FINALIZATION_BLOCKED"), 409)
+		return
+	}
+	// Test hard checks with proposed hash-bound human reviews before persisting.
+	a.Reviews = append(a.Reviews, domain.Review{ID: domain.ID("review"), TargetKind: "document", TargetHash: a.DocumentHash, Mode: "human", Result: "pass", FallbackReason: v.Reason}, domain.Review{ID: domain.ID("review"), TargetKind: "files", TargetHash: a.SetHash, Mode: "human", Result: "pass", FallbackReason: v.Reason})
+	a.Status = "ready"
+	if e = s.valid(t, a.SetHash); e != nil {
+		fail(w, e, 409)
+		return
+	}
+	t.Phase = "ready_to_finalize"
+	t.Event("review.completed")
+	if e = s.Service.Store.Save(t, t.Revision); e != nil {
+		fail(w, e, 409)
+		return
+	}
+	respond(w, 200, a)
 }
+
 func (s *Server) rules(w http.ResponseWriter, r *http.Request) {
 	rules, e := s.Service.Store.Rules()
 	if e != nil {

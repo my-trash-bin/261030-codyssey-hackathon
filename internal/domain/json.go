@@ -149,3 +149,49 @@ func keys(v any, t reflect.Type) error {
 	}
 	return nil
 }
+
+// Required checks model contracts independently from optional API patch fields.
+func Required(b []byte, dst any) error {
+	var v any
+	d := json.NewDecoder(bytes.NewReader(b))
+	d.UseNumber()
+	if e := d.Decode(&v); e != nil {
+		return e
+	}
+	return required(v, reflect.TypeOf(dst).Elem())
+}
+func required(v any, t reflect.Type) error {
+	for t.Kind() == reflect.Pointer {
+		if v == nil {
+			return nil
+		}
+		t = t.Elem()
+	}
+	if m, ok := v.(map[string]any); ok && t.Kind() == reflect.Struct {
+		for i := 0; i < t.NumField(); i++ {
+			f := t.Field(i)
+			parts := strings.Split(f.Tag.Get("json"), ",")
+			name := parts[0]
+			if name == "" {
+				name = f.Name
+			}
+			val, exists := m[name]
+			if !exists && len(parts) == 1 {
+				return errors.New("MISSING_REQUIRED_FIELD")
+			}
+			if exists {
+				if e := required(val, f.Type); e != nil {
+					return e
+				}
+			}
+		}
+	}
+	if a, ok := v.([]any); ok && t.Kind() == reflect.Slice {
+		for _, val := range a {
+			if e := required(val, t.Elem()); e != nil {
+				return e
+			}
+		}
+	}
+	return nil
+}

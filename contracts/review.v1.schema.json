@@ -1,0 +1,124 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "issues": {
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "action": {
+            "anyOf": [
+              {
+                "maxLength": 8192,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "approved_fact_ids": {
+            "items": {
+              "maxLength": 8192,
+              "type": "string"
+            },
+            "maxItems": 100,
+            "type": [
+              "array",
+              "null"
+            ]
+          },
+          "candidate_ids": {
+            "items": {
+              "maxLength": 8192,
+              "type": "string"
+            },
+            "maxItems": 100,
+            "type": [
+              "array",
+              "null"
+            ]
+          },
+          "internal_explanation": {
+            "maxLength": 8192,
+            "type": "string"
+          },
+          "reason_code": {
+            "enum": [
+              "UNAPPROVED_DISCLOSURE",
+              "UNSUPPORTED_CAUSAL_CLAIM",
+              "MISSING_REQUIRED_FACT",
+              "SOURCE_CONFLICT",
+              "UNCERTAINTY_REMOVED",
+              "INCORRECT_PROJECTION",
+              "UNAPPROVED_REFERENCE",
+              "NEEDS_DISCLOSURE_DECISION"
+            ],
+            "maxLength": 8192,
+            "type": "string"
+          },
+          "target": {
+            "additionalProperties": false,
+            "properties": {
+              "artifact_file_id": {
+                "maxLength": 8192,
+                "type": "string"
+              },
+              "block_id": {
+                "maxLength": 8192,
+                "type": "string"
+              },
+              "kind": {
+                "enum": [
+                  "block",
+                  "document",
+                  "file"
+                ],
+                "maxLength": 8192,
+                "type": "string"
+              }
+            },
+            "required": [
+              "kind"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "target",
+          "reason_code",
+          "action",
+          "approved_fact_ids",
+          "candidate_ids",
+          "internal_explanation"
+        ],
+        "type": "object"
+      },
+      "maxItems": 100,
+      "type": [
+        "array",
+        "null"
+      ]
+    },
+    "result": {
+      "enum": [
+        "pass",
+        "needs_changes",
+        "needs_decision",
+        "error"
+      ],
+      "maxLength": 8192,
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "review.v1"
+    }
+  },
+  "required": [
+    "schema_version",
+    "result",
+    "issues"
+  ],
+  "title": "review.v1",
+  "type": "object"
+}

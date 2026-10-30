@@ -19,6 +19,10 @@ func Validate(d domain.Draft, p domain.FactPack) error {
 	}
 	facts := map[string]bool{}
 	tables := map[string]bool{}
+	excerpts := map[string]bool{}
+	for _, slot := range p.Excerpts {
+		excerpts[slot.ID] = true
+	}
 	seen := map[string]bool{}
 	for _, f := range p.Facts {
 		facts[f.ID] = true
@@ -56,6 +60,10 @@ func Validate(d domain.Draft, p domain.FactPack) error {
 					seen[id] = true
 				}
 			}
+		case "excerpt_ref":
+			if !excerpts[b.ExcerptID] {
+				return errors.New("REFERENCE_INVALID")
+			}
 		case "table_ref":
 			if !tables[b.TableID] {
 				return errors.New("REFERENCE_INVALID")
@@ -63,7 +71,7 @@ func Validate(d domain.Draft, p domain.FactPack) error {
 		default:
 			return errors.New("UNAPPROVED_REFERENCE")
 		}
-		if b.Type != "table_ref" && b.TableID != "" || b.Type != "list" && len(b.Items) > 0 || b.ExcerptID != "" || b.AssetID != "" {
+		if b.Type != "table_ref" && b.TableID != "" || b.Type != "list" && len(b.Items) > 0 || (b.Type != "excerpt_ref" && b.ExcerptID != "") || b.AssetID != "" {
 			return errors.New("UNAPPROVED_REFERENCE")
 		}
 	}
@@ -72,10 +80,11 @@ func Validate(d domain.Draft, p domain.FactPack) error {
 			return errors.New("MISSING_REQUIRED_FACT")
 		}
 	}
-	return nil
+	return CheckClaims(d, p)
 }
+
 func Escape(s string) string {
-	r := strings.NewReplacer("\\", "\\\\", "`", "\\`", "*", "\\*", "_", "\\_", "[", "\\[", "]", "\\]", "<", "&lt;", ">", "&gt;", "#", "\\#", "!", "\\!")
+	r := strings.NewReplacer("\\", "\\\\", "`", "\\`", "*", "\\*", "[", "\\[", "]", "\\]", "<", "&lt;", ">", "&gt;", "#", "\\#", "!", "\\!")
 	return r.Replace(s)
 }
 func CSVCell(s string) string {
@@ -91,7 +100,9 @@ func Build(d domain.Draft, p domain.FactPack) (domain.Artifact, error) {
 		return a, e
 	}
 	for i := range a.Draft.Blocks {
-		a.Draft.Blocks[i].ID = domain.ID("block")
+		if a.Draft.Blocks[i].ID == "" {
+			a.Draft.Blocks[i].ID = domain.ID("block")
+		}
 	}
 	a.DocumentHash = domain.Hash(domain.Canonical(a.Draft))
 	var md strings.Builder
@@ -106,6 +117,12 @@ func Build(d domain.Draft, p domain.FactPack) (domain.Artifact, error) {
 				fmt.Fprintf(&md, "- %s\n", Escape(it.Text))
 			}
 			md.WriteString("\n")
+		case "excerpt_ref":
+			for _, slot := range p.Excerpts {
+				if slot.ID == b.ExcerptID {
+					md.WriteString("승인 원문: approved-excerpt.txt\n\n")
+				}
+			}
 		case "table_ref":
 			for _, tb := range p.Tables {
 				if tb.ID == b.TableID {
@@ -140,6 +157,13 @@ func Build(d domain.Draft, p domain.FactPack) (domain.Artifact, error) {
 			return a, e
 		}
 		a.Files = append(a.Files, file("observations.csv", "text/csv; charset=utf-8", buf.Bytes()))
+	}
+	if len(p.Excerpts) > 0 {
+		var raw bytes.Buffer
+		for _, slot := range p.Excerpts {
+			raw.Write(slot.Bytes)
+		}
+		a.Files = append(a.Files, file("approved-excerpt.txt", "text/plain; charset=utf-8", raw.Bytes()))
 	}
 	manifest := []map[string]any{}
 	for _, f := range a.Files {
@@ -182,10 +206,10 @@ func SetHash(files []domain.File) string {
 	return domain.Hash(domain.Canonical(parts))
 }
 func Check(a domain.Artifact) error {
-	allowed := map[string]bool{"support-request.md": true, "issue.md": true, "operations-brief.md": true, "observations.csv": true, "manifest.json": true}
+	allowed := map[string]bool{"support-request.md": true, "issue.md": true, "operations-brief.md": true, "observations.csv": true, "approved-excerpt.txt": true, "manifest.json": true}
 	seen := map[string]bool{}
 	for _, f := range a.Files {
-		if !allowed[f.Path] || seen[f.Path] || f.Size != len(f.Bytes) || domain.Hash(f.Bytes) != f.SHA {
+		if (!allowed[f.Path] && !RegisteredPublic(f.Path, f.Bytes) && f.Path != "repro/inputs/ascii.json" && f.Path != "repro/inputs/multibyte.json" && f.Path != "run-result.json" && f.Path != "README.md") || !SafePath(f.Path) || seen[f.Path] || f.Size != len(f.Bytes) || domain.Hash(f.Bytes) != f.SHA {
 			return errors.New("FINALIZATION_BLOCKED")
 		}
 		seen[f.Path] = true

@@ -1,0 +1,1 @@
+{"schema_version":"candidate_proposals.v1","candidates":[{"local_key":"c1","kind":"observation","uncertainty":"observed","statement":"응답 대기 시간 초과를 관찰했다.","evidence_ids":["ev_example"],"relevance":"required","purpose_relevance":"처리 순서 조사"}],"conflicts":[]}

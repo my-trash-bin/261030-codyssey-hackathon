@@ -1,0 +1,209 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "approved_brief": {
+      "maxLength": 8192,
+      "type": "string"
+    },
+    "asset_slots": {
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "bytes": {
+            "contentEncoding": "base64",
+            "maxLength": 349528,
+            "type": "string"
+          },
+          "id": {
+            "maxLength": 8192,
+            "type": "string"
+          }
+        },
+        "required": [
+          "id"
+        ],
+        "type": "object"
+      },
+      "maxItems": 100,
+      "type": [
+        "array",
+        "null"
+      ]
+    },
+    "audience_type": {
+      "maxLength": 8192,
+      "type": "string"
+    },
+    "excerpt_slots": {
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "bytes": {
+            "contentEncoding": "base64",
+            "maxLength": 349528,
+            "type": "string"
+          },
+          "id": {
+            "maxLength": 8192,
+            "type": "string"
+          }
+        },
+        "required": [
+          "id"
+        ],
+        "type": "object"
+      },
+      "maxItems": 100,
+      "type": [
+        "array",
+        "null"
+      ]
+    },
+    "facts": {
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "maxLength": 8192,
+            "type": "string"
+          },
+          "kind": {
+            "maxLength": 8192,
+            "type": "string"
+          },
+          "statement": {
+            "maxLength": 8192,
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "kind",
+          "statement"
+        ],
+        "type": "object"
+      },
+      "maxItems": 100,
+      "type": [
+        "array",
+        "null"
+      ]
+    },
+    "output_language": {
+      "maxLength": 8192,
+      "type": "string"
+    },
+    "public_tool_results": {
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "reason_code": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "reason_code"
+        ],
+        "type": "object"
+      },
+      "maxItems": 100,
+      "type": [
+        "array",
+        "null"
+      ]
+    },
+    "required_fact_ids": {
+      "items": {
+        "maxLength": 8192,
+        "type": "string"
+      },
+      "maxItems": 100,
+      "type": [
+        "array",
+        "null"
+      ]
+    },
+    "schema_version": {
+      "const": "fact_pack.v1"
+    },
+    "tables": {
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "columns": {
+            "items": {
+              "maxLength": 8192,
+              "type": "string"
+            },
+            "maxItems": 100,
+            "type": [
+              "array",
+              "null"
+            ]
+          },
+          "id": {
+            "maxLength": 8192,
+            "type": "string"
+          },
+          "rows": {
+            "items": {
+              "items": {
+                "maxLength": 8192,
+                "type": "string"
+              },
+              "maxItems": 100,
+              "type": [
+                "array",
+                "null"
+              ]
+            },
+            "maxItems": 100,
+            "type": [
+              "array",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "columns",
+          "rows"
+        ],
+        "type": "object"
+      },
+      "maxItems": 100,
+      "type": [
+        "array",
+        "null"
+      ]
+    },
+    "task_revision": {
+      "type": "integer"
+    },
+    "template_id": {
+      "maxLength": 8192,
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "task_revision",
+    "template_id",
+    "audience_type",
+    "output_language",
+    "approved_brief",
+    "facts",
+    "required_fact_ids",
+    "tables",
+    "excerpt_slots",
+    "asset_slots",
+    "public_tool_results"
+  ],
+  "title": "fact_pack.v1",
+  "type": "object"
+}

@@ -250,6 +250,7 @@ func (s *Server) preview(w http.ResponseWriter, r *http.Request) {
 		Revision       int                   `json:"expected_revision"`
 		CandidateID    string                `json:"candidate_id"`
 		Representation domain.Representation `json:"representation"`
+		RawGrants      []domain.RawGrant     `json:"raw_grants"`
 	}
 	if e := decode(r, &v); e != nil {
 		fail(w, e, 400)
@@ -268,12 +269,12 @@ func (s *Server) preview(w http.ResponseWriter, r *http.Request) {
 	}
 	for _, c := range t.Candidates {
 		if c.ID == v.CandidateID {
-			p, e := policy.Project(c, v.Representation)
+			p, e := policy.ProjectFor(t, c, v.Representation, v.RawGrants)
 			if e != nil {
 				fail(w, e, 400)
 				return
 			}
-			pr := domain.Preview{ID: domain.ID("preview"), Revision: t.Revision, CandidateID: c.ID, Representation: v.Representation, Projection: p, SHA: domain.Hash(domain.Canonical(p))}
+			pr := domain.Preview{ID: domain.ID("preview"), RawGrants: v.RawGrants, Revision: t.Revision, CandidateID: c.ID, Representation: v.Representation, Projection: p, SHA: domain.Hash(domain.Canonical(p))}
 			t.Previews[pr.ID] = pr
 			if e = s.Service.Store.Save(t, t.Revision); e != nil {
 				fail(w, e, 409)
@@ -287,6 +288,7 @@ func (s *Server) preview(w http.ResponseWriter, r *http.Request) {
 }
 
 type operation struct {
+	RawGrants      []domain.RawGrant     `json:"raw_grants"`
 	CandidateID    string                `json:"candidate_id"`
 	Disposition    string                `json:"disposition"`
 	Representation domain.Representation `json:"representation"`
@@ -330,12 +332,12 @@ func (s *Server) decide(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		seen[op.CandidateID] = true
-		d := domain.Decision{ID: domain.ID("dec"), CandidateID: c.ID, Disposition: op.Disposition, Representation: op.Representation, Scope: t.Scope, SourceHash: t.SourceHash(), ExpiresAt: op.ExpiresAt}
+		d := domain.Decision{ID: domain.ID("dec"), RawGrants: op.RawGrants, SupersedesID: t.Decisions[c.ID].ID, CandidateID: c.ID, Disposition: op.Disposition, Representation: op.Representation, Scope: t.Scope, SourceHash: t.SourceHash(), ExpiresAt: op.ExpiresAt}
 		if op.Disposition == "allow" {
 			pr, ok := t.Previews[op.PreviewID]
-			p, err := policy.Project(*c, op.Representation)
+			p, err := policy.ProjectFor(t, *c, op.Representation, op.RawGrants)
 			sha := domain.Hash(domain.Canonical(p))
-			if !ok || err != nil || pr.Revision != t.Revision || pr.CandidateID != c.ID || pr.SHA != op.SHA || sha != pr.SHA || string(domain.Canonical(pr.Representation)) != string(domain.Canonical(op.Representation)) {
+			if !ok || err != nil || pr.Revision != t.Revision || pr.CandidateID != c.ID || pr.SHA != op.SHA || string(domain.Canonical(pr.RawGrants)) != string(domain.Canonical(op.RawGrants)) || sha != pr.SHA || string(domain.Canonical(pr.Representation)) != string(domain.Canonical(op.Representation)) {
 				fail(w, errors.New("INVALID_DECISION"), 400)
 				return
 			}

@@ -1,0 +1,108 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "blocks": {
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "asset_id": {
+            "maxLength": 8192,
+            "type": "string"
+          },
+          "block_id": {
+            "maxLength": 8192,
+            "type": "string"
+          },
+          "excerpt_id": {
+            "maxLength": 8192,
+            "type": "string"
+          },
+          "fact_ids": {
+            "items": {
+              "maxLength": 8192,
+              "type": "string"
+            },
+            "maxItems": 100,
+            "type": [
+              "array",
+              "null"
+            ]
+          },
+          "items": {
+            "items": {
+              "additionalProperties": false,
+              "properties": {
+                "fact_ids": {
+                  "items": {
+                    "maxLength": 8192,
+                    "type": "string"
+                  },
+                  "maxItems": 100,
+                  "type": [
+                    "array",
+                    "null"
+                  ]
+                },
+                "text": {
+                  "maxLength": 8192,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "text",
+                "fact_ids"
+              ],
+              "type": "object"
+            },
+            "maxItems": 100,
+            "type": [
+              "array",
+              "null"
+            ]
+          },
+          "level": {
+            "type": "integer"
+          },
+          "table_id": {
+            "maxLength": 8192,
+            "type": "string"
+          },
+          "text": {
+            "maxLength": 8192,
+            "type": "string"
+          },
+          "type": {
+            "enum": [
+              "heading",
+              "paragraph",
+              "list",
+              "table_ref",
+              "excerpt_ref"
+            ],
+            "maxLength": 8192,
+            "type": "string"
+          }
+        },
+        "required": [
+          "type"
+        ],
+        "type": "object"
+      },
+      "maxItems": 60,
+      "type": [
+        "array",
+        "null"
+      ]
+    },
+    "schema_version": {
+      "const": "draft.v1"
+    }
+  },
+  "required": [
+    "schema_version",
+    "blocks"
+  ],
+  "title": "draft.v1",
+  "type": "object"
+}

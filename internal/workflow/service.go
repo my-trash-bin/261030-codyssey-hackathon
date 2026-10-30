@@ -3,13 +3,17 @@ package workflow
 import (
 	"context"
 	"encoding/csv"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"os"
 	"safehandoff.local/poc/internal/artifact"
 	"safehandoff.local/poc/internal/domain"
 	"safehandoff.local/poc/internal/llm"
 	"safehandoff.local/poc/internal/policy"
+	"safehandoff.local/poc/internal/runner"
 	"safehandoff.local/poc/internal/store"
+	"safehandoff.local/poc/internal/tools"
 	"safehandoff.local/poc/prompts"
 	"strings"
 	"sync"
@@ -182,6 +186,8 @@ func (s *Service) run(id string) {
 		return last
 	}
 	var generated *domain.Artifact
+	var ascii, multi []byte
+	var reproduction *runner.Repro
 	var candidates []domain.Candidate
 	switch j.Kind {
 	case "analyze":
@@ -248,11 +254,32 @@ func (s *Service) run(id string) {
 				candidates = append(candidates, domain.Candidate{ID: domain.ID("cand"), Kind: "series", Statement: "요청량 공개 수준", Uncertainty: "observed", EvidenceIDs: ev, Required: true, Selector: "csv:" + src.Slot + ":" + strings.Join(rows[0], ",") + ":" + h, Values: vals, Origin: "app"})
 			}
 		}
+		if t.Scope.PurposeID == "oss_issue" && len(t.Evidence) > 0 {
+			candidates = append(candidates, domain.Candidate{ID: domain.ID("cand"), Kind: "synthetic", Statement: "공개 toy 계약으로 원문과 무관한 6코드포인트 합성 입력을 만들고 고정 대상의 결함·수정 버전을 실행합니다. 합성 입력과 공개 재현 코드를 첨부합니다.", Uncertainty: "reported", EvidenceIDs: []string{t.Evidence[0].ID}, Origin: "app"})
+		}
 	case "compose", "review":
 		var pack domain.FactPack
 		pack, e = policy.Pack(t, rules, time.Now())
 		if e != nil {
 			break
+		}
+
+		for _, c := range t.Candidates {
+			if c.Kind == "synthetic" {
+				if d, ok := t.Decisions[c.ID]; ok && d.Disposition == "allow" && policy.Active(d, t, rules, time.Now()) {
+					ascii, multi, e = tools.Synthetic(41, 6)
+					if e != nil {
+						break
+					}
+					result := runner.Repro{Schema: "repro_result.v1", Status: "not_run", Reason: "no_environment", Runs: []runner.RunObservation{}}
+					var reg runner.TargetRegistration
+					if b, err := os.ReadFile("var/runners/targets.json"); err == nil && domain.Strict(b, &reg) == nil {
+						result = runner.RunRepro(s.ctx, reg, ascii, multi)
+					}
+					reproduction = &result
+					pack.ToolResults = append(pack.ToolResults, map[string]string{"status": result.Status, "reason_code": result.Reason})
+				}
+			}
 		}
 		var draft domain.Draft
 		if j.Kind == "review" {
@@ -262,30 +289,40 @@ func (s *Service) run(id string) {
 			}
 			draft = t.Artifact().Draft
 		} else {
-			e = call("writer", pack, &draft)
+			e = call("writer", domain.WriterPack(pack), &draft)
 		}
 		if e != nil {
 			break
 		}
+
 		for repair := 0; repair <= s.Repairs; repair++ {
-			if e = artifact.Validate(draft, pack); e != nil {
+			for i := range draft.Blocks {
+				draft.Blocks[i].ID = domain.ID("block")
+			}
+			ar, err := artifact.Build(draft, pack)
+			if err != nil {
+				e = err
 				break
 			}
+			if reproduction != nil {
+				resultBytes, _ := json.MarshalIndent(reproduction, "", "  ")
+				if e = artifact.AddRepro(&ar, ascii, multi, append(resultBytes, '\n')); e != nil {
+					break
+				}
+			}
+			draft = ar.Draft
+			ar.Status = "blocked"
+			generated = &ar
 			var rev llm.Review
-			e = call("reviewer", map[string]any{"sources": t.Sources, "decisions": t.Decisions, "fact_pack": pack, "document": draft}, &rev)
+			e = call("reviewer", map[string]any{"sources": t.Sources, "decisions": t.Decisions, "fact_pack": pack, "document": draft, "document_hash": ar.DocumentHash}, &rev)
 			if e != nil {
 				break
 			}
 			if e = validateReview(rev, draft, pack, t.Candidates, nil); e != nil {
 				break
 			}
+			ar.Reviews = append(ar.Reviews, domain.Review{ID: domain.ID("review"), TargetKind: "document", TargetHash: ar.DocumentHash, Mode: s.Provider.Mode(), Result: rev.Result})
 			if rev.Result == "pass" {
-				var ar domain.Artifact
-				ar, e = artifact.Build(draft, pack)
-				if e != nil {
-					break
-				}
-				ar.Reviews = append(ar.Reviews, domain.Review{ID: domain.ID("review"), TargetKind: "document", TargetHash: ar.DocumentHash, Mode: s.Provider.Mode(), Result: "pass"})
 				var final llm.Review
 				e = call("reviewer", map[string]any{"sources": t.Sources, "decisions": t.Decisions, "fact_pack": pack, "files": ar.Files, "artifact_set_hash": ar.SetHash}, &final)
 				if e != nil {
@@ -294,6 +331,7 @@ func (s *Service) run(id string) {
 				if e = validateReview(final, ar.Draft, pack, t.Candidates, ar.Files); e != nil {
 					break
 				}
+				ar.Reviews = append(ar.Reviews, domain.Review{ID: domain.ID("review"), TargetKind: "files", TargetHash: ar.SetHash, Mode: s.Provider.Mode(), Result: final.Result})
 				if final.Result != "pass" {
 					e = errors.New("REVIEW_UNRESOLVED")
 					break
@@ -301,9 +339,7 @@ func (s *Service) run(id string) {
 				if e = artifact.Check(ar); e != nil {
 					break
 				}
-				ar.Reviews = append(ar.Reviews, domain.Review{ID: domain.ID("review"), TargetKind: "files", TargetHash: ar.SetHash, Mode: s.Provider.Mode(), Result: "pass"})
 				ar.Status = "ready"
-				generated = &ar
 				break
 			}
 			if rev.Result == "needs_decision" {
@@ -313,12 +349,14 @@ func (s *Service) run(id string) {
 			if rev.Result != "needs_changes" || repair == s.Repairs {
 				e = errors.New("REVIEW_UNRESOLVED")
 				break
-			} // Repair request is always a new message array containing only the approved pack.
-			e = call("writer", pack, &draft)
+			}
+			// The next request contains only the approved pack. Internal explanations never flow back.
+			e = call("writer", domain.WriterPack(pack), &draft)
 			if e != nil {
 				break
 			}
 		}
+
 	case "reproduce":
 		t.Reproduction = domain.ReproResult{Schema: "repro_result.v1", Status: "not_run", Reason: "no_environment"}
 	}
@@ -343,6 +381,10 @@ func (s *Service) run(id string) {
 		if e != nil {
 			status = "failed"
 			current.Phase = "needs_attention"
+			if generated != nil {
+				current.Artifacts = append(current.Artifacts, *generated)
+				current.CurrentArtifactID = generated.ID
+			}
 			if e.Error() == "NEEDS_DECISIONS" {
 				current.Phase = "needs_decisions"
 			}
@@ -372,6 +414,9 @@ func (s *Service) run(id string) {
 			} else {
 				current.Artifacts = append(current.Artifacts, *generated)
 				current.CurrentArtifactID = generated.ID
+				if reproduction != nil {
+					current.Reproduction = domain.ReproResult{Schema: "repro_result.v1", Status: reproduction.Status, Reason: reproduction.Reason}
+				}
 				current.Phase = "ready_to_finalize"
 			}
 		} else {

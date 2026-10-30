@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "artifact_set_hash": {
+      "maxLength": 8192,
+      "type": "string"
+    },
+    "finding_id": {
+      "maxLength": 8192,
+      "type": "string"
+    },
+    "reason_code": {
+      "maxLength": 8192,
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "context_check.v1"
+    },
+    "status": {
+      "enum": [
+        "allowed",
+        "denied",
+        "unknown",
+        "error"
+      ],
+      "maxLength": 8192,
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "finding_id",
+    "artifact_set_hash",
+    "status",
+    "reason_code"
+  ],
+  "title": "context_check.v1",
+  "type": "object"
+}

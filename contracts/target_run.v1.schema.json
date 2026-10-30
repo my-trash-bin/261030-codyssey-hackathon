@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "code": {
+      "anyOf": [
+        {
+          "maxLength": 8192,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "schema_version": {
+      "const": "target_run.v1"
+    },
+    "stage": {
+      "enum": [
+        "parse",
+        "validate",
+        "encode",
+        "persist"
+      ],
+      "maxLength": 8192,
+      "type": "string"
+    },
+    "status": {
+      "enum": [
+        "ok",
+        "domain_error",
+        "execution_error"
+      ],
+      "maxLength": 8192,
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "status",
+    "stage",
+    "code"
+  ],
+  "title": "target_run.v1",
+  "type": "object"
+}

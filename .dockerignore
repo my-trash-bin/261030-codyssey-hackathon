@@ -1,0 +1,9 @@
+**
+!bin/
+!bin/safehandoff-checker
+!bin/toy-buggy
+!bin/toy-fixed
+!deployments/
+!deployments/runner.Dockerfile
+
+!bin/toy-probe

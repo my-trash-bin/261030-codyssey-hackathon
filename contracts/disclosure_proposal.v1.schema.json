@@ -1,0 +1,76 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "candidate_id": {
+      "maxLength": 8192,
+      "type": "string"
+    },
+    "representation": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "enum": [
+            "fact_summary",
+            "derived_table",
+            "exact_value",
+            "approved_excerpt"
+          ],
+          "maxLength": 8192,
+          "type": "string"
+        },
+        "parameters": {
+          "additionalProperties": false,
+          "maxProperties": 1,
+          "properties": {
+            "decimal_places": {
+              "maximum": 4,
+              "minimum": 0,
+              "type": "integer"
+            }
+          },
+          "type": "object"
+        },
+        "transform_id": {
+          "enum": [
+            "",
+            "series_direction_only.v1",
+            "series_index_base100.v1"
+          ],
+          "maxLength": 8192,
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "transform_id",
+        "parameters"
+      ],
+      "type": "object"
+    },
+    "requires_clarification": {
+      "type": "boolean"
+    },
+    "schema_version": {
+      "const": "disclosure_proposal.v1"
+    },
+    "status": {
+      "enum": [
+        "supported",
+        "ambiguous",
+        "unsupported"
+      ],
+      "maxLength": 8192,
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "status",
+    "candidate_id",
+    "representation",
+    "requires_clarification"
+  ],
+  "title": "disclosure_proposal.v1",
+  "type": "object"
+}

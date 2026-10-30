@@ -70,7 +70,10 @@ func Parse(text string, dst any) error {
 	if strings.HasPrefix(s, "```json\n") && strings.HasSuffix(s, "\n```") {
 		s = strings.TrimSuffix(strings.TrimPrefix(s, "```json\n"), "\n```")
 	}
-	return domain.Strict([]byte(s), dst)
+	if e := domain.Strict([]byte(s), dst); e != nil {
+		return e
+	}
+	return domain.Required([]byte(s), dst)
 }
 
 type Fixture struct{}
@@ -159,6 +162,9 @@ func (Fixture) Generate(ctx context.Context, r Request) (Response, error) {
 		}
 		for _, tb := range p.Tables {
 			d.Blocks = append(d.Blocks, domain.Block{Type: "table_ref", TableID: tb.ID})
+		}
+		for _, slot := range p.Excerpts {
+			d.Blocks = append(d.Blocks, domain.Block{Type: "excerpt_ref", ExcerptID: slot.ID})
 		}
 		result = d
 	case "reviewer":

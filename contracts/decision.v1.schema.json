@@ -1,0 +1,283 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "applied_rule_id": {
+      "maxLength": 8192,
+      "type": "string"
+    },
+    "applied_rule_version": {
+      "type": "integer"
+    },
+    "candidate_id": {
+      "maxLength": 8192,
+      "type": "string"
+    },
+    "disposition": {
+      "enum": [
+        "allow",
+        "exclude",
+        "defer"
+      ],
+      "maxLength": 8192,
+      "type": "string"
+    },
+    "expires_at": {
+      "anyOf": [
+        {
+          "format": "date-time",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "id": {
+      "maxLength": 8192,
+      "type": "string"
+    },
+    "projection_sha256": {
+      "maxLength": 8192,
+      "type": "string"
+    },
+    "raw_grants": {
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "byte_range": {
+            "additionalProperties": false,
+            "properties": {
+              "end": {
+                "type": "integer"
+              },
+              "start": {
+                "type": "integer"
+              }
+            },
+            "required": [
+              "start",
+              "end"
+            ],
+            "type": "object"
+          },
+          "expires_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "hidden_ranges": {
+            "items": {
+              "additionalProperties": false,
+              "properties": {
+                "end": {
+                  "type": "integer"
+                },
+                "start": {
+                  "type": "integer"
+                }
+              },
+              "required": [
+                "start",
+                "end"
+              ],
+              "type": "object"
+            },
+            "maxItems": 100,
+            "type": [
+              "array",
+              "null"
+            ]
+          },
+          "rendered_sha256": {
+            "maxLength": 8192,
+            "type": "string"
+          },
+          "scope": {
+            "additionalProperties": false,
+            "properties": {
+              "audience": {
+                "enum": [
+                  "public",
+                  "named_external"
+                ],
+                "maxLength": 8192,
+                "type": "string"
+              },
+              "project_id": {
+                "maxLength": 8192,
+                "type": "string"
+              },
+              "purpose_id": {
+                "enum": [
+                  "oss_issue",
+                  "vendor_support",
+                  "operations_advice"
+                ],
+                "maxLength": 8192,
+                "type": "string"
+              },
+              "recipient_id": {
+                "maxLength": 8192,
+                "type": "string"
+              },
+              "skill_set_hash": {
+                "maxLength": 8192,
+                "type": "string"
+              }
+            },
+            "required": [
+              "project_id",
+              "purpose_id",
+              "recipient_id",
+              "audience",
+              "skill_set_hash"
+            ],
+            "type": "object"
+          },
+          "source_sha256": {
+            "maxLength": 8192,
+            "type": "string"
+          },
+          "source_version_id": {
+            "maxLength": 8192,
+            "type": "string"
+          }
+        },
+        "required": [
+          "source_version_id",
+          "source_sha256",
+          "byte_range",
+          "hidden_ranges",
+          "rendered_sha256",
+          "scope",
+          "expires_at"
+        ],
+        "type": "object"
+      },
+      "maxItems": 100,
+      "type": [
+        "array",
+        "null"
+      ]
+    },
+    "representation": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "enum": [
+            "fact_summary",
+            "derived_table",
+            "exact_value",
+            "approved_excerpt"
+          ],
+          "maxLength": 8192,
+          "type": "string"
+        },
+        "parameters": {
+          "additionalProperties": false,
+          "maxProperties": 1,
+          "properties": {
+            "decimal_places": {
+              "maximum": 4,
+              "minimum": 0,
+              "type": "integer"
+            }
+          },
+          "type": "object"
+        },
+        "transform_id": {
+          "enum": [
+            "",
+            "series_direction_only.v1",
+            "series_index_base100.v1"
+          ],
+          "maxLength": 8192,
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "transform_id",
+        "parameters"
+      ],
+      "type": "object"
+    },
+    "revoked": {
+      "type": "boolean"
+    },
+    "scope": {
+      "additionalProperties": false,
+      "properties": {
+        "audience": {
+          "enum": [
+            "public",
+            "named_external"
+          ],
+          "maxLength": 8192,
+          "type": "string"
+        },
+        "project_id": {
+          "maxLength": 8192,
+          "type": "string"
+        },
+        "purpose_id": {
+          "enum": [
+            "oss_issue",
+            "vendor_support",
+            "operations_advice"
+          ],
+          "maxLength": 8192,
+          "type": "string"
+        },
+        "recipient_id": {
+          "maxLength": 8192,
+          "type": "string"
+        },
+        "skill_set_hash": {
+          "maxLength": 8192,
+          "type": "string"
+        }
+      },
+      "required": [
+        "project_id",
+        "purpose_id",
+        "recipient_id",
+        "audience",
+        "skill_set_hash"
+      ],
+      "type": "object"
+    },
+    "source_set_hash": {
+      "maxLength": 8192,
+      "type": "string"
+    },
+    "supersedes_id": {
+      "maxLength": 8192,
+      "type": "string"
+    }
+  },
+  "required": [
+    "raw_grants",
+    "supersedes_id",
+    "id",
+    "candidate_id",
+    "disposition",
+    "representation",
+    "scope",
+    "source_set_hash",
+    "projection_sha256",
+    "expires_at",
+    "revoked",
+    "applied_rule_id",
+    "applied_rule_version"
+  ],
+  "title": "decision.v1",
+  "type": "object"
+}

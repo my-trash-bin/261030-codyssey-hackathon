@@ -1,0 +1,97 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "artifact_set_hash": {
+      "maxLength": 8192,
+      "type": "string"
+    },
+    "config": {
+      "additionalProperties": false,
+      "properties": {
+        "route": {
+          "additionalProperties": false,
+          "properties": {
+            "upstream_id": {
+              "maxLength": 8192,
+              "type": "string"
+            }
+          },
+          "required": [
+            "upstream_id"
+          ],
+          "type": "object"
+        },
+        "upstreams": {
+          "items": {
+            "additionalProperties": false,
+            "properties": {
+              "address": {
+                "maxLength": 8192,
+                "type": "string"
+              },
+              "id": {
+                "maxLength": 8192,
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "address"
+            ],
+            "type": "object"
+          },
+          "maxItems": 100,
+          "type": [
+            "array",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "upstreams",
+        "route"
+      ],
+      "type": "object"
+    },
+    "detector_id": {
+      "maxLength": 8192,
+      "type": "string"
+    },
+    "field_path": {
+      "maxLength": 8192,
+      "type": "string"
+    },
+    "finding_id": {
+      "maxLength": 8192,
+      "type": "string"
+    },
+    "product_id": {
+      "maxLength": 8192,
+      "type": "string"
+    },
+    "provenance": {
+      "maxLength": 8192,
+      "type": "string"
+    },
+    "rule_active": {
+      "type": "boolean"
+    },
+    "schema_version": {
+      "const": "context_check_request.v1"
+    }
+  },
+  "required": [
+    "schema_version",
+    "finding_id",
+    "artifact_set_hash",
+    "detector_id",
+    "field_path",
+    "provenance",
+    "product_id",
+    "rule_active",
+    "config"
+  ],
+  "title": "context_check_request.v1",
+  "type": "object"
+}

@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "input_set_digest": {
+      "maxLength": 8192,
+      "type": "string"
+    },
+    "oracle_id": {
+      "maxLength": 8192,
+      "type": "string"
+    },
+    "synthetic_input_set_id": {
+      "maxLength": 8192,
+      "type": "string"
+    },
+    "target_pair_digest": {
+      "maxLength": 8192,
+      "type": "string"
+    },
+    "target_pair_id": {
+      "maxLength": 8192,
+      "type": "string"
+    }
+  },
+  "required": [
+    "target_pair_id",
+    "target_pair_digest",
+    "synthetic_input_set_id",
+    "input_set_digest",
+    "oracle_id"
+  ],
+  "title": "repro_request.v1",
+  "type": "object"
+}

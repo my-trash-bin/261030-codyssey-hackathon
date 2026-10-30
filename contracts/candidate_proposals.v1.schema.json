@@ -1,0 +1,121 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "candidates": {
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "evidence_ids": {
+            "items": {
+              "maxLength": 8192,
+              "type": "string"
+            },
+            "maxItems": 100,
+            "type": [
+              "array",
+              "null"
+            ]
+          },
+          "kind": {
+            "enum": [
+              "observation",
+              "constraint",
+              "unknown",
+              "identifier"
+            ],
+            "maxLength": 8192,
+            "type": "string"
+          },
+          "local_key": {
+            "maxLength": 8192,
+            "type": "string"
+          },
+          "purpose_relevance": {
+            "maxLength": 8192,
+            "type": "string"
+          },
+          "relevance": {
+            "enum": [
+              "required",
+              "optional"
+            ],
+            "maxLength": 8192,
+            "type": "string"
+          },
+          "statement": {
+            "maxLength": 8192,
+            "type": "string"
+          },
+          "uncertainty": {
+            "enum": [
+              "observed",
+              "reported",
+              "inferred",
+              "unknown"
+            ],
+            "maxLength": 8192,
+            "type": "string"
+          }
+        },
+        "required": [
+          "local_key",
+          "kind",
+          "uncertainty",
+          "statement",
+          "evidence_ids",
+          "relevance",
+          "purpose_relevance"
+        ],
+        "type": "object"
+      },
+      "maxItems": 30,
+      "type": [
+        "array",
+        "null"
+      ]
+    },
+    "conflicts": {
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "local_keys": {
+            "items": {
+              "maxLength": 8192,
+              "type": "string"
+            },
+            "maxItems": 100,
+            "type": [
+              "array",
+              "null"
+            ]
+          },
+          "reason": {
+            "maxLength": 8192,
+            "type": "string"
+          }
+        },
+        "required": [
+          "local_keys",
+          "reason"
+        ],
+        "type": "object"
+      },
+      "maxItems": 100,
+      "type": [
+        "array",
+        "null"
+      ]
+    },
+    "schema_version": {
+      "const": "candidate_proposals.v1"
+    }
+  },
+  "required": [
+    "schema_version",
+    "candidates",
+    "conflicts"
+  ],
+  "title": "candidate_proposals.v1",
+  "type": "object"
+}

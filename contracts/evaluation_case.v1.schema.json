@@ -1,0 +1,117 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "case_id": {
+      "maxLength": 8192,
+      "type": "string"
+    },
+    "expected_disclosure": {
+      "additionalProperties": false,
+      "properties": {
+        "attempt_id": {
+          "maxLength": 8192,
+          "type": "string"
+        },
+        "operation_id": {
+          "maxLength": 8192,
+          "type": "string"
+        },
+        "time": {
+          "maxLength": 8192,
+          "type": "string"
+        },
+        "volume": {
+          "maxLength": 8192,
+          "type": "string"
+        }
+      },
+      "required": [
+        "volume",
+        "time",
+        "operation_id",
+        "attempt_id"
+      ],
+      "type": "object"
+    },
+    "expected_reproduction": {
+      "additionalProperties": false,
+      "properties": {
+        "reason_code": {
+          "maxLength": 8192,
+          "type": "string"
+        },
+        "schema_version": {
+          "maxLength": 8192,
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "not_requested",
+            "not_run",
+            "running",
+            "reproduced",
+            "not_reproduced",
+            "inconclusive",
+            "error"
+          ],
+          "maxLength": 8192,
+          "type": "string"
+        }
+      },
+      "required": [
+        "schema_version",
+        "status",
+        "reason_code"
+      ],
+      "type": "object"
+    },
+    "forbidden_literals": {
+      "items": {
+        "maxLength": 8192,
+        "type": "string"
+      },
+      "maxItems": 100,
+      "type": [
+        "array",
+        "null"
+      ]
+    },
+    "forbidden_semantics": {
+      "items": {
+        "maxLength": 8192,
+        "type": "string"
+      },
+      "maxItems": 100,
+      "type": [
+        "array",
+        "null"
+      ]
+    },
+    "required_semantics": {
+      "items": {
+        "maxLength": 8192,
+        "type": "string"
+      },
+      "maxItems": 100,
+      "type": [
+        "array",
+        "null"
+      ]
+    },
+    "schema_version": {
+      "const": "evaluation_case.v1"
+    }
+  },
+  "required": [
+    "schema_version",
+    "case_id",
+    "required_semantics",
+    "forbidden_semantics",
+    "forbidden_literals",
+    "expected_disclosure",
+    "expected_reproduction"
+  ],
+  "title": "evaluation_case.v1",
+  "type": "object"
+}

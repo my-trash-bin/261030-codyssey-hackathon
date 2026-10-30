@@ -1,0 +1,118 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "reason_code": {
+      "maxLength": 8192,
+      "type": "string"
+    },
+    "runs": {
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "exit_code": {
+            "type": "integer"
+          },
+          "input": {
+            "maxLength": 8192,
+            "type": "string"
+          },
+          "output_exists": {
+            "type": "boolean"
+          },
+          "output_matches": {
+            "type": "boolean"
+          },
+          "result": {
+            "additionalProperties": false,
+            "properties": {
+              "code": {
+                "anyOf": [
+                  {
+                    "maxLength": 8192,
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "schema_version": {
+                "maxLength": 8192,
+                "type": "string"
+              },
+              "stage": {
+                "enum": [
+                  "parse",
+                  "validate",
+                  "encode",
+                  "persist"
+                ],
+                "maxLength": 8192,
+                "type": "string"
+              },
+              "status": {
+                "enum": [
+                  "ok",
+                  "domain_error",
+                  "execution_error"
+                ],
+                "maxLength": 8192,
+                "type": "string"
+              }
+            },
+            "required": [
+              "schema_version",
+              "status",
+              "stage",
+              "code"
+            ],
+            "type": "object"
+          },
+          "target": {
+            "maxLength": 8192,
+            "type": "string"
+          }
+        },
+        "required": [
+          "target",
+          "input",
+          "result",
+          "exit_code",
+          "output_exists",
+          "output_matches"
+        ],
+        "type": "object"
+      },
+      "maxItems": 100,
+      "type": [
+        "array",
+        "null"
+      ]
+    },
+    "schema_version": {
+      "const": "repro_result.v1"
+    },
+    "status": {
+      "enum": [
+        "not_requested",
+        "not_run",
+        "running",
+        "reproduced",
+        "not_reproduced",
+        "inconclusive",
+        "error"
+      ],
+      "maxLength": 8192,
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "status",
+    "reason_code",
+    "runs"
+  ],
+  "title": "repro_result.v1",
+  "type": "object"
+}
