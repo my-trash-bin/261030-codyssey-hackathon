@@ -138,10 +138,21 @@ func schema(t reflect.Type) map[string]any {
 
 func enums(parent, key string) []string {
 	m := map[string]string{
+		"Task.phase":                  "needs_analysis needs_decisions ready_to_generate processing needs_attention ready_to_finalize finalized",
+		"Task.provider_mode":          "fixture live",
+		"Artifact.status":             "draft checking blocked ready finalized stale",
+		"Job.kind":                    "analyze interpret_disclosure compose review reproduce provider_check",
+		"Job.status":                  "queued running succeeded failed cancelled stale",
+		"Candidate.kind":              "observation constraint hypothesis unknown identifier series timeline synthetic config_example",
+		"Candidate.uncertainty":       "observed reported inferred unknown",
+		"Fact.uncertainty":            "observed reported inferred unknown",
+		"Finding.resolution":          "blocked allowed_exact allowed_excerpt allowed_context",
+		"Source.format":               "txt log md csv json",
+		"Locator.kind":                "byte_range csv_cell json_pointer",
 		"Representation.kind":         "fact_summary derived_table selected_fields exact_value approved_excerpt",
 		"Representation.transform_id": " series_direction_only.v1 series_index_base100.v1 timeline_sequence_only.v1 timeline_relative_intervals.v1 timeline_shifted_absolute.v1 timeline_synthetic_schedule.v1",
 		"Decision.disposition":        "allow exclude defer",
-		"Proposal.kind":               "observation constraint unknown identifier",
+		"Proposal.kind":               "observation constraint hypothesis unknown identifier",
 		"Proposal.uncertainty":        "observed reported inferred unknown",
 		"Proposal.relevance":          "required optional",
 		"Block.type":                  "heading paragraph list table_ref excerpt_ref asset_ref",

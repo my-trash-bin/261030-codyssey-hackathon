@@ -93,3 +93,74 @@ func TestTimelineDoesNotInventIntervalPermission(t *testing.T) {
 		t.Fatal(p, e)
 	}
 }
+func TestEqualAndInsufficientObservations(t *testing.T) {
+	c := domain.Candidate{Kind: "series", Values: []string{"82", "82", "82"}}
+	p, e := Project(c, domain.Representation{Kind: "fact_summary"})
+	if e != nil || !strings.Contains(p.Statement, "유지") {
+		t.Fatal(p, e)
+	}
+	for _, raw := range []string{"1e3", "1/2", "0xff"} {
+		c.Values = []string{raw, "2000"}
+		if _, e = Project(c, domain.Representation{Kind: "fact_summary"}); e == nil {
+			t.Fatal("uncertified numeric representation", raw)
+		}
+	}
+	c.Values = c.Values[:1]
+	if _, e = Project(c, domain.Representation{Kind: "fact_summary"}); e == nil {
+		t.Fatal("change invented from one observation")
+	}
+}
+func TestRequiredExclusionNeedsExplicitScopeReduction(t *testing.T) {
+	task := domain.Task{Revision: 1, Candidates: []domain.Candidate{{ID: "a", Required: true, Kind: "unknown", Statement: "미확인"}, {ID: "b", Kind: "observation", Statement: "관찰"}}, Decisions: map[string]domain.Decision{}}
+	for _, c := range task.Candidates {
+		r := domain.Representation{Kind: "fact_summary"}
+		p, _ := Project(c, r)
+		d := domain.Decision{CandidateID: c.ID, Disposition: "allow", Representation: r, Scope: task.Scope, SourceHash: task.SourceHash(), ProjectionSHA: domain.Hash(domain.Canonical(p))}
+		if c.ID == "a" {
+			d.Disposition = "exclude"
+		}
+		task.Decisions[c.ID] = d
+	}
+	if _, e := Pack(task, nil, time.Now()); e == nil || e.Error() != "NEEDS_SCOPE_REDUCTION" {
+		t.Fatal(e)
+	}
+	task.ScopeReduced = true
+	if _, e := Pack(task, nil, time.Now()); e != nil {
+		t.Fatal(e)
+	}
+}
+func TestSchemaSelectorDoesNotAliasQuotedCommaHeaders(t *testing.T) {
+	one := CSVSelector("requests_v1", []string{"observation,source", "count"}, "count")
+	two := CSVSelector("requests_v1", []string{"observation", "source", "count"}, "count")
+	if one == two {
+		t.Fatal("different CSV schemas share reuse permission")
+	}
+	if one != CSVSelector("requests_v1", []string{"observation,source", "count"}, "count") {
+		t.Fatal("selector unstable")
+	}
+}
+func TestRuleVersionsDoNotReviveOlderBroadPolicy(t *testing.T) {
+	scope := domain.Scope{ProjectID: "p"}
+	one, e := NextRule(nil, scope, "csv:test", domain.Representation{Kind: "derived_table", TransformID: "series_index_base100.v1", Parameters: map[string]int{"decimal_places": 2}}, nil)
+	if e != nil {
+		t.Fatal(e)
+	}
+	two, e := NextRule([]domain.Rule{one}, scope, "csv:test", domain.Representation{Kind: "derived_table", TransformID: "series_direction_only.v1"}, nil)
+	if e != nil || two.ID != one.ID || two.Version != 2 {
+		t.Fatal(two, e)
+	}
+	chosen, ok := AutomaticRule([]domain.Rule{one, two}, scope, "csv:test", time.Now())
+	if !ok || chosen.Version != 2 {
+		t.Fatal(chosen, ok)
+	}
+	past := time.Now().Add(-time.Second)
+	two.ExpiresAt = &past
+	if _, ok = AutomaticRule([]domain.Rule{one, two}, scope, "csv:test", time.Now()); ok {
+		t.Fatal("old broader criterion revived")
+	}
+	other := one
+	other.ID = "overlapping"
+	if _, ok = AutomaticRule([]domain.Rule{one, other}, scope, "csv:test", time.Now()); ok {
+		t.Fatal("overlapping IDs automatically chosen")
+	}
+}

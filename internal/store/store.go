@@ -14,8 +14,9 @@ import (
 )
 
 type Store struct {
-	DB *sql.DB
-	Mu sync.Mutex
+	DB   *sql.DB
+	Mu   sync.Mutex
+	lock *os.File
 }
 
 func Open(dir string) (*Store, error) {
@@ -25,6 +26,16 @@ func Open(dir string) (*Store, error) {
 	if e := os.Chmod(dir, 0700); e != nil {
 		return nil, e
 	}
+	lock, e := acquireLock(dir)
+	if e != nil {
+		return nil, e
+	}
+	success := false
+	defer func() {
+		if !success {
+			releaseLock(lock)
+		}
+	}()
 	path := filepath.Join(dir, "safehandoff.db")
 	f, e := os.OpenFile(path, os.O_CREATE|os.O_RDWR, 0600)
 	if e != nil {
@@ -41,7 +52,12 @@ func Open(dir string) (*Store, error) {
 		db.Close()
 		return nil, e
 	}
-	s := &Store{DB: db}
+	s := &Store{DB: db, lock: lock}
+	defer func() {
+		if !success {
+			db.Close()
+		}
+	}()
 	tasks, e := s.List()
 	if e != nil {
 		return nil, e
@@ -63,9 +79,10 @@ func Open(dir string) (*Store, error) {
 			}
 		}
 	}
+	success = true
 	return s, nil
 }
-func (s *Store) Close() error { return s.DB.Close() }
+func (s *Store) Close() error { e := s.DB.Close(); releaseLock(s.lock); return e }
 func (s *Store) Get(id string) (domain.Task, error) {
 	var b []byte
 	var t domain.Task

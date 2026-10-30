@@ -38,7 +38,11 @@ func (s *Server) saveRule(w http.ResponseWriter, r *http.Request) {
 	}
 	for _, c := range t.Candidates {
 		if c.ID == v.CandidateID && policy.Reusable(c, d.Representation) {
-			rule := domain.Rule{ID: domain.ID("rule"), Version: 1, Scope: t.Scope, Selector: c.Selector, Representation: d.Representation, ExpiresAt: d.ExpiresAt}
+			rule, err := policy.NextRule(rules, t.Scope, c.Selector, d.Representation, d.ExpiresAt)
+			if err != nil {
+				fail(w, err, 409)
+				return
+			}
 			old := d.ID
 			d.ID = domain.ID("dec")
 			d.SupersedesID = old

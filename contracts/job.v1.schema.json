@@ -54,6 +54,14 @@
       "type": "integer"
     },
     "kind": {
+      "enum": [
+        "analyze",
+        "interpret_disclosure",
+        "compose",
+        "review",
+        "reproduce",
+        "provider_check"
+      ],
       "maxLength": 8192,
       "type": "string"
     },
@@ -186,6 +194,14 @@
       "type": "string"
     },
     "status": {
+      "enum": [
+        "queued",
+        "running",
+        "succeeded",
+        "failed",
+        "cancelled",
+        "stale"
+      ],
       "maxLength": 8192,
       "type": "string"
     },

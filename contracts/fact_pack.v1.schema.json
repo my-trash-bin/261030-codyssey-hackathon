@@ -75,6 +75,16 @@
           "statement": {
             "maxLength": 8192,
             "type": "string"
+          },
+          "uncertainty": {
+            "enum": [
+              "observed",
+              "reported",
+              "inferred",
+              "unknown"
+            ],
+            "maxLength": 8192,
+            "type": "string"
           }
         },
         "required": [

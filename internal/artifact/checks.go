@@ -7,6 +7,7 @@ import (
 	"strings"
 )
 
+var excerptFilePattern = regexp.MustCompile(`^approved-excerpt-(?:[2-9]|[1-9][0-9]+)\.txt$`)
 var observationFile = regexp.MustCompile(`^(observations|timeline)-(?:[2-9]|[1-9][0-9]+)\.csv$`)
 var number = regexp.MustCompile(`[0-9]+(?:\.[0-9]+)?`)
 

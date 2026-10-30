@@ -55,6 +55,7 @@ type expectedCase struct {
 	Reproduction domain.ReproResult `json:"expected_reproduction"`
 }
 type caseResult struct {
+	Scope              domain.Scope       `json:"scope"`
 	ExpectedSHA        string             `json:"expected_case_sha256"`
 	OutputDirectory    string             `json:"output_directory,omitempty"`
 	CaseID             string             `json:"case_id"`
@@ -305,11 +306,24 @@ func runCase(p llm.Provider, scenario, purpose, volume string, ids bool, out str
 		svc.Attempts = live.Config.MaxAttempts
 	}
 	defer svc.Close()
-	task, e := svc.Create("가상 평가 내부 작업", domain.Scope{ProjectID: "project_demo", PurposeID: purpose, RecipientID: "recipient_vendorstore", Audience: "named_external"}, "ko")
+	scope := domain.Scope{ProjectID: "project_demo", PurposeID: purpose, RecipientID: "recipient_vendorstore", Audience: "named_external"}
+	if purpose == "oss_issue" {
+		scope.RecipientID = "public"
+		scope.Audience = "public"
+	}
+	if purpose == "operations_advice" {
+		scope.RecipientID = domain.ID("recipient")
+		if _, e = db.DB.Exec("INSERT INTO catalog VALUES(?,?,?)", scope.RecipientID, "recipient", "가상 운영 자문사"); e != nil {
+			res.Error = e.Error()
+			return
+		}
+	}
+	task, e := svc.Create("가상 평가 내부 작업", scope, "ko")
 	if e != nil {
 		res.Error = e.Error()
 		return
 	}
+	res.Scope = task.Scope
 	defer func() {
 		current, err := db.Get(task.ID)
 		if err != nil {

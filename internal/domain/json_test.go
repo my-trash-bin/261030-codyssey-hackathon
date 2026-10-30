@@ -44,6 +44,9 @@ func TestStrictNullObjectAndNullableExpiry(t *testing.T) {
 	if Strict([]byte(`{"representation":{"kind":"fact_summary","parameters":null},"expires_at":null}`), &v) == nil {
 		t.Fatal("null map accepted")
 	}
+	if Strict([]byte(`{"representation":{"kind":"derived_table","parameters":{"decimal_places":null}},"expires_at":null}`), &v) == nil {
+		t.Fatal("null numeric parameter coerced to zero")
+	}
 	if e := Strict([]byte(`{"representation":{"kind":"fact_summary","parameters":{}},"expires_at":null}`), &v); e != nil {
 		t.Fatal(e)
 	}

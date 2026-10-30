@@ -618,6 +618,9 @@
                       "maxLength": 8192
                     },
                     "maxItems": 0
+                  },
+                  "scope_reduced": {
+                    "type": "boolean"
                   }
                 },
                 "required": [
@@ -1391,6 +1394,9 @@
                   "expected_revision": {
                     "type": "integer",
                     "minimum": 1
+                  },
+                  "accept_scope_reduction": {
+                    "type": "boolean"
                   },
                   "operations": {
                     "type": "array",

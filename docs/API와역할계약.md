@@ -10,7 +10,7 @@
 2. `POST /tasks/{id}/source-batches`: multipart `meta` JSON과 `client_key` 이름의 파일 필드. 일괄 파싱·크기 확인 후 한 번의 revision 증가로 저장합니다. 붙여넣기도 파일 한 개입니다.
 3. `POST /tasks/{id}/jobs`: `analyze`, `interpret_disclosure`, `compose`, `review`, `reproduce`. 접수는 202이며 실제 결과는 `/jobs/{id}`에 기록합니다. `reproduce`는 별도로 승인한 합성 입력 후보가 있어야 실행합니다.
 4. `POST /disclosure-previews`: 현재 후보와 표현에서 실제 공개 투영·해시·preview ID를 받습니다.
-5. `POST /decision-batches`: `allow/exclude/defer`. allow는 서버 미리보기와 동일한 해시·표현·grant가 필요합니다. 선택을 바꿀 때마다 새 미리보기를 만듭니다.
+5. `POST /decision-batches`: `allow/exclude/defer`. allow는 서버 미리보기와 동일한 해시·표현·grant가 필요합니다. 선택을 바꿀 때마다 새 미리보기를 만듭니다. 필수 후보를 제외하면 `scope_reduced=true`의 명시적 PATCH 또는 batch의 `accept_scope_reduction=true` 확인이 있어야 작성할 수 있습니다.
 6. `POST /artifacts/{id}/finalize`: `expected_revision`, `expected_artifact_set_hash`, `confirmed=true`. 확정 후 export 파일과 archive를 받을 수 있습니다.
 
 `GET /tasks/{id}/events`는 Last-Event-ID 이후 이벤트를 재생하는 SSE입니다. 자료·모델 출력 토큰은 보내지 않습니다. 화면은 작업 중 polling으로도 복구합니다. 내부 run trace는 DB와 evaluator 내부 보고서에만 있으며 공개 ZIP에는 들어가지 않습니다.
@@ -61,3 +61,5 @@ python3 scripts/generate-openapi.py
 ```
 
 Python은 계약 문서 재생성에만 사용하며 앱 실행에는 필요하지 않습니다. 모델 정상/오류 corpus는 `contracts/examples`와 Go 시험이 공유합니다. 모든 계약의 완전한 JSON Schema 런타임 검증과 동일 corpus 전수 검증까지 구현된 것은 아닙니다. 현재 실제 강제는 strict decoder·역할별 검증기·도메인 교차 참조 검사입니다.
+
+고정 공개 repro 코드는 앱이 digest를 검증한 뒤 최종 검토 입력에는 파일명·hash와 `registered_public_asset=true`만 전달합니다. 새 본문·표·원문·설정·실행 결과는 실제 텍스트를 검토합니다. writer에는 불확실성 메타데이터를 보존한 승인팩만 전달합니다.

@@ -122,7 +122,14 @@ func (Fixture) Generate(ctx context.Context, r Request) (Response, error) {
 			if required {
 				rel = "required"
 			}
-			a.Candidates = append(a.Candidates, Proposal{LocalKey: domain.ID("local"), Kind: kind, Uncertainty: "observed", Statement: statement, EvidenceIDs: ev, Relevance: rel, PurposeRelevance: "조사를 위한 관찰 정보"})
+			uncertainty := "observed"
+			if kind == "unknown" {
+				uncertainty = "unknown"
+			}
+			if kind == "hypothesis" {
+				uncertainty = "inferred"
+			}
+			a.Candidates = append(a.Candidates, Proposal{LocalKey: domain.ID("local"), Kind: kind, Uncertainty: uncertainty, Statement: statement, EvidenceIDs: ev, Relevance: rel, PurposeRelevance: "조사를 위한 관찰 정보"})
 		}
 		for _, s := range payload.Sources {
 			if !s.Included || s.Format == "csv" {

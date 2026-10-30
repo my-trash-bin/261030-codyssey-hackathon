@@ -148,9 +148,9 @@ func Build(d domain.Draft, p domain.FactPack) (domain.Artifact, error) {
 		case "asset_ref":
 			md.WriteString("첨부: client-config-example.json (문서용 IP 대역의 새 예시)\n\n")
 		case "excerpt_ref":
-			for _, slot := range p.Excerpts {
+			for index, slot := range p.Excerpts {
 				if slot.ID == b.ExcerptID {
-					md.WriteString("승인 원문: approved-excerpt.txt\n\n")
+					md.WriteString("승인 원문: " + excerptFileName(index) + "\n\n")
 				}
 			}
 		case "table_ref":
@@ -207,13 +207,10 @@ func Build(d domain.Draft, p domain.FactPack) (domain.Artifact, error) {
 		a.Files = append(a.Files, file(name, "text/csv; charset=utf-8", buf.Bytes()))
 	}
 
-	if len(p.Excerpts) > 0 {
-		var raw bytes.Buffer
-		for _, slot := range p.Excerpts {
-			raw.Write(slot.Bytes)
-		}
-		a.Files = append(a.Files, file("approved-excerpt.txt", "text/plain; charset=utf-8", raw.Bytes()))
+	for index, slot := range p.Excerpts {
+		a.Files = append(a.Files, file(excerptFileName(index), "text/plain; charset=utf-8", slot.Bytes))
 	}
+
 	for _, slot := range p.Assets {
 		if slot.ID != "config_example" {
 			return a, errors.New("UNAPPROVED_REFERENCE")
@@ -247,6 +244,7 @@ func Build(d domain.Draft, p domain.FactPack) (domain.Artifact, error) {
 	}
 	a.ZIP = buf.Bytes()
 	a.ZIPHash = domain.Hash(a.ZIP)
+	a.Findings = Scan(a)
 	return a, nil
 }
 func file(path, media string, b []byte) domain.File {
@@ -264,7 +262,7 @@ func Check(a domain.Artifact) error {
 	allowed := map[string]bool{"support-request.md": true, "issue.md": true, "operations-brief.md": true, "observations.csv": true, "timeline.csv": true, "approved-excerpt.txt": true, "client-config-example.json": true, "manifest.json": true}
 	seen := map[string]bool{}
 	for _, f := range a.Files {
-		if (!allowed[f.Path] && !observationFile.MatchString(f.Path) && !RegisteredPublic(f.Path, f.Bytes) && f.Path != "repro/inputs/ascii.json" && f.Path != "repro/inputs/multibyte.json" && f.Path != "run-result.json" && f.Path != "README.md") || !SafePath(f.Path) || seen[f.Path] || f.Size != len(f.Bytes) || domain.Hash(f.Bytes) != f.SHA {
+		if (!allowed[f.Path] && !observationFile.MatchString(f.Path) && !excerptFilePattern.MatchString(f.Path) && !RegisteredPublic(f.Path, f.Bytes) && f.Path != "repro/inputs/ascii.json" && f.Path != "repro/inputs/multibyte.json" && f.Path != "run-result.json" && f.Path != "README.md") || !SafePath(f.Path) || seen[f.Path] || f.Size != len(f.Bytes) || domain.Hash(f.Bytes) != f.SHA {
 			return errors.New("FINALIZATION_BLOCKED")
 		}
 		seen[f.Path] = true
@@ -293,6 +291,11 @@ func Check(a domain.Artifact) error {
 			if tools.ValidateContextResult(q, r) != nil || r.Status != "allowed" {
 				return errors.New("FINALIZATION_BLOCKED")
 			}
+		}
+	}
+	for _, finding := range Scan(a) {
+		if finding.Resolution == "blocked" {
+			return errors.New("UNAPPROVED_REFERENCE")
 		}
 	}
 	return Validate(a.Draft, a.Pack)

@@ -122,6 +122,11 @@ func keys(v any, t reflect.Type) error {
 	switch x := v.(type) {
 	case map[string]any:
 		if t.Kind() == reflect.Map {
+			for _, value := range x {
+				if e := keys(value, t.Elem()); e != nil {
+					return e
+				}
+			}
 			return nil
 		}
 		if t.Kind() != reflect.Struct {

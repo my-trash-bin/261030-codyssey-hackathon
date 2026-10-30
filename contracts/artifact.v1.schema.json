@@ -206,6 +206,16 @@
               "statement": {
                 "maxLength": 8192,
                 "type": "string"
+              },
+              "uncertainty": {
+                "enum": [
+                  "observed",
+                  "reported",
+                  "inferred",
+                  "unknown"
+                ],
+                "maxLength": 8192,
+                "type": "string"
               }
             },
             "required": [
@@ -397,6 +407,75 @@
         "null"
       ]
     },
+    "findings": {
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "artifact_file_id": {
+            "maxLength": 8192,
+            "type": "string"
+          },
+          "artifact_set_hash": {
+            "maxLength": 8192,
+            "type": "string"
+          },
+          "detector_id": {
+            "maxLength": 8192,
+            "type": "string"
+          },
+          "end": {
+            "type": "integer"
+          },
+          "file_path": {
+            "maxLength": 8192,
+            "type": "string"
+          },
+          "id": {
+            "maxLength": 8192,
+            "type": "string"
+          },
+          "reason_code": {
+            "maxLength": 8192,
+            "type": "string"
+          },
+          "resolution": {
+            "enum": [
+              "blocked",
+              "allowed_exact",
+              "allowed_excerpt",
+              "allowed_context"
+            ],
+            "maxLength": 8192,
+            "type": "string"
+          },
+          "start": {
+            "type": "integer"
+          },
+          "value_sha256": {
+            "maxLength": 8192,
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "artifact_file_id",
+          "file_path",
+          "artifact_set_hash",
+          "detector_id",
+          "start",
+          "end",
+          "value_sha256",
+          "resolution",
+          "reason_code"
+        ],
+        "type": "object"
+      },
+      "maxItems": 100,
+      "type": [
+        "array",
+        "null"
+      ]
+    },
     "id": {
       "maxLength": 8192,
       "type": "string"
@@ -456,11 +535,20 @@
       "type": "integer"
     },
     "status": {
+      "enum": [
+        "draft",
+        "checking",
+        "blocked",
+        "ready",
+        "finalized",
+        "stale"
+      ],
       "maxLength": 8192,
       "type": "string"
     }
   },
   "required": [
+    "findings",
     "id",
     "revision",
     "artifact_version",

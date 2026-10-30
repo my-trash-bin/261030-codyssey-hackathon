@@ -375,6 +375,11 @@ func TestRawExcerptAPIAndWriterIsolation(t *testing.T) {
 		}
 	}
 	payload[map[string]any](t, h.req("POST", "/tasks/"+id+"/decision-batches", map[string]any{"expected_revision": task.Revision, "operations": ops}, "raw-decisions"))
+	current := h.get(id)
+	reduced := payload[domain.Task](t, h.req("PATCH", "/tasks/"+id, map[string]any{"expected_revision": current.Revision, "scope_reduced": true}, "reduce-raw-scope"))
+	if reduced.Phase != "ready_to_generate" {
+		t.Fatal(reduced.Phase)
+	}
 	h.job(id, "compose")
 	h.finalize(id)
 	task = h.get(id)

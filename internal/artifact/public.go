@@ -88,6 +88,7 @@ func Rebundle(a *domain.Artifact) error {
 	}
 	a.ZIP = out.Bytes()
 	a.ZIPHash = domain.Hash(a.ZIP)
+	a.Findings = Scan(*a)
 	return nil
 }
 func RegisteredPublic(path string, b []byte) bool {

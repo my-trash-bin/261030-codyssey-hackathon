@@ -11,11 +11,13 @@ import (
 	"net/http"
 	"net/url"
 	"safehandoff.local/poc/internal/domain"
+	"safehandoff.local/poc/internal/policy"
 	"safehandoff.local/poc/internal/workflow"
 	"safehandoff.local/poc/skills"
 	"safehandoff.local/poc/web"
 	"strings"
 	"sync"
+	"time"
 )
 
 type Server struct {
@@ -307,13 +309,14 @@ type revision struct {
 
 func (s *Server) patch(w http.ResponseWriter, r *http.Request) {
 	var v struct {
-		SkillIDs  *[]string `json:"skill_ids"`
-		Revision  int       `json:"expected_revision"`
-		Title     *string   `json:"internal_title"`
-		Recipient *string   `json:"recipient_id"`
-		Audience  *string   `json:"audience"`
-		Purpose   *string   `json:"purpose_id"`
-		Language  *string   `json:"output_language"`
+		ScopeReduced *bool     `json:"scope_reduced"`
+		SkillIDs     *[]string `json:"skill_ids"`
+		Revision     int       `json:"expected_revision"`
+		Title        *string   `json:"internal_title"`
+		Recipient    *string   `json:"recipient_id"`
+		Audience     *string   `json:"audience"`
+		Purpose      *string   `json:"purpose_id"`
+		Language     *string   `json:"output_language"`
 	}
 	if e := decode(r, &v); e != nil {
 		fail(w, e, 400)
@@ -379,7 +382,23 @@ func (s *Server) patch(w http.ResponseWriter, r *http.Request) {
 		fail(w, errors.New("SCOPE_MISMATCH"), 422)
 		return
 	}
+	if v.Purpose != nil || v.Recipient != nil || v.Audience != nil || v.SkillIDs != nil {
+		t.ScopeReduced = false
+	}
+	if v.ScopeReduced != nil {
+		t.ScopeReduced = *v.ScopeReduced
+	}
 	t.Invalidate(phase)
+	if t.Phase == "needs_decisions" {
+		rules, err := s.Service.Store.Rules()
+		if err != nil {
+			fail(w, err, 500)
+			return
+		}
+		if _, err = policy.Pack(t, rules, time.Now()); err == nil {
+			t.Phase = "ready_to_generate"
+		}
+	}
 	if e = s.Service.Store.Save(t, v.Revision); e != nil {
 		fail(w, e, 409)
 		return

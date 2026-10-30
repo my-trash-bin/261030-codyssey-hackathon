@@ -21,6 +21,7 @@
             "enum": [
               "observation",
               "constraint",
+              "hypothesis",
               "unknown",
               "identifier"
             ],

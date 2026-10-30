@@ -239,7 +239,7 @@ func (s *Service) run(id string) {
 		keys := map[string]bool{}
 		candidateByKey := map[string]int{}
 		for _, c := range a.Candidates {
-			if c.LocalKey == "" || keys[c.LocalKey] || c.Statement == "" || (c.Kind != "observation" && c.Kind != "constraint" && c.Kind != "unknown" && c.Kind != "identifier") || (c.Uncertainty != "observed" && c.Uncertainty != "reported" && c.Uncertainty != "inferred" && c.Uncertainty != "unknown") || (c.Relevance != "required" && c.Relevance != "optional") {
+			if c.LocalKey == "" || keys[c.LocalKey] || c.Statement == "" || (c.Kind != "observation" && c.Kind != "constraint" && c.Kind != "hypothesis" && c.Kind != "unknown" && c.Kind != "identifier") || (c.Uncertainty != "observed" && c.Uncertainty != "reported" && c.Uncertainty != "inferred" && c.Uncertainty != "unknown") || (c.Relevance != "required" && c.Relevance != "optional") {
 				e = errors.New("SCHEMA_INVALID")
 				break
 			}
@@ -273,7 +273,7 @@ func (s *Service) run(id string) {
 			break
 		}
 		for _, src := range t.Sources {
-			if !src.Included || src.Format != "csv" {
+			if !src.Included || src.Format != "csv" || src.Slot != "requests_v1" {
 				continue
 			}
 			rows, err := csv.NewReader(strings.NewReader(strings.TrimPrefix(string(src.Raw), "\ufeff"))).ReadAll()
@@ -294,7 +294,7 @@ func (s *Service) run(id string) {
 						ev = append(ev, v.ID)
 					}
 				}
-				candidates = append(candidates, domain.Candidate{ID: domain.ID("cand"), Kind: "series", Statement: "요청량 공개 수준", Uncertainty: "observed", EvidenceIDs: ev, Required: true, Selector: "csv:" + src.Slot + ":" + strings.Join(rows[0], ",") + ":" + h, Values: vals, Origin: "app"})
+				candidates = append(candidates, domain.Candidate{ID: domain.ID("cand"), Kind: "series", Statement: "요청량 공개 수준", Uncertainty: "observed", EvidenceIDs: ev, Required: true, Selector: policy.CSVSelector(src.Slot, rows[0], h), Values: vals, Origin: "app"})
 			}
 		}
 		if t.Scope.PurposeID == "oss_issue" && len(t.Evidence) > 0 {
@@ -438,6 +438,9 @@ func (s *Service) run(id string) {
 			draft = ar.Draft
 			ar.Status = "blocked"
 			generated = &ar
+			if e = artifact.Check(ar); e != nil {
+				break
+			}
 			var rev llm.Review
 			e = call("reviewer", map[string]any{"sources": domain.ModelSources(t), "decisions": t.Decisions, "fact_pack": pack, "document": draft, "document_hash": ar.DocumentHash}, &rev)
 			if e != nil {
@@ -449,7 +452,7 @@ func (s *Service) run(id string) {
 			ar.Reviews = append(ar.Reviews, domain.Review{ID: domain.ID("review"), TargetKind: "document", TargetHash: ar.DocumentHash, Mode: s.Provider.Mode(), Result: rev.Result})
 			if rev.Result == "pass" {
 				var final llm.Review
-				e = call("reviewer", map[string]any{"sources": domain.ModelSources(t), "decisions": t.Decisions, "fact_pack": pack, "files": domain.ModelFiles(ar.Files), "artifact_set_hash": ar.SetHash}, &final)
+				e = call("reviewer", map[string]any{"sources": domain.ModelSources(t), "decisions": t.Decisions, "fact_pack": pack, "files": reviewFiles(ar.Files), "artifact_set_hash": ar.SetHash}, &final)
 				if e != nil {
 					break
 				}
@@ -557,21 +560,23 @@ func (s *Service) run(id string) {
 		} else if interpretation != nil {
 			current.Phase = j.PreviousPhase
 		} else if j.Kind == "analyze" {
+			current.ScopeReduced = false
 			current.Candidates = candidates
 			current.PendingDecisionIDs = nil
 			current.Decisions = map[string]domain.Decision{}
 			current.Previews = map[string]domain.Preview{}
 			current.Phase = "needs_decisions"
+
 			for _, c := range candidates {
-				for _, r := range rules {
-					if r.Scope == current.Scope && r.Selector == c.Selector && !r.Revoked && (r.ExpiresAt == nil || time.Now().Before(*r.ExpiresAt)) && policy.Reusable(c, r.Representation) {
-						pr, err := policy.Project(c, r.Representation)
-						if err == nil {
-							current.Decisions[c.ID] = domain.Decision{ID: domain.ID("dec"), CandidateID: c.ID, Disposition: "allow", Representation: r.Representation, Scope: current.Scope, SourceHash: current.SourceHash(), ProjectionSHA: domain.Hash(domain.Canonical(pr)), RuleID: r.ID, RuleVersion: r.Version}
-						}
+				r, ok := policy.AutomaticRule(rules, current.Scope, c.Selector, time.Now())
+				if ok && policy.Reusable(c, r.Representation) {
+					pr, err := policy.Project(c, r.Representation)
+					if err == nil {
+						current.Decisions[c.ID] = domain.Decision{ID: domain.ID("dec"), CandidateID: c.ID, Disposition: "allow", Representation: r.Representation, Scope: current.Scope, SourceHash: current.SourceHash(), ProjectionSHA: domain.Hash(domain.Canonical(pr)), RuleID: r.ID, RuleVersion: r.Version}
 					}
 				}
 			}
+
 		} else if generated != nil {
 			freshRules, err := s.Store.Rules()
 			if err != nil {
@@ -627,7 +632,7 @@ func safeCode(e error) string {
 	if errors.Is(e, context.DeadlineExceeded) {
 		return "PROVIDER_TIMEOUT"
 	}
-	allowed := "CANDIDATE_LIMIT INPUT_TOO_LARGE INVALID_REQUEST SCHEMA_INVALID INVALID_JSON SOURCE_CONFLICT REFERENCE_INVALID INVALID_DECISION BROKEN_EVIDENCE_REFERENCE SCOPE_MISMATCH APPROVAL_EXPIRED NO_SOURCES NO_SUPPORTED_CANDIDATES NEEDS_DECISIONS NEEDS_DISCLOSURE_DECISION NO_PUBLIC_FACTS MODEL_CALL_BUDGET_EXCEEDED CONTEXT_BUDGET_EXCEEDED OUTPUT_TRUNCATED PROVIDER_UNAVAILABLE PROVIDER_AUTH_FAILED PROVIDER_CONFIG_UNSUPPORTED PROVIDER_TIMEOUT CANCELLED INTERRUPTED REVIEW_UNRESOLVED ARTIFACT_STALE FINALIZATION_BLOCKED UNAPPROVED_DISCLOSURE UNAPPROVED_REFERENCE MISSING_REQUIRED_FACT INCORRECT_PROJECTION EXPORT_TOO_LARGE TOOL_TIMEOUT TOOL_SCHEMA_INVALID TOOL_ENVIRONMENT_UNAVAILABLE TARGET_DIGEST_MISMATCH"
+	allowed := "INSUFFICIENT_OBSERVATIONS NEEDS_SCOPE_REDUCTION CANDIDATE_LIMIT INPUT_TOO_LARGE INVALID_REQUEST SCHEMA_INVALID INVALID_JSON SOURCE_CONFLICT REFERENCE_INVALID INVALID_DECISION BROKEN_EVIDENCE_REFERENCE SCOPE_MISMATCH APPROVAL_EXPIRED NO_SOURCES NO_SUPPORTED_CANDIDATES NEEDS_DECISIONS NEEDS_DISCLOSURE_DECISION NO_PUBLIC_FACTS MODEL_CALL_BUDGET_EXCEEDED CONTEXT_BUDGET_EXCEEDED OUTPUT_TRUNCATED PROVIDER_UNAVAILABLE PROVIDER_AUTH_FAILED PROVIDER_CONFIG_UNSUPPORTED PROVIDER_TIMEOUT CANCELLED INTERRUPTED REVIEW_UNRESOLVED ARTIFACT_STALE FINALIZATION_BLOCKED UNAPPROVED_DISCLOSURE UNAPPROVED_REFERENCE MISSING_REQUIRED_FACT INCORRECT_PROJECTION EXPORT_TOO_LARGE TOOL_TIMEOUT TOOL_SCHEMA_INVALID TOOL_ENVIRONMENT_UNAVAILABLE TARGET_DIGEST_MISMATCH"
 	for _, code := range strings.Fields(allowed) {
 		if e.Error() == code {
 			return code
@@ -713,4 +718,15 @@ func validateReview(r llm.Review, d domain.Draft, p domain.FactPack, c []domain.
 		}
 	}
 	return nil
+}
+
+func reviewFiles(files []domain.File) []domain.ModelFile {
+	result := domain.ModelFiles(files)
+	for i, f := range files {
+		if artifact.RegisteredPublic(f.Path, f.Bytes) {
+			result[i].Content = ""
+			result[i].Registered = true
+		}
+	}
+	return result
 }

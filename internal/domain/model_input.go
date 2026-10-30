@@ -19,10 +19,11 @@ func ModelSources(t Task) []ModelSource {
 }
 
 type ModelFile struct {
-	ID      string `json:"artifact_file_id"`
-	Path    string `json:"path"`
-	SHA     string `json:"sha256"`
-	Content string `json:"content"`
+	Registered bool   `json:"registered_public_asset,omitempty"`
+	ID         string `json:"artifact_file_id"`
+	Path       string `json:"path"`
+	SHA        string `json:"sha256"`
+	Content    string `json:"content,omitempty"`
 }
 
 func ModelFiles(files []File) []ModelFile {

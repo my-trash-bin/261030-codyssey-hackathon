@@ -210,6 +210,16 @@
                     "statement": {
                       "maxLength": 8192,
                       "type": "string"
+                    },
+                    "uncertainty": {
+                      "enum": [
+                        "observed",
+                        "reported",
+                        "inferred",
+                        "unknown"
+                      ],
+                      "maxLength": 8192,
+                      "type": "string"
                     }
                   },
                   "required": [
@@ -401,6 +411,75 @@
               "null"
             ]
           },
+          "findings": {
+            "items": {
+              "additionalProperties": false,
+              "properties": {
+                "artifact_file_id": {
+                  "maxLength": 8192,
+                  "type": "string"
+                },
+                "artifact_set_hash": {
+                  "maxLength": 8192,
+                  "type": "string"
+                },
+                "detector_id": {
+                  "maxLength": 8192,
+                  "type": "string"
+                },
+                "end": {
+                  "type": "integer"
+                },
+                "file_path": {
+                  "maxLength": 8192,
+                  "type": "string"
+                },
+                "id": {
+                  "maxLength": 8192,
+                  "type": "string"
+                },
+                "reason_code": {
+                  "maxLength": 8192,
+                  "type": "string"
+                },
+                "resolution": {
+                  "enum": [
+                    "blocked",
+                    "allowed_exact",
+                    "allowed_excerpt",
+                    "allowed_context"
+                  ],
+                  "maxLength": 8192,
+                  "type": "string"
+                },
+                "start": {
+                  "type": "integer"
+                },
+                "value_sha256": {
+                  "maxLength": 8192,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "id",
+                "artifact_file_id",
+                "file_path",
+                "artifact_set_hash",
+                "detector_id",
+                "start",
+                "end",
+                "value_sha256",
+                "resolution",
+                "reason_code"
+              ],
+              "type": "object"
+            },
+            "maxItems": 100,
+            "type": [
+              "array",
+              "null"
+            ]
+          },
           "id": {
             "maxLength": 8192,
             "type": "string"
@@ -460,11 +539,20 @@
             "type": "integer"
           },
           "status": {
+            "enum": [
+              "draft",
+              "checking",
+              "blocked",
+              "ready",
+              "finalized",
+              "stale"
+            ],
             "maxLength": 8192,
             "type": "string"
           }
         },
         "required": [
+          "findings",
           "id",
           "revision",
           "artifact_version",
@@ -514,6 +602,17 @@
             "type": "string"
           },
           "kind": {
+            "enum": [
+              "observation",
+              "constraint",
+              "hypothesis",
+              "unknown",
+              "identifier",
+              "series",
+              "timeline",
+              "synthetic",
+              "config_example"
+            ],
             "maxLength": 8192,
             "type": "string"
           },
@@ -561,6 +660,12 @@
             "type": "string"
           },
           "uncertainty": {
+            "enum": [
+              "observed",
+              "reported",
+              "inferred",
+              "unknown"
+            ],
             "maxLength": 8192,
             "type": "string"
           },
@@ -973,6 +1078,11 @@
                 "type": "string"
               },
               "kind": {
+                "enum": [
+                  "byte_range",
+                  "csv_cell",
+                  "json_pointer"
+                ],
                 "maxLength": 8192,
                 "type": "string"
               },
@@ -1085,6 +1195,14 @@
             "type": "integer"
           },
           "kind": {
+            "enum": [
+              "analyze",
+              "interpret_disclosure",
+              "compose",
+              "review",
+              "reproduce",
+              "provider_check"
+            ],
             "maxLength": 8192,
             "type": "string"
           },
@@ -1217,6 +1335,14 @@
             "type": "string"
           },
           "status": {
+            "enum": [
+              "queued",
+              "running",
+              "succeeded",
+              "failed",
+              "cancelled",
+              "stale"
+            ],
             "maxLength": 8192,
             "type": "string"
           },
@@ -1263,6 +1389,15 @@
       ]
     },
     "phase": {
+      "enum": [
+        "needs_analysis",
+        "needs_decisions",
+        "ready_to_generate",
+        "processing",
+        "needs_attention",
+        "ready_to_finalize",
+        "finalized"
+      ],
       "maxLength": 8192,
       "type": "string"
     },
@@ -1548,6 +1683,10 @@
       "type": "object"
     },
     "provider_mode": {
+      "enum": [
+        "fixture",
+        "live"
+      ],
       "maxLength": 8192,
       "type": "string"
     },
@@ -1713,6 +1852,9 @@
       ],
       "type": "object"
     },
+    "scope_reduced": {
+      "type": "boolean"
+    },
     "sources": {
       "items": {
         "additionalProperties": false,
@@ -1722,6 +1864,13 @@
             "type": "string"
           },
           "format": {
+            "enum": [
+              "txt",
+              "log",
+              "md",
+              "csv",
+              "json"
+            ],
             "maxLength": 8192,
             "type": "string"
           },
@@ -1774,6 +1923,7 @@
     }
   },
   "required": [
+    "scope_reduced",
     "pending_decision_ids",
     "id",
     "internal_title",

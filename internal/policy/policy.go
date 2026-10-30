@@ -26,19 +26,27 @@ func Project(c domain.Candidate, r domain.Representation) (domain.Projection, er
 			return p, errors.New("INVALID_DECISION")
 		}
 		if c.Kind == "series" {
+			if len(c.Values) < 2 {
+				return p, errors.New("INSUFFICIENT_OBSERVATIONS")
+			}
+			changed := false
 			increasing, decreasing := true, true
 			for i := 1; i < len(c.Values); i++ {
 				a, b := new(big.Rat), new(big.Rat)
-				if _, ok := a.SetString(c.Values[i-1]); !ok {
+				if _, ok := a.SetString(c.Values[i-1]); !ok || !domain.IsDecimal(c.Values[i-1]) {
 					return p, errors.New("INCOMPLETE")
 				}
-				if _, ok := b.SetString(c.Values[i]); !ok {
+				if _, ok := b.SetString(c.Values[i]); !ok || !domain.IsDecimal(c.Values[i]) {
 					return p, errors.New("INCOMPLETE")
 				}
+				changed = changed || b.Cmp(a) != 0
 				increasing = increasing && b.Cmp(a) > 0
 				decreasing = decreasing && b.Cmp(a) < 0
 			}
 			p.Statement = "관찰된 구간에서 요청량의 변화가 있었습니다."
+			if !changed {
+				p.Statement = "관찰된 구간에서 요청량이 유지됐습니다."
+			}
 			if increasing && len(c.Values) > 1 {
 				p.Statement = "관찰된 구간에서 요청량이 증가했습니다."
 			}
@@ -200,6 +208,9 @@ func Pack(t domain.Task, rules []domain.Rule, now time.Time) (domain.FactPack, e
 		return domain.FactPack{}, errors.New("NEEDS_DECISIONS")
 	}
 	p := domain.FactPack{Schema: "fact_pack.v1", Revision: t.Revision, TemplateID: t.Scope.PurposeID + ".v1", Audience: t.Scope.Audience, Language: t.Language, Brief: "관찰된 현상과 미확인 사항을 정리하고 조사를 요청한다.", Facts: []domain.Fact{}, Required: []string{}, Tables: []domain.Table{}, Excerpts: []domain.Slot{}, Assets: []domain.Slot{}, ToolResults: []any{}}
+	if t.ScopeReduced {
+		p.Brief = "허용한 관찰 자료만으로 가능한 범위의 확인을 요청하고, 더 필요한 진단 항목을 문의한다."
+	}
 	allowedConflicts := map[string]bool{}
 	for _, c := range t.Candidates {
 		d, ok := t.Decisions[c.ID]
@@ -216,6 +227,9 @@ func Pack(t domain.Task, rules []domain.Rule, now time.Time) (domain.FactPack, e
 			return p, errors.New("NEEDS_DECISIONS")
 		}
 		if d.Disposition == "exclude" {
+			if c.Required && c.ConflictGroup == "" && !t.ScopeReduced {
+				return p, errors.New("NEEDS_SCOPE_REDUCTION")
+			}
 			continue
 		}
 		if c.ConflictGroup != "" {
@@ -239,7 +253,7 @@ func Pack(t domain.Task, rules []domain.Rule, now time.Time) (domain.FactPack, e
 		}
 		if pr.Statement != "" {
 			id := fmt.Sprintf("f_%d", len(p.Facts)+1)
-			p.Facts = append(p.Facts, domain.Fact{ID: id, Kind: c.Kind, Statement: pr.Statement})
+			p.Facts = append(p.Facts, domain.Fact{ID: id, Kind: c.Kind, Uncertainty: c.Uncertainty, Statement: pr.Statement})
 			if c.Required {
 				p.Required = append(p.Required, id)
 			}
@@ -275,6 +289,11 @@ func Pack(t domain.Task, rules []domain.Rule, now time.Time) (domain.FactPack, e
 			p.Tables = append(p.Tables, domain.Table{FileName: name, NumericColumns: numeric, ID: fmt.Sprintf("tb_%d", len(p.Tables)+1), Columns: pr.Columns, Rows: pr.Rows})
 		}
 	}
+	for _, c := range t.Candidates {
+		if c.ConflictGroup != "" && !allowedConflicts[c.ConflictGroup] && !t.ScopeReduced {
+			return p, errors.New("NEEDS_SCOPE_REDUCTION")
+		}
+	}
 	if len(p.Facts)+len(p.Tables)+len(p.Excerpts) == 0 {
 		return p, errors.New("NO_PUBLIC_FACTS")
 	}
@@ -282,4 +301,9 @@ func Pack(t domain.Task, rules []domain.Rule, now time.Time) (domain.FactPack, e
 }
 func Reusable(c domain.Candidate, r domain.Representation) bool {
 	return c.Kind == "series" && c.Selector != "" && (r.Kind == "fact_summary" || r.Kind == "derived_table") && strings.HasPrefix(c.Selector, "csv:")
+}
+
+// CSVSelector hashes the structured schema; quoted commas cannot alias columns.
+func CSVSelector(slot string, headers []string, column string) string {
+	return "csv:" + domain.Hash(domain.Canonical(map[string]any{"source_slot": slot, "headers": headers, "value_column": column})) + ":" + column
 }

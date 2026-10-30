@@ -109,6 +109,7 @@ func (s *Server) sources(w http.ResponseWriter, r *http.Request) {
 		fail(w, errors.New("INPUT_TOO_LARGE"), 413)
 		return
 	}
+	t.ScopeReduced = false
 	t.Invalidate("needs_analysis")
 	if e = s.Service.Store.Save(t, meta.Revision); e != nil {
 		fail(w, e, 409)
@@ -144,6 +145,7 @@ func (s *Server) removeSource(w http.ResponseWriter, r *http.Request) {
 		fail(w, errors.New("REFERENCE_INVALID"), 404)
 		return
 	}
+	t.ScopeReduced = false
 	t.Invalidate("needs_analysis")
 	if e = s.Service.Store.Save(t, v.Revision); e != nil {
 		fail(w, e, 409)
@@ -209,7 +211,7 @@ func (s *Server) manual(w http.ResponseWriter, r *http.Request) {
 		fail(w, e, 400)
 		return
 	}
-	if v.Statement == "" || (v.Kind != "observation" && v.Kind != "constraint" && v.Kind != "unknown" && v.Kind != "identifier") {
+	if v.Statement == "" || (v.Kind != "observation" && v.Kind != "constraint" && v.Kind != "hypothesis" && v.Kind != "unknown" && v.Kind != "identifier") {
 		fail(w, errors.New("INVALID_REQUEST"), 400)
 		return
 	}
@@ -245,6 +247,7 @@ func (s *Server) manual(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		src := domain.Source{ID: domain.ID("srcv"), SourceID: domain.ID("source"), Version: 1, Name: "사용자 내부 메모", Format: "txt", Raw: []byte(v.Note), SHA: domain.Hash([]byte(v.Note)), Included: true}
+		t.ScopeReduced = false
 		t.Sources = append(t.Sources, src)
 		ev := domain.EvidenceFor(src)
 		t.Evidence = append(t.Evidence, ev...)
@@ -257,6 +260,12 @@ func (s *Server) manual(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	c := domain.Candidate{ID: domain.ID("cand"), Kind: v.Kind, Statement: v.Statement, Uncertainty: "reported", EvidenceIDs: v.EvidenceIDs, Origin: "human"}
+	if c.Kind == "unknown" {
+		c.Uncertainty = "unknown"
+	}
+	if c.Kind == "hypothesis" {
+		c.Uncertainty = "inferred"
+	}
 	t.Candidates = append(t.Candidates, c)
 	t.Invalidate("needs_decisions")
 	if e = s.Service.Store.Save(t, v.Revision); e != nil {
@@ -325,8 +334,9 @@ type operation struct {
 
 func (s *Server) decide(w http.ResponseWriter, r *http.Request) {
 	var v struct {
-		Revision int         `json:"expected_revision"`
-		Ops      []operation `json:"operations"`
+		AcceptReduction bool        `json:"accept_scope_reduction"`
+		Revision        int         `json:"expected_revision"`
+		Ops             []operation `json:"operations"`
 	}
 	if e := decode(r, &v); e != nil || len(v.Ops) == 0 {
 		fail(w, errors.New("INVALID_REQUEST"), 400)
@@ -413,7 +423,17 @@ func (s *Server) decide(w http.ResponseWriter, r *http.Request) {
 					fail(w, errors.New("INVALID_DECISION"), 400)
 					return
 				}
-				rule := domain.Rule{ID: domain.ID("rule"), Version: 1, Scope: t.Scope, Selector: c.Selector, Representation: op.Representation, ExpiresAt: op.ExpiresAt}
+				existing, err := s.Service.Store.Rules()
+				if err != nil {
+					fail(w, err, 500)
+					return
+				}
+				existing = append(existing, rules...)
+				rule, err := policy.NextRule(existing, t.Scope, c.Selector, op.Representation, op.ExpiresAt)
+				if err != nil {
+					fail(w, err, 409)
+					return
+				}
 				rules = append(rules, rule)
 				d.RuleID = rule.ID
 				d.RuleVersion = rule.Version
@@ -433,6 +453,9 @@ func (s *Server) decide(w http.ResponseWriter, r *http.Request) {
 			c.NeedsDecision = false
 		}
 		t.Decisions[c.ID] = d
+	}
+	if v.AcceptReduction {
+		t.ScopeReduced = true
 	}
 	t.Invalidate("needs_decisions")
 	allRules, e := s.Service.Store.Rules()

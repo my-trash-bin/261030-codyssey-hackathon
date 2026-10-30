@@ -58,7 +58,7 @@ export function on(id, fn) {
 		}
 	});
 }
-export async function upload(id, rev, files) {
+export async function upload(id, rev, files, csvRole = "requests_v1") {
 	const form = new FormData();
 	const items = [];
 	files.forEach((f, i) => {
@@ -69,7 +69,7 @@ export async function upload(id, rev, files) {
 			client_key: key,
 			display_name: f.name,
 			format,
-			source_slot: format === "csv" ? "requests_v1" : "notes",
+			source_slot: format === "csv" ? csvRole : "notes",
 		});
 		form.append(key, f);
 	});

@@ -33,3 +33,24 @@ func TestRestartInterruptedAndCAS(t *testing.T) {
 		t.Fatal(task, e)
 	}
 }
+
+func TestDataDirectoryExclusiveOwnership(t *testing.T) {
+	dir := t.TempDir()
+	first, e := Open(dir)
+	if e != nil {
+		t.Fatal(e)
+	}
+	if second, e := Open(dir); e == nil {
+		second.Close()
+		first.Close()
+		t.Fatal("second process ownership accepted")
+	}
+	if e = first.Close(); e != nil {
+		t.Fatal(e)
+	}
+	second, e := Open(dir)
+	if e != nil {
+		t.Fatal(e)
+	}
+	second.Close()
+}

@@ -95,9 +95,10 @@ type Rule struct {
 	Revoked        bool           `json:"revoked"`
 }
 type Fact struct {
-	ID        string `json:"id"`
-	Kind      string `json:"kind"`
-	Statement string `json:"statement"`
+	Uncertainty string `json:"uncertainty,omitempty"`
+	ID          string `json:"id"`
+	Kind        string `json:"kind"`
+	Statement   string `json:"statement"`
 }
 type Table struct {
 	FileName       string     `json:"file_name,omitempty"`
@@ -159,19 +160,32 @@ type Review struct {
 	Result         string `json:"result"`
 	FallbackReason string `json:"fallback_reason"`
 }
+type Finding struct {
+	ID         string `json:"id"`
+	FileID     string `json:"artifact_file_id"`
+	FilePath   string `json:"file_path"`
+	TargetHash string `json:"artifact_set_hash"`
+	DetectorID string `json:"detector_id"`
+	Start      int    `json:"start"`
+	End        int    `json:"end"`
+	ValueSHA   string `json:"value_sha256"`
+	Resolution string `json:"resolution"`
+	Reason     string `json:"reason_code"`
+}
 type Artifact struct {
-	ID           string   `json:"id"`
-	Revision     int      `json:"revision"`
-	Version      int      `json:"artifact_version"`
-	Pack         FactPack `json:"fact_pack"`
-	Draft        Draft    `json:"document"`
-	DocumentHash string   `json:"document_hash"`
-	SetHash      string   `json:"artifact_set_hash"`
-	Files        []File   `json:"files"`
-	ZIP          []byte   `json:"archive_bytes"`
-	ZIPHash      string   `json:"archive_sha256"`
-	Status       string   `json:"status"`
-	Reviews      []Review `json:"reviews"`
+	Findings     []Finding `json:"findings"`
+	ID           string    `json:"id"`
+	Revision     int       `json:"revision"`
+	Version      int       `json:"artifact_version"`
+	Pack         FactPack  `json:"fact_pack"`
+	Draft        Draft     `json:"document"`
+	DocumentHash string    `json:"document_hash"`
+	SetHash      string    `json:"artifact_set_hash"`
+	Files        []File    `json:"files"`
+	ZIP          []byte    `json:"archive_bytes"`
+	ZIPHash      string    `json:"archive_sha256"`
+	Status       string    `json:"status"`
+	Reviews      []Review  `json:"reviews"`
 }
 type JobArguments struct {
 	CandidateID string  `json:"candidate_id,omitempty"`
@@ -212,6 +226,7 @@ type Event struct {
 	State    string `json:"state"`
 }
 type Task struct {
+	ScopeReduced       bool                `json:"scope_reduced"`
 	PendingDecisionIDs []string            `json:"pending_decision_ids"`
 	ID                 string              `json:"id"`
 	Title              string              `json:"internal_title"`
