@@ -1,0 +1,14 @@
+[
+  {
+    "media_type": "text/markdown; charset=utf-8",
+    "path": "support-request.md",
+    "sha256": "ce76d0abce3b22a23d79cb77399e1531e4ed47d286adcc6ec9fe42883eefa0d1",
+    "size": 532
+  },
+  {
+    "media_type": "text/csv; charset=utf-8",
+    "path": "observations.csv",
+    "sha256": "efcabe5ac052af5fac259978e77e9f046df7916426e6aa8f22f05c66fb02b911",
+    "size": 80
+  }
+]

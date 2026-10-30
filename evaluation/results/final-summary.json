@@ -1,0 +1,15 @@
+{
+  "code_commit": "cc843148f2c7a610866831fb1a517a10281ea670",
+  "test_functions": {
+    "unit-tests": 42,
+    "target-tests": 1
+  },
+  "vet": "pass",
+  "browser_basic": "pass",
+  "browser_advanced": "pass",
+  "fixture_cases": 4,
+  "extensions": "pass",
+  "live": "not_run",
+  "human_semantic_evaluation": null,
+  "recipient_evaluation": null
+}

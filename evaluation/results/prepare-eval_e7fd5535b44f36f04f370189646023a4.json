@@ -1,0 +1,17 @@
+{
+  "run_id": "eval_e7fd5535b44f36f04f370189646023a4",
+  "mode": "prepare",
+  "started_at": "2026-10-30T12:32:35.68129291Z",
+  "finished_at": "2026-10-30T12:32:37.365631374Z",
+  "code_commit": "2b10f26e9680c3c8585fd4d97d77567e54516795",
+  "checks": [
+    {
+      "name": "prepare-runners",
+      "status": "pass",
+      "evidence": "고정 바이너리와 scratch 이미지 digest 저장"
+    }
+  ],
+  "human_semantic_evaluation": null,
+  "recipient_evaluation": null,
+  "cases": []
+}

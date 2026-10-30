@@ -1,0 +1,102 @@
+{
+  "run_id": "eval_4c5306cf4144eab221efa52f0cb8f802",
+  "mode": "fixture",
+  "started_at": "2026-10-30T13:00:35.204022671Z",
+  "finished_at": "2026-10-30T13:00:37.245993997Z",
+  "code_commit": "2211886595ac225fc3f3233976261b1d9f7de0dc",
+  "checks": [
+    {
+      "name": "human-semantics",
+      "status": "not_run",
+      "evidence": "독립 사람 의미 평가 필요"
+    },
+    {
+      "name": "recipient-confirmation",
+      "status": "not_run",
+      "evidence": "공개 패키지만 받은 수신자 평가 필요"
+    }
+  ],
+  "human_semantic_evaluation": null,
+  "recipient_evaluation": null,
+  "cases": [
+    {
+      "case_id": "oss-encoding-direction",
+      "status": "pass",
+      "error_code": "",
+      "source_hashes": {
+        "app-log.txt": "7014f5e1b72607e30046e27af6061049b4bc72111eae23ab49f13530643c6b5e",
+        "incident-notes.md": "e62ee20a4971025c3f71d401d8833005b5f3ec4d0b50244b0d8eca5d42efa2bd"
+      },
+      "revision": 3,
+      "artifact_set_hash": "ecf4af56767254bfbd3487d0c844dc2645edc62fec33c83f09b608ebe43ddad0",
+      "zip_sha256": "3a1ba6ae5d0a15a10d192ec7cb565f1ee6f636eaededfaa1a4c863c19a9592c9",
+      "model_calls": 4,
+      "human_interventions": 0,
+      "reproduction": {
+        "schema_version": "repro_result.v1",
+        "status": "reproduced",
+        "reason_code": "EXPECTED_TARGET_OUTCOME"
+      }
+    },
+    {
+      "case_id": "b2b-timeout-direction",
+      "status": "pass",
+      "error_code": "",
+      "source_hashes": {
+        "client-log.txt": "12b2486bbcade954e567b2d4d98369c90a0ba6cf799a74e6bb47f33a166653f8",
+        "request-summary.csv": "46b4c889612fc8011eb952cde6f67fe7a07665105364da15b5c88a489faf9cfd",
+        "support-notes.md": "39f7866c9d34e02fad35a8b32e048e4f66d5ad884eee93bb6197c98bad7c71da"
+      },
+      "revision": 3,
+      "artifact_set_hash": "0b291d909f452dc6ed3e264bc38642fa1b7f9b19538dfeb0c84177dd67b34cc1",
+      "zip_sha256": "fa3fff353c1193b7b54e6c72abd4c7f07e2972837675e511810adc2d67e9a4c9",
+      "model_calls": 4,
+      "human_interventions": 0,
+      "reproduction": {
+        "schema_version": "repro_result.v1",
+        "status": "not_run",
+        "reason_code": "no_environment"
+      }
+    },
+    {
+      "case_id": "b2b-timeout-direction-ids-excluded",
+      "status": "pass",
+      "error_code": "",
+      "source_hashes": {
+        "client-log.txt": "12b2486bbcade954e567b2d4d98369c90a0ba6cf799a74e6bb47f33a166653f8",
+        "request-summary.csv": "46b4c889612fc8011eb952cde6f67fe7a07665105364da15b5c88a489faf9cfd",
+        "support-notes.md": "39f7866c9d34e02fad35a8b32e048e4f66d5ad884eee93bb6197c98bad7c71da"
+      },
+      "revision": 3,
+      "artifact_set_hash": "6564aba8372444cae17e4acb218714433682a8119764e53efcda8966904259db",
+      "zip_sha256": "7646054f284350568da2fd0be8198da78cfba7980f19f7a1868ae8cb47a458e8",
+      "model_calls": 4,
+      "human_interventions": 0,
+      "reproduction": {
+        "schema_version": "repro_result.v1",
+        "status": "not_run",
+        "reason_code": "no_environment"
+      }
+    },
+    {
+      "case_id": "internal-operations-ratio",
+      "status": "pass",
+      "error_code": "",
+      "source_hashes": {
+        "meeting-notes.md": "76d0bbf580fa96c325c0a309f54611e08276df6f538c382558ccc3426fca6dea",
+        "operations.md": "d2a46afc513a7156cdb7aff85ff6022fbc65eb00fae865446a529dbc03a26ad8",
+        "requests.csv": "d3846ab15f21819e0f0ecd77a37bb610bfe9c3394c6aa70525c84424888a4d2b"
+      },
+      "revision": 3,
+      "artifact_set_hash": "6c29d4e4e2a7bf9b3a6ad14a8d5d9597488db6c140cf151fd5bf23ce52f325a0",
+      "zip_sha256": "36cfba51c743c93688264351be8200985d36fd0656e3342fc28ce5a509b82a2f",
+      "model_calls": 4,
+      "human_interventions": 0,
+      "reproduction": {
+        "schema_version": "repro_result.v1",
+        "status": "not_run",
+        "reason_code": "no_environment"
+      }
+    }
+  ]
+}
