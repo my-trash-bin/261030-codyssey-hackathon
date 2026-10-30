@@ -312,3 +312,11 @@ footer {
 		max-height: none;
 	}
 }
+
+.fixture-note {
+	margin: 0;
+	padding: 8px 32px;
+	background: #fff5e6;
+	color: #725525;
+	font-size: 12px;
+}

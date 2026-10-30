@@ -253,12 +253,22 @@ func Pack(t domain.Task, rules []domain.Rule, now time.Time) (domain.FactPack, e
 			if d.Representation.Kind == "exact_value" || d.Representation.TransformID == "series_index_base100.v1" {
 				numeric = []int{1}
 			}
-			name := "observations.csv"
+
+			prefix := "observations"
 			if c.Kind == "timeline" {
-				name = "timeline.csv"
-			} else if len(p.Tables) > 0 {
-				name = fmt.Sprintf("observations-%d.csv", len(p.Tables)+1)
+				prefix = "timeline"
 			}
+			count := 0
+			for _, table := range p.Tables {
+				if strings.HasPrefix(table.FileName, prefix) {
+					count++
+				}
+			}
+			name := prefix + ".csv"
+			if count > 0 {
+				name = fmt.Sprintf("%s-%d.csv", prefix, count+1)
+			}
+
 			p.Tables = append(p.Tables, domain.Table{FileName: name, NumericColumns: numeric, ID: fmt.Sprintf("tb_%d", len(p.Tables)+1), Columns: pr.Columns, Rows: pr.Rows})
 		}
 	}

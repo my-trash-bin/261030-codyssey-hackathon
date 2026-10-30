@@ -1,6 +1,7 @@
 package artifact
 
 import (
+	"fmt"
 	"safehandoff.local/poc/internal/domain"
 	"strings"
 	"testing"
@@ -60,5 +61,28 @@ func TestTypedNegativeCSV(t *testing.T) {
 		if f.Path == "observations.csv" && strings.Contains(string(f.Bytes), "'-82") {
 			t.Fatal("numeric value escaped as text")
 		}
+	}
+}
+func TestTenApprovedTablesRemainSeparateFiles(t *testing.T) {
+	p := domain.FactPack{TemplateID: "operations_advice.v1"}
+	d := domain.Draft{Schema: "draft.v1"}
+	for i := 1; i <= 10; i++ {
+		id := fmt.Sprintf("tb_%d", i)
+		name := fmt.Sprintf("observations-%d.csv", i)
+		if i == 1 {
+			name = "observations.csv"
+		}
+		p.Tables = append(p.Tables, domain.Table{ID: id, FileName: name, Columns: []string{"관찰", "건수"}, Rows: [][]string{{"first", fmt.Sprint(i)}}, NumericColumns: []int{1}})
+		d.Blocks = append(d.Blocks, domain.Block{Type: "table_ref", TableID: id})
+	}
+	a, e := Build(d, p)
+	if e != nil {
+		t.Fatal(e)
+	}
+	if len(a.Files) != 12 {
+		t.Fatal("missing tables", len(a.Files))
+	}
+	if e = Check(a); e != nil {
+		t.Fatal(e)
 	}
 }
