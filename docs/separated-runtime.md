@@ -1,5 +1,5 @@
-# 분리된 서버와 클라이언트
+# 독립 실행 경계
 
-이전 웹·재생성 엔진 실험은 pnpm 기반 TypeScript 기본 구조로 교체했다. 지금 남긴 실행 패키지는 packages/server와 packages/client뿐이다. 재생성 엔진·demo/live 모드·이전 실행 관리 명령은 제공하지 않는다.
+최종 앱 app과 연출용 가짜 앱 fake-app은 별도 프로세스·포트·DB로 실행한다. 두 앱은 server와 core-interface만 공통 경계로 사용하며 진짜 core와 fake-core를 각각 주입한다. 가짜 연결 지연·실패는 fake-app 내부 책임이다.
 
-현재 실행·환경 변수·테스트 명령은 [README](../README.md), 구조는 [architecture](architecture.md), 동작하는 API는 [api](api.md)를 따른다. 현재 범위는 SQLite 문서 저장·조회이며 추가 기능은 다시 설계·구현할 대상이다.
+실행은 [README](../README.md), 의존성은 [architecture](architecture.md), 진짜 코어와 연출용 껍데기의 독립 구현은 [개발 계획](plan.md)을 따른다.

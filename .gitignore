@@ -8,3 +8,5 @@ var/
 bin/
 config.json
 __pycache__/
+
+*.tsbuildinfo

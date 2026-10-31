@@ -1,0 +1,21 @@
+{
+  "name": "@safehandoff/fake-core",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "development": "./src/index.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "node --conditions=development --test src/*.test.ts"
+  },
+  "dependencies": {
+    "@safehandoff/core-interface": "workspace:*"
+  }
+}

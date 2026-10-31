@@ -2,16 +2,20 @@
   "name": "safehandoff",
   "private": true,
   "packageManager": "pnpm@10.13.1",
-  "engines": {"node": ">=24.21.0 <25"},
+  "engines": {
+    "node": ">=24.21.0 <25"
+  },
   "scripts": {
     "build": "pnpm -r build",
-    "typecheck": "pnpm -r typecheck",
-    "test": "pnpm -r test && node --test tools/qg.test.mjs",
-    "dev:server": "pnpm --filter @safehandoff/server dev",
-    "dev:client": "pnpm --filter @safehandoff/client dev"
+    "typecheck": "pnpm build && pnpm -r typecheck",
+    "test": "pnpm build && pnpm -r test && node --test tools/*.test.mjs",
+    "dev:client": "pnpm --filter @safehandoff/client dev",
+    "dev:app": "pnpm --filter @safehandoff/app dev",
+    "dev:fake-app": "pnpm --filter @safehandoff/fake-app dev"
   },
   "devDependencies": {
     "@slop-lab/qg": "0.1.0",
+    "@slop-lab/qg-rules-js": "0.1.0",
     "@types/node": "^24.0.0",
     "typescript": "~5.9.3"
   }

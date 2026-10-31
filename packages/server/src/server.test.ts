@@ -1,3 +1,4 @@
+import type { Core } from '@safehandoff/core-interface';
 import assert from 'node:assert/strict';
 import { createServer } from 'node:http';
 import type { AddressInfo } from 'node:net';
@@ -24,7 +25,9 @@ test('saved text survives closing and reopening the SQLite database', async () =
 
 test('HTTP saves and lists documents; invalid input does not create rows', async () => {
   const store = new DocumentStore(':memory:');
-  const server = createServer(createApp(store));
+  const core: Core = { info: { implementation: 'real', connection: 'direct', ready: false },
+    async generate() { throw new Error('must not call core when saving'); } };
+  const server = createServer(createApp(store, core));
   await new Promise<void>(resolve => server.listen(0, '127.0.0.1', resolve));
   const base = `http://127.0.0.1:${(server.address() as AddressInfo).port}`;
   try {

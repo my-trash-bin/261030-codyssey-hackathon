@@ -1,3 +1,4 @@
+presets: [js]
 # just check invokes QG; pnpm test runs Node tests without invoking QG.
 hooks:
   preCommit:
@@ -12,6 +13,10 @@ artifacts:
       - contracts/*.v1.schema.json
       - packages/*/dist/**
 rules:
+  package/allowed-name:
+    severity: error
+    options:
+      allowedPatterns: ["^(safehandoff|@safehandoff/[a-z][a-z0-9-]*)$"]
   markdown/allowed-characters:
     severity: error
     options:

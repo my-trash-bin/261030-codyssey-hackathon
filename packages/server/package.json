@@ -3,10 +3,19 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "node --env-file-if-exists=../../.env --watch src/main.ts",
-    "start": "node --env-file-if-exists=../../.env dist/main.js",
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test": "node --test src/*.test.ts"
+    "test": "node --conditions=development --test src/*.test.ts"
+  },
+  "version": "0.0.0",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "development": "./src/index.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "dependencies": {
+    "@safehandoff/core-interface": "workspace:*"
   }
 }

@@ -11,6 +11,9 @@ importers:
       '@slop-lab/qg':
         specifier: 0.1.0
         version: 0.1.0
+      '@slop-lab/qg-rules-js':
+        specifier: 0.1.0
+        version: 0.1.0
       '@types/node':
         specifier: ^24.0.0
         version: 24.19.2
@@ -18,9 +21,48 @@ importers:
         specifier: ~5.9.3
         version: 5.9.3
 
+  packages/app:
+    dependencies:
+      '@safehandoff/core':
+        specifier: workspace:*
+        version: link:../core
+      '@safehandoff/server':
+        specifier: workspace:*
+        version: link:../server
+
   packages/client: {}
 
-  packages/server: {}
+  packages/core:
+    dependencies:
+      '@safehandoff/core-interface':
+        specifier: workspace:*
+        version: link:../core-interface
+
+  packages/core-interface: {}
+
+  packages/fake-app:
+    dependencies:
+      '@safehandoff/core-interface':
+        specifier: workspace:*
+        version: link:../core-interface
+      '@safehandoff/fake-core':
+        specifier: workspace:*
+        version: link:../fake-core
+      '@safehandoff/server':
+        specifier: workspace:*
+        version: link:../server
+
+  packages/fake-core:
+    dependencies:
+      '@safehandoff/core-interface':
+        specifier: workspace:*
+        version: link:../core-interface
+
+  packages/server:
+    dependencies:
+      '@safehandoff/core-interface':
+        specifier: workspace:*
+        version: link:../core-interface
 
 packages:
 
@@ -38,6 +80,10 @@ packages:
 
   '@slop-lab/qg-rules-git@0.1.0':
     resolution: {integrity: sha512-epYkpS+Vvaf3RDkOH8L6ghY7eONcFcRGvTngY3lkWGexuphPjBBK+kdPD3p/JM1hQHib52y/CKHoSZkJvML8fg==}
+    engines: {node: '>=24.0.0'}
+
+  '@slop-lab/qg-rules-js@0.1.0':
+    resolution: {integrity: sha512-Ob/WpmUIqbZ+XRNFROC3yRoIGW0Eh/f2vz2eueZfoTmPi09C98X0w5AK7i+g7jEbpgwRavdFzWS136RfNWER7A==}
     engines: {node: '>=24.0.0'}
 
   '@slop-lab/qg-rules-recommended@0.1.0':
@@ -195,6 +241,11 @@ snapshots:
   '@slop-lab/qg-rules-git@0.1.0':
     dependencies:
       '@slop-lab/qg-core': 0.1.0
+
+  '@slop-lab/qg-rules-js@0.1.0':
+    dependencies:
+      '@slop-lab/qg-core': 0.1.0
+      typescript: 5.9.3
 
   '@slop-lab/qg-rules-recommended@0.1.0':
     dependencies:

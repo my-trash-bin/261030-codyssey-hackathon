@@ -4,10 +4,16 @@
 
 ## 현재 구조와 검사
 
-현재 실행 코드는 pnpm workspace의 packages/server와 packages/client다. TypeScript·Node를 사용하고 서버의 문서 저장·조회만 구현한다. 그 외 제품 설계는 현재 구현 완료의 증거가 아니다.
+현재 실행 코드는 pnpm workspace로 app·fake-app·server·core-interface·core·fake-core·client를 분리한다. app은 진짜 코어만 조립하고 fake-app은 연출용 가짜 코어와 연결부를 조립한다. server는 주입한 Core 계약만 사용한다. 진짜 코어는 아직 미구현이다. 그 외 제품 설계는 현재 구현 완료의 증거가 아니다.
 
 - README.md: 실행·환경 변수·검사 진입점.
-- packages/server: Node HTTP API·SQLite 저장과 테스트.
+- packages/server: Core 계약에만 의존하는 Node HTTP API·SQLite 저장 껍데기.
+- packages/core-interface: 공통 요청·응답·오류 계약.
+- packages/core: 개발할 진짜 코어. fake 구현을 import하지 않는다.
+- packages/fake-core: 연출용 결과 템플릿.
+- packages/app: server와 진짜 core만 조립하는 최종 앱.
+- packages/fake-app: 연출·연결 지연·실패와 가짜 코어를 조립하는 별도 앱.
+- tools/architecture.test.mjs: workspace와 실제 import의 의존성 경계 검사.
 - packages/client: 독립 화면·API 프록시와 테스트.
 - mise.toml, pnpm-workspace.yaml, pnpm-lock.yaml: 도구·패키지·의존성 고정.
 - .qg.yaml, justfile, package.json, tools/qg.test.mjs: 검사 실행과 정책 회귀.
@@ -16,7 +22,7 @@
 - fixtures/demo: 가상 시연 원자료. 실제 정보가 아니다.
 - evaluation: 이전 실행 기록. 현재 시스템 검증 결과와 구분한다.
 
-한국어 문서·파일명을 명시적으로 허용한다. QG의 recommended 규칙을 사용하고 한국어·영어 문서 및 사용하는 기호를 설정한다. just check는 QG를 직접 실행하며 QG가 타입 검사·빌드·pnpm test를 호출한다. pnpm test는 Node 테스트만 실행하며 QG 전체 검사와 순환하지 않는다.
+한국어 문서·파일명을 명시적으로 허용한다. QG의 recommended 규칙과 공식 @slop-lab/qg-rules-js의 js preset을 사용하고 한국어·영어 문서 및 사용하는 기호를 설정한다. just check는 QG를 직접 실행하며 QG가 타입 검사·빌드·pnpm test를 호출한다. pnpm test는 Node 테스트만 실행하며 QG 전체 검사와 순환하지 않는다.
 
 검증은 수정에 맞게 수행하고 현재 코드에 없는 기능을 완료로 보고하지 않는다. 과거 평가 파일·비공개 설정·로컬 DB를 임의로 삭제하거나 커밋하지 않는다. API 필드와 환경 변수 변경은 README와 docs/api.md에 함께 반영한다.
 
