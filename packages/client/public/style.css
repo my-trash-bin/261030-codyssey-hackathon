@@ -109,7 +109,9 @@ body {
   font-family: var(--font-body);
   font-size: var(--type-body-size);
   line-height: var(--line-height-normal);
-  overflow-wrap: break-word;
+  /* 한글은 어절 단위로 끊고, 긴 해시나 파일 이름만 넘칠 때 아무 데서나 끊는다. */
+  word-break: keep-all;
+  overflow-wrap: anywhere;
 }
 
 ::selection {
@@ -351,6 +353,7 @@ a:focus-visible {
 
 .field {
   display: grid;
+  align-content: start;
   gap: var(--field-gap);
   min-width: 0;
 }

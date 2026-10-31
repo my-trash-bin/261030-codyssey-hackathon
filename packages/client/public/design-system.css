@@ -246,8 +246,9 @@
 
 .ds-grid-2 {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
-  gap: var(--space-5);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+  gap: var(--space-5) var(--space-6);
 }
 
 .ds-stack {
@@ -286,6 +287,10 @@
 }
 
 @media (max-width: 47.5rem) {
+  .ds-grid-2 {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
   .ds-type__row {
     grid-template-columns: minmax(0, 1fr);
   }
