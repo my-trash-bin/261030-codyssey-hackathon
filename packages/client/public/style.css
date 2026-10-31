@@ -186,6 +186,7 @@ a:focus-visible {
 }
 
 .meta {
+  font-family: var(--font-body);
   font-size: var(--type-label-size);
   font-weight: var(--font-weight-bold);
   letter-spacing: var(--letter-spacing-wider);
@@ -332,7 +333,15 @@ a:focus-visible {
   min-width: 0;
 }
 
-.block--fold > summary h2 {
+/* 접이식 머리줄 안의 제목은 삼각형과 같은 줄에 둔다. 블록으로 두면 화살표 다음에 개행이 생긴다. */
+.fold > summary > h1,
+.fold > summary > h2,
+.fold > summary > h3,
+.fold > summary > p,
+.block--fold > summary > h1,
+.block--fold > summary > h2,
+.block--fold > summary > h3,
+.block--fold > summary > p {
   display: inline;
 }
 
