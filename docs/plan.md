@@ -1,131 +1,92 @@
-# 구현 계획과 역할 분담
+# SafeHandoff 구현 계획 - 해커톤 2일 수직 슬라이스 / 5인 팀 분담 / 제품 마일스톤
 
-## 현재 개발 계획: 진짜 코어와 연출용 껍데기를 독립 구현
+문서 버전: 2.0 / 기준일: 2026-10-31 / 상태: 현행 정본 (TypeScript 워크스페이스 기준) / 연결: [prd.md](prd.md), [acceptance-map.csv](acceptance-map.csv), [traceability.csv](traceability.csv), [검증보고서.md](검증보고서.md)
 
-진짜 동작의 구현과 시연 흐름 개선을 별도 작업으로 진행한다. 최종 앱은 app, 연출용 가짜 앱은 fake-app이다. 인터페이스/서버 껍데기/가짜 코어/진짜 코어를 패키지로 분리하고 가짜 앱의 개선이 실제 앱을 수정하도록 만들지 않는다.
+## 1. 해커톤 2일(48시간) 수직 슬라이스 정의 (`H1-H4`)
 
-| 작업 | 수정할 곳 | 검증과 완료 기준 |
-| --- | --- | --- |
-| 공통 계약 | packages/core-interface | 요청/응답/오류 검증. 변경 시 양쪽 앱의 계약 테스트를 갱신 |
-| 실제 서버 껍데기 | packages/server | HTTP/DB/주입 경계만 검증. 코어 구현이나 연출 UI를 import하지 않음 |
-| 연출용 가짜 코어 | packages/fake-core | 사전 작성 템플릿과 현재 승인 표현으로 결과 생성. 실제 모델 성능으로 평가하지 않음 |
-| 연출용 가짜 앱/연결부 | packages/fake-app | 화면/문구/지연/실패/취소를 반복 개선. 실제 앱/진짜 코어 변경 없이 시험 |
-| 진짜 코어 | packages/core | 분석/공개 결정/작성/검토를 실제 동작으로 단계별 구현. fake 패키지 의존 금지 |
-| 최종 실제 앱 | packages/app | server와 진짜 core만 조립. 인증/설정/관측/배치는 이 경계에서 연결 |
-| 웹 클라이언트 | packages/client | 같은 HTTP 계약으로 대상 앱을 교체해 시험. 코어 구현 직접 import 금지 |
+전체 제품 설계(`F01-F10`, 수용 기준 127개)를 이틀 안에 모두 웹 화면까지 완결하는 것은 불가능하다. 따라서 해커톤 마감 기준은 **"원자료 파싱/분석 -> 공개 수준 결정/결정적 변환 -> 승인팩(`FactPack`) 전용 작성/기본 거부 검토 -> 무인터넷 Docker 합성 재현 -> 3자 가치 비교 실험"이 실제 TypeScript 코드와 자동화 테스트로 끝까지 이어지는 핵심 수직 슬라이스(`H1-H4`)**로 정의한다.
 
-### 진행 순서
+### 1.1 해커톤 수직 슬라이스 단계 (`H1-H4`)
 
-1. 공통 계약/주입 경계/포트/DB 분리/의존성 검사를 고정한다. 현재 이 기반과 가짜 연출 조절을 구현한다.
-2. 연출 트랙은 fake-app과 fake-core만으로 사용자 흐름/질문/표현/대기/실패 피드백을 반복 개선한다. 준비된 가상 자료를 사용하고 실제 성공으로 표시하지 않는다.
-3. 실제 트랙은 packages/core에서 원자료 처리와 승인 정보로 전체 공유본을 새로 작성하는 흐름을 설계/구현한다. 기존 고장 난 로직을 이식하는 것을 선행 조건으로 삼지 않는다.
-4. 인터페이스가 부족하면 먼저 Core 계약과 공통 수용 시험을 확장하고 두 앱에 명시적으로 반영한다. 가짜 코어의 분기나 준비된 답을 진짜 코어의 fallback으로 복사하지 않는다.
-5. 실제 앱에는 인증/격리/진짜 모델/필요한 저장 이력을 연결하고 가짜 앱에는 노출하지 않는다. 진짜 코어가 미구현인 동안 CORE_NOT_IMPLEMENTED를 그대로 반환한다.
-6. QG에서 Node 규칙/타입/빌드/패키지 시험/의존성 경계를 검사한다. 실제 모델 품질/안전성/수신자 효용은 독립적인 실험으로 검증하며 가짜 앱 통과와 합산하지 않는다.
+| 해커톤 단계 | 목표 시점 | 수직 슬라이스 범위 | 구현 패키지 / 산출물 | 현재 상태 |
+| --- | --- | --- | --- | --- |
+| `H1` | Day 1 오전 | **도메인 계약 / SQLite 저장소 / 분리 실행 서버/클라이언트** | `@safehandoff/core-interface`, `@safehandoff/server`(`DocumentStore` + `TaskStore` 11개 테이블/CAS), `@safehandoff/app`(`:8080`), `@safehandoff/fake-app`(`:8081`), `@safehandoff/client` | 완료 (단위/통합 테스트 통과) |
+| `H2` | Day 1 오후 | **근거 추출(`F02`) / 결정 투영/변환(`F03`) / 승인팩 작성/기본 거부 검토(`F04/F06`)** | `parseSources`, `RealCore.analyze()`, `POST /api/analysis`, `TaskStore.analysis`, `composeFactPack()`, `builtin-tools` 5종(`100/141/212` 지수, 추이, 인용 `[가림]`), `groundFacts()`, `RealCore.writeReviewed()`, UI `analysis-view.ts`/`disclosure-view.ts` | 완료 (단위/통합 테스트 및 라이브 스모크 통과) |
+| `H3` | Day 2 오전 | **제품 지침 팩(`F07`) / 무인터넷 Docker 4회 합성 재현(`F08`) / 실행 Transcript** | `FsSkillPackLoader`(`load`/`verify`), `pack-register.mjs`, `DockerReproRunner`(`--network=none`, 고정 oracle), `FileTranscriptSink`(`transcript.v1`), `oss-repro-smoke.mjs` | 완료 (단위 테스트 및 Docker 종단간 스모크 통과) |
+| `H4` | Day 2 오후 | **3자 가치 비교 검증(`PRD-13`) / CDP 시연 녹화 / 127개 AC 매핑 / 발표 정합성 감사** | `tools/value-comparison.mjs`(가상 로그 10건 결정적 3자 비교), `scripts/demo/*`(`fake-app` `/__presentation`, 99.988초 녹화), `acceptance-map.csv`/`traceability.csv` 테스트 연결, `docs/presentation/` | 완료 (`validate_docs.py` 및 전체 테스트 통과) |
 
-기능별 현재 완료 범위는 [README](../README.md)와 [API](api.md)를 따른다. 이 문서에 과거 구현 상태를 별도 목록으로 복제하지 않는다. 다음 구현 대상은 [다음 라운드 계획](next-round-plan.md), 의존성 경계는 [architecture](architecture.md)를 참조한다.
+### 1.2 기능별 127개 수용 기준(AC)의 해커톤 범위 분류
 
-## 이전 제품 계획 보존
+모든 127개 수용 기준(`AC-F01-01-AC-F10-12`)은 [acceptance-map.csv](acceptance-map.csv)의 `hackathon_scope` 열에서 세 가지로 명확히 구분한다.
 
-아래는 이전 설계의 참고 기록이며 현재 작업의 실행 기술/완료 상태를 정의하지 않는다.
+- **`hackathon_core` (44개 AC)**: 해커톤 핵심 수직 슬라이스(`H1-H2`, `P0` 코어 엔진/저장소/모델 경계)에 포함된 수용 기준.
+- **`hackathon_ext` (18개 AC)**: 해커톤 도메인 확장/합성 재현 슬라이스(`H3`, `P1` `SkillPack` 로더/내장 변환/Docker 재현)에 포함된 수용 기준.
+- **`product_backlog` (65개 AC)**: 코어 계약과 DB 스키마는 준비되었으나, 전체 `/api/v1/tasks` REST 라우트/다중 화면(`UI-02-UI-10`)/세션/CSRF/ZIP 아카이브 엔드포인트 연결이 필요한 해커톤 이후 제품 백로그.
 
+| 기능 ID | 기능 이름 | 원래 등급 | 전체 AC 수 | `hackathon_core` | `hackathon_ext` | `product_backlog` | 해커톤 내 자동 테스트 검증(`passed` / `partial`) |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| `F01` | 작업 시작과 원자료 등록 | P0 | 12 | 4 | 0 | 8 | 4 (`passed` 2, `partial` 2) |
+| `F02` | 근거 추출과 공개 후보 제안 | P0 | 14 | 8 | 0 | 6 | 8 (`passed` 7, `partial` 1) |
+| `F03` | 공개 범위/표현 수준 결정 (A/B/C/D) | P0 | 14 | 8 | 0 | 6 | 8 (`passed` 7, `partial` 1) |
+| `F04` | 승인 정보로 새 작성과 작성 중 검토 | P0 | 15 | 10 | 0 | 5 | 10 (`passed` 9, `partial` 1) |
+| `F05` | 최종 파일 확인/확정/다운로드 | P0 | 13 | 1 | 0 | 12 | 1 (`partial` 1) |
+| `F06` | 같은 조건에서 공개 기준 다시 쓰기 (`Rule`) | P0 | 11 | 5 | 0 | 6 | 5 (`passed` 5) |
+| `F07` | 제품별 제보 지침(`SkillPack`)과 맥락 검사 | P1 | 12 | 0 | 6 | 6 | 6 (`passed` 4, `partial` 2) |
+| `F08` | 새 합성 입력으로 관찰한 문제 확인하기 | P1 | 12 | 0 | 12 | 0 | 12 (`passed` 9, `partial` 3) |
+| `F09` | 진행/이력/중단 복구/작업 삭제 | P0 | 14 | 4 | 0 | 10 | 4 (`passed` 2, `partial` 2) |
+| `F10` | 내부 실행과 접근 경계 | P0 | 12 | 4 | 0 | 8 | 4 (`passed` 4) |
+| **합계** | **10개 기능 (`F01-F10`)** | **P0 8 / P1 2** | **127** | **44** | **18** | **65** | **62 (`passed` 49, `partial` 13, `not_run` 65)** |
 
-> 보존한 제품 설계/이전 기록이다. 현재 구현은 TypeScript 서버/클라이언트의 문서 저장/조회만 제공한다. 현재 실행과 API는 [README](../README.md) 및 [api](api.md)를 따른다.
+---
 
-현재 웹/엔진 분리 시험 경로와 실제 구현 범위는 [독립 실행 계약](separated-runtime.md)을 따른다. 기존 전체 기능 계약과 새 시험 경로의 구현 완료를 구분한다.
+## 2. 실제 5인 팀 역할 분담과 Git 커밋 구조
 
-문서 버전: 1.0 / 기준일: 2026-10-31 / 상태: **구현을 시작하기 위한 계획**. 아래 완료 조건은 아직 실행 결과가 아니다.
+초기 기획 템플릿에 남아 있던 가상 3인(A/B/C) 분담표를 폐기하고, 실제 해커톤을 수행한 **5인 팀([SafeHandoff_팀원_소개.html](presentation/SafeHandoff_팀원_소개.html) 기준)의 역할 분담과 Git 커밋 집중 경위**를 투명하게 기록한다.
 
-## 1. 작업을 나누는 기준
+### 2.1 5인 팀원별 담당 영역
 
-한 사람이 화면, 다른 사람이 서버를 따로 추측해서 만들지 않는다. 기능별 설계 파일을 기준으로 책임자를 정하고, 공통 데이터 계약을 먼저 합의한다. 사람 이름과 실제 일정은 팀에서 배정하되 기능의 입력/출력/상태/검증 기준은 이 문서 묶음을 사용한다.
-
-작업의 목적은 [PRD-01-PRD-14](prd.md), 상태/권한은 [spec.md](spec.md), 데이터는 [ERD.md](ERD.md), 화면은 [IA.md](IA.md)와 [uj.md](uj.md), 결과 확인은 [qa.md](qa.md)와 [test-data.md](test-data.md)가 기준이다. 기능 문서에만 새로운 제품 결정을 숨겨 넣지 않는다.
-
-## 2. 3명 기준의 책임 슬롯
-
-| 슬롯 | 책임 기능 | 주 작업 영역 | 다른 담당자에게 먼저 제공할 것 |
+| 팀원 | 역할 | 담당 기능 (`F01-F10`) 및 산출물 | 주요 관련 경로 |
 | --- | --- | --- | --- |
-| A: 상태/데이터/공개 결정 | F01 입력, F03 공개 결정, F06 결정 재사용, F09 이력/복구 | 도메인 객체, DB, revision, 정책 투영, 작업/규칙 API | 계약 예제, 입력/결정/무효화 API, 현재 가능한 UI action |
-| B: 작성/모델/확장 | F02 근거 분석, F04 작성/검토, F07 제품 확장, F08 재현 | Provider, 역할 입출력, workflow, registry, 고정 runner | fixture provider, 후보/초안/검토 예제, job 상태, 공개용 도구 결과 |
-| C: 화면/파일/통합 | F05 최종 파일/내보내기, F10 실행 경계, 전 화면 통합 | 서버 HTML/JS, 세션, 렌더링, 최종 바이트, 실행 설정 | 화면 골격, 파일 미리보기, 내보내기 계약, 브라우저/통합시험 |
+| **맹주영 (`Juyeong Maing`)** | 코어 엔진 / 분석/검토 / 샌드박스 / 통합 리드 | `F02`(`RealCore.analyze`, `TaskStore.analysis`, `POST /api/analysis`)/`F04`(작성/검토)/`F08`(Docker 재현)/`F10`(실행 경계) 구현, 9개 TypeScript 패키지 설계, 로컬 LLM/Docker 스모크 및 `main` 브랜치 통합 | `packages/core-interface`, `packages/core`, `packages/model-adapter`, `packages/sandbox-runner`, `packages/skill-loader`, `packages/server` |
+| **김민성 (`servercat`)** | 프론트엔드 UI / 공개 결정 / 분석 화면 연결 | `F01`/`F02`/`F03` 작업 화면(`Swiss Grid`), 후보별 공개 결정(`disclosure-state.ts`, `disclosure-view.ts`), 원자료 분석 UI 연결(`analysis-state.ts`, `analysis-view.ts`) 구현 | `packages/client/src/`, `packages/client/public/` |
+| **임재홍 (`andy1398`)** | CDP 시연 자동화 / 제출 영상 녹화 / 검증 | `fake-app` 전용 6단계 CDP 연출 화면(`/__presentation`), 자막/장면 탐색/재생 제어(`scripts/demo/*`), 99.988초 제출 영상 녹화 및 해시 검증(`docs/demo-media/`) | `scripts/demo/`, `packages/fake-app/public/presentation.*`, `docs/demo-media/` |
+| **김병철** | 도메인 계약 / 수치 변환 / 재사용/확장 규칙 설계 | `F03`/`F05` 계약(`contracts/*.schema.json`), `builtin-tools` 수치/시계열/인용 변환(`100/141/212`, `[가림]`), `F06` `groundFacts` 기본 거부 및 `F07` `SkillPack` 규칙 설계 | `contracts/`, `docs/features/`, `fixtures/skills/` |
+| **이상혁 (`dbralfk12-stack`)** | 발표 패키지 / 3자 가치 비교 실험 / 추적성 검증 | 발표 슬라이드 구성(`docs/presentation/`), 공개 통계 기반 TAM/SAM/SOM 산식 검증, 가상 로그 10건 3자 비교 실험(`tools/value-comparison.mjs`, `effect-measure.mjs`), 127개 AC 매핑 | `docs/presentation/`, `evaluation/effect-compare/`, `tools/value-comparison.mjs`, `docs/acceptance-map.csv` |
 
-기능의 책임자는 하나다. C가 전 화면을 구현하더라도 공개 선택의 의미와 API 변경은 F03 책임자와 함께 검토한다. A와 B는 화면 연결에 필요한 정상/빈 상태/실패 응답을 제공한다. F10의 격리/네트워크 경계는 C가 책임지고 B가 runner 구현을 교차 검토한다.
+### 2.2 Git 커밋 이력과 협업 방식 설명
 
-**4명일 때:** C에서 F10/실행 환경/통합 QA를 D로 분리한다. C는 UI와 F05에 집중한다. 2명이라면 A와 C를 합치되, 공개 결정/내보내기 변경은 다른 한 명이 반드시 읽는다. 인원이 적다고 승인/판본 규칙을 제거하지 않는다.
+저장소 커밋 이력에서 초기 56개 커밋 시점에는 통합 리드(`Juyeong Maing` 50개) 중심으로 코어/문서/도구 커밋이 집중되고 UI(`servercat` 5개)/발표(`이상혁` 1개)가 별도로 기록되었으며, 이후 후반 통합 라운드에서 UI(`servercat` 14개)/CDP 시연(`andy1398` 7개)/발표/평가(`이상혁`) 커밋이 [BRANCHING_STRATEGY.md](../BRANCHING_STRATEGY.md)(Trunk-Based Development)에 따라 병합되었다.
 
-## 3. 기능 파일 먼저 검토하는 작업 순서
+1. **엄격한 품질 게이트(`.qg.yaml`)와 통합 워크스테이션 중심 초기 부트스트랩**:
+   - 본 저장소는 `pnpm typecheck`, `pnpm test`, `tools/qg.test.mjs`, `tools/validate_docs.py`가 모든 패키지 타입/문서 링크/허용 문자 집합/파일 줄 수를 동시에 검사한다.
+   - 특히 로컬 LLM 엔드포인트와 `safehandoff-runner` Docker 이미지가 통합 리드의 워크스테이션에 먼저 구성되어 있었기 때문에, 도메인 스키마/변환 수식/기획 명세도 페어 리뷰 후 통합 워크스테이션에서 빌드/검증을 거쳐 커밋했다.
+2. **모듈 경계 확립 이후 역할별 병렬 커밋 (`feat/hackathon-ui`, `feat/cdp-demo-presentation`, `docs/presentation-update`)**:
+   - `Core` 인터페이스와 HTTP 경계가 고정된 뒤에는 클라이언트 공개 결정/분석 UI(`servercat`), CDP 자동 시연/제출 영상 녹화(`andy1398`), 발표 슬라이드/가치 비교 실험(`이상혁`)을 각자 브랜치와 `main`에서 병렬로 커밋/통합했다.
+3. **기여 투명성 원칙**:
+   - 위 표의 기능 배정은 팀원별 설계/검토/구현 참여 영역을 나타내며, 미연결 백로그(`product_backlog`)까지 모두 구현 완료했다는 뜻으로 부풀리지 않는다 ([docs/presentation/ISSUES.md](presentation/ISSUES.md) `PRES-02`).
 
-1. 루트 AGENTS.md와 intent.md를 읽고 이 문서에서 맡을 F 번호를 정하고 [기능 목록](features/)의 해당 파일을 읽는다.
-2. PRD/spec/ERD/IA/uj에서 기능 파일이 참조하는 요구사항을 확인한다.
-3. 기능 파일에 입력, 실패, 권한, 인수기준이 빠졌다면 먼저 보완한다. 없는 회사 정책/사내 endpoint/승인권자 정보는 확인 필요로 남긴다.
-4. **기능 설계만 담은 PR**을 올린다. 실제 PR 생성/리뷰 요청은 팀 저장소가 준비된 뒤 팀의 절차로 수행한다.
-5. 맞닿는 기능 담당자가 DTO, 서버 함수, enum, API, revision 변화, 오류 코드를 확인한다. 동일 데이터에 두 정의를 두지 않는다.
-6. 새 결정이 공통 동작을 바꾸면 PRD/spec/contracts/ERD/QA도 같은 PR에서 수정한다.
-7. 설계가 머지되면 구현을 시작한다. 기능 파일의 `AC-Fxx-n`과 연결된 시험을 실행하고 증거를 함께 제출한다.
-8. 변경이 있으면 문서와 코드를 같은 PR에서 갱신한다. "코드가 실제 기준"이라는 이유로 설계 불일치를 방치하지 않는다.
+---
 
-### 기능 설계 PR의 검토 항목
+## 3. 전체 제품 단계별 마일스톤 (`M0-M5`)
 
-| 확인 | 질문 |
-| --- | --- |
-| 범위 | PRD ID가 있고, P0/P1/P2가 구분되어 있는가? |
-| 성공 | 사용자가 무엇을 하면 어느 상태와 파일을 얻는가? |
-| 오류 | 실패 원인, 보존 데이터, 재시도, 완료를 막는 조건이 있는가? |
-| 권한 | 사용자 동작과 모델 제안이 구분되어 있는가? |
-| 동시성 | 낡은 revision, 늦은 job, 중복 요청, 새로고침은 어떻게 되는가? |
-| 연결 | 상대 기능이 같은 enum/DTO/해시를 사용하는가? |
-| 검증 | 정상뿐 아니라 경계/오류/권한 인수기준이 있는가? |
-| 미결정 | 구현을 막는 항목과 synthetic 개발을 계속할 수 있는 항목이 나뉘는가? |
+해커톤 수직 슬라이스(`H1-H4`)를 기반으로 전체 제품(`F01-F10` 127개 AC)을 완성하는 6단계 제품 로드맵이다.
 
-## 4. 단계별 통합 계획
-
-| 단계 | 구현 내용 | 병렬 작업 | 다음 단계 진입 조건 |
+| 제품 마일스톤 | 목표 | 해커톤(`H1-H4`) 내 완료된 부분 | 해커톤 이후 남은 백로그 (`product_backlog`) |
 | --- | --- | --- | --- |
-| M0 계약/예시 환경 | 공통 enum/DTO, migration 초안, 세 사례와 평가 정답, 공개 toy 계약 | A는 DB/정책, B는 fixture 응답/toy oracle, C는 화면/세션 골격 | 동일 fixture를 같은 의미로 해석하고 source/decision/artifact 식별/revision 규칙 합의 |
-| M1 한 작업 끝까지 | F01->F02->F03->F04->F05의 fixture 수직 경로 | UI가 typed fixture API 사용, 실제 DB와 출력 파일 연결 | 단순 문의를 실제 파일로 확정/복사/다운로드. 화면에서만 완료 표시하지 않음 |
-| M2 변경/복구/재사용 | 공개 수준 변경, CAS, 직접 편집, 규칙, 새로고침/재시작/삭제 | A는 정책/복구, B는 늦은 응답, C는 stale UI/최종 파일 검사 | T02-T06, T19-T24, T29-T35, T42-T45, T49-T53의 해당 core 시험 통과 |
-| M3 실제 사내 모델 | text 응답 Provider, 역할별 strict JSON, 작성 중 검토, 수동 경로 | 실제 연결이 없어도 M2 및 확장 준비 계속 | live 연결과 실패가 fixture와 구분되고 실제 writer payload를 검증 |
-| M4 확장 검증 | F07 제품 지침/맥락 예외, F08 합성 입력/고정 runner | B가 runner, A가 grant/scope, C가 결과/미수행 UX | 실제 checker와 4회 target 실행. 환경 없음은 미수행으로 보고 |
-| M5 수신자/제품가치 검증 | 전체 인수시험, 미공개 변형, 독립 수신자, 강한 일반 AI 비교 | 작성자/수신자/평가자 역할 분리 | 완료 수준별 보고서, 통과/실패/미수행/사람 개입 및 실제 결과물 제시 |
+| `M0` | **기반 계약 / 실행 경계 / 저장소 골격 (`F01`, `F10`)** | 9개 패키지 구조, `contracts/*.schema.json`, SQLite `DocumentStore` + `TaskStore` 7개 테이블, `HttpModelClient`, `/api/health`/`/api/core/status` | 일회용 로컬 접속 토큰(`/api/v1/auth/session`), 8시간 쿠키 세션, CSRF/Host/Origin 미들웨어 전체 라우트 적용 |
+| `M1` | **원자료 근거 파싱 / 분석 / 공개 결정 투영 (`F01`, `F02`, `F03`)** | `parseSources`(txt/md/csv/json 근거 ID), `RealCore.analyze()`, `composeFactPack()`, `builtin-tools` A/B/C/D 변환(`100/141/212`, `기준/증가/감소`, `[가림]`) | 다중 파일 업로드 HTTP API(`/api/v1/tasks/{id}/sources`), UI-04/05 선택 카드/미리보기 해시 저장 API 연결 |
+| `M2` | **승인팩 전용 작성 / 기본 거부 검토 / 수리 루프 (`F04`, `F05`)** | `RealCore.write()`, `review()`, `writeReviewed()`(고정 `reason_code` 1회 수리), `/api/core/generate` 연결, `FileTranscriptSink`(`transcript.v1`) | DocAST 블록 수동 편집 API, `human-review` 체크리스트 저장, `manifest.json` 및 결정적 ZIP 아카이브 다운로드 API(`/api/v1/exports`) |
+| `M3` | **공개 표현 기준(`Rule`) 조건부 재사용 (`F06`, `F09`)** | `Rule`/`Scope` 타입 계약, `groundFacts()` 결정적 검증(`exact_value`/`approved_excerpt` 재사용 차단, 만료/철회/범위/`goal_variant` 불일치 차단), `TaskStore` revision CAS | 서버 `rules` 테이블 CRUD API(`/api/v1/rules`), 분석 채택 시 규칙 자동 매칭, UI-07/08 이력/작업 삭제(`DELETE` 확인) 화면 연결 |
+| `M4` | **제품별 지침 팩(`SkillPack`) / 합성 입력 Docker 재현 (`F07`, `F08`)** | `FsSkillPackLoader`(`load`/`verify`, `O_NOFOLLOW`), `pack-register.mjs`, `make_synthetic_inputs_v1`, `DockerReproRunner`(`--network=none`, 4회 실행 고정 oracle), `oss-repro-smoke.mjs` | `check_doc_ip_context_v1` 컨테이너 프로세스 어댑터 연결, UI-09 확장 카탈로그 상태 조회 화면 |
+| `M5` | **가치 비교 실험 / 수신자 충분성 검증 / 품질 게이트 (`PRD-13`)** | 가상 로그 10건(`cases.json`) 결정적 3자 비교(`tools/value-comparison.mjs`), 48개 자동 테스트 스위트, 127개 AC/60개 QA 추적표 연결 | 2인 교차 참여자 스톱워치 작업 시간 측정(`tools/effect-measure.mjs` 10건 완주) 및 실제 사내 도입 파일럿(`Q-LLM`, `Q-POLICY`) |
 
-M0-M2는 사내 모델 연결 없이 진행할 수 있다. M3의 endpoint 설정 대기는 전체 개발 중단 사유가 아니다. F07/F08은 예정된 확장 검증 범위이므로 core만 끝난 상태를 전체 PoC 완료라고 쓰지 않는다.
+---
 
-## 5. 공통 파일 변경 책임
+## 4. 품질 게이트 및 완료 확인 절차
 
-| 파일/영역 | 변경 주도 | 필수 교차 검토 |
-| --- | --- | --- |
-| `prd.md`, 범위/목적 | 변경을 제안한 기능 책임자 | 전체 팀 |
-| `spec.md`, 공통 enum/상태 | A | B, C |
-| `ERD.md`, migration | A | 쓰는 기능 책임자 |
-| API/공통 DTO | API 소유자 | 호출하는 UI/workflow 책임자 |
-| 역할 프롬프트/모델 계약 | B | A: 권한/근거 경계, C: 사용자 표시 |
-| 결과 렌더러/manifest/export | C | A: 유효성, B: tool 결과 연결 |
-| 제품 팩/checker/runner | B | A: 공개 범위, F10 책임자: 격리 |
-| `qa.md`, `test-data.md` | 해당 기능 책임자 | 평가자 또는 다른 기능 책임자 |
+새로운 기능을 `product_backlog`에서 구현 완료(`passed`)로 전환할 때는 다음 4단계를 모두 통과해야 한다.
 
-원자적인 규칙 변경 예: 새 공개 표현을 추가하면 representation enum -> projection -> 승인 미리보기 -> writer 입력 -> 파일 출력 -> QA를 함께 바꾼다. UI 옵션만 먼저 넣고 서버가 다른 표현으로 해석하게 하지 않는다.
-
-## 6. 개발 중 사용해야 할 완료 수준
-
-| 수준 | 말할 수 있는 것 | 아직 말할 수 없는 것 |
-| --- | --- | --- |
-| 문서 준비 | 구현 범위/계약/예시/시험이 정의됨 | 앱이 동작함 |
-| core fixture 구현 | 고정 응답을 사용해 실제 상태/파일 경로가 동작함 | 사내 모델 품질/자동화 효과 검증 |
-| live 사람 도움 완료 | 사내 모델과 명시한 수동 개입으로 결과를 만듦 | 모델만으로 모든 단계 완료 |
-| live 모델 단계 완료 | 해당 입력에서 모델 단계와 검토가 완료됨 | 모든 모델/자료에서 동일 품질 |
-| 확장 검증 완료 | 등록 환경에서 맥락 예외/toy 재현을 실제 실행함 | 임의 라이브러리의 범용 재현 |
-| 제품가치 검증 | 동일 품질 조건에서 사람 작업량/수신자 결과를 측정함 | 미측정 절감률/보안 절대 보장 |
-
-## 7. 완료 보고/실행 인터페이스
-
-구현 저장소는 `just setup`, `just build`, `just fixtures`, `just test`, `just run-fixture`, `just run`, `just test-live`, `just prepare-runners`, `just test-extensions`, `just eval`을 제공한다. 구체 동작은 [implementation-start.md](implementation-start.md)에 정의한다. 현재 저장소의 justfile을 실행 명령의 진입점으로 사용한다.
-
-각 구현 PR에는 변경한 요구사항/기능 ID, 실제 실행 명령, 시험 결과, 사용자에게 보이는 변화, 남은 제한을 적는다. 환경이 없어 실행하지 못한 시험은 `not_run`이며 통과 수에 넣지 않는다. 파일을 실제로 내려받아 확인한 결과를 최종 통합 보고에 포함한다.
-
-확인 필요한 실제 인명/사내 모델/공개 라이선스/회사 운영 정책은 [decisions.md](decisions.md)의 Q 항목으로 관리한다. 팀 일정은 사람이 배정하되 위 선행 관계를 유지한다.
-
-CDP 시연 보조 도구는 [demo](demo.md#8-최신-fake-app-기반-cdp-연출)를 따른다.
-기존 생성/문서 API를 사용하며 분석/선택은 fake-app 전용 연출로 구분한다.
-
-검증한 배포용 영상/미리보기는 `docs/demo-media/`에 보관한다.
+1. `pnpm build && pnpm typecheck` - 9개 패키지 전체 TypeScript 컴파일 및 타입 검사 통과.
+2. `pnpm test` - 패키지별 단위/통합 테스트 및 `tools/*.test.mjs`(`architecture`, `qg`, `pack-register`, `toyrecord-pack`, `oss-repro-smoke`, `effect-measure`, `value-comparison`) 전체 통과.
+3. `python tools/validate_docs.py` - `intent.md` -> `prd.md` -> `features/01-10` -> `acceptance-map.csv` -> `traceability.csv` 참조 무결성 및 테스트 파일 존재 검증 통과.
+4. `node tools/value-comparison.mjs` - 가상 사례 10건에 대한 3자 비교 지표(금지 항목 노출 0건, 필수 단서 보존 100%, 무근거/만료 규칙 차단 100%) 재현 확인.
