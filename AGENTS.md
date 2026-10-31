@@ -4,7 +4,7 @@
 
 ## 현재 구조와 검사
 
-현재 실행 코드는 pnpm workspace로 app/fake-app/server/core-interface/core/fake-core/client를 분리한다. app은 진짜 코어만 조립하고 fake-app은 연출용 가짜 코어와 연결부를 조립한다. server는 주입한 Core 계약만 사용한다. 진짜 코어는 아직 미구현이다. 그 외 제품 설계는 현재 구현 완료의 증거가 아니다.
+현재 실행 코드는 pnpm workspace로 app/fake-app/server/core-interface/core/fake-core/client를 분리한다. app은 진짜 코어만 조립하고 fake-app은 연출용 가짜 코어와 연결부를 조립한다. server는 주입한 Core 계약만 사용한다. 진짜 코어(`RealCore`)는 analyze/write/review 및 Docker 합성 재현 연결을 구현했고 자동화 테스트로 검증했다(`docs/product/submission-status.md`). 전체 127개 수용 기준 중 UI 다중 화면/전체 REST 라우트/Rule CRUD 등 `product_backlog`로 분류된 65개는 아직 연결하지 않았다. 그 외 제품 설계는 현재 구현 완료의 증거가 아니다.
 
 - README.md: 실행/환경 변수/검사 진입점.
 - packages/server: Core 계약에만 의존하는 Node HTTP API/SQLite 저장 껍데기.

@@ -21,6 +21,7 @@
 | [docs/design/ia.md](docs/design/ia.md) / [docs/ops/uj.md](docs/ops/uj.md) / [docs/ops/demo.md](docs/ops/demo.md) | 화면 구조(`UI-01-10`), 사용자 여정(`UJ-01-07`), 로컬/Docker 시연 절차 |
 | [docs/features/01-task-intake.md](docs/features/01-task-intake.md) - [10-runtime-boundary.md](docs/features/10-runtime-boundary.md) | 기능 단위 명세 (`F01-F10`) |
 | [docs/presentation/ISSUES.md](docs/presentation/ISSUES.md) / [GUIDE.md](docs/presentation/GUIDE.md) | 발표 슬라이드와 실제 코드 사이의 차이 관리(`PRES-01-12`) 및 발표 가이드 |
+| [docs/product/submission-status.md](docs/product/submission-status.md) | **지금 제출한다고 가정한 현재 상태 스냅샷** - 자동 검증 재실행 결과, AC 현황, 밝혀야 할 제한 |
 
 ---
 
