@@ -27,6 +27,12 @@ test('client serves its own UI and forwards document JSON to the configured serv
   const base = await listen(client);
   try {
     assert.equal((await fetch(base + '/style.css')).status, 200);
+    for (const path of ['/disclosure.css', '/disclosure-contract.js', '/disclosure-dom.js', '/disclosure-evidence.js']) {
+      assert.equal((await fetch(base + path)).status, 200, path);
+    }
+    const stateModule = await (await fetch(base + '/disclosure-state.js')).text();
+    assert.ok(stateModule.includes("from './disclosure-contract.js'"));
+    assert.ok(!stateModule.includes("from './disclosure-contract.ts'"));
     const body = JSON.stringify({ text: '가상 문서' });
     const saved = await fetch(base + '/api/documents', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body });
     assert.equal(saved.status, 201);

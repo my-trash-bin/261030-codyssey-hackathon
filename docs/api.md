@@ -106,3 +106,111 @@ job polling API를 추가하지 않았다. TaskStore의 migration v2는 source v
 새 내부 오류는 INVALID_ANALYSIS/ANALYSIS_NOT_FOUND다. 삭제된 job은 다시 만들지 않으며
 취소·실패·stale terminal 상태를 성공으로 복귀시키지 않는다. caller가 내부 job/source 조회 결과를
 일반 로그·공개 응답으로 직렬화하면 안 된다. [전체 내부 범위](f02-analyze-plan.md)를 따른다.
+
+## 인증된 task·공개 결정 API (단일 운영자 개발용)
+
+기존 `/api/analysis`는 stateless로 유지한다. 아래 v1 경로는 실제 앱에서
+`SAFEHANDOFF_WORKFLOW_TOKEN`(32자 이상)을 설정한 경우에만 활성화된다. 미설정·fake-app은
+503 `WORKFLOW_API_DISABLED`다. 기존 `/api/documents`·`/api/sharing`·`/api/analysis`의 인증을
+이 설정이 대신하지 않는다. 다중 사용자·LAN 운영 인증이나 외부 제출을 구현한 것이 아니다.
+
+`SAFEHANDOFF_WORKFLOW_BROWSER_ORIGIN`은 브라우저의 정확한 origin(기본
+`http://127.0.0.1:5173`), `SAFEHANDOFF_WORKFLOW_SERVER_ORIGIN`은 API origin(기본
+`http://127.0.0.1:${PORT}`)이다. 둘 다 HTTP loopback만 지원한다. localhost와 127.0.0.1은
+서로 다른 값이다. 클라이언트 프록시는 실제 API Host를 사용하고 브라우저 Origin·Cookie·
+X-CSRF-Token·Idempotency-Key와 Set-Cookie를 전달한다. 임의 origin·와일드카드는 허용하지 않는다.
+
+### 세션
+
+- `POST /api/v1/session`: 정확한 브라우저 Origin, JSON `{ "token": "운영자가 설정한 비밀" }`.
+  성공은 `{data:{csrf_token,expires_at,analysis_environment,capabilities}}`와 1시간 HttpOnly·
+  SameSite=Strict·Path=/api/v1 쿠키다. 이 개발 API는 loopback HTTP만 허용하므로 Secure 쿠키를
+  사용하지 않는다. 인증된 `GET /api/v1/session`은 같은 DTO를 반환한다. 서버 재시작 시 세션은 만료된다.
+- 모든 v1 조회도 세션이 필요하다. 세션 없음/만료는 401 `AUTH_REQUIRED`, Host/Origin 거부와
+  CSRF 실패는 403이다. GET은 Origin 생략이 가능하고, 쓰기는 정확한 Origin과 CSRF가 필수다.
+- `analysis_environment`는 `{provider_origin:string|null,approval_status:
+  "operator_confirmation_required",verified_at:null}`이다. provider origin은 실제 설정의
+  환경 변수 이름으로 조회하며 경로·query·사용자명·비밀번호를 제거한다. 모델 키는 반환하지 않는다.
+  주소 표시는 사내·로컬 승인이나 모델 연결 성공의 증거가 아니다. 운영자가 확인해야 한다.
+- `capabilities`는 tasks/selected_fields=true, reusable_rules/approved_excerpt=false다.
+  세션은 하나의 로컬 운영자 권한이며 task별 사용자 소유권을 구현한 것으로 해석하지 않는다.
+
+### 요청·응답
+
+성공은 `{data: ...}`, 오류는 `{error: "CODE"}`다. JSON 쓰기는 Content-Type이 필요하고
+본문 상한은 1.5 MiB다. 세션 생성 외 모든 쓰기는 1~200자 Idempotency-Key를 요구한다.
+같은 경로·키·본문 재전송은 최초 결과를 반환하고, 다른 본문은 409 `IDEMPOTENCY_CONFLICT`다.
+본문 키 순서까지 동일하게 재전송한다. task 생성 외 쓰기는 양의 정수 expected_revision을 사용한다.
+판본 불일치는 409 `REVISION_CONFLICT`이며 부분 저장하지 않는다. 키·결과는 SQLite에 영속한다.
+원자료와 공개 projection을 담을 수 있는 task별 재전송 기록은 task 삭제와 함께 삭제된다.
+생성 요청의 재전송 결과는 삭제 시 `{id,deleted:true}`로 바꿔 context를 남기지 않는다.
+
+| 경로 | 본문 또는 응답 data |
+| --- | --- |
+| POST /api/v1/tasks | `{context:{purpose,recipient,goal_variant?,output_language?}}` → 201 StoredTask |
+| GET /api/v1/tasks/{id} | 현재 task 집계(아래 설명) |
+| PUT /api/v1/tasks/{id}/sources | `{expected_revision,sources:SourceDocument[]}` → StoredTask |
+| POST /api/v1/tasks/{id}/jobs | `{expected_revision,kind:"analyze"}` → 202 job 요약 |
+| GET /api/v1/tasks/{id}/jobs/{job_id} | 분석 job 요약. 원자료 snapshot은 반환하지 않음 |
+| POST /api/v1/tasks/{id}/jobs/{job_id}/cancel | `{expected_revision}` → `{cancelled:boolean}` |
+| POST /api/v1/tasks/{id}/manual-candidates | `{expected_revision,candidate,evidence_ids? 또는 user_note?}` → 201 StoredTask |
+| GET /api/v1/tasks/{id}/candidates/{candidate_id}/fields | `{candidate_id,input_revision,source_version_id,fields:string[],reusable:false}` |
+| POST /api/v1/tasks/{id}/disclosure-previews | `{expected_revision,candidate_id,representation}` → DisclosurePreview |
+| POST /api/v1/tasks/{id}/jobs | `{expected_revision,kind:"interpret_disclosure",arguments:{candidate_id,text}}` → 202 조건 해석 job |
+| GET /api/v1/jobs/{job_id} | 조건 해석 job. 현재 판본이 다르면 stale·result=null |
+| POST /api/v1/tasks/{id}/decision-batches | `{expected_revision,accept_scope_reduction:boolean,operations:[...]}` → StoredTask |
+| POST /api/v1/tasks/{id}/decisions/{decision_id}/revoke | `{expected_revision}` → StoredTask |
+| DELETE /api/v1/tasks/{id} | `{expected_revision}` → `{id,deleted:true}` |
+
+StoredTask는 id/revision/phase/context/source_set_hash/skill_set_hash/current_candidate_set_id다.
+집계는 여기에 sources/evidence/candidates/decisions/scope를 추가한다. sources는 인증된 내부
+준비 화면용 원자료 바이트를 포함하므로 공유 초안에 전달하지 않는다. candidates는 서버 id,
+분석 local_key, origin(model/manual), selector=null, conflicts, required와 기존 Candidate 필드를
+포함한다. 임시 local_key→영속 id 대응은 이 목록으로 확인한다. decisions는 candidate_id별 현재
+결정 객체이며 representation/projection_sha256/revoked/expires_at을 포함한다. scope는 task ID와
+purpose/recipient의 SHA-256·skill hash에 묶은 서버 내부 범위다. 카탈로그 Rule scope를 대신하지 않는다.
+참고 task.v1 전체 필드를 보장하는 API로 해석하지 않는다.
+
+SourceDocument 형식·hash·base64와 한도는 앞의 `/api/analysis`와 같다. sources 교체는 revision을
+한 번 올리고 이전 후보·결정을 무효화한다. 분석 시작도 revision을 한 번 올리고, 완료 채택은
+한 번 더 올린다. 분석 job은 id/task_id/revision/input_revision/kind/status/error_code를 반환한다.
+상태는 running/succeeded/failed/cancelled/stale다. 등록한 원자료 snapshot으로만 Engine을 호출하고
+브라우저의 AnalyzeResult는 받지 않는다. 모델 대기 중 DB 트랜잭션을 유지하지 않는다. 재분석·취소·
+삭제·원자료 변경 뒤 늦은 응답은 후보나 허용 결정을 만들 수 없다. job 최대 동시 실행은 4개이며
+초과는 429 `JOB_LIMIT`, 프로세스 재시작 후 미완료 job은 CORE_CANCELLED로 실패 처리한다.
+
+수동 candidate는 kind/uncertainty/statement/relevance/purpose_relevance다. evidence_ids와
+user_note 중 정확히 하나만 지정한다. user_note는 서버 소유 원자료·근거로 저장하며 모델 호출과
+공개 결정을 만들지 않는다. 다른 task·현재 선택에서 제거한 source의 참조는 거부한다.
+
+### 표현과 결정
+
+- A: `{kind:"fact_summary",transform_id:"",parameters:{}}`. 현재 후보 문장을 그대로 미리보기한다.
+  자동으로 구체 값이 제거됐다고 보장하지 않는다. 사람이 실제 표시 문장을 보고 승인한다.
+- B: 단일 CSV의 한 숫자 열에 연결된 후보만 `series_direction_only.v1` derived_table을 지원한다.
+  `series_index_base100.v1`은 parameters에 decimal_places(0~4)를 선택할 수 있다.
+- C: `{kind:"selected_fields",transform_id:"select_fields.v1",parameters:{fields:[...]}}`.
+  단일 CSV/JSON의 후보에 연결된 검증된 근거만 선택 가능하다. CSV는 논리 행 순서의 실제 셀,
+  JSON은 정확한 JSON pointer(루트는 빈 문자열)를 사용한다. 혼합 소스·목록 밖 필드·중복 필드·
+  빠진 CSV 셀을 거부한다. CSV 따옴표·개행과 JSON 문자열을 실제 값으로 복원하며 선택하지 않은
+  필드 값은 projection에 포함하지 않는다. exact_value는 단일 CSV/JSON 근거 값만 지원한다.
+- D: 조건과 후보 하나·task context만 disclosure 역할 모델에 보내 strict 검증한 제안을 반환한다.
+  supported/ambiguous/unsupported는 승인 상태가 아니다. 지원 제안도 실제 미리보기 검증을 거쳐야
+  한다. 해석 job은 미리보기·결정·Rule을 만들지 않고, 모델·retry·입력 예산은 기존 설정을 따른다.
+- approved_excerpt·타임라인 표현과 미지원 job은 422로 거부한다. C/정확한 값/원문은 재사용할 수
+  없으며 이 라운드에서는 모든 save_reusable_rule=true를 422 RULE_REUSE_NOT_IMPLEMENTED로 거부한다.
+
+미리보기는 서버가 계산한 projection을 불변 저장하고 현재 revision/source hash/context와 결합한다.
+응답은 schema_version/preview_id/candidate_id/input_revision/representation/projection/
+projection_sha256/raw_grants이며 여기서는 raw_grants=[]다. projection은 statement/columns/rows다.
+최종 원문 예외 승인은 이번 구현에 없다.
+
+operations의 allow는 candidate_id/disposition/representation/preview_id/projection_sha256와
+save_reusable_rule=false를 보낸다. exclude/defer는 candidate_id/disposition만 보낸다.
+expires_at은 선택 가능하며 과거 시각은 거부한다. 필수 후보 exclude에는 accept_scope_reduction=true가
+필요하다. preview·representation·hash·source·scope·revision·후보 참조 중 하나라도 다르면 전체 배치를
+거부한다. 적용은 revision을 한 번 올린다. 철회도 판본을 올리고 과거 허용으로 복귀하지 않는다.
+
+404 TASK_NOT_FOUND/ANALYSIS_NOT_FOUND와 404 ENDPOINT_NOT_FOUND, 비활성 API의 503을 구분한다.
+미지원 기능은 422다. 이 API의 존재가 UI 로그인·task 생성/저장 화면·C 필드 선택·최종화·Rule·
+공유 초안까지 연결됐다는 뜻은 아니다. 후속 UI 접점은 [요청 현황](ui-api-requests.md)에 적는다.

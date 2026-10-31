@@ -133,7 +133,14 @@ allow 항목은 유효한 `preview_id`와 `projection_sha256`가 필수다. excl
 | `DisclosureService.ApplyDecisionBatch` / `POST /api/v1/tasks/{id}/decision-batches` | expected_revision, 후보별 disposition과 현재 미리보기/hash, expiry, 재사용 선택 | 새 결정 ID·revision·phase·무효화 내역 |
 | `DisclosureService.RevokeDecision` / `POST /api/v1/tasks/{id}/decisions/{decision_id}/revoke` | expected_revision | 현재 결정 무효, 새 revision |
 
-이 선행 UI의 요청·응답 형태는 `contracts/openapi.json`과 해당 `*.v1.schema.json`을 참고한다. [참고 계약의 경계](../../contracts/README.md)처럼 이 자료들은 현재 서버의 동작 API가 아니며, 실제 HTTP 제공 범위는 [api.md](../api.md)에서 구분한다. `contracts/core/shared.schema.json`에는 `select_fields.v1`의 `parameters.fields`가 있지만 HTTP 참고 스키마에는 없으므로 기존 정의 정리와 필드 목록·서버 변환 구현이 필요하다. 세션 응답의 CSRF 토큰 필드와 후보 전용 조회 응답도 미정이다. UI가 임의 필드를 만들어 연결하지 않는다. F02의 후보/근거 → F03의 결정/투영 → F04의 승인팩으로 연결한다. F05는 현재 결정의 유효성과 보류 여부를 검사한다. F06은 재사용 기준만 만들고 새 자료의 정확값 허용을 만들지 않는다. F07의 예외 검사 결과가 F03 allow를 대신할 수 없다.
+현재 실제 경로·세션 CSRF·DTO는 [api.md](../api.md)를 정본으로 따른다.
+`contracts/openapi.json`과 `*.v1.schema.json`은 [참고 계약](../../contracts/README.md)이며
+전체 스키마가 현재 서버의 동작 API라는 뜻은 아니다. `select_fields.v1`의 parameters.fields는
+기존 core 정의와 HTTP 참고 스키마를 맞췄고, 단일 CSV/JSON 근거의 필드 목록·서버 변환을 구현했다.
+화면 로그인·C 필드 선택 등 후속은 [UI 요청 현황](../ui-api-requests.md)을 따른다.
+F02의 후보/근거 → F03의 결정/투영 → F04의 승인팩으로 연결한다. F05는 현재 결정의 유효성과
+보류 여부를 검사한다. F06은 재사용 기준만 만들고 새 자료의 정확값 허용을 만들지 않는다.
+F07의 예외 검사 결과가 F03 allow를 대신할 수 없다.
 
 ## 7. 하지 않을 것
 

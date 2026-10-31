@@ -53,7 +53,7 @@ test('HTTP saves and lists documents; invalid input does not create rows', async
     const listed = await (await fetch(base + '/api/documents')).json();
     assert.equal(listed.documents.length, 1);
     assert.equal(listed.documents[0].id, document.id);
-    assert.equal((await fetch(base + '/api/v1/tasks')).status, 404);
+    assert.equal((await fetch(base + '/api/v1/tasks')).status, 503);
   } finally {
     await new Promise<void>((resolve, reject) => server.close(error => error ? reject(error) : resolve()));
     store.close();

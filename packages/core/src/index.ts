@@ -5,6 +5,8 @@ import type {
   ReproduceResult, ReproRunner, Review, ReviewGroundingContext, TaskContext,
 } from '@safehandoff/core-interface';
 import { parseCandidateProposals, parseDraft, parseReview, validateDraft } from './validation.ts';
+import { calculatePreview, validateRepresentation } from './disclosure.ts';
+import { parseDisclosureProposal } from './validation.ts';
 import { invalidSource, parseEvidence, wellFormed } from './evidence-parser.ts';
 import { approvedRequestGrounding, validateProjectionHashes } from './fresh-grounding.ts';
 
@@ -190,11 +192,27 @@ export class RealCore implements Engine {
       return { evidence: parsed.evidence, proposals };
     });
   }
-  async proposeDisclosure(_candidate: Candidate, _task: TaskContext): Promise<DisclosureProposal> {
-    throw new CoreError('CORE_NOT_IMPLEMENTED');
+  async proposeDisclosure(candidate: Candidate, task: TaskContext, options?: { condition?: string; signal?: AbortSignal }): Promise<DisclosureProposal> {
+    if (!candidate || typeof candidate.statement !== 'string' || !candidate.statement.trim() ||
+      typeof options?.condition !== 'string' || !options.condition.trim() || options.condition.length > 8192) invalidSource();
+    return this.traced('proposeDisclosure', async trace => {
+      const request: ModelRequest = { role: 'disclosure', responseFormat: 'json',
+        systemPrompt: 'Return disclosure_proposal.v1 JSON only with candidate_id, status supported/ambiguous/unsupported, ' +
+          'representation or null, requires_clarification boolean. Never approve or create decisions. ' +
+          'Supported representations: fact_summary with empty transform_id and parameters {}; selected_fields with ' +
+          'transform_id select_fields.v1 and parameters {fields:string[]}; exact_value with empty transform_id/parameters; ' +
+          'derived_table series_direction_only.v1 with {} or series_index_base100.v1 with optional decimal_places 0..4. ' +
+          'Unknown conditions must be ambiguous/unsupported with null representation. A proposal is never permission.',
+        input: JSON.stringify({ candidate, task, condition: options.condition }) };
+      if (!this.config) throw new CoreError('CORE_NOT_IMPLEMENTED');
+      if (Buffer.byteLength(JSON.stringify(request)) > this.config.provider.max_input_bytes) throw new ModelError('MODEL_BUDGET_EXCEEDED');
+      return this.call(request, text => parseDisclosureProposal(text, candidate.local_key, validateRepresentation),
+        { calls: 0, signal: options.signal, trace, sensitive: true });
+    });
   }
-  async preview(_candidate: Candidate, _representation: Representation, _inputRevision: number): Promise<DisclosurePreview> {
-    throw new CoreError('CORE_NOT_IMPLEMENTED');
+  async preview(candidate: Candidate, representation: Representation, inputRevision: number,
+    context?: Parameters<typeof calculatePreview>[3]): Promise<DisclosurePreview> {
+    return calculatePreview(candidate, representation, inputRevision, context);
   }
   async reproduce(request: ReproduceRequest, options?: { signal?: AbortSignal }): Promise<ReproduceResult> {
     if (options?.signal?.aborted) throw new CoreError('CORE_CANCELLED');

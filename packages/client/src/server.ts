@@ -20,6 +20,9 @@ const MODULES: Record<string, string> = {
   '/analysis-state.js': 'analysis-state',
   '/disclosure-view.js': 'disclosure-view',
   '/disclosure-state.js': 'disclosure-state',
+  '/disclosure-contract.js': 'disclosure-contract',
+  '/disclosure-dom.js': 'disclosure-dom',
+  '/disclosure-evidence.js': 'disclosure-evidence',
 };
 
 // 다른 API는 기존 10초 제한을 유지한다. 분석은 모델 응답이 그보다 오래 걸릴 수 있으므로
@@ -91,14 +94,14 @@ export function createClientHandler(serverOrigin: string) {
       let body: string, type: string;
       if (path === '/') {
         body = await readFile(new URL('../public/index.html', import.meta.url), 'utf8'); type = 'text/html';
-      } else if (path === '/style.css') {
-        body = await readFile(new URL('../public/style.css', import.meta.url), 'utf8'); type = 'text/css';
+      } else if (path === '/style.css' || path === '/disclosure.css') {
+        body = await readFile(new URL('../public' + path, import.meta.url), 'utf8'); type = 'text/css';
       } else if (Object.hasOwn(MODULES, path)) {
         // 소스 실행은 .ts를 타입 제거해 그대로, 빌드 실행은 컴파일된 .js를 서빙한다.
         const name = MODULES[path] ?? '';
         const sourceMode = import.meta.url.endsWith('.ts');
         body = await readFile(new URL(sourceMode ? `./${name}.ts` : `./${name}.js`, import.meta.url), 'utf8');
-        if (sourceMode) body = stripTypeScriptTypes(body);
+        if (sourceMode) body = stripTypeScriptTypes(body).replace(/(from\s+['"]\.\/[^'"]+)\.ts(['"])/g, '$1.js$2');
         type = 'text/javascript';
       } else { response.writeHead(404); response.end(); return; }
       response.writeHead(200, {

@@ -48,3 +48,12 @@ export function configuredTranscripts(root: string, env: Record<string, string |
   return env.SAFEHANDOFF_TRANSCRIPT_DIR
     ? new FileTranscriptSink(resolve(root, env.SAFEHANDOFF_TRANSCRIPT_DIR), env.SAFEHANDOFF_TRANSCRIPT_CONTENT === '1') : undefined;
 }
+
+// Only authenticated workflow session responses may expose the configured provider origin.
+// Strip paths, credentials and query strings; origin presence is not approval or reachability.
+export function configuredAnalysisOrigin(root: string, env: Record<string, string | undefined> = process.env): string | null {
+  const base = env[loadConfig(root, env).provider.base_url_env];
+  if (!base) return null;
+  try { const url = new URL(base); return ['http:', 'https:'].includes(url.protocol) ? url.origin : null; }
+  catch { return null; }
+}

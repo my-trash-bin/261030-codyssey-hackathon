@@ -80,7 +80,7 @@ export type RepresentationKind =
 export interface Representation {
   kind: RepresentationKind;
   transform_id?: string;
-  parameters?: Record<string, number>;
+  parameters?: Record<string, number | string[]>;
 }
 export interface DisclosureProposal {
   schema_version: 'disclosure_proposal.v1';
@@ -238,8 +238,8 @@ export interface Review { schema_version: 'review.v1'; result: ReviewResultKind;
 // decisions are made by a human and persisted by server, not produced by the engine. --
 export interface Engine extends Core {
   analyze(request: AnalyzeRequest, options?: { signal?: AbortSignal }): Promise<AnalyzeResult>;
-  proposeDisclosure(candidate: Candidate, task: TaskContext): Promise<DisclosureProposal>;
-  preview(candidate: Candidate, representation: Representation, inputRevision: number): Promise<DisclosurePreview>;
+  proposeDisclosure(candidate: Candidate, task: TaskContext, options?: { condition?: string; signal?: AbortSignal }): Promise<DisclosureProposal>;
+  preview(candidate: Candidate, representation: Representation, inputRevision: number, context?: { sources: SourceDocument[]; evidence: EvidenceSpan[] }): Promise<DisclosurePreview>;
   write(factPack: FactPack): Promise<Draft>;
   review(draft: Draft, factPack: FactPack, grounding?: ReviewGroundingContext): Promise<Review>;
   reproduce(request: ReproduceRequest, options?: { signal?: AbortSignal }): Promise<ReproduceResult>;

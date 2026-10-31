@@ -128,6 +128,16 @@
                         "start_row": {
                           "minimum": 0,
                           "type": "integer"
+                        },
+                        "fields": {
+                          "type": "array",
+                          "items": {
+                            "type": "string",
+                            "maxLength": 8192
+                          },
+                          "minItems": 1,
+                          "maxItems": 100,
+                          "uniqueItems": true
                         }
                       },
                       "type": "object"
@@ -140,7 +150,8 @@
                         "timeline_sequence_only.v1",
                         "timeline_relative_intervals.v1",
                         "timeline_shifted_absolute.v1",
-                        "timeline_synthetic_schedule.v1"
+                        "timeline_synthetic_schedule.v1",
+                        "select_fields.v1"
                       ],
                       "maxLength": 8192,
                       "type": "string"

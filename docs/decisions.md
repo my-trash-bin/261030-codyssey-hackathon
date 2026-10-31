@@ -344,3 +344,13 @@ maxOutputTokens`로 호출별 override는 여전히 그대로 보낼 수 있게 
 candidate 9개로 성공(길이 잘림 없음)하는 것까지 실측으로 확인했다. write/review 역할도 같은
 설정을 공유하므로 동일하게 상한이 없어진다 — 별도 역할별 상한을 두지 않기로 한 것은 이미
 "핵심 기능 아님"이라는 전제에 따른 의도적 선택이다.
+
+## UI-API-01 · task HTTP와 공개 결정 개발 경계
+
+UI 요청에 따라 기존 내부 TaskStore를 v1 HTTP로 노출한다. 운영자 비밀로 여는 세션은
+HTTP loopback·단일 운영자용이고 명시적 설정이 없으면 비활성이다. 세션/CSRF·Host/Origin·
+revision·SQLite 멱등 기록을 함께 검사한다. 기존 stateless API의 인증을 대신하지 않는다.
+원자료는 서버 snapshot으로 고정하고 서버 분석 job만 CAS 채택한다. 브라우저 AnalyzeResult를
+받아 후보나 허용 결정을 만들지 않는다. C는 연결된 단일 CSV/JSON 근거 필드만 계산한다.
+D 모델 응답도 제안이며 실제 미리보기와 사람 결정은 별도다. Rule 저장과 원문 예외·타임라인은
+미지원으로 거부한다. 현재 서버 DTO는 [API](api.md), 남은 화면 작업은 [요청 현황](ui-api-requests.md)을 따른다.
