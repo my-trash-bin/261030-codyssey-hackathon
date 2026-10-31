@@ -52,3 +52,8 @@ python3 docs/presentation/build_combined_deck.py
 1280×720 페이지로 다시 출력한다. HTML 변경 후 PDF도 갱신하고 12쪽·내용 잘림·그림 로드를
 확인한다. 재생성 전에 이전 PDF를 새 내용의 검증 근거로 사용하지 않는다. Python 캐시·가상환경·
 OS 임시 파일은 이 디렉터리의 .gitignore로 제외한다.
+
+PDF 출력 환경에는 한글 글꼴이 필요하다. 이번 출력은 공개 [Noto Sans KR](https://github.com/google/fonts/tree/main/ofl/notosanskr)을
+로컬 렌더링에 적용했고 [OFL 라이선스](https://github.com/google/fonts/blob/main/ofl/notosanskr/OFL.txt)를
+확인했다. 내려받은 글꼴·브라우저 임시 파일은 저장소에 추가하지 않는다. PDF에는 렌더링에 필요한
+글꼴을 포함한다. 통합 HTML은 사용 환경의 한글 시스템 글꼴을 사용한다.

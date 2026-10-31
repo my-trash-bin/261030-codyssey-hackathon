@@ -413,6 +413,8 @@ button{font:inherit;cursor:pointer}
       <a class="tool-button" href="SafeHandoff_기대효과.html">08. 기대효과</a>
       <a class="tool-button" href="SafeHandoff_확장_가능성.html">09. 확장 가능성</a>
       <a class="tool-button" href="SafeHandoff_팀원_소개.html">10. 팀원 소개</a>
+      <a class="tool-button" href="../spec.md">제품 설계</a>
+      <a class="tool-button" href="../../README.md">실제 구현</a>
       <button class="tool-button" id="print-document" type="button">인쇄 / PDF 저장</button>
     </div>
   </div>
@@ -424,7 +426,7 @@ button{font:inherit;cursor:pointer}
       <header class="page-header">
         <h2 id="ai-pipe-title">핵심 AI 파이프라인 및 직접 개발 범위</h2>
       <!-- // TODO: [PRES-02] 전체 UI/API 연결·본문/표 갱신·근거·내보내기는 미구현. 현재는 메모 저장/조회와 상태 확인. -->
-        <span class="header-sub">설계 목표·후속 계획 포함 · 현재 완료 범위는 README·ISSUES 참조</span>
+        <span class="header-sub">설계 목표·후속 계획 포함 · 현재 완료 범위는 <a href="../../README.md">실제 구현</a> · <a href="ISSUES.md">발표 이슈</a> 참조</span>
       </header>
 
       <div class="pipeline-grid">
@@ -519,7 +521,7 @@ button{font:inherit;cursor:pointer}
           </div>
 
           <div class="scope-strip">
-            <span class="scope-api"><strong>AI 활용:</strong> LLM API · Node HTTP 비동기 추론</span>
+            <span class="scope-api"><strong>AI 활용:</strong> LLM API · ModelClient HTTP 호출</span>
       <!-- // TODO: [PRES-01] analyze()·묶음 질문·공개 제안/미리보기는 미구현. next-round-plan.md의 F02/F03과 연결 필요. -->
             <span class="scope-dev">직접 개발: JSON Schema 유사 단서 묶음 질문기</span>
           </div>
@@ -529,7 +531,7 @@ button{font:inherit;cursor:pointer}
         <article class="pipe-card">
           <div class="card-head">
             <div class="card-top-row">
-              <span class="en-kicker">CAMEL ISOLATED DRAFTING AGENT</span>
+              <span class="en-kicker">APPROVED-FACT DRAFTING AGENT</span>
               <div class="tech-pills">
                 <!--  호환 LLM 공식 SVG  -->
                 <span class="tech-pill">
@@ -690,7 +692,7 @@ button{font:inherit;cursor:pointer}
 
           <div class="scope-strip">
       <!-- // TODO: [PRES-04] 전체 원자료 대조/제약 자동 복원은 계획. 현재는 초안·FactPack·grounding 검토. -->
-            <span class="scope-api"><strong>AI 활용:</strong> LLM 검토 유사 문제 분류 &amp; 3자 대조</span>
+            <span class="scope-api"><strong>AI 활용:</strong> 전체 의미 대조·분류는 후속 계획</span>
       <!-- // TODO: [PRES-02] 전체 UI/API 연결·본문/표 갱신·근거·내보내기는 미구현. 현재는 메모 저장/조회와 상태 확인. -->
       <!-- // TODO: [PRES-04] 전체 원자료 대조/제약 자동 복원은 계획. 현재는 초안·FactPack·grounding 검토. -->
             <span class="scope-dev">직접 개발: 원자료 근거 매핑·제약 복원 계획</span>
@@ -778,7 +780,7 @@ button{font:inherit;cursor:pointer}
 
           <div class="scope-strip">
       <!-- // TODO: [PRES-05] 앱 인증·전체 원자료 격리·배포는 후속. Docker toy 실행 격리만 완료. ISSUES.md 참조. -->
-            <span class="scope-api"><strong>인프라 활용:</strong> SQLite · node:sqlite · Auth</span>
+            <span class="scope-api"><strong>인프라 활용:</strong> SQLite · node:sqlite</span>
       <!-- // TODO: [PRES-03] Rule 저장/매칭은 미구현. SkillPack과 혼용 금지; 공개 팩 공유는 별도 후속. ISSUES.md 참조. -->
             <span class="scope-dev">직접 개발: Skill Repository &amp; 조건부 Rule 매칭 계획</span>
           </div>
@@ -790,7 +792,7 @@ button{font:inherit;cursor:pointer}
       <!-- // TODO: [PRES-02] 전체 UI/API 연결·본문/표 갱신·근거·내보내기는 미구현. 현재는 메모 저장/조회와 상태 확인. -->
       <!-- // TODO: [PRES-03] Rule 저장/매칭은 미구현. SkillPack과 혼용 금지; 공개 팩 공유는 별도 후속. ISSUES.md 참조. -->
       <!-- // TODO: [PRES-04] 전체 원자료 대조/제약 자동 복원은 계획. 현재는 초안·FactPack·grounding 검토. -->
-        <span class="footer-right">구현·후속 범위: TypeScript AI Engine · 승인 FactPack 경계 · 본문·표 동시 갱신 · 3자 대조 근거 매핑 · Skill Repository</span>
+        <span class="footer-right">작성·검토·팩 연결 구현 / 분석·Rule·동기화 후속</span>
       </footer>
     </section>
   </div>

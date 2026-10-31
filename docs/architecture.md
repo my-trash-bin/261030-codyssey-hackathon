@@ -8,8 +8,11 @@
 | server | HTTP 경로·요청 검증·SQLite 저장, 주입한 Core 호출 | core-interface만 |
 | fake-core | 연출용 문구·결과 템플릿 | core-interface만 |
 | fake-app | 가짜 앱 조립·조절 화면·지연/실패 연출 | server, fake-core, core-interface |
-| core | 개발할 진짜 코어 | core-interface만 |
-| app | 최종 실제 앱의 서버·진짜 코어 조립과 기동 | server, core |
+| core | 주입형 작성·검토 Engine과 builtin | core-interface만 |
+| app | 최종 실제 앱과 모델·실행기 조립 | server, core, core-interface, model-adapter, sandbox-runner |
+| model-adapter | 설정 기반 호환 HTTP ModelClient | core-interface만 |
+| sandbox-runner | 고정 toy 이미지의 Docker 실행 | core-interface만 |
+| skill-loader | 팩 경로·manifest·digest 검증과 pin 재검증 | core-interface만 |
 | client | 별도 웹 클라이언트·HTTP 프록시 | 현재는 구현 패키지 의존성 없음 |
 
 ```mermaid
@@ -44,4 +47,4 @@ just check는 QG를 직접 실행하고 QG가 타입·빌드·pnpm test를 호�
 
 3라운드의 내부 TaskStore와 Docker 실행기 경계는 [축소 범위](round3-scope.md)를 따른다. task/decision 저장은 HTTP로 노출하지 않았으며 기존 문서 API와 독립적이다. Docker에는 고정 공개 toy 이미지와 등록 합성 입력만 전달한다.
 
-F07의 `packages/skill-loader`는 core-interface만 참조하는 leaf 패키지다. 경로 문자열 검증은 core-interface의 순수 함수이며 실제 파일·digest 검증은 로더가 수행한다. app/core/server에 자동 연결하지 않았으며 역할별 프롬프트 조립·catalog 등록·팩 변경 무효화는 후속이다.
+F07의 `packages/skill-loader`는 core-interface만 참조하는 leaf 패키지다. 경로 문자열 검증은 core-interface의 순수 함수이며 실제 파일·digest 검증은 로더가 수행한다. app/core/server에 자동 연결하지 않았으며 catalog 등록·ToyRecord CLI 연결은 구현했으며, 역할별 프롬프트 조립·앱의 팩 변경 무효화는 후속이다. 상세 상태는 [F07 계획](f07-extensions-plan.md)과 [팩 연결](toyrecord-pack.md)을 따른다.

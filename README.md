@@ -97,7 +97,7 @@ intent.md·제품 설계·contracts·fixtures/demo·과거 evaluation 기록은 
 
 내부 `TaskStore`는 기존 SQLite 파일에 별도 workflow 테이블을 추가합니다. 현재는 앱 HTTP 경로와 연결하지 않았으며 자동으로 문서나 원자료를 작업으로 옮기지 않습니다. Docker 설치·등록·검증 절차는 [실행기 안내](packages/sandbox-runner/image/README.md)를 따릅니다.
 
-F07 1번의 파일시스템 로더는 [사용법과 제한](packages/skill-loader/README.md)을 따릅니다. 등록 CLI·역할별 프롬프트 연결·팩 활성화는 후속 범위이며 앱 시작 시 팩을 자동으로 읽거나 실행하지 않습니다.
+F07 1번의 파일시스템 로더는 [사용법과 제한](packages/skill-loader/README.md)을 따릅니다. 등록 CLI와 ToyRecord catalog 연결은 구현했습니다. 역할별 프롬프트 연결·앱의 팩 선택 및 변경 무효화는 후속이며 앱 시작 시 팩을 자동으로 읽거나 실행하지 않습니다.
 
 ## builtin과 근거 검토
 

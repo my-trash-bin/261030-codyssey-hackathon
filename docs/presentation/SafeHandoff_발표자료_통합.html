@@ -3508,7 +3508,7 @@ button{font:inherit;cursor:pointer}
           <span class="accent">필요한 단서만 전달하세요</span>
         </h1>
 <!-- // TODO: [PRES-07] 보안 보장 문구는 ISSUES의 수정 검토 대상이며 실제 안전 보증이 아님. -->
-<p style="font-size:11px;margin:3px 0;color:#475569">제품 목표 소개 · 현재 구현/계획/보장 표현은 README·ISSUES 참조</p>
+<p style="font-size:11px;margin:3px 0;color:#475569">제품 목표 소개 · 현재 구현/계획/보장 표현은 <a href="../../README.md">실제 구현</a> · <a href="ISSUES.md">발표 이슈</a> 참조</p>
         <p class="hero-sub">
           공개 수준(A~D) 맞춤 선택부터 작성·검토 AI 이중 검증·스킬 자동화까지,<br>
           원본 유출 걱정 없이 외부 문의·자문 자료를 완성하는 사내 AI 솔루션
@@ -3949,7 +3949,7 @@ button{font:inherit;cursor:pointer}
         <h2 id="uf-title">외부 공유 자료 준비 User Flow</h2>
       <!-- // TODO: [PRES-03] Rule 저장/매칭은 미구현. SkillPack과 혼용 금지; 공개 팩 공유는 별도 후속. ISSUES.md 참조. -->
       <!-- // TODO: [PRES-06] AI 생성 선택지와 A~D 표시 계약 정리 필요. D는 현행 직접 입력; 비율은 예시. ISSUES.md 참조. -->
-        <span class="header-sub">설계 목표·후속 계획 포함 · 현재 완료 범위는 README·ISSUES 참조</span>
+        <span class="header-sub">설계 목표·후속 계획 포함 · 현재 완료 범위는 <a href="../../README.md">실제 구현</a> · <a href="ISSUES.md">발표 이슈</a> 참조</span>
       </header>
 
       <figure class="wireflow-canvas">
@@ -4129,7 +4129,7 @@ button{font:inherit;cursor:pointer}
       <header class="page-header">
         <h2 id="tech-title"><span class="num-accent">핵심 기술</span>Core Technology &amp; Stack</h2>
       <!-- // TODO: [PRES-05] 앱 인증·전체 원자료 격리·배포는 후속. Docker toy 실행 격리만 완료. ISSUES.md 참조. -->
-        <span class="header-sub">현행 스택 · 미연결 기능은 계획으로 표기</span>
+        <span class="header-sub"><a href="../architecture.md">현행 아키텍처</a> · 미연결 기능은 계획으로 표기</span>
       </header>
 
       <div class="stack-columns">
@@ -4295,7 +4295,7 @@ button{font:inherit;cursor:pointer}
       </div>
 
       <footer class="page-footer">
-        <span>* 현재 스택 정본: TypeScript · Node HTTP · SQLite · 호환 ModelClient · Docker · pnpm / mise / QG</span>
+        <span>* 기술·구현 근거: <a href="../architecture.md">architecture</a> · <a href="../../README.md">README</a> · <a href="../api.md">API</a></span>
         <span class="footer-Right">설계 원칙: 승인 정보로 새 작성 · 실제 구현과 계획 구분</span>
       </footer>
     </section>
@@ -4307,7 +4307,7 @@ button{font:inherit;cursor:pointer}
       <header class="page-header">
         <h2 id="ai-pipe-title">핵심 AI 파이프라인 및 직접 개발 범위</h2>
       <!-- // TODO: [PRES-02] 전체 UI/API 연결·본문/표 갱신·근거·내보내기는 미구현. 현재는 메모 저장/조회와 상태 확인. -->
-        <span class="header-sub">설계 목표·후속 계획 포함 · 현재 완료 범위는 README·ISSUES 참조</span>
+        <span class="header-sub">설계 목표·후속 계획 포함 · 현재 완료 범위는 <a href="../../README.md">실제 구현</a> · <a href="ISSUES.md">발표 이슈</a> 참조</span>
       </header>
 
       <div class="pipeline-grid">
@@ -4402,7 +4402,7 @@ button{font:inherit;cursor:pointer}
           </div>
 
           <div class="scope-strip">
-            <span class="scope-api"><strong>AI 활용:</strong> LLM API · Node HTTP 비동기 추론</span>
+            <span class="scope-api"><strong>AI 활용:</strong> LLM API · ModelClient HTTP 호출</span>
       <!-- // TODO: [PRES-01] analyze()·묶음 질문·공개 제안/미리보기는 미구현. next-round-plan.md의 F02/F03과 연결 필요. -->
             <span class="scope-dev">직접 개발: JSON Schema 유사 단서 묶음 질문기</span>
           </div>
@@ -4412,7 +4412,7 @@ button{font:inherit;cursor:pointer}
         <article class="pipe-card">
           <div class="card-head">
             <div class="card-top-row">
-              <span class="en-kicker">CAMEL ISOLATED DRAFTING AGENT</span>
+              <span class="en-kicker">APPROVED-FACT DRAFTING AGENT</span>
               <div class="tech-pills">
                 <!--  호환 LLM 공식 SVG  -->
                 <span class="tech-pill">
@@ -4573,7 +4573,7 @@ button{font:inherit;cursor:pointer}
 
           <div class="scope-strip">
       <!-- // TODO: [PRES-04] 전체 원자료 대조/제약 자동 복원은 계획. 현재는 초안·FactPack·grounding 검토. -->
-            <span class="scope-api"><strong>AI 활용:</strong> LLM 검토 유사 문제 분류 &amp; 3자 대조</span>
+            <span class="scope-api"><strong>AI 활용:</strong> 전체 의미 대조·분류는 후속 계획</span>
       <!-- // TODO: [PRES-02] 전체 UI/API 연결·본문/표 갱신·근거·내보내기는 미구현. 현재는 메모 저장/조회와 상태 확인. -->
       <!-- // TODO: [PRES-04] 전체 원자료 대조/제약 자동 복원은 계획. 현재는 초안·FactPack·grounding 검토. -->
             <span class="scope-dev">직접 개발: 원자료 근거 매핑·제약 복원 계획</span>
@@ -4661,7 +4661,7 @@ button{font:inherit;cursor:pointer}
 
           <div class="scope-strip">
       <!-- // TODO: [PRES-05] 앱 인증·전체 원자료 격리·배포는 후속. Docker toy 실행 격리만 완료. ISSUES.md 참조. -->
-            <span class="scope-api"><strong>인프라 활용:</strong> SQLite · node:sqlite · Auth</span>
+            <span class="scope-api"><strong>인프라 활용:</strong> SQLite · node:sqlite</span>
       <!-- // TODO: [PRES-03] Rule 저장/매칭은 미구현. SkillPack과 혼용 금지; 공개 팩 공유는 별도 후속. ISSUES.md 참조. -->
             <span class="scope-dev">직접 개발: Skill Repository &amp; 조건부 Rule 매칭 계획</span>
           </div>
@@ -4673,7 +4673,7 @@ button{font:inherit;cursor:pointer}
       <!-- // TODO: [PRES-02] 전체 UI/API 연결·본문/표 갱신·근거·내보내기는 미구현. 현재는 메모 저장/조회와 상태 확인. -->
       <!-- // TODO: [PRES-03] Rule 저장/매칭은 미구현. SkillPack과 혼용 금지; 공개 팩 공유는 별도 후속. ISSUES.md 참조. -->
       <!-- // TODO: [PRES-04] 전체 원자료 대조/제약 자동 복원은 계획. 현재는 초안·FactPack·grounding 검토. -->
-        <span class="footer-right">구현·후속 범위: TypeScript AI Engine · 승인 FactPack 경계 · 본문·표 동시 갱신 · 3자 대조 근거 매핑 · Skill Repository</span>
+        <span class="footer-right">작성·검토·팩 연결 구현 / 분석·Rule·동기화 후속</span>
       </footer>
     </section>
   </div>
@@ -4683,7 +4683,7 @@ button{font:inherit;cursor:pointer}
     <section class="page" id="architecture" aria-labelledby="arch-title">
       <header class="page-header">
         <h2 id="arch-title">공유 자료 준비 아키텍처 · 현행 기반과 후속 계획</h2>
-        <span class="header-sub">설계 목표·후속 계획 포함 · 현재 완료 범위는 README·ISSUES 참조</span>
+        <span class="header-sub">설계 목표·후속 계획 포함 · 현재 완료 범위는 <a href="../../README.md">실제 구현</a> · <a href="ISSUES.md">발표 이슈</a> 참조</span>
       </header>
 
       <figure class="arch-canvas">
@@ -5131,7 +5131,7 @@ button{font:inherit;cursor:pointer}
     <section class="page" id="diff" aria-labelledby="diff-title">
       <header class="page-header">
         <h2 id="diff-title">서비스 차별점</h2>
-        <span class="header-sub">설계 목표·후속 계획 포함 · 현재 완료 범위는 README·ISSUES 참조</span>
+        <span class="header-sub">설계 목표·후속 계획 포함 · 현재 완료 범위는 <a href="../../README.md">실제 구현</a> · <a href="ISSUES.md">발표 이슈</a> 참조</span>
       </header>
 
       <div class="matrix-wrap" role="table" aria-label="기존 대분류 솔루션 대비 SafeHandoff 차별점 비교">
@@ -5233,7 +5233,7 @@ button{font:inherit;cursor:pointer}
     <section class="page" id="effect" aria-labelledby="effect-title">
       <header class="page-header">
         <h2 id="effect-title">기대효과</h2>
-        <span class="header-sub">설계 목표·후속 계획 포함 · 현재 완료 범위는 README·ISSUES 참조</span>
+        <span class="header-sub">설계 목표·후속 계획 포함 · 현재 완료 범위는 <a href="../../README.md">실제 구현</a> · <a href="ISSUES.md">발표 이슈</a> 참조</span>
       </header>
 
       <div class="effect-grid">
@@ -5509,7 +5509,7 @@ button{font:inherit;cursor:pointer}
       <header class="page-header">
         <div class="header-left">
           <h2 id="team-title">팀원 소개 및 역할 분담</h2>
-          <span class="header-sub">담당 개발 범위 · 개별 기능 완료는 README·ISSUES 참조</span>
+          <span class="header-sub">담당 개발 범위 · 개별 기능 완료는 <a href="../../README.md">실제 구현</a> · <a href="ISSUES.md">발표 이슈</a> 참조</span>
         </div>
         <span class="team-badge">TEAM · 지피한테물어봐</span>
       </header>
