@@ -1,17 +1,21 @@
-/* SafeHandoff 작업 화면 — Swiss Grid Minimal
-   흰 바탕 / #111 본문 / #6b6b6b 보조 / #e2231a 단일 강조(선택 표시에만 소량)
-   직각, 그림자·그라디언트·배지·장식 아이콘 없음. 구분은 여백과 #111 헤어라인만. */
+/* SafeHandoff 작업 화면 — 검토용 문서(도시에)
+   따뜻한 종이 바탕 / 잉크빛 본문 / 헤어라인은 종이색 회색 / 인주빛 단일 강조.
+   제목만 명조 계열, 본문은 산세리프. 직각, 그림자·그라디언트·장식 아이콘 없음. */
 
 :root {
   color-scheme: light;
-  --paper: #ffffff;
-  --ink: #111111;
-  --ink-muted: #6b6b6b;
-  --accent: #e2231a;
+  --paper: #f6f2e9;
+  --surface: #fffcf4;
+  --ink: #1a1917;
+  --ink-muted: #655f53;
+  --rule: #d9d1c0;
+  --rule-strong: #8f8472;
+  --accent: #9c2b21;
   --measure: 1200px;
   --gutter: 24px;
   --block-gap: 48px;
   --font: "Helvetica Neue", Arial, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+  --font-display: "Iowan Old Style", "Palatino Linotype", "AppleMyungjo", "Nanum Myeongjo", Georgia, serif;
 }
 
 *,
@@ -32,6 +36,11 @@ body {
   font-size: 1.0625rem;
   line-height: 1.55;
   overflow-wrap: break-word;
+}
+
+::selection {
+  background: var(--accent);
+  color: var(--surface);
 }
 
 h1,
@@ -58,24 +67,26 @@ legend {
 }
 
 h1 {
-  font-size: clamp(2rem, 4vw, 2.5rem);
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  line-height: 1.05;
+  font-family: var(--font-display);
+  font-size: clamp(2.125rem, 4vw, 2.75rem);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1.02;
 }
 
 h2,
 legend {
-  font-size: 1.3125rem;
-  font-weight: 700;
-  letter-spacing: -0.01em;
+  font-family: var(--font-display);
+  font-size: 1.375rem;
+  font-weight: 600;
+  letter-spacing: -0.005em;
   line-height: 1.2;
 }
 
 h3 {
-  font-size: 0.8125rem;
+  font-size: 0.75rem;
   font-weight: 600;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.14em;
   line-height: 1.4;
   color: var(--ink-muted);
 }
@@ -99,9 +110,10 @@ a:focus-visible {
 }
 
 .meta {
-  font-size: 0.8125rem;
-  font-weight: 500;
-  letter-spacing: 0.04em;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.09em;
+  font-variant-numeric: tabular-nums;
   color: var(--ink-muted);
 }
 
@@ -124,7 +136,7 @@ a:focus-visible {
   left: var(--gutter);
   z-index: 10;
   padding: 12px 16px;
-  border: 1px solid var(--ink);
+  border: 1px solid var(--rule);
   background: var(--paper);
   color: var(--ink);
   font-size: 0.9375rem;
@@ -142,7 +154,7 @@ a:focus-visible {
 /* 머리말 — 짧은 제목과 항상 보이는 현재 모드 */
 
 .masthead {
-  border-bottom: 1px solid var(--ink);
+  border-bottom: 3px double var(--rule-strong);
 }
 
 .masthead__inner {
@@ -153,7 +165,7 @@ a:focus-visible {
   gap: 8px var(--gutter);
   max-width: var(--measure);
   margin: 0 auto;
-  padding: 24px var(--gutter) 16px;
+  padding: 28px var(--gutter) 18px;
 }
 
 .masthead__brand {
@@ -320,8 +332,8 @@ textarea {
   min-width: 0;
   min-height: 44px;
   padding: 10px 12px;
-  border: 1px solid var(--ink);
-  background: var(--paper);
+  border: 1px solid var(--rule-strong);
+  background: var(--surface);
   color: var(--ink);
   font-family: inherit;
   font-size: 1rem;
@@ -376,8 +388,8 @@ textarea[aria-invalid="true"]:focus-visible {
   min-height: 44px;
   max-width: 100%;
   padding: 10px 20px;
-  border: 1px solid var(--ink);
-  background: var(--paper);
+  border: 1px solid var(--rule-strong);
+  background: var(--surface);
   color: var(--ink);
   font-family: inherit;
   font-size: 1rem;
@@ -445,6 +457,11 @@ textarea[aria-invalid="true"]:focus-visible {
   min-height: 44px;
   padding: 4px 0;
   min-width: 0;
+  border-top: 1px solid var(--rule);
+}
+
+.option:first-child {
+  border-top: 0;
 }
 
 .option input[type="radio"] {
@@ -478,7 +495,7 @@ textarea[aria-invalid="true"]:focus-visible {
 
 .custom {
   padding-top: 16px;
-  border-top: 1px solid var(--ink);
+  border-top: 1px solid var(--rule-strong);
 }
 
 .custom > * + * {
@@ -493,14 +510,15 @@ textarea[aria-invalid="true"]:focus-visible {
 
 .draft__head {
   padding-bottom: 12px;
-  border-bottom: 1px solid var(--ink);
+  border-bottom: 1px solid var(--rule-strong);
 }
 
 .draft__sheet {
   margin-top: 24px;
   min-height: 18rem;
   padding: 24px;
-  border: 1px solid var(--ink);
+  border: 1px solid var(--rule-strong);
+  background: var(--surface);
 }
 
 .draft__empty {
@@ -531,7 +549,7 @@ textarea[aria-invalid="true"]:focus-visible {
   gap: 16px var(--gutter);
   margin-top: var(--block-gap);
   padding-top: 24px;
-  border-top: 1px solid var(--ink);
+  border-top: 1px solid var(--rule-strong);
 }
 
 .primary__text {
@@ -587,7 +605,7 @@ textarea[aria-invalid="true"]:focus-visible {
 .analysis-results {
   margin-top: var(--block-gap);
   padding-top: 24px;
-  border-top: 1px solid var(--ink);
+  border-top: 1px solid var(--rule-strong);
   min-width: 0;
 }
 
@@ -604,7 +622,7 @@ textarea[aria-invalid="true"]:focus-visible {
   display: grid;
   gap: 8px;
   padding-bottom: 16px;
-  border-bottom: 1px solid var(--ink);
+  border-bottom: 1px solid var(--rule-strong);
 }
 
 .analysis-results__head .hint {
@@ -644,21 +662,30 @@ textarea[aria-invalid="true"]:focus-visible {
 .analysis-candidate,
 .analysis-conflict {
   min-width: 0;
-  padding-top: 12px;
-  border-top: 1px solid var(--ink);
+  padding: 16px;
+  border: 1px solid var(--rule);
+  border-left: 3px solid var(--rule-strong);
+  background: var(--surface);
+}
+
+/* 후보는 공개 결정의 대상이므로 왼쪽 괘선만 인주색을 쓴다. */
+.analysis-candidate {
+  border-left-color: var(--accent);
 }
 
 .analysis-evidence__excerpt {
   margin: 8px 0 0;
   padding: 12px;
-  border: 1px solid var(--ink);
+  border: 1px solid var(--rule);
+  background: var(--paper);
   max-width: 100%;
   min-width: 0;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
   font-family: inherit;
   font-size: 0.9375rem;
-  line-height: 1.5;
+  line-height: 1.6;
+  font-variant-numeric: tabular-nums;
 }
 
 .analysis-candidate > * + *,
@@ -688,7 +715,7 @@ textarea[aria-invalid="true"]:focus-visible {
   gap: var(--block-gap);
   margin-top: var(--block-gap);
   padding-top: 24px;
-  border-top: 1px solid var(--ink);
+  border-top: 1px solid var(--rule-strong);
 }
 
 .documents {
@@ -698,7 +725,7 @@ textarea[aria-invalid="true"]:focus-visible {
 .documents article {
   min-width: 0;
   padding: 16px 0;
-  border-top: 1px solid var(--ink);
+  border-top: 1px solid var(--rule);
 }
 
 .documents time {
@@ -728,7 +755,7 @@ textarea[aria-invalid="true"]:focus-visible {
   gap: 16px;
   margin-top: var(--block-gap);
   padding-top: 24px;
-  border-top: 1px solid var(--ink);
+  border-top: 1px solid var(--rule-strong);
 }
 
 .execution__head {
@@ -838,7 +865,7 @@ textarea[aria-invalid="true"]:focus-visible {
 .decisions {
   margin-top: var(--block-gap);
   padding-top: 24px;
-  border-top: 1px solid var(--ink);
+  border-top: 1px solid var(--rule-strong);
 }
 
 .decisions:focus {
@@ -888,8 +915,9 @@ textarea[aria-invalid="true"]:focus-visible {
 .candidate {
   min-width: 0;
   margin-top: 24px;
-  padding-top: 16px;
-  border-top: 1px solid var(--ink);
+  padding: 16px;
+  border: 1px solid var(--rule);
+  background: var(--surface);
 }
 
 .candidate__legend {
@@ -940,7 +968,7 @@ textarea[aria-invalid="true"]:focus-visible {
 
 .conflict__side {
   padding-top: 12px;
-  border-top: 1px solid var(--ink);
+  border-top: 1px solid var(--rule);
 }
 
 .conflict__side-label {
@@ -989,7 +1017,7 @@ textarea[aria-invalid="true"]:focus-visible {
 .preview__table th,
 .preview__table td {
   padding: 8px 12px;
-  border: 1px solid var(--ink);
+  border: 1px solid var(--rule);
   text-align: left;
   vertical-align: top;
   white-space: nowrap;
@@ -1002,7 +1030,7 @@ textarea[aria-invalid="true"]:focus-visible {
 .batch {
   margin-top: 24px;
   padding-top: 16px;
-  border-top: 1px solid var(--ink);
+  border-top: 1px solid var(--rule);
 }
 
 .option input[type="checkbox"] {
