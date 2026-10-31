@@ -15,29 +15,44 @@ export interface TaskContext {
   output_language?: string;
 }
 
+// task.v1 sources[]: id is the specific version row, source_id the stable logical source
+// across versions, version the version number. Engine only ever sees `included` rows that the
+// server already selected; it does not decide inclusion itself.
 export interface SourceDocument {
   id: string;
-  format: 'txt' | 'log' | 'md' | 'csv' | 'json';
+  source_id: string;
+  version: number;
   display_name: string;
-  raw_bytes: string;
+  format: 'txt' | 'log' | 'md' | 'csv' | 'json';
+  source_slot: string;
+  raw_bytes: string;   // base64, matching task.v1 sources[].raw_bytes' contentEncoding
+  sha256: string;
+  included: boolean;
 }
 
 // -- evidence analysis (candidate_proposals.v1): pure LLM inference + deterministic server
-// parsing, no tool calls --
+// parsing, no tool calls -- field names mirror task.v1's evidence[] entry exactly (verified
+// against contracts/task.v1.schema.json, not the older 02-evidence-analysis.md prose, which
+// uses different field names for the same concept and is not wire-authoritative).
 export interface EvidenceLocator {
   kind: 'byte_range' | 'csv_cell' | 'json_pointer';
-  start?: number;
-  end?: number;
-  row?: number;
   column?: string;
   pointer?: string;
+  row?: number;
+  value_sha256?: string;
 }
 export interface EvidenceSpan {
   id: string;
-  source_id: string;
+  source_version_id: string;   // == SourceDocument.id, the versioned row, never source_id
   locator: EvidenceLocator;
+  start: number;
+  end: number;
   evidence_sha256: string;
 }
+// The model's raw response shape (candidate_proposals.v1) -- deliberately narrower than
+// task.v1's persisted `candidates[]` entry. The server adds id (replacing local_key),
+// selector, origin and conflict_group/conflict_reason when it persists a response; those
+// are server-assigned and do not belong on what the model returns.
 export type CandidateKind = 'observation' | 'constraint' | 'hypothesis' | 'unknown' | 'identifier';
 export interface Candidate {
   local_key: string;

@@ -258,3 +258,19 @@ catalog에서 명시적 version을 선택해 pin을 재검증하고 별도 운�
 출처·exact-byte 연출 코드 스냅샷·포스터를 분리했다. MP4는 원본 Git 객체에서 hash 검증 후
 .local에 준비하고 loopback 정적 미리보기만 제공한다. 과거 녹화·보고를 현행 앱이나 모델 품질의
 성공 근거로 사용하지 않는다. 녹화 코드의 현행 이식·새 촬영은 별도 범위다.
+
+## 2026-10-31 · F02 역할·계약·구조 정리, F03 UI 사전 체크리스트
+
+사용자 요청에 따라 F02(`analyze()`)는 역할·계약·구조를 먼저 정리했다. `contracts/task.v1.schema.json`의
+`sources`/`evidence` 하위 스키마를 직접 대조해 core-interface의 `SourceDocument`/`EvidenceLocator`/
+`EvidenceSpan`이 실제 wire 계약과 다르던 걸 고쳤다(`source_id`→`source_version_id`, `start`/`end`를
+locator 밖으로, locator에 `value_sha256` 추가, `SourceDocument`에 `source_id`/`version`/
+`source_slot`/`sha256`/`included` 추가). 이 타입들은 지금까지 미구현 스텁 시그니처에서만 쓰여
+고쳐도 아무것도 깨지지 않았다. 역할 경계(Engine=결정적 파싱+LLM 호출+검증, server=snapshot/영속
+ID/revision/수동후보)와 다음 라운드에 만들 파일 구조는 [F02 계획](f02-analyze-plan.md)에 기록했고
+실제 파서·프롬프트 로직은 아직 구현하지 않았다.
+
+F03 착수 전에 현재 클라이언트 UI(전역 A~D 하나, 저장 없는 disabled 버튼들)와 F03 실제 계약
+(`docs/features/03-disclosure-decisions.md`)을 대조해 10개 항목의 계약 체크리스트를
+[F03 UI 사전 체크리스트](f03-ui-prerequisites.md)에 정리했다. 가장 큰 차이는 F03이 candidate별
+결정인데 지금 UI는 작업 전체에 전역 선택 하나뿐이라는 점이다. UI 코드는 고치지 않았다.
