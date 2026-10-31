@@ -1,6 +1,5 @@
 import os
 import re
-import subprocess
 
 WORKSPACE = os.path.dirname(os.path.abspath(__file__))
 

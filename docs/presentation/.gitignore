@@ -6,3 +6,6 @@ __pycache__/
 # OS 파일 탐색기 메타데이터
 .DS_Store
 Thumbs.db
+
+# 발표 PDF는 로컬 빌드 산출물이며 Git에 추적하지 않는다.
+*.pdf

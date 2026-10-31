@@ -8,6 +8,9 @@ importers:
 
   .:
     devDependencies:
+      '@fontsource-variable/noto-sans-kr':
+        specifier: 5.3.1
+        version: 5.3.1
       '@slop-lab/qg':
         specifier: 0.1.0
         version: 0.1.0
@@ -17,6 +20,9 @@ importers:
       '@types/node':
         specifier: ^24.0.0
         version: 24.19.2
+      playwright:
+        specifier: 1.64.1
+        version: 1.64.1
       typescript:
         specifier: ~5.9.3
         version: 5.9.3
@@ -92,6 +98,9 @@ importers:
         version: link:../core-interface
 
 packages:
+
+  '@fontsource-variable/noto-sans-kr@5.3.1':
+    resolution: {integrity: sha512-f5aty6Qgk2LVU5TjCtXHxiYHqUWYW8f75ll0Chn8ucCqoOlIomcACUwf1V47yUt6wTdWZiGr3dcbQk+zlOspMA==}
 
   '@slop-lab/qg-check-runner@0.1.0':
     resolution: {integrity: sha512-xY0QbWrYEdR0sRsz25zNc3oJUn/8N89AIUu4wXrcqrTZEs9wt8jOits1pnWcTVuLcH71eUVKWpcjiu9Mx0/0zw==}
@@ -234,6 +243,16 @@ packages:
   ms@2.1.3:
     resolution: {integrity: sha512-6FlzubTLZG3J2a/NVCAleEhjzq5oxgHyaCU9yYXvcLsvoVaHJq/s5xXI6/XXP6tz7R9xAOtHnSO/tXtF3WRTlA==}
 
+  playwright-core@1.64.1:
+    resolution: {integrity: sha512-BC4s8y6SEVA6Q1rSxZTto8hI1KUI3xXlHGZgvGqP4IqPdI/a6FX9H29IDNz7vKo9l21b6LfYosScPL6M3xxyDQ==}
+    engines: {node: '>=20'}
+    hasBin: true
+
+  playwright@1.64.1:
+    resolution: {integrity: sha512-HCrVhHr5QQuwYoswEUGTb7gGp522yflbv/ST8nF4sFWGuLjQCt17Q/EubpGGSNKYn1tsTCPZxqHhHCfVURu7UA==}
+    engines: {node: '>=20'}
+    hasBin: true
+
   typescript@5.9.3:
     resolution: {integrity: sha512-jl1vZzPDinLr9eUt3J/t7V6FgNEw9QjvBPdysz9KfQDD41fQrC2Y4vKQdiaUpFT4bXlb1RHhLpp8wtm6M5TgSw==}
     engines: {node: '>=14.17'}
@@ -251,6 +270,8 @@ packages:
     hasBin: true
 
 snapshots:
+
+  '@fontsource-variable/noto-sans-kr@5.3.1': {}
 
   '@slop-lab/qg-check-runner@0.1.0':
     dependencies:
@@ -484,6 +505,12 @@ snapshots:
       - supports-color
 
   ms@2.1.3: {}
+
+  playwright-core@1.64.1: {}
+
+  playwright@1.64.1:
+    dependencies:
+      playwright-core: 1.64.1
 
   typescript@5.9.3: {}
 

@@ -14,9 +14,11 @@
     "dev:fake-app": "pnpm --filter @safehandoff/fake-app dev"
   },
   "devDependencies": {
+    "@fontsource-variable/noto-sans-kr": "5.3.1",
     "@slop-lab/qg": "0.1.0",
     "@slop-lab/qg-rules-js": "0.1.0",
     "@types/node": "^24.0.0",
+    "playwright": "1.64.1",
     "typescript": "~5.9.3"
   }
 }
