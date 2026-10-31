@@ -52,3 +52,5 @@ export function parseGenerateRequest(value: unknown): GenerateRequest {
 export * from './workflow.ts';
 export * from './reproduction.ts';
 export * from './model.ts';
+export * from './skills.ts';
+export * from './tools.ts';

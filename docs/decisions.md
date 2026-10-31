@@ -149,3 +149,12 @@
 - 사용자가 명시적으로 승인한 기존 모델에 가상 사실만 전송해 실제 앱 프로세스의 작성·검토 왕복을 실행했다. 최종 HTTP 200과 불확실성 표현 유지를 확인했다. 상세 범위와 첫 실패·수정은 [실행 기록](live-smoke-2026-10-31.md)에 남겼다.
 - provider.response_mode=text는 모델 호출자가 JSON 출력을 원해도 response_format 전송을 금지한다. 작은 호환 서버의 기능 설정을 우선하며 응답은 기존 JSON parser로 엄격하게 검증한다.
 - 검토 프롬프트가 schema_version을 명시하도록 보완했다. 필수 응답 필드를 생략한 모델 출력을 통과시키는 fallback은 추가하지 않았다.
+
+## 2026-10-31 · F07 도메인 확장 계약 2라운드
+
+사용자 요청에 따라 F07(제품별 지침 팩·맥락 검사·도구 registry)도 1라운드와 같은 방식으로
+먼저 TypeScript 계약만 정리했다. 샌드박스(`ProcessToolRunner`)와 팩 로더/검증기
+(`SkillPackLoader`/`validatePackLayout`)를 이번 계약 범위에 포함했고, task/역할/도구/워크플로우를
+포함한 다음 구현 순서는 [F07 계약과 다음 구현 순서](f07-extensions-plan.md)에 기록했다.
+OverlayFS 대신 읽기전용 bind mount + tmpfs를 쓰기로 했다(`DockerReproRunner`가 이미 쓰는
+패턴이며 쓰기 가능한 합성 뷰가 필요한 요구가 스펙에 없음).
