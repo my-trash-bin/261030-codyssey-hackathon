@@ -369,18 +369,16 @@
   color: var(--color-text-accent);
 }
 
-/* 내부 참고용 영역은 제목을 키우지 않고 인주색 테두리와 '내부용' 표시로 구분한다. */
-.block--fold--internal {
-  border: var(--border-width) solid var(--color-border-accent);
-  padding: 0 var(--space-5) var(--space-4);
-}
-
+/* 내부 참고용 영역은 상자 전체를 감싸지 않고, 머리줄에만 인주색 세로 괘선과 '내부용' 표시를 둔다.
+   내용이 길어도 테두리가 화면 끝까지 늘어나 잘린 것처럼 보이지 않는다. */
 .block--fold--internal > summary {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: var(--space-3);
-  padding-block: var(--space-4);
+  padding-block: var(--space-2);
+  padding-inline-start: var(--space-4);
+  border-inline-start: var(--border-width-marker) solid var(--color-border-accent);
 }
 
 .block--fold--internal > summary h2 {
@@ -390,6 +388,13 @@
   font-weight: var(--font-weight-bold);
   letter-spacing: var(--letter-spacing-normal);
   color: var(--color-text-secondary);
+}
+
+/* 좁은 정보 열에서 줄이 과하게 늘어나지 않게 본문을 한 단계 줄이고, 머리줄과 같은 들여쓰기를 쓴다. */
+.block--fold--internal .fold__body {
+  padding-inline-start: calc(var(--space-4) + var(--border-width-marker));
+  font-size: var(--type-body-sm-size);
+  line-height: var(--type-body-sm-line);
 }
 
 .chip--internal {
