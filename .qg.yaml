@@ -1,26 +1,23 @@
-# The CLI enables the language-independent recommended rules by default.
-# All checks run through just check; npm test runs Node tests only; hook installation is managed separately.
+# just check invokes QG; pnpm test runs Node tests without invoking QG.
 hooks:
   preCommit:
     installation: off
-
 artifacts:
   generated:
     include:
+      - evaluation/**
       - var/**
       - bin/**
-      - evaluation/results/**
       - contracts/openapi.json
       - contracts/*.v1.schema.json
-
+      - packages/*/dist/**
 rules:
   markdown/allowed-characters:
     severity: error
     options:
       allowedLanguages: [en, ko]
-      # Punctuation, arrows and mathematical notation used in Korean design docs.
-      allowedCharacters: ["·", "→", "–", "‘", "’", "§", "—", "“", "”", "×", "∩", "…"]
       ignoredPaths: [var/**, bin/**]
+      allowedCharacters: ["·", "→", "–", "‘", "’", "§", "—", "“", "”", "×", "∩", "…"]
   docs/valid-reference:
     severity: error
     options:
@@ -29,8 +26,6 @@ rules:
     severity: error
     options:
       ignoredDirectories: [.git, .local, .qg, node_modules, dist, var, bin]
-      # Vendored font binary; its source and OFL notice are tracked alongside it.
-      ignoredPaths: [web/static/NotoSansKR.ttf]
   files/max-line-length:
     severity: error
     options:
@@ -43,33 +38,20 @@ rules:
     severity: error
     options:
       ignoredDirectories: [.git, .local, .qg, node_modules, dist, var, bin]
-
-# Existing serialized rows and inline templates retain bounded, path-specific limits.
 overrides:
   - files: [docs/traceability.csv]
     rules:
       files/max-line-length: [error, {limit: 650}]
-  - files: [prompts/*.txt, scripts/generate-contracts.go, scripts/generate-openapi.py, internal/workflow/model.go, web/templates/app.html]
-    rules:
-      files/max-line-length: [error, {limit: 800}]
-  - files: [web/static/app.js, web/static/workspace.js]
-    rules:
-      files/max-line-length: [error, {limit: 3500}]
-
 checks:
-  - name: QG policy and interactive workspace regression tests
+  - name: TypeScript types
     command: mise
-    args: [exec, --, npm, test]
-    message: Keep Korean documents allowed and recommended checks enforced.
-  - name: Go unit and integration tests
+    args: [exec, --, pnpm, typecheck]
+    message: Fix TypeScript type errors.
+  - name: Package builds
     command: mise
-    args: [exec, --, just, test-go]
-    message: Fix the Go tests before accepting the change.
-  - name: Documentation contracts and references
-    command: python3
-    args: [tools/validate_docs.py]
-    message: Fix documentation contracts, references, or example data.
-  - name: Background server lifecycle
-    command: python3
-    args: [-m, unittest, discover, -s, tools, -p, 'test_*.py']
-    message: Fix server startup, shutdown, restart, or PID ownership handling.
+    args: [exec, --, pnpm, build]
+    message: Fix the server or client build.
+  - name: Node and QG policy tests
+    command: mise
+    args: [exec, --, pnpm, test]
+    message: Fix Node tests without bypassing the quality rules.

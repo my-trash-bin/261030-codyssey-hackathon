@@ -1,10 +1,10 @@
 .local/
+.env
+node_modules/
+**/dist/
+*.db*
+# 이전 시제품의 로컬 데이터와 비공개 설정은 추적하지 않습니다.
 var/
 bin/
-.env
-*.db*
-
 config.json
-node_modules/
-
 __pycache__/
