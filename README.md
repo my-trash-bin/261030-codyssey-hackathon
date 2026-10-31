@@ -1,160 +1,134 @@
 # SafeHandoff
 
-회사 자료를 외부에 공유하기 전에 **목적에 필요한 자료를 준비하는 수고를 줄이는** 사내 실행 오픈소스 PoC입니다. 사용자가 허용한 정보로 문의문·표·예제를 새로 작성합니다. 공개 선택을 바꾸면 이전 본문·첨부·ZIP을 함께 무효화하고, 현재 판본에서 검토한 실제 파일만 확정·다운로드합니다. 자동 메일·외부 제출 기능은 없습니다.
+실제 앱과 연출용 가짜 앱을 독립적으로 개발하기 위한 TypeScript·pnpm 작업 공간입니다. 실제 앱은 문서 저장·조회와 승인 facts 기반 작성·검토를 제공합니다. **앱이 설정과 환경 변수로 모델을 주입하며, 모델 설정이 없으면 생성은 실패합니다**. 가짜 앱은 템플릿·응답 지연·실패를 바꿔 흐름을 반복 개선합니다.
 
-현재 구현은 Go 단일 서버, SQLite, 서버 HTML과 ES modules입니다. 도구 버전은 사용자 요청에 따라 **mise**로 관리합니다. 사내 모델이 없어도 개발용 fixture 모드로 실행합니다. fixture의 고정 검토 응답은 실제 모델의 의미 검토 성능을 증명하지 않습니다. 명세 대비 구현 선택·제한과 실제 미수행 검증은 [검증 보고서](docs/검증보고서.md)에 구분했습니다.
+## 패키지 경계
 
-## 구현 기준과 문서 안내
-
-문서 기준은 v1.0(2026-10-31)입니다. [프로젝트 의도](intent.md) → [작업 규칙](AGENTS.md) → [PRD](docs/prd.md) → [공통 명세](docs/spec.md) → API·ERD·기능 명세 순으로 읽습니다. 아래 실행 안내는 현재 코드에서 확인한 방법이며, 명세의 모든 기능이 구현됐다는 뜻은 아닙니다.
-
-| 문서 | 용도 |
+| 패키지 | 역할 |
 | --- | --- |
-| [PRD](docs/prd.md), [공통 명세](docs/spec.md) | 제품 범위, 목표별 완료 조건, 상태·공개 결정 |
-| [API](docs/api.md), [역할 입출력](docs/agent-workflow.md) | 요청·응답·모델 역할의 기준 계약 |
-| [구조](docs/architecture.md), [ERD](docs/ERD.md), [보안](docs/security.md) | 모듈·저장·접속·보존·실행 경계 |
-| [화면](docs/IA.md), [사용자 여정](docs/uj.md) | 화면 경로와 정상·실패·복구 흐름 |
-| [기능 F01–F10](docs/features/01-task-intake.md), [구현 계획](docs/plan.md) | 기능별 인수 조건과 통합 순서 |
-| [QA](docs/qa.md), [AC 대응](docs/acceptance-map.csv), [시험 추적](docs/traceability.csv) | AC 127개·QA T01–T60의 연결 |
-| [테스트 자료](docs/test-data.md), [시연](docs/demo.md) | 가상 입력과 목표 시나리오 |
-| [설계 결정](docs/decisions.md), [구현 시작 지시](docs/implementation-start.md) | 기본값·확인 필요·구현 절차 |
-| [검증보고서](docs/검증보고서.md) | 현재 구현·시험 결과·미완료 사항 |
+| packages/app | 최종 실제 앱: 서버 껍데기와 진짜 코어 조립 |
+| packages/fake-app | 연출용 가짜 앱: 가짜 코어·연결 연출·조절 화면 |
+| packages/server | 코어 구현을 모르는 공통 HTTP·SQLite 껍데기 |
+| packages/core-interface | 공유 요청·응답·오류와 Core 계약 |
+| packages/core | 모델 주입 기반 작성·검토 Engine. 가짜 구현을 import하지 않음 |
+| packages/model-adapter | 설정 기반 호환 HTTP 모델 클라이언트 |
+| packages/sandbox-runner | digest 고정 toy 이미지의 격리 실행과 재현 판정 |
+| packages/skill-loader | manifest·파일 경로·digest를 검증하는 F07 파일시스템 로더 |
+| packages/fake-core | 연출용 문구와 결과 템플릿 |
+| packages/client | 별도 문서 저장·조회 화면과 API 프록시 |
 
-공통 계약은 [domain-contract.json](contracts/domain-contract.json), [core.schema.json](contracts/core.schema.json), [참조 DDL](contracts/schema.sql), [카탈로그 예시](contracts/catalog.example.json)를 따릅니다. core schema는 [공통·요청·모델 모듈](contracts/core/README.md)을 로컬 등록해 사용하며 기존 schema ID와 정의 이름을 유지합니다. 24개 참조 테이블과 새 API 계약은 아직 런타임에 적용되지 않았습니다. `contracts/openapi.json`과 개별 `*.v1.schema.json`은 기존 코드에서 생성한 산출물이며 새 기준과 다른 부분은 구현 전환 대상입니다.
+의존성 경계는 테스트로 강제합니다. server는 Core 인터페이스에만 의존하며 app과 fake-app이 구현을 주입합니다. 가짜 앱의 연출을 고쳐도 실제 앱이나 진짜 코어를 수정할 필요가 없습니다. 현재 구조는 [architecture](docs/architecture.md), 실제 API는 [api](docs/api.md), 독립 개발 계획은 [plan](docs/plan.md)을 따릅니다.
 
-P0는 입력·분석·선택·작성/검토·확정·재사용·복구·실행 경계, P1은 제품 팩·맥락 검사·재현 확장입니다. core fixture 동작, 실제 모델 검증, 확장 검증, 전체 PoC 완료를 구분합니다. 실제 모델·수신자 평가와 작업량 비교는 아직 미수행입니다.
+## 준비
 
-새 기준의 가상 자료는 `fixtures/reference-pack/`, 현재 코드의 시험 자료는 `fixtures/author/`입니다. 평가자 기대 조건과 수신자 전용 자료를 앱·모델에 제공하지 않습니다. 새 QA 결과는 `not_run`이며 기존 T01–T28의 결과를 번호로 이전하지 않습니다.
-
-## 실행
-
-개발·검증 도구는 [mise](https://mise.jdx.dev/)로 관리하는 Go·Make·Node.js 24.21.0입니다. `make setup`이 고정 npm 개발 의존성도 설치합니다. 앱 실행 자체에는 Node/npm이 필요하지 않으며 Docker는 합성 재현·외부 checker 시험에 사용합니다.
+Node 24.21.0·pnpm 10.13.1·just 1.58.0을 mise로 고정합니다.
 
 ```bash
 mise trust
 mise install
-mise exec -- make setup
-mise exec -- make test
-mise exec -- make run-fixture
+mise exec -- pnpm install --frozen-lockfile
+cp .env.example .env  # 기존 파일이 있으면 생략
 ```
 
-브라우저에서 **http://127.0.0.1:8080** 을 엽니다. 처음에는 작업 기록이 비어 있습니다. 새 작업을 만들고 `fixtures/author/b2b-timeout`의 세 파일을 업로드합니다. 자료 분석 후 공개 미리보기를 확인하고 선택을 적용한 뒤 작성 → 최종 파일 확인 → 이 파일들로 확정 순으로 진행합니다.
-
-실제 확인한 출력 예:
-
-```text
-ok  safehandoff.local/poc/internal/httpapi
-ok  safehandoff.local/poc/internal/policy
-SafeHandoff fixture: http://127.0.0.1:8080
-```
-
-fixture DB는 `var/fixture`, 일반 live DB는 `var/safehandoff`에 분리됩니다. 실행 중인 다른 서버가 있으면 `./bin/safehandoff --fixture --data-dir ./var/demo --listen 127.0.0.1:8081`처럼 포트를 바꿉니다. seed는 `mise exec -- make seed-demo`로 전용 `var/demo`에 **미승인** 작업 세 개를 만듭니다. 이 DB를 보려면 `./bin/safehandoff --fixture --data-dir ./var/demo`로 실행하세요.
-
-## 실제 사내 모델 연결
+## 실제 앱과 가짜 앱 실행
 
 ```bash
-cp config.example.json config.json
-export SAFEHANDOFF_LLM_BASE_URL=https://your-internal-endpoint/v1
-export SAFEHANDOFF_LLM_MODEL=your-internal-model
-# 인증이 필요한 경우에만 환경 변수 설정
-export SAFEHANDOFF_LLM_API_KEY=...
-mise exec -- make run
+just app          # 실제 앱 API :8080
+just fake-app     # 연출용 앱 :8081, 별도 터미널
+just client       # 실제 앱 대상 문서 저장·조회 화면 :5173
+just fake-client  # 가짜 앱 대상 같은 화면 :5174
 ```
 
-`base_url`은 `/v1`까지의 API root입니다. 모델 서비스가 HTTP만 제공하면 **해당 로컬 설정의** `provider.allow_plain_http`를 `true`로 바꿉니다. redirect는 따라가지 않습니다. 시스템 역할 미지원은 `supports_system_role=false`, temperature 미지원은 `send_temperature=false`, 출력 제한 매개변수는 `max_tokens / max_completion_tokens / omit`으로 설정합니다. 일반 텍스트 JSON 응답만 필요하며 native tool calling은 실행하지 않습니다. live 장애 시 fixture로 자동 전환하지 않습니다.
+연출 조절 화면은 **http://127.0.0.1:8081/__demo**입니다. 제목·도입·마무리, 지연, 실패 횟수를 적용하고 승인한 표현으로 재생성해 볼 수 있습니다. 가짜 앱은 실제 모델을 호출하지 않습니다. 실제 앱의 같은 재생성 API는 설정한 모델로 작성·검토하며 실패 시 503 CORE_UNAVAILABLE를 반환합니다.
+
+기본 수신 주소는 0.0.0.0이며 사내 IP에서도 같은 포트로 접속합니다. 각 터미널의 Ctrl-C로 종료합니다. 현재는 단일 사용자 개발용이며 사내 인증은 미구현입니다. 패키지 dev/start는 루트 .env를 자동으로 읽고 기존 환경 변수가 우선합니다.
+
+실제 앱 DB는 `.local/data/safehandoff.sqlite`, 가짜 앱은 `.local/data/demo.sqlite`이며 각각 DATABASE_PATH와 DEMO_DATABASE_PATH로 지정합니다. 상대 경로 기준은 저장소 루트입니다. 가짜 연출 설정은 메모리에서 관리하며 재시작하면 초기화합니다.
+
+## 검사와 빌드
 
 ```bash
-mise exec -- make test-live
+just check
+pnpm test
+pnpm typecheck
+pnpm build
 ```
 
-endpoint·모델이 없으면 evaluator가 `not_run`, 종료 코드 2를 남깁니다. 실제 사내 모델 실행 기록은 아직 없습니다. 인증 값을 UI·프롬프트·저장소에 넣지 마세요. `config.json`, `.env`, `var`, `bin`은 Git에서 제외됩니다.
+just check는 QG를 직접 실행합니다. QG가 recommended 규칙과 공식 @slop-lab/qg-rules-js의 js preset, 타입·빌드·Node 테스트를 호출합니다. pnpm test에서 QG 전체 검사를 다시 호출하지 않습니다. 한국어 문서·파일명을 허용합니다. 실제 모델 호출은 일반 검사에 포함하지 않습니다.
 
-## 재현과 평가
+빌드된 앱은 `pnpm --filter @safehandoff/app start`, 가짜 앱은 `pnpm --filter @safehandoff/fake-app start`로 각각 실행합니다. 진짜 코어는 packages/core에서 공통 계약을 구현하면서 독립 시험합니다.
+
+intent.md·제품 설계·contracts·fixtures/demo·과거 evaluation 기록은 보존합니다. 제품 전체 기능의 구현 완료와 시연 템플릿 동작을 구분합니다.
+
+## 코어 라이브러리의 현재 범위
+
+`RealCore(modelClient, engineConfig, reproRunner?)`에 설정과 모델을 주입하면 `write`·`review`를 사용할 수 있습니다. `writeReviewed`는 단계별 재시도, 전체 모델 호출 수, 검토 수정 횟수 상한을 함께 지킵니다. `generate`는 기존 승인 facts 계약으로 작성·검토 한 번만 수행하며 검토 실패 시 문서를 반환하지 않습니다.
+
+`OpenAICompatibleModelClient(providerConfig, env?)`는 설정에 지정한 환경 변수 이름으로 URL·모델·키를 조회합니다. 환경 변수는 아래 연결 표를 따릅니다. 한 complete 호출은 HTTP 요청 한 번이며 재시도는 Engine이 담당합니다. HTTP 테스트는 로컬 목 서버만 사용합니다.
+
+분석·공개 제안·미리보기 계산과 task/decision HTTP API는 미구현입니다. Docker 실행기와 내부 task/decision 저장은 [3라운드 범위](docs/round3-scope.md)로 구현했습니다. `composeFactPack`은 서버가 범위·원자료·hash를 검증한 현재 결정과 미리보기를 입력받는 순수 변환이며 승인 저장을 대신하지 않습니다.
+
+## 모델·실행기 환경 변수
+
+`.env.example`의 기존 서버·클라이언트·가짜 앱 변수는 모두 현재 코드에서 사용합니다. 아래 변수를 추가했으며 `.env`의 기존 비공개 값은 그대로 사용합니다.
+
+| 변수 | 용도 |
+| --- | --- |
+| SAFEHANDOFF_LLM_BASE_URL | 호환 모델의 기본 URL. 앱이 `/chat/completions`를 붙임 |
+| SAFEHANDOFF_LLM_MODEL | 요청 모델 ID |
+| SAFEHANDOFF_LLM_API_KEY | Authorization Bearer 키. 로그·컨테이너에 전달하지 않음 |
+| SAFEHANDOFF_CONFIG | 선택 설정 파일 경로. 생략하면 config.json, 없으면 config.example.json |
+| SAFEHANDOFF_REPRO_REGISTRY | 선택 Docker 등록 파일 경로. reproduction.enabled=true일 때 사용 |
+
+상대 설정 경로는 저장소 루트 기준입니다. 모델 세 변수가 모두 있어야 ready=true이며 이는 서버 응답이나 의미 정확성을 확인했다는 뜻은 아닙니다. 시작 시 모델을 호출하지 않습니다. TLS가 기본이며 HTTP 예외·기능·호출 제한은 설정 파일의 provider 블록으로 지정합니다. response_mode=text인 서버에는 response_format을 보내지 않고, JSON 출력은 프롬프트와 응답 검증으로 요구합니다. config.json과 .env는 커밋하지 않습니다.
+
+내부 `TaskStore`는 기존 SQLite 파일에 별도 workflow 테이블을 추가합니다. 현재는 앱 HTTP 경로와 연결하지 않았으며 자동으로 문서나 원자료를 작업으로 옮기지 않습니다. Docker 설치·등록·검증 절차는 [실행기 안내](packages/sandbox-runner/image/README.md)를 따릅니다.
+
+F07 1번의 파일시스템 로더는 [사용법과 제한](packages/skill-loader/README.md)을 따릅니다. 등록 CLI·역할별 프롬프트 연결·팩 활성화는 후속 범위이며 앱 시작 시 팩을 자동으로 읽거나 실행하지 않습니다.
+
+## builtin과 근거 검토
+
+core의 `createBuiltinTools`는 현재 task/revision과 서버가 검증한 grant·인수 SHA-256을 받아 builtin 5개를 만든다. 순수 변환은 승인이나 도구 권한을 새로 만들지 않는다. 시간·입력 길이·원문 인용·정확값 공개는 승인된 인수에 묶는다.
+
+`review(draft, pack, grounding)`와 `writeReviewed(pack, { grounding })`에는 현재 결정·미리보기·scope·원자료 집합·규칙 판본의 effective snapshot이 필요하다. 없거나 유효하지 않으면 모델 호출 전에 needs_decision이다. 기존 `/api/sharing`의 승인 facts 입력은 그 요청의 새 승인으로만 연결하며, F06 Rule 저장·자동 매칭·승인 UI는 구현하지 않았다. 상세 계약은 [grounding 계획과 구현 상태](docs/review-grounding-plan.md)를 따른다.
+
+OSS 가상 재현은 빌드 후 아래 명령으로 실행한다. 등록 파일에는 설치자가 확인한 현재 `/repro` supervisor 이미지의 전체 image ID가 있어야 한다. legacy 이미지 tag/digest가 존재하는 것만으로 호환된다고 가정하지 않는다.
 
 ```bash
-mise exec -- make prepare-runners
-mise exec -- make test-extensions
-mise exec -- make eval
+node --env-file-if-exists=.env tools/oss-repro-smoke.mjs \
+  --registration .local/oss-smoke-registration.json --live-model \
+  --output .local/oss-repro-smoke-new.json
 ```
 
-준비 단계에서만 고정 바이너리와 `scratch` Docker 이미지를 빌드합니다. 실행 단계에서는 이미지 pull·네트워크·코드 생성을 허용하지 않습니다. Docker daemon 권한이 없으면 `not_run/no_environment`입니다. 준비 뒤 코드를 바꾸면 등록 digest를 다시 준비해야 합니다.
+--live-model을 생략하면 모델은 fixture이고 Docker는 실제 실행한다. 자동 테스트에서는 fake runner 주입을 명시적으로 표시한다. 실행 중 pull/build는 하지 않는다. 새 결과 파일만 쓰며 기존 결과를 덮어쓰지 않는다. 원자료 분석·승인은 fixture 가정이고 실제 구현한 분석·승인 제품 흐름으로 표시하지 않는다. 전체 호스트의 인터넷 차단이나 실제 OSS 결함 발견을 검증한 시험도 아니다.
 
-`make eval`은 가상 자료에 명시적인 테스트 공개 계획을 적용하고 앱의 확정·다운로드 경로로 실제 ZIP을 검사합니다. 제품 모델에는 평가 정답표가 제공되지 않습니다. 결과는 [evaluation/results](evaluation/results)에 저장됩니다. 각 실행 ID의 `runs/{run_id}` 보고서·trace·파일과 최신 `*-run.json`을 함께 남깁니다. 이전 예시는 `previous-examples`에 보존하며 실패 실행을 지우지 않습니다. `pass`는 자동 검사 범위의 성공이고 사람 의미 평가·수신자 평가는 별도입니다.
+OSS 스모크의 자동 회귀 검사는 실행 행·고정 oracle·수치·hash·참조·정책 상태만 판정합니다. 생성 문장 의미를 정규식으로 통과시키지 않습니다. 보고서의 execution_summary가 실제 실행 수치이며, 문서는 reviewed_draft_not_finalized와 manual_review_required=true로 표시합니다. 모델 pass는 사람의 최종 확인을 대신하지 않습니다.
 
-공개 결과 예시는 [공급사 문의](evaluation/results/examples/b2b-timeout-direction/support-request.md), [방향 표](evaluation/results/examples/b2b-timeout-direction/observations.csv), [ID 미공개 문의](evaluation/results/examples/b2b-timeout-direction-ids-excluded/support-request.md), [운영 자문](evaluation/results/examples/internal-operations-ratio/operations-brief.md), [OSS 재현 패키지](evaluation/results/examples/oss-encoding-direction)입니다. ZIP과 manifest도 같은 폴더에 있습니다. 모두 가상 자료입니다.
-
-독립 수신자는 A 패키지의 `repro` 폴더에서 다음을 실행할 수 있습니다.
-
-```bash
-GOTOOLCHAIN=local GOPROXY=off go run ./cmd/repro --inputs ./inputs
-```
-
-입력 생성 변형:
-
-```bash
-./bin/safehandoff-fixtures --scenario internal-operations --seed 41 \
-  --variation middle-decrease --out ./var/demo-inputs
-```
-
-`baseline`, `middle-decrease`, `source-conflict`, `ids-excluded`, `recipient-changed`, `wrong-target`, `checker-error`만 받습니다. 일부 변형은 원자료 변경이며, 나머지는 생성 manifest의 테스트 결정·실행 계획입니다. 자동으로 사용자 승인을 만들지 않습니다.
-
-## 문서와 제품 검증
-
-```bash
-mise exec -- make test
-# 개별 실행
-mise exec -- npm run lint
-mise exec -- npm run test:qg
-mise exec -- make test-go
-mise exec -- make test-docs
-```
-
-`make test`와 `npm test`는 `@slop-lab/qg`의 기본 recommended 규칙, QG 정책 회귀시험, Go 단위·통합시험, 문서 검사를 함께 실행합니다. `.qg.yaml`에서 한국어·영어 문서를 허용하고 문서에서 사용하는 기호를 명시했습니다. 한국어 문서를 영어로 바꿀 필요는 없습니다.
-
-생성된 계약·실행 보고서·로컬 빌드 출력은 생성물로 분류합니다. 기존 CSV 행·프롬프트·HTML/JS 템플릿의 긴 줄은 해당 경로에만 유한 한도를 설정했으며 그 밖의 recommended 규칙은 유지합니다. Git hook 자동 설치는 끄고 동일 검사를 npm/Make 진입점으로 실행합니다. 파일 길이는 500줄 초과 경고·1000줄 초과 오류를 유지하며, 기존 경고 파일은 책임별로 분할했습니다.
-
-문서 링크·AC/QA 연결·가상 자료·참조 SQL을 검사합니다. [문서 검사 결과](validation-report.json)는 제품 시험 결과와 별개입니다. 현재 앱의 실행 증거는 [fixture](evaluation/results/fixture-run.json), [확장](evaluation/results/extensions-run.json), [live 미수행](evaluation/results/live-run.json) 및 [검증보고서](docs/검증보고서.md)를 참고하세요.
-
-Go **1.27.3**, modernc.org/sqlite **v1.61.0**, GNU Make **4.4.1**을 고정했습니다. Go 및 드라이버는 [공식 배포 목록](https://go.dev/dl/)과 [버전 문서](https://pkg.go.dev/modernc.org/sqlite@v1.61.0)를 확인하고 실제 빌드했습니다. 런타임 웹 자원·한국어 글꼴은 실행 파일에 포함되며 CDN을 사용하지 않습니다. Noto Sans KR의 [OFL 라이선스](web/static/NotoSansKR-OFL.txt)를 포함합니다.
+실행 transcript는 `SAFEHANDOFF_TRANSCRIPT_DIR=.local/transcripts`로 켠다. 기본은 단계 메타데이터이며 `SAFEHANDOFF_TRANSCRIPT_CONTENT=1`을 함께 설정하면 승인된 모델 입력과 작성 초안도 기록한다. HTTP 응답은 바뀌지 않는다. 데모 연결 형식·권한·보존 제한은 [transcript 문서](docs/transcript.md)를 참고한다.
 
 ## CDP 화면 시연
 
-Chrome을 별도 창으로 열어 가상 자료 업로드, 공개 미리보기, 시연용 선택 적용,
-초안 작성과 실제 파일 확인을 순서대로 보여줍니다. 큰 자막·강조·커서가 표시되며
-화면의 일시정지·재생·이전·다음 버튼으로 제어합니다.
-하단에는 각 과정의 의미, 6단계 진행 위치, 세부 장면 번호와 진행률을 표시합니다.
-단계 버튼·장면 목록·타임라인으로 원하는 장면을 선택하면 해당 위치에서 멈춥니다.
-장면 이동은 새 가상 작업으로 상태를 다시 만들며, 도착 후 재생 버튼으로 계속합니다.
-종료 버튼은 시연 창과 서버를 닫습니다.
+최신 fake-app의 전용 화면 `http://127.0.0.1:8081/__presentation`에서 가상 흐름을 연출합니다.
+하단 의미 자막·6단계 표시·장면 타임라인·이전/다음·일시정지/재생을 제공합니다.
+분석·공개 선택은 브라우저 연출이며 실제 승인 API를 구현한 것으로 표시하지 않습니다.
+문서 생성·저장·조회는 최신 `/api/sharing`, `/api/documents`를 사용합니다.
+실제 앱·코어·모델 연결을 바꾸지 않고 fake-app만 자동 실행합니다.
 
 ```bash
-mise exec -- make build
-mise exec -- npm run demo:cdp
+mise exec -- pnpm build
+mise exec -- pnpm demo:cdp
+# 탐색·일시정지·재생 검증
+mise exec -- pnpm demo:cdp --headless --fast --verify-playback
+# macOS에서 정상 속도 제출용 MP4 생성 및 110초 제한 검증
+mise exec -- pnpm demo:cdp --headless --record
 ```
 
-macOS Google Chrome을 기본으로 사용합니다. 다른 설치 위치는 `CHROME_PATH`로 지정합니다.
-실행마다 별도 Chrome 프로필과 `var/cdp-demo-*` fixture DB를 만들고 loopback 서버를 실행합니다.
-최종 확정·다운로드는 직접 수행합니다. 창을 닫거나 터미널에서 Ctrl+C를 누르면 서버도 종료합니다.
-자동 검증은 `mise exec -- npm run demo:cdp -- --headless --fast`로 실행합니다.
-실제 실행 기록과 마지막 화면은 해당 실행 폴더의 `run.json`, `final.png`에 저장됩니다.
-완료 후 화면과 재생 제어는 유지됩니다. 처음으로 버튼이나 장면 선택으로 다시 살펴봅니다.
-재생 제어 검증은 위 자동 검증 명령에 `--verify-playback`을 추가합니다.
+Chrome은 macOS 기본 경로를 사용하며 `CHROME_PATH`로 바꿀 수 있습니다.
+매 실행마다 `var/cdp-demo-*`에 별도 SQLite와 보고서를 만들고 loopback 서버를 사용합니다.
+녹화는 macOS Swift·AVFoundation으로 인코딩합니다. `bin/`·`var/`는 자동 생성됩니다.
+분석·선택·최종 확인은 연출용 상태이고 생성된 문서의 실제 저장만 확인합니다.
+장면 이동은 새 브라우저 시연 상태를 구성한 뒤 해당 장면에서 일시정지합니다.
+110초를 초과한 정상 속도 실행은 실패로 처리합니다. `--fast`는 제출 시간 검증이 아닙니다.
 
-자동 재생은 제출 제한 110초를 기준으로 장면별 해설·전환 시간을 배정합니다.
-정상 속도의 실행 시간은 실행 폴더 `run.json`의 `timing`에서 확인합니다.
-일시정지·장면 재탐색·`--fast` 실행은 제출 길이 검증과 구분합니다.
-
-macOS에서 제출용 MP4를 만들려면 다음을 실행합니다. Xcode Command Line Tools의
-Swift와 AVFoundation을 사용하며 별도 인코더 다운로드는 없습니다.
-
-```bash
-mise exec -- npm run demo:cdp -- --headless --record
-```
-
-해당 실행 폴더에 `submission.mp4`와 실제 영상 길이·프레임 검사 결과를 저장합니다.
-110초를 초과하면 검사 실패로 종료합니다. 영상은 가상 자료의 실제 CDP 화면 녹화이며
-마지막 확정은 자동 실행하지 않습니다.
-
-[제출 영상 MP4](docs/demo-media/SafeHandoff-demo.mp4) · [미리보기](docs/demo-media/preview.png) · [검증 결과](evaluation/results/cdp-submission-run.json)
-
-제출 영상은 가상 자료로 실행한 **1분 43.14초** 녹화본입니다.
+[제출 영상](docs/demo-media/SafeHandoff-demo.mp4) · [미리보기](docs/demo-media/preview.png) ·
+[영상 검증 기록](evaluation/results/cdp-submission-run.json)

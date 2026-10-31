@@ -1,0 +1,18 @@
+{
+  "name": "@safehandoff/fake-app",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "node --conditions=development --test src/*.test.ts",
+    "dev": "node --conditions=development --env-file-if-exists=../../.env --watch src/main.ts",
+    "start": "node --env-file-if-exists=../../.env dist/main.js"
+  },
+  "dependencies": {
+    "@safehandoff/core-interface": "workspace:*",
+    "@safehandoff/server": "workspace:*",
+    "@safehandoff/fake-core": "workspace:*"
+  }
+}

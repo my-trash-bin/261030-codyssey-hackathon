@@ -1,3 +1,4 @@
+// @ts-check
 // Runs inside the dedicated fixture tab; production assets are unchanged.
 export function installStage() {
  if (document.querySelector('#demo-stage')) return;
@@ -34,7 +35,7 @@ export function installStage() {
  const panel = document.createElement('aside');
  panel.id = 'demo-stage';
  panel.setAttribute('aria-label', '시연 해설과 재생 제어');
- panel.innerHTML = '<small>SAFEHANDOFF / FIXTURE · 가상 자료 자동 시연</small>'
+ panel.innerHTML = '<small>SAFEHANDOFF / FAKE APP · 가상 자료 · 분석과 선택은 연출</small>'
   + '<h2></h2><p id="demo-meaning"></p><nav aria-label="전체 시연 단계"></nav>'
   + '<input id="demo-timeline" type="range" min="0" max="0" value="0" aria-label="이동할 장면">'
   + '<div class="controls"><button id="demo-prev">이전</button>'

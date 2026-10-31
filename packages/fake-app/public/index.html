@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="ko">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>SafeHandoff 시연 조절</title><script type="module" src="/__demo.js"></script></head>
+<body>
+  <h1>가짜 코어·연결부 연출 조절</h1>
+  <p>실제 모델을 호출하지 않습니다. 여기서 바꾼 연출은 다음 시연 요청부터 적용하며 진짜 코어에는 영향을 주지 않습니다.</p>
+  <form id="settings">
+    <fieldset><legend>가짜 코어</legend>
+      <label>공유본 제목 <input id="title" required></label><br>
+      <label>도입 문장 <textarea id="opening"></textarea></label><br>
+      <label>마무리 문장 <textarea id="closing"></textarea></label>
+    </fieldset>
+    <fieldset><legend>가짜 연결부</legend>
+      <label>응답 지연(ms) <input id="delay" type="number" min="0" max="30000" value="0"></label>
+      <label>앞으로 실패할 요청 수 <input id="failures" type="number" min="0" max="10" value="0"></label>
+    </fieldset>
+    <button>연출 적용</button>
+  </form>
+  <h2>같은 인터페이스로 재생성 시험</h2>
+  <form id="generate">
+    <label>목적 <input id="purpose" value="공급사 기술지원 문의" required></label>
+    <label>수신자 <input id="recipient" value="지정 가상 공급사" required></label><br>
+    <label>공개 승인한 표현 · 한 줄에 하나씩<br><textarea id="facts" rows="5" cols="80" required>첫 요청은 응답 대기 timeout, 재시도는 HTTP 200을 관찰했습니다.
+첫 서버 처리 완료와 중복 여부는 모릅니다.
+처리 결과와 안전한 재시도 조건을 문의합니다.</textarea></label><br>
+    <button>시연 공유본 생성</button>
+  </form>
+  <p id="status" role="status"></p>
+  <pre id="output"></pre>
+</body>
+</html>

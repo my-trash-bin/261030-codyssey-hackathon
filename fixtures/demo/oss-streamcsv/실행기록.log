@@ -1,0 +1,5 @@
+DEMO ONLY: synthetic observations, not actual execution evidence.
+2026-10-28T02:14:00Z run=case_a package=streamcsv-demo version=2.4.1 runtime=node22.14.0 input=partners.csv chunks=single result=ok data_rows=2
+2026-10-28T02:15:00Z run=case_b input=partners.csv split=inside_quoted_CRLF_between_CR_and_LF result=error code=CSV_UNCLOSED_QUOTE data_row=2
+2026-10-28T02:16:00Z run=case_c input=partners.csv split=after_complete_record result=ok data_rows=2
+2026-10-28T02:16:01Z context tenant=DEMO_CUSTOMER_G path=/srv/private/settlement/partners.csv marker=DEMO_ONLY_SECRET_G

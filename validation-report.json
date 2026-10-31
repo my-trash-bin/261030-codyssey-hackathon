@@ -4,8 +4,8 @@
   "scope": "Documentation, declared contracts, fixture structure and reference SQLite constraints only.",
   "checks": {
     "json_files_parsed": 17,
-    "relative_file_links_checked": 260,
-    "markdown_files_checked": 44,
+    "relative_file_links_checked": 256,
+    "markdown_files_checked": 45,
     "feature_count": 10,
     "acceptance_criteria_mapped": 127,
     "qa_scenarios_defined_not_executed": 60,

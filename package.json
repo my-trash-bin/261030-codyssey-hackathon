@@ -1,18 +1,23 @@
 {
   "name": "safehandoff",
   "private": true,
+  "packageManager": "pnpm@10.13.1",
+  "engines": {
+    "node": ">=24.21.0 <25"
+  },
   "scripts": {
-    "lint": "qg check --full --rules-only",
-    "test": "qg check --full",
-    "test:go": "mise exec -- make test-go",
-    "test:docs": "python3 tools/validate_docs.py",
-    "test:qg": "node --test tools/qg.test.mjs",
+    "build": "pnpm -r build",
+    "typecheck": "pnpm build && pnpm -r typecheck",
+    "test": "pnpm build && pnpm -r test && node --test tools/*.test.mjs",
+    "dev:client": "pnpm --filter @safehandoff/client dev",
+    "dev:app": "pnpm --filter @safehandoff/app dev",
+    "dev:fake-app": "pnpm --filter @safehandoff/fake-app dev",
     "demo:cdp": "node scripts/demo/run.mjs"
   },
-  "engines": {
-    "node": ">=24.0.0"
-  },
   "devDependencies": {
-    "@slop-lab/qg": "0.1.0"
+    "@slop-lab/qg": "0.1.0",
+    "@slop-lab/qg-rules-js": "0.1.0",
+    "@types/node": "^24.0.0",
+    "typescript": "~5.9.3"
   }
 }

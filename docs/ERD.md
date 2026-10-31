@@ -1,5 +1,7 @@
 # 데이터 모델과 저장 계약
 
+> 보존한 제품 설계·이전 기록이다. 현재 구현은 TypeScript 서버·클라이언트의 문서 저장·조회만 제공한다. 현재 실행과 API는 [README](../README.md) 및 [api](api.md)를 따른다.
+
 참조 초기 DDL: [schema.sql](../contracts/schema.sql). 공통 enum: [domain-contract.json](../contracts/domain-contract.json). DDL은 구현할 초기 migration의 출발점이며 앱 데이터베이스가 만들어져 있다는 뜻이 아니다. payload JSON의 의미·동일 작업 소속·불변 판본·SHA-256 일치는 서비스 계층에서 추가 검사한다.
 
 ## 1. 세 가지 데이터 경로

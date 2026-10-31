@@ -1,3 +1,4 @@
+// @ts-check
 import { spawn } from 'node:child_process';
 import { createServer } from 'node:net';
 import { mkdtemp, mkdir, writeFile } from 'node:fs/promises';
@@ -36,9 +37,11 @@ const port = await new Promise((resolvePort, reject) => {
 });
 const runDir = await mkdtemp(resolve(root, 'var/cdp-demo-'));
 const profile = await mkdtemp(resolve(tmpdir(), 'safehandoff-chrome-'));
-const server = spawn(resolve(root, 'bin/safehandoff'), [
- '--fixture', '--data-dir', runDir, '--listen', `127.0.0.1:${port}`,
-], { cwd: root, stdio: ['ignore', 'pipe', 'pipe'] });
+const server = spawn(process.execPath, [resolve(root, 'packages/fake-app/dist/main.js')], {
+ cwd: root, stdio: ['ignore', 'pipe', 'pipe'],
+ env: { ...process.env, DEMO_PORT: String(port), DEMO_HOST: '127.0.0.1',
+  DEMO_DATABASE_PATH: resolve(runDir, 'demo.sqlite') },
+});
 let cdp;
 let stopped = false;
 const cleanup = () => { server.kill(); cdp?.child.kill(); recording?.encoder?.kill(); };
@@ -195,7 +198,7 @@ try {
   await cdp.send('Input.dispatchMouseEvent', { type: 'mouseReleased', button: 'left', clickCount: 1, ...point }, cdp.session);
  }
  async function perform() {
- await cdp.send('Page.navigate', { url: base + '/tasks/new' }, cdp.session);
+ await cdp.send('Page.navigate', { url: base + '/__presentation' }, cdp.session);
  await cdp.send('Page.bringToFront', {}, cdp.session);
  await wait(() => !!document.querySelector('#files'));
  if (replayTarget) await playback.publish({ ...playback.state(), seeking: true });
@@ -210,11 +213,7 @@ try {
  await click('#create');
  await wait(() => !!document.querySelector('#preview-0'));
  const count = await evaluate(() => document.querySelectorAll('[id^="choice-"]').length);
- const kinds = await evaluate(async () => {
-  const response = await fetch('/api/v1/tasks/' + location.pathname.split('/')[2]);
-  if (!response.ok) throw Error('공개 후보 조회 실패');
-  return (await response.json()).data.candidates.map((candidate) => candidate.kind);
- });
+ const kinds = await evaluate(() => window.presentationKinds);
  playback.plan = scenes(count, kinds);
  for (let i = 0; i < count; i++) {
   await evaluate((i) => {
@@ -231,7 +230,7 @@ try {
  }
  await scene('compose');
  await click('#compose');
- await wait(() => document.querySelector('.status')?.textContent.includes('검사 완료'));
+ await wait(() => document.querySelector('.status')?.textContent.includes('가짜 초안 작성 완료'));
  await scene('draft');
  await evaluate(() => {
   const link = [...document.querySelectorAll('a')].find((a) => a.textContent.includes('최종 파일 확인'));
@@ -263,7 +262,7 @@ try {
  const screenshot = await cdp.send('Page.captureScreenshot', { format: 'png' }, cdp.session);
  await writeFile(resolve(runDir, 'final.png'), Buffer.from(screenshot.data, 'base64'));
  await writeFile(resolve(runDir, 'run.json'), JSON.stringify({
-  status: (withinLimit || fast) && smooth ? 'pass' : 'fail', mode: 'fixture', finalization: 'manual_pending', candidateCount: count,
+  status: (withinLimit || fast) && smooth ? 'pass' : 'fail', mode: 'fake-app', finalization: 'not_implemented_in_current_app', candidateCount: count,
   url: await evaluate(() => location.href), screenshot: 'final.png',
   sceneCount: playback.plan.length, replayCount,
   transitions: { smooth, checks: transitionChecks },

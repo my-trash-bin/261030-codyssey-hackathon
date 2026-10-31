@@ -70,3 +70,4 @@ fixtures/reference-pack/recipient/b2b-timeout/provider-traces.csv
 intent.md
 tools/validate_docs.py
 validation-report.json
+docs/separated-runtime.md

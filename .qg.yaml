@@ -1,27 +1,29 @@
-# The CLI enables the language-independent recommended rules by default.
-# Tests run through npm test / make test; hook installation is managed separately.
+presets: [js]
+# just check invokes QG; pnpm test runs Node tests without invoking QG.
 hooks:
   preCommit:
     installation: off
-
 artifacts:
   generated:
     include:
+      - evaluation/**
+      - docs/demo-media/**
       - var/**
       - bin/**
-      - evaluation/results/**
-      - docs/demo-media/**
       - contracts/openapi.json
       - contracts/*.v1.schema.json
-
+      - packages/*/dist/**
 rules:
+  package/allowed-name:
+    severity: error
+    options:
+      allowedPatterns: ["^(safehandoff|@safehandoff/[a-z][a-z0-9-]*)$"]
   markdown/allowed-characters:
     severity: error
     options:
       allowedLanguages: [en, ko]
-      # Punctuation, arrows and mathematical notation used in Korean design docs.
-      allowedCharacters: ["·", "→", "–", "‘", "’", "§", "—", "“", "”", "×", "∩", "…"]
       ignoredPaths: [var/**, bin/**]
+      allowedCharacters: ["·", "→", "–", "‘", "’", "§", "—", "“", "”", "×", "∩", "…"]
   docs/valid-reference:
     severity: error
     options:
@@ -29,9 +31,8 @@ rules:
   files/max-bytes:
     severity: error
     options:
+      ignoredPaths: [docs/demo-media/SafeHandoff-demo.mp4]
       ignoredDirectories: [.git, .local, .qg, node_modules, dist, var, bin]
-      # Vendored font binary; its source and OFL notice are tracked alongside it.
-      ignoredPaths: [web/static/NotoSansKR.ttf, docs/demo-media/SafeHandoff-demo.mp4]
   files/max-line-length:
     severity: error
     options:
@@ -44,29 +45,20 @@ rules:
     severity: error
     options:
       ignoredDirectories: [.git, .local, .qg, node_modules, dist, var, bin]
-
-# Existing serialized rows and inline templates retain bounded, path-specific limits.
 overrides:
   - files: [docs/traceability.csv]
     rules:
       files/max-line-length: [error, {limit: 650}]
-  - files: [prompts/*.txt, scripts/generate-contracts.go, scripts/generate-openapi.py, internal/workflow/model.go, web/templates/app.html]
-    rules:
-      files/max-line-length: [error, {limit: 800}]
-  - files: [web/static/app.js, web/static/workspace.js]
-    rules:
-      files/max-line-length: [error, {limit: 3500}]
-
 checks:
-  - name: QG policy regression tests
-    type: node-test
-    files: [tools/qg.test.mjs]
-    message: Keep Korean documents allowed and recommended checks enforced.
-  - name: Go unit and integration tests
+  - name: TypeScript types
     command: mise
-    args: [exec, --, make, test-go]
-    message: Fix the Go tests before accepting the change.
-  - name: Documentation contracts and references
-    command: python3
-    args: [tools/validate_docs.py]
-    message: Fix documentation contracts, references, or example data.
+    args: [exec, --, pnpm, typecheck]
+    message: Fix TypeScript type errors.
+  - name: Package builds
+    command: mise
+    args: [exec, --, pnpm, build]
+    message: Fix the server or client build.
+  - name: Node and QG policy tests
+    command: mise
+    args: [exec, --, pnpm, test]
+    message: Fix Node tests without bypassing the quality rules.

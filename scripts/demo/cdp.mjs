@@ -1,3 +1,4 @@
+// @ts-check
 import { spawn } from 'node:child_process';
 
 // Chrome's remote-debugging-pipe uses null-delimited JSON on fd 3/4.

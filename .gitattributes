@@ -1,1 +1,4 @@
 * text=auto eol=lf
+
+# Quoted embedded CRLF is part of this parser scenario, not editor formatting.
+fixtures/demo/oss-streamcsv/*.csv -text

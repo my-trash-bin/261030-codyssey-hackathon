@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>SafeHandoff</title>
+  <link rel="stylesheet" href="/style.css">
+  <script type="module" src="/main.js"></script>
+</head>
+<body>
+  <main>
+    <h1>SafeHandoff</h1>
+    <p>텍스트를 저장하고 확인하는 기본 작업 공간입니다.</p>
+    <form id="save-form">
+      <label for="text">저장할 텍스트</label>
+      <textarea id="text" rows="8" required></textarea>
+      <button id="save" type="submit">저장</button>
+    </form>
+    <p id="status" role="status" aria-live="polite"></p>
+    <h2>저장된 문서</h2>
+    <button id="refresh" type="button">새로고침</button>
+    <div id="documents"></div>
+  </main>
+</body>
+</html>

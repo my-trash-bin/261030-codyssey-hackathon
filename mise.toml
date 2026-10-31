@@ -1,9 +1,4 @@
 [tools]
-go = "1.27.3"
-make = "4.4.1"
 node = "24.21.0"
-
-[env]
-GOCACHE = "{{config_root}}/var/cache/go-build"
-GOPATH = "{{config_root}}/var/cache/go"
-GOTOOLCHAIN = "local"
+pnpm = "10.13.1"
+just = "1.58.0"

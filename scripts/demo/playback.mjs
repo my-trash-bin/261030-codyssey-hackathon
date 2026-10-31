@@ -1,3 +1,4 @@
+// @ts-check
 import { setTimeout as delay } from 'node:timers/promises';
 
 export class Seek extends Error {}
