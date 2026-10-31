@@ -3,23 +3,232 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>SafeHandoff</title>
+  <title>SafeHandoff — 공개 전 확인 작업 공간</title>
   <link rel="stylesheet" href="/style.css">
   <script type="module" src="/main.js"></script>
 </head>
 <body>
-  <main>
-    <h1>SafeHandoff</h1>
-    <p>텍스트를 저장하고 확인하는 기본 작업 공간입니다.</p>
-    <form id="save-form">
-      <label for="text">저장할 텍스트</label>
-      <textarea id="text" rows="8" required></textarea>
-      <button id="save" type="submit">저장</button>
-    </form>
-    <p id="status" role="status" aria-live="polite"></p>
-    <h2>저장된 문서</h2>
-    <button id="refresh" type="button">새로고침</button>
-    <div id="documents"></div>
+  <a class="skip-link" href="#workspace">본문으로 건너뛰기</a>
+
+  <header class="masthead">
+    <div class="masthead__inner">
+      <div class="masthead__brand">
+        <h1>SafeHandoff</h1>
+        <p class="masthead__tagline">공개 전 확인 작업 공간</p>
+      </div>
+      <p class="masthead__mode">
+        <span class="meta">모드</span>
+        <span id="mode-label" role="status" aria-live="polite">확인 전</span>
+      </p>
+    </div>
+
+    <nav class="masthead__nav" aria-label="화면 구역">
+      <a href="#workspace">작업 공간</a>
+      <a href="#saved-documents">저장 문서</a>
+      <a href="#execution-environment">실행 정보</a>
+    </nav>
+  </header>
+
+  <main class="workspace" id="workspace" tabindex="-1">
+    <div class="work">
+      <div class="work__side">
+        <section class="block" aria-labelledby="intent-heading">
+          <h2 id="intent-heading">전달 조건</h2>
+          <p class="hint" id="intent-hint">목적·수신처는 서버에 저장되지 않습니다.</p>
+
+          <div class="field">
+            <label for="purpose">전달 목적</label>
+            <input id="purpose" name="purpose" type="text" autocomplete="off" aria-describedby="intent-hint">
+          </div>
+          <div class="field">
+            <label for="recipient">수신처</label>
+            <input id="recipient" name="recipient" type="text" autocomplete="off" aria-describedby="intent-hint">
+          </div>
+
+          <details class="fold">
+            <summary>파일 첨부 · 연결 대기</summary>
+            <div class="field">
+              <label for="source-file">원자료 파일</label>
+              <input id="source-file" name="source-file" type="file" disabled aria-describedby="source-file-reason source-hint">
+              <p class="hint" id="source-file-reason">파일 업로드 기능이 아직 연결되지 않아 파일을 선택할 수 없습니다.</p>
+              <p class="hint" id="source-hint">내부 메모 저장은 파일 분석과 별개의 기능입니다.</p>
+            </div>
+          </details>
+        </section>
+
+        <fieldset class="block" aria-labelledby="disclosure-heading" aria-describedby="disclosure-hint">
+          <legend id="disclosure-heading">공개 방식</legend>
+          <p class="hint" id="disclosure-hint">방식을 고르면 설명을 볼 수 있습니다. 공개 결정은 저장되지 않습니다.</p>
+
+          <div class="options">
+            <div class="option">
+              <input id="disclosure-a" name="disclosure" type="radio" value="A">
+              <label for="disclosure-a">A. 구체적인 데이터 없이 사실만</label>
+            </div>
+            <div class="option">
+              <input id="disclosure-b" name="disclosure" type="radio" value="B">
+              <label for="disclosure-b">B. 추이만 보이게 나머지 마스킹</label>
+            </div>
+            <div class="option">
+              <input id="disclosure-c" name="disclosure" type="radio" value="C">
+              <label for="disclosure-c">C. 요청 정보 마스킹</label>
+            </div>
+            <div class="option">
+              <input id="disclosure-d" name="disclosure" type="radio" value="D">
+              <label for="disclosure-d">D. 기타 직접 입력</label>
+            </div>
+          </div>
+
+          <p class="status" id="selection-state" role="status" aria-live="polite">아직 선택하지 않음</p>
+          <p class="hint" id="selection-description">표현 방식을 고르면 이 화면에서의 의미 설명이 표시됩니다.</p>
+          <p class="hint" id="selection-caution">공개 범위 판단에는 서버 승인 절차가 필요하며, 이 화면은 어떤 결정도 저장하지 않습니다.</p>
+
+          <div class="custom" id="custom-condition-panel" hidden>
+            <div class="field">
+              <label for="custom-condition">직접 입력 조건</label>
+              <textarea id="custom-condition" name="custom-condition" rows="4" aria-describedby="custom-condition-help check-condition-reason"></textarea>
+            </div>
+            <p class="hint" id="custom-condition-help">입력한 조건은 서버가 해석하지 않습니다. 선택을 바꿔도 입력은 이 화면에 남습니다.</p>
+            <div class="action">
+              <button class="button" id="check-condition" type="button" disabled aria-describedby="check-condition-reason">조건 확인</button>
+              <p class="hint" id="check-condition-reason">조건 해석 기능이 아직 연결되지 않았습니다.</p>
+            </div>
+          </div>
+
+          <p class="hint" id="preview-status">공개 결과 계산 기능은 아직 연결되지 않았습니다.</p>
+
+          <div class="action">
+            <button class="button" id="apply-disclosure" type="button" disabled aria-describedby="apply-disclosure-reason">이 방식으로 적용</button>
+            <p class="hint" id="apply-disclosure-reason">공개 결정 저장 기능이 아직 연결되지 않았습니다.</p>
+          </div>
+        </fieldset>
+      </div>
+
+      <section class="draft" aria-labelledby="draft-heading">
+        <div class="draft__head">
+          <h2 id="draft-heading">공유 초안</h2>
+        </div>
+
+        <div class="draft__sheet">
+          <p class="draft__empty" id="draft-state">아직 공유 초안이 없습니다.</p>
+          <p class="hint">승인된 정보로 작성한 본문·표·첨부가 표시되는 자리입니다. 현재는 작성 기능이 연결되지 않았습니다.</p>
+        </div>
+
+        <div class="draft__actions">
+          <div class="action">
+            <button class="button" id="generate-document" type="button" disabled aria-describedby="generate-document-reason">공유 초안 생성</button>
+            <p class="hint" id="generate-document-reason">공개 결정 저장과 초안 작성 기능이 아직 연결되지 않았습니다.</p>
+          </div>
+          <div class="action">
+            <button class="button" id="finalize-document" type="button" disabled aria-describedby="finalize-document-reason">최종 파일 확인</button>
+            <p class="hint" id="finalize-document-reason">파일 확인·확정 기능이 아직 연결되지 않았습니다.</p>
+          </div>
+        </div>
+      </section>
+
+      <details class="block--fold" id="evidence-panel">
+        <summary><h2>내부 근거와 검토</h2></summary>
+        <div class="fold__body">
+          <p class="hint">내부 참고용입니다. 공유 파일에는 포함되지 않습니다.</p>
+
+          <h3>근거</h3>
+          <p class="hint">근거 조회 API가 연결되지 않아 표시할 근거가 없습니다.</p>
+
+          <h3>검토</h3>
+          <p class="hint">검토 기록 API가 연결되지 않아 검토 기록이 없습니다.</p>
+
+          <h3>이력</h3>
+          <p class="hint">판본·이력 API가 연결되지 않아 이력이 없습니다.</p>
+
+          <div class="action">
+            <button class="button" id="register-skill" type="button" disabled aria-describedby="register-skill-reason">스킬로 등록</button>
+            <p class="hint" id="register-skill-reason">스킬 등록 기능이 아직 연결되지 않았습니다.</p>
+          </div>
+        </div>
+      </details>
+    </div>
+
+    <section class="primary" aria-labelledby="action-heading">
+      <div class="primary__text">
+        <h2 id="action-heading">주요 동작</h2>
+        <p class="hint" id="analyze-reason">자료 분석 기능이 아직 연결되지 않았습니다.</p>
+      </div>
+      <button class="button" id="analyze" type="button" disabled aria-describedby="analyze-reason">자료 분석 시작</button>
+    </section>
+
+    <div class="archive">
+      <section class="block" aria-labelledby="store-heading">
+        <h2 id="store-heading">내부 텍스트 보관</h2>
+        <p class="hint" id="store-hint">내부 텍스트 보관일 뿐이며 자료 분석·공개 승인·공유 초안 생성이 아닙니다.</p>
+
+        <details class="fold" id="internal-note-panel">
+          <summary>내부 메모 작성</summary>
+          <div class="fold__body">
+            <form class="form" id="save-form" novalidate>
+              <div class="field">
+                <label for="text">저장할 내부 텍스트</label>
+                <textarea id="text" name="text" rows="4" aria-describedby="text-help status"></textarea>
+              </div>
+              <p class="hint" id="text-help">비어 있는 텍스트는 저장할 수 없습니다.</p>
+              <button class="button button--solid" id="save" type="submit">내부 메모 저장</button>
+            </form>
+            <p class="status" id="status" role="status" aria-live="polite"></p>
+          </div>
+        </details>
+      </section>
+
+      <section class="block" id="saved-documents" aria-labelledby="saved-heading" tabindex="-1">
+        <div class="block__head">
+          <h2 id="saved-heading">저장된 내부 문서</h2>
+          <button class="button" id="refresh" type="button">목록 새로고침</button>
+        </div>
+        <p class="hint">내부 텍스트 보관 목록입니다. 공유 결과나 승인 기록이 아닙니다.</p>
+        <p class="status" id="documents-status" role="status" aria-live="polite">저장된 문서를 불러오는 중입니다.</p>
+        <div class="documents" id="documents"></div>
+      </section>
+    </div>
+
+    <section class="execution" id="execution-environment" aria-labelledby="env-heading" tabindex="-1">
+      <div class="execution__head">
+        <h2 id="env-heading">실행 정보</h2>
+        <p class="hint">위쪽 모드 표시는 GET /api/core의 설정 상태이며 모델 호출 성공을 뜻하지 않습니다. 확인에 실패하면 모드나 연결 방식을 추정해 표시하지 않습니다.</p>
+      </div>
+
+      <details class="fold">
+        <summary>연결 방식·준비 상태·기능 범위</summary>
+        <div class="fold__body">
+          <div class="runtime" role="group" aria-labelledby="runtime-heading">
+            <h3 id="runtime-heading">실행 환경 상태</h3>
+            <p class="runtime__connection">
+              <span class="meta">연결</span>
+              <span id="connection-label">확인 전</span>
+            </p>
+            <p class="status" id="runtime-status" role="status" aria-live="polite">실행 환경을 확인하는 중입니다.</p>
+            <button class="button" id="runtime-refresh" type="button">상태 다시 조회</button>
+          </div>
+
+          <div class="env">
+            <h3>이 화면에서 실제로 연결된 기능</h3>
+            <ul class="plain-list">
+              <li>GET /api/core — 실행 모드·연결 방식·준비 상태 설정 조회</li>
+              <li>GET /api/documents — 저장된 내부 텍스트 조회</li>
+              <li>POST /api/documents — 내부 텍스트 저장</li>
+            </ul>
+          </div>
+
+          <div class="env">
+            <h3>연결되지 않은 기능</h3>
+            <ul class="plain-list">
+              <li>공개 미리보기 계산, A~D 방식 적용, 직접 입력 조건 해석</li>
+              <li>공유 초안 생성·확정·다운로드</li>
+              <li>내부 근거·검토·이력 조회, 스킬 등록</li>
+              <li>원자료 파일 업로드와 자료 분석</li>
+              <li>POST /api/sharing 호출과 승인 결정 저장</li>
+            </ul>
+          </div>
+        </div>
+      </details>
+    </section>
   </main>
 </body>
 </html>
