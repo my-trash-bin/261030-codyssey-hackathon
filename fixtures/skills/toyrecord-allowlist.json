@@ -1,0 +1,6 @@
+{
+  "productIds": ["toyrecord"],
+  "purposeIds": ["oss_issue"],
+  "toolIds": ["make_synthetic_inputs_v1", "run_repro_v1"],
+  "templateIds": ["oss_issue.v1"]
+}
