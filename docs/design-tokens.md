@@ -95,6 +95,9 @@ KRDS는 글자 크기를 10px 기준 rem(예: 1.9rem = 19px)으로 적는다. �
 
 파일 선택은 `packages/client/src/ui/FileField.tsx`를 쓴다. 화면에서 파일 입력을 직접 그리지 않는다.
 
+범례(`legend`)는 카드 위 테두리에 걸쳐 그려지므로 좌우 8px 여백을 두어 테두리 선과 글자가 붙지 않게 한다.
+카드 안쪽은 12px/16px 여백을 쓰고, 후보 ID처럼 붙여 읽는 안내 줄은 4px로 묶는다.
+
 본문은 `word-break: keep-all`과 `overflow-wrap: anywhere`를 함께 쓴다. 한글은 어절 단위로 끊고, 해시나 파일 이름처럼
 긴 토큰만 넘칠 때 아무 데서나 끊는다.
 

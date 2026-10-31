@@ -283,7 +283,7 @@
 
 /* 실제 화면 조각을 담는 틀. 안쪽 요소는 작업 화면과 같은 클래스를 쓴다. */
 .ds-demo {
-  padding: var(--space-5) var(--space-6);
+  padding: var(--space-4) var(--space-5);
   border: var(--border-width) solid var(--color-border-subtle);
   background: var(--color-surface-page);
 }
