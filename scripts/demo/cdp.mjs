@@ -33,6 +33,8 @@ export class CDP {
    this.pending.clear();
   };
   this.child.on('error', fail);
+  this.child.stdio[3].on('error', fail);
+  this.child.stdio[4].on('error', fail);
   this.child.on('exit', () => fail(Error('Chrome 창이 닫혔습니다.')));
  }
  send(method, params = {}, sessionId) {

@@ -45,3 +45,15 @@ prepare-demo-video:
 # 앱·비공개 설정이 없는 영상 전용 디렉터리만 loopback에 노출한다.
 preview-demo-video: prepare-demo-video
     mise exec -- python -m http.server 8092 --bind 127.0.0.1 --directory .local/demo-video
+
+# fake-app 전용 화면 시연. 추가 인수 예: just demo --headless
+demo *args: build
+    mise exec -- pnpm demo:cdp {{args}}
+
+# 모델 호출 없는 브라우저 장면·재생 제어 검증
+demo-check: build
+    mise exec -- pnpm demo:cdp --headless --fast --verify-playback
+
+# macOS Swift·AVFoundation 필요. 정상 속도 녹화 및 시간 제한 검증
+demo-record: build
+    mise exec -- pnpm demo:cdp --headless --record

@@ -128,15 +128,15 @@ OSS 스모크의 자동 회귀 검사는 실행 행·고정 oracle·수치·hash
 실제 앱·코어·모델 연결을 바꾸지 않고 fake-app만 자동 실행합니다.
 
 ```bash
-mise exec -- pnpm build
-mise exec -- pnpm demo:cdp
+mise exec -- just demo
 # 탐색·일시정지·재생 검증
-mise exec -- pnpm demo:cdp --headless --fast --verify-playback
+mise exec -- just demo-check
 # macOS에서 정상 속도 제출용 MP4 생성 및 110초 제한 검증
-mise exec -- pnpm demo:cdp --headless --record
+mise exec -- just demo-record
 ```
 
-Chrome은 macOS 기본 경로를 사용하며 `CHROME_PATH`로 바꿀 수 있습니다.
+macOS에서는 기본 Chrome, 그 외 환경에서는 `mise run setup-presentation`으로 설치한
+Playwright Chromium을 사용합니다. `CHROME_PATH`로 실행 파일을 지정할 수 있습니다.
 매 실행마다 `var/cdp-demo-*`에 별도 SQLite와 보고서를 만들고 loopback 서버를 사용합니다.
 녹화는 macOS Swift·AVFoundation으로 인코딩합니다. `bin/`·`var/`는 자동 생성됩니다.
 분석·선택·최종 확인은 연출용 상태이고 생성된 문서의 실제 저장만 확인합니다.

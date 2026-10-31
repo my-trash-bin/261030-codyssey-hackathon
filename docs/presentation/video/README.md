@@ -1,8 +1,9 @@
 # 영상 연출 참고자료
 
 원격 `origin/feat/cdp-demo-presentation`의 `8894bc6610b9c4faac19ee4a83608265ad0e5fec`를 확인해
-영상·연출 소스를 분리했다. 이 브랜치는 현행 main에 병합되지 않았으며 이전 Go 시제품을 대상으로
-한다. 그 브랜치의 제품 코드·AGENTS·검증 결과를 현행 것으로 덮어쓰지 않는다.
+영상·연출 소스를 분리했다. 이 고정 스냅샷은 이전 Go 시제품을 대상으로 한다. 이후 브랜치의 fake-app 이식본이 main에
+병합되었다. 현행 시연 실행은 [루트 README의 CDP 화면 시연](../../../README.md)을 따른다.
+이 디렉터리의 원본 스냅샷과 영상은 그대로 과거 자료다.
 
 현행 실행·완료 범위는 [루트 README](../../../README.md)·[API](../../api.md), 발표 운영은
 [가이드](../GUIDE.md), 실제 실행 기록 형식은 [transcript](../../transcript.md)를 참조한다.
@@ -41,18 +42,19 @@ preview 명령도 준비·hash 검증을 먼저 한다. 모델 호출·앱 기�
 바로 실행할 수 없다는 점을 명시하기 위한 것이다. 제출 영상·크롬 프로필·프레임·실행 DB·실행
 보고서는 생성물이며 `.local/`에 둔다. 과거 evaluation 성공 기록을 현재 평가 결과로 복사하지 않았다.
 
-## 현행 코드로 이식하기 전 확인할 차이
+## 과거 스냅샷과 현행 이식본의 차이
 
 - run.mjs는 `bin/safehandoff --fixture`와 옛 Go API·DOM 선택자를 사용한다. 현재 pnpm 앱에는
-  그 계약이 없으므로 `demo:cdp` 같은 실행 명령을 그대로 등록하지 않는다.
+  그 계약이 없다. 현행 `scripts/demo/run.mjs`와 `demo:cdp`는 별도의 fake-app 이식본이다.
 - recording.mjs·encode.swift는 macOS swiftc·AVFoundation 전용이다. 현재 mise/Playwright
-  Chromium 환경에서 녹화하려면 인코더·길이/프레임 검증·종료 처리를 새로 연결해야 한다.
-- playback·scenes·stage의 일시정지·장면 이동·자막·커서·전환 아이디어는 재사용 후보이다.
+  Chromium의 Linux 실행은 화면 시연·재생 검증까지이며 MP4 녹화는 macOS 전용이다.
+- playback·scenes·stage의 일시정지·장면 이동·자막·커서·전환은 현행 이식본에도 연결됐다.
   현재 task/decision API가 없는 흐름을 DOM만 바꿔 실제 승인 성공처럼 만들지 않는다.
 - 현행 UI를 촬영하는 시연, 고정 응답 연출, transcript 재생은 각각 모드를 표시한다. 이식 후에도
   별도 loopback 서버·브라우저 프로필·DB를 쓰고 일반 앱 CSP를 낮추지 않는다.
 
-이식·재촬영은 이번 자료 정리에서 완료한 기능이 아니다. 발표에서 이 영상을 쓰면 “이전 fixture
+현행 이식·녹화의 당시 검증은 [CDP 통합 기록](../../cdp-integration-2026-10-31.md)을 따른다.
+이 디렉터리의 과거 영상을 발표에서 쓰면 “이전 fixture
 시제품 녹화”라고 소개한다. B2B 포장 결정은 [PRES-DEC-01](../../decisions.md)을 따르되 과거
 녹화가 현행 구현으로 바뀌지는 않는다.
 

@@ -93,3 +93,17 @@ Docker CLI는 설치돼 있지만 로컬 데몬 소켓이 없어 실제 컨테�
 현재 호스트는 macOS이므로 Linux /proc 기반 팩 시험도 미검증이다.
 이 두 시험은 후속 Linux·Docker 환경에서 수행해야 하며 이전 실행 문서를 성공 근거로 쓰지 않았다.
 QG의 파일 길이 경고 7개는 유지한다. 오류는 없고 발표자료에 한정한 수치 상한을 적용한다.
+
+
+## main 후속 병합과 Linux 시연 확인
+
+병합 커밋 `7d9e9ad`에서 QG 충돌을 해결했다. 이후 just demo·demo-check·demo-record를
+빌드와 연결하고, macOS 외 환경에서는 설치된 Playwright Chromium을 선택하도록 수정했다.
+CHROME_PATH의 명시적 지정은 유지한다. 실제 작업 UI와 fake-app 발표 화면은 분리돼 있다.
+
+현재 Linux에서 `just check`가 통과했다. `just demo-check`도 가상 후보 8개,
+문서 생성·저장·조회와 이전/다음·타임라인 이동·도착 후 정지·재생 검증을 통과했다.
+실행 기록은 로컬 `var/cdp-demo-1Yl9rI/run.json`이다. 가속 실행 7.24초는 제출 시간 근거가 아니다.
+호스트가 Chromium sandbox 초기화를 지원하지 않아 이 실행에서만 CHROME_PATH에
+임시 --no-sandbox 래퍼를 지정했다. 기본 실행 옵션과 제품 보안 설정은 바꾸지 않았다.
+macOS 전용 MP4 녹화는 이번 Linux 검사에서 실행하지 않았다. 실제 분석·승인 구현의 검증도 아니다.

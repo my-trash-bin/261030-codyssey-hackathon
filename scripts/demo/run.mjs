@@ -7,6 +7,7 @@ import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { setTimeout as delay } from 'node:timers/promises';
 import { CDP } from './cdp.mjs';
+import { browserExecutable } from './browser.mjs';
 import { installStage } from './stage.mjs';
 import { Playback, Seek } from './playback.mjs';
 import { scenes } from './scenes.mjs';
@@ -23,8 +24,7 @@ const limitMs = 110000;
 let recording;
 const motionEvidence = [];
 let startedAt;
-const executable = process.env.CHROME_PATH
- || '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
+const executable = browserExecutable();
 await mkdir(resolve(root, 'var'), { recursive: true });
 if (record) await buildEncoder(root);
 const port = await new Promise((resolvePort, reject) => {

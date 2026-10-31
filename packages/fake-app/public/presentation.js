@@ -34,7 +34,7 @@ function intake() {
  <label for="purpose">공유 목적</label><input id="purpose" value="공급사 기술지원 문의">
  <label for="recipient">수신자</label><input id="recipient" value="지정 가상 공급사">
  <label for="files">가상 자료 파일</label><input id="files" type="file" multiple>
- <p>선택한 파일은 브라우저 안에서만 읽습니다. 서버의 원자료 분석 API는 아직 없습니다.</p>
+ <p>선택한 파일은 브라우저 안에서만 읽습니다. 이 연출 화면은 실제 분석 API를 호출하지 않습니다.</p>
  <button class="primary" id="create">가상 분석 장면으로</button></section></div>`;
  on('create', async () => {
   const files = [...document.querySelector('#files').files];
