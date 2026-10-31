@@ -250,3 +250,11 @@ catalog에서 명시적 version을 선택해 pin을 재검증하고 별도 운�
 거짓 고객·매출·측정값·구현 완료 주장을 만드는 근거가 아니다. 발표 동선과 질문 대응은
 [발표 가이드](presentation/GUIDE.md), 차이와 근거 보완은 [발표 이슈](presentation/ISSUES.md)에서
 관리한다. 제품 요구사항과 현재 상태의 정본은 계속 intent/spec·README/API다.
+
+## 2026-10-31 · 원격 CDP 연출 자료의 분리 보관
+
+`origin/feat/cdp-demo-presentation`의 8894bc6은 이전 Go 시제품·macOS 인코더를 대상으로 하며
+현행 main과 호환되지 않는다. 제품 코드나 AGENTS를 병합하지 않고 [영상 참고자료](presentation/video/README.md)에
+출처·exact-byte 연출 코드 스냅샷·포스터를 분리했다. MP4는 원본 Git 객체에서 hash 검증 후
+.local에 준비하고 loopback 정적 미리보기만 제공한다. 과거 녹화·보고를 현행 앱이나 모델 품질의
+성공 근거로 사용하지 않는다. 녹화 코드의 현행 이식·새 촬영은 별도 범위다.

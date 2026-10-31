@@ -125,3 +125,6 @@ ToyRecord 팩을 실제 catalog에서 선택해 OSS 스모크로 연결할 수 �
 발표자료는 최초 `mise run setup-presentation` 후 `mise exec -- just build-presentation`으로 통합
 HTML·PDF를 생성한다. 개별 슬라이드 HTML은 편집용이며 생성 대상이 아니다. PDF는 로컬 산출물로
 Git에서 제외한다. Chromium 시스템 라이브러리 설치와 상세 절차는 [발표 빌드 안내](docs/presentation/README.md)를 따른다.
+
+이전 CDP fixture 녹화와 연출 코드 참고자료는 [영상 안내](docs/presentation/video/README.md)를
+따른다. `mise exec -- just preview-demo-video`로 원본 hash를 검증한 과거 영상을 로컬에서 확인한다.

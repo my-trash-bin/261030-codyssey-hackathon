@@ -2,7 +2,7 @@
 
 > 보존한 제품 설계·이전 기록이다. 현재 구현은 TypeScript 서버·클라이언트의 문서 저장·조회만 제공한다. 현재 실행과 API는 [README](../README.md) 및 [api](api.md)를 따른다.
 
-현재 interactive 시연은 [분리형 웹·엔진](separated-runtime.md)의 `just demo-start`로 실행한다. 준비된 네 가상 사례를 불러와 표현 편집·승인·재생성·편집본 검토·다운로드를 시험한다. 아래 A–D·재사용·재현 확장 장면은 기존 전체 시연 계획이며 새 임시 화면에 모두 연결된 상태는 아니다.
+현행 시연 실행·연결 범위는 [README](../README.md)와 [API](api.md)를 따른다. 현재 없는 `just demo-start` 경로를 완료된 흐름으로 안내하지 않는다. 원격 CDP 영상 연출 브랜치의 이전 Go 시제품 녹화는 [별도 영상 안내](presentation/video/README.md)에 정리했으며 현행 구현 증거와 구분한다.
 
 ## 1. 시연 목표
 

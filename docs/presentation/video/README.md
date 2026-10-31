@@ -55,3 +55,11 @@ preview 명령도 준비·hash 검증을 먼저 한다. 모델 호출·앱 기�
 이식·재촬영은 이번 자료 정리에서 완료한 기능이 아니다. 발표에서 이 영상을 쓰면 “이전 fixture
 시제품 녹화”라고 소개한다. B2B 포장 결정은 [PRES-DEC-01](../../decisions.md)을 따르되 과거
 녹화가 현행 구현으로 바뀌지는 않는다.
+
+## 이번 정리에서 확인한 것
+
+2026-10-31 현행 환경에서 `just prepare-demo-video`를 재실행해 동일 hash로 준비되는 것을
+확인했다. `just preview-demo-video`의 loopback 페이지를 Playwright Chromium으로 열어 실제
+재생 진행, metadata 길이 103.14초·1440×1000, 과거 fixture 표시를 확인했다. 참고 코드 7개의
+hash도 manifest와 대조했다. 확인 후 미리보기 서버를 종료했으며 전체 `just check`가 통과했다.
+이는 기존 녹화 파일의 재생 확인이며 새 제품 실행·녹화 검증은 아니다.

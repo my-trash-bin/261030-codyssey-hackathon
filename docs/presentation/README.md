@@ -83,3 +83,6 @@ mise run setup-presentation-system
 내용 잘림·문구 의미는 발표자가 별도 확인한다. HTML만 만들 필요가 있을 때는
 `mise exec -- python docs/presentation/build_combined_deck.py`를 사용할 수 있다. 브라우저 캐시·
 node_modules·Python 캐시·PDF는 Git에 넣지 않는다.
+
+이전 CDP 영상 연출 브랜치의 [영상·참고 코드](video/README.md)는 별도 디렉터리에 정리했다.
+`just preview-demo-video`로 과거 fixture 영상을 로컬에서 확인하며 현행 앱 실행과 구분한다.
