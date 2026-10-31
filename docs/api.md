@@ -1,19 +1,24 @@
-# 실제 앱과 가짜 앱의 공통 HTTP API
+# SafeHandoff HTTP API 및 코어 인터페이스 계약
 
-아래 공통 API는 packages/server가 담당한다. app과 fake-app은 Core 구현만 주입한다. 원자료를 저장해도 자동 분석/재생성을 실행하지 않는다.
+문서 버전: 2.0 / 기준일: 2026-10-31 / 상태: 현행 정본 / 연결: [prd.md](prd.md), [architecture.md](architecture.md), [agent-workflow.md](agent-workflow.md), [extensions.md](extensions.md)
 
-| 메서드 | 경로 | 동작 |
-| --- | --- | --- |
-| GET | /health | 서버 상태 확인 |
-| GET | /api/documents | SQLite 문서 목록 |
-| POST | /api/documents | `{"text":"내용"}` 저장 |
-| GET | /api/core | implementation, connection, ready 조회 |
-| POST | /api/sharing | 승인한 facts로 주입된 Core 호출 |
-| POST | /api/analysis | 주입된 Engine으로 원자료를 분석해 근거와 후보 제안을 반환 |
+## 1. 현행 구현된 HTTP 엔드포인트 (`@safehandoff/server`)
 
-POST는 application/json을 사용하며 본문 상한은 기본 1 MiB, `/api/analysis`만 1.5 MiB다. 문서 저장 응답은 201과 document, 목록은 200과 documents다. 빈 텍스트/불필요 필드는 400, JSON 이외 Content-Type은 415다.
+아래 공통 API는 `packages/server`가 담당한다. `app`(`:8080`)과 `fake-app`(`:8081`)은 동일한 HTTP 라우터에 각자의 `Core` 구현만 주입한다. 원자료를 저장해도 자동 분석/외부 전송을 수행하지 않는다.
 
-## 코어 계약
+| 메서드 | 경로 | 상태 | 동작 |
+| --- | --- | --- | --- |
+| `GET` | `/health` (및 `/api/health`) | 구현 완료 | 서버 상태 확인 (`200 OK`) |
+| `GET` | `/api/documents` | 구현 완료 | SQLite `documents` 목록 조회 |
+| `POST` | `/api/documents` | 구현 완료 | 문서 저장 (`201 Created`, 본문 상한 1 MiB) |
+| `DELETE` | `/api/documents/:id` | 구현 완료 | 문서 삭제 |
+| `GET` | `/api/core` (및 `/api/core/status`) | 구현 완료 | `implementation` (`real`/`fake`), `connection` (`direct`/`simulated`), `ready` 조회 |
+| `POST` | `/api/sharing` (및 `/api/core/generate`) | 구현 완료 | 호출자가 승인한 `facts` 배열로 주입된 `Core.generate()` 호출 (본문 상한 1 MiB) |
+| `POST` | `/api/analysis` | 구현 완료 | 주입된 `Engine.analyze()`로 원자료를 결정적으로 파싱하고 근거(`evidence`)와 후보 제안(`proposals`)을 반환 (본문 상한 1.5 MiB, stateless) |
+| `GET`/`PUT` | `/__demo`, `/api/demo/settings` | `fake-app` 전용 | 시연용 지연(`delayMs`)/실패 횟수(`failuresRemaining`)/고정 스크립트 제어 (실제 `app`에서는 `404`) |
+| `GET` | `/__presentation`, `/__presentation.js`, `/__presentation.css` | `fake-app` 전용 | CDP 6단계 자막/장면 타임라인/재생 제어 연출 화면 (실제 `app`에는 미포함) |
+
+### 코어 생성 요청 형식 (`POST /api/sharing` / `/api/core/generate`)
 
 ```json
 {
@@ -26,89 +31,63 @@ POST는 application/json을 사용하며 본문 상한은 기본 1 MiB, `/api/an
 }
 ```
 
-facts는 호출자가 이번 목적/수신자에게 공개하기로 승인한 표현이다. 원자료 sources나 추가 키를 같이 보내면 400 INVALID_CORE_INPUT이다. 원자료 분석/공개 승인 API/최종 확정은 이후 구현할 범위이며 이 API가 승인 권한을 자동 생성하지 않는다.
+- `facts`는 호출자가 이번 목적/수신자에게 공개하기로 승인한 표현이다. 원자료 `sources`나 추가 키를 같이 보내면 `400 INVALID_CORE_INPUT`으로 거부한다.
+- 성공 시 `document: { title, body }`와 `provenance: { implementation, connection, ready }`를 반환한다.
+- 모델 설정 없음/호출 실패/검토 미통과는 `503 CORE_UNAVAILABLE`, 미구현 기능은 `CORE_NOT_IMPLEMENTED`, 취소는 `CORE_CANCELLED`로 반환하며 실제 앱에서 가짜 응답으로 대체하지 않는다 (`INV-14`).
 
-성공 응답은 document: title/body와 provenance: implementation/connection/ready다. provenance는 fake/real 코어와 direct/simulated 연결을 구분한다. 모델 설정 없음/호출 실패/검토 실패는 503 CORE_UNAVAILABLE, 미구현 기능은 CORE_NOT_IMPLEMENTED, 취소는 CORE_CANCELLED다. 실제 앱에서 가짜 결과로 대체하지 않는다. 내부 예상밖 오류는 상세 내용을 숨긴 500 오류로 반환한다.
+---
 
-## 연출용 앱 전용 API
+## 2. 현행 구현된 엔진/라이브러리 계약 (`@safehandoff/core` / `core-interface`)
 
-fake-app만 GET /__demo, GET /__demo.js, GET /api/demo/settings, PUT /api/demo/settings를 제공한다. 실제 app에서는 모두 404다. 설정 JSON은 script: title/opening/closing과 connection: delayMs/failuresRemaining이다. 지연은 0-30000 ms, 실패 수는 0-10이다. 설정을 바꾸면 다음 요청부터 적용한다.
+| 모듈 / 메서드 | 입력 계약 | 반환 계약 및 보장 |
+| --- | --- | --- |
+| `parseSources(sources)` | `SourceFile[]` (`.txt`, `.md`, `.csv`, `.json`) | UTF-8 바이트 오프셋, CSV 행/열, JSON Pointer 기반 불변 `Evidence[]` 생성 (`packages/core/src/evidence-parser.ts`) |
+| `RealCore.analyze(req, {signal?})` | `AnalyzeRequest` (`task`, `sources` base64/SHA-256/included) | `{ evidence, proposals }` 반환 (`candidate_proposals.v1` 엄격 검증, 타 작업/미존재 `evidence_id` 거부, 분석 본문 transcript 미기록) |
+| `TaskStore.analysis` / `runTaskAnalysis` | `replaceSources(id, rev, sources)`, `runTaskAnalysis(store, engine, id, rev)`, `addManual` | SQLite migration v2 기반 source/evidence/job snapshot 저장 및 현재 `revision`/job/source/skill CAS 대조 후 원자적 채택 |
+| `composeFactPack(input)` | `ComposeFactPackInput` (`candidates`, `decisions`, `rules`, `scope`) | 승인된 `allow` 결정만 투영한 `FactPack`(`fact_pack.v1`) 생성 |
+| `groundFacts(context, pack, now)` | `ReviewGroundingContext`, `FactPack`, 현재 시각 | 각 사실의 `fresh_decision` / `reused_rule` 바인딩 검증. 만료/철회/범위 불일치 시 모델 호출 전 차단 |
+| `RealCore.write(factPack)` | `FactPack` | 원자료 없이 승인 사실만 사용한 `Draft`(`draft.v1` DocAST) 생성 |
+| `RealCore.review(draft, pack, ctx)` | `Draft`, `FactPack`, `ReviewGroundingContext` | 결정적 Grounding + 필수 사실 누락 검사 + 모델 의미 검토(`review.v1`) |
+| `RealCore.writeReviewed(pack, opts)` | `FactPack`, `{ grounding, now, signal }` | `groundFacts` -> `write` -> `review` -> `needs_changes` 시 고정 `reason_code`로 최대 1회 자동 수리 |
+| `builtin-tools` 5종 | `ToolRequest` (`derive_series_v1`, `render_timeline_v1`, `make_config_example_v1`, `make_synthetic_inputs_v1`, `render_approved_excerpt_v1`) | `BigInt` `HALF_UP` 지수(`100/141/212`), 방향(`기준/증가/감소`), `[가림]` 바이트 치환, 6글자 합성 입력 생성 |
+| `DockerReproRunner.reproduce(req)` | 고정 이미지 digest, 합성 입력 2종, `toyrecord` target pair | `--network=none`, `--read-only` 컨테이너 4회 실행 후 고정 oracle 판정 (`reproduced` 등) |
 
-문서 저장/조회 클라이언트는 SERVER_ORIGIN으로 대상을 바꿀 수 있다. 실제 앱은 8080, 가짜 앱은 8081이며 조절 화면은 가짜 앱에서 직접 연다.
+---
 
-## 주입형 Engine 라이브러리
+## 3. 연결 설정/Transcript/ToyRecord 스모크 계약
 
-HTTP 필드는 변경하지 않았다. 앱 진입점은 설정 파일과 환경 변수에서 모델을 구성해 주입한다. 모델과 EngineConfig를 주입한 RealCore는 작성/검토를 수행하며, 실패/예산 초과/통과하지 못한 검토는 기존 CORE_UNAVAILABLE로 매핑한다. 취소는 CORE_CANCELLED다.
+1. **모델 연결 환경 변수**:
+   - `SAFEHANDOFF_LLM_BASE_URL`, `SAFEHANDOFF_LLM_MODEL`, `SAFEHANDOFF_LLM_API_KEY`를 설정 파일(`SAFEHANDOFF_CONFIG`, 기본 `config.json` / `config.example.json`)에 지정된 환경 변수 이름으로 읽는다.
+   - `provider.response_mode=text`이면 JSON 출력 요청에도 HTTP `response_format` 필드를 강제하지 않고 프롬프트와 엔진 엄격 파서로 검증한다.
+2. **로컬 실행 Transcript (`transcript.v1`)**:
+   - `SAFEHANDOFF_TRANSCRIPT_DIR` 설정 시 실행별 JSONL(`transcript-<run_id>.jsonl`)을 기록한다.
+   - `SAFEHANDOFF_TRANSCRIPT_CONTENT=1`은 명시적 opt-in이며 원자료/API 키/리뷰어 내부 설명은 기록하지 않는다. 세부 이벤트 순서는 [에이전트 역할 계약](agent-workflow.md) 10을 따른다.
+3. **ToyRecord 스킬 팩 스모크**:
+   - `tools/oss-repro-smoke.mjs`는 `--catalog`, `--pack-version`, `--registration`을 받아 `FsSkillPackLoader.verify()`로 팩 지문(`manifest_sha256`, `pack_sha256`)과 컨테이너 이미지 digest를 대조한 뒤 실행한다. 세부 절차는 [도메인 확장 계약](extensions.md) 10 및 [시연 안내](demo.md) 2.3을 따른다.
 
-`writeReviewed`의 수정 루프는 라이브러리 전용이다. `/api/sharing`의 `generate`는 작성/검토 한 번만 수행하고 검토 통과 후 기존 title/body 응답을 반환한다. 이 경로에 task/decision API나 자동 공개 승인 기능은 추가하지 않았다. 같은 저장 계층의 task/공개 결정 API는 아래 `인증된 task/공개 결정 API` 절에서 별도로 연다.
+---
 
-## 연결 설정과 내부 저장
+## 4. 전체 제품 목표 `/api/v1` 워크플로우 HTTP 계약 (`F01-F10`)
 
-앱은 SAFEHANDOFF_LLM_BASE_URL, SAFEHANDOFF_LLM_MODEL, SAFEHANDOFF_LLM_API_KEY를 provider의 환경 변수 이름 설정으로 조회한다. SAFEHANDOFF_CONFIG는 설정 파일 경로이며 생략하면 config.json, 없으면 config.example.json이다. SAFEHANDOFF_REPRO_REGISTRY는 reproduction.enabled일 때만 읽는 설치 시 등록 파일이다. 상대 경로 기준은 저장소 루트다. 값은 API 응답에 노출하지 않는다.
+`TaskStore`(`packages/server/src/task-store.ts`)의 상태/CAS 계층을 웹 화면 전체와 연결할 때 사용하는 목표 REST API 계약이다 (`contracts/core.schema.json` 기준).
 
-`TaskStore`의 revision 검사/미리보기 hash 검증/원자적 결정 배치/철회/만료는 내부 라이브러리다. 같은 동작을 아래 `인증된 task/공개 결정 API`가 HTTP로 노출하며, `SAFEHANDOFF_WORKFLOW_ENABLED=1`로 켠 단일 운영자 loopback 환경에서만 활성화된다. 미설정/fake-app은 503 `WORKFLOW_API_DISABLED`다. 다중 사용자 인증/LAN 운영/외부 제출과 참고 task.v1 전체 필드는 구현 범위가 아니다. `/api/sharing`의 facts 입력이 이 저장 계층의 사람 승인을 증명하지는 않는다.
+- **공통 변경 헤더**: 모든 상태 변경 요청(`POST`, `PATCH`, `PUT`, `DELETE`)은 현재 작업 판본을 확인하는 `expected_revision` 필드와 중복 실행을 막는 `Idempotency-Key` 헤더를 요구한다.
+- **동시성 및 무효화**: `expected_revision`이 현재 DB 판본과 다르면 `409 REVISION_CONFLICT`를 반환하고, 같은 `Idempotency-Key`에 다른 본문이 오면 `409 IDEMPOTENCY_CONFLICT`를 반환한다.
 
-provider.response_mode=text이면 모델 호출의 JSON 출력 요청도 HTTP response_format 필드를 추가하지 않는다. JSON 기능 미지원 호환 서버는 프롬프트로 JSON을 생성하고 Engine이 같은 엄격한 응답 검증을 수행한다. response_mode=json일 때만 JSON 응답 형식 필드를 전송한다.
+| 기능 | 메서드/경로 | 요청 핵심 필드 | 응답 및 상태 전이 |
+| --- | --- | --- | --- |
+| `F01` 작업/자료 | `POST /api/v1/tasks`, `POST /api/v1/tasks/{id}/sources` | `purpose_id`, `goal_variant`, `recipient_id`, `audience`, `expected_revision` | 불변 `source_versions` 저장, `revision + 1`, `needs_analysis` |
+| `F02` 분석/수동 후보 | `POST /api/v1/tasks/{id}/jobs` (`kind=analyze`), `POST /api/v1/tasks/{id}/manual-candidates` | `expected_revision`, `statement`, `evidence_ids` | `candidate_sets` 생성, `needs_decisions` |
+| `F03` 미리보기/결정 배치 | `POST /api/v1/tasks/{id}/disclosure-previews`, `POST /api/v1/tasks/{id}/decision-batches` | `expected_revision`, `Idempotency-Key`, `preview_id`, `approved_projection_sha256` | 원자적 결정 저장, 이전 결과 `stale`, `ready_to_generate` |
+| `F04` 작성/검토/편집 | `POST /api/v1/tasks/{id}/jobs` (`kind=compose`/`review`), `PUT /api/v1/artifacts/{id}/edit` | `expected_revision`, `expected_document_hash`, `draft.v1` | `FactPack` 작성/검토, 통과 시 `ready_to_finalize` |
+| `F05` 확정/내보내기 | `POST /api/v1/artifacts/{id}/finalize`, `GET /api/v1/exports/{id}/archive` | `expected_revision`, `expected_artifact_set_hash`, `Idempotency-Key` | 현재 결정/해시 재검증 후 저장된 동일 바이트 반환 (만료/철회 시 `409 EXPORT_INVALIDATED`) |
+| `F06` 재사용 규칙 | `POST /api/v1/rules`, `POST /api/v1/tasks/{id}/rules/apply`, `POST /api/v1/rules/{id}/revoke` | `expected_revision`, `rule_refs`, `Idempotency-Key` | 6개 scope + `selector` 일치 시 새 자료에서 변환 재계산 (`exact_value` 저장 시 `422`) |
+| `F07/F08` 확장/재현 | `GET /api/v1/catalog`, `POST /api/v1/tasks/{id}/jobs` (`kind=reproduce`) | `target_pair_id`, `synthetic_input_set_id`, `expected_revision` | 고정 digest 확인 후 4회 실행 결과 정형 투영 |
+| `F09/F10` 이력/삭제/세션 | `GET /api/v1/tasks/{id}/events`, `DELETE /api/v1/tasks/{id}`, `POST /api/v1/auth/session` | `expected_revision`, `confirmation="DELETE"`, `acknowledge_saved_rules_retained=true` | 원자료/초안/이력 즉시 삭제 및 재사용 규칙 원작업 FK 해제 |
 
-## grounding 내부 계약
+---
 
-HTTP 필드와 환경 변수는 추가하지 않았다. Engine.review의 세 번째 인수와 writeReviewed의 grounding 옵션에는 ReviewGroundingContext를 준다. 입력이 없거나 현재 결정/scope/source/preview/rule/goal/만료와 모순되면 모델 호출 전에 needs_decision/NEEDS_DISCLOSURE_DECISION을 반환한다. composeFactPack은 여전히 FactPack을 반환하고, FactGrounding은 별도 groundFacts 함수로 계산한다. Decision의 applied_rule_id/version은 필수이며 fresh는 빈 문자열/0이다.
-
-Core.generate는 기존 호출자가 제공한 승인 facts만 명시적 fresh context로 연결하고 검토 통과 후 응답한다. 원자료 purpose를 공개 brief로 자동 복사하지 않는다. 범용 review가 metadata 누락을 fresh로 추정하지는 않는다. TaskStore의 현재 내부 레코드를 이 경로에 자동 이식하지 않았으며 Rule 매칭/저장/UI와 runtime revision/CAS 채택은 후속이다.
-
-OSS 스모크의 로컬 보고서는 execution_summary의 구조화된 실행 수치를 포함한다. completed는 파이프라인 완료이며 문서 최종화가 아니다. document_status=reviewed_draft_not_finalized, manual_review_required=true를 함께 기록한다. 문장 의미 판정은 자동 회귀 시험에 넣지 않는다.
-
-## 로컬 실행 transcript
-
-SAFEHANDOFF_TRANSCRIPT_DIR를 설정하면 실제 app과 OSS 스모크의 Engine 작성/검토 실행을 실행별 JSONL로 기록한다. 상대 경로는 저장소 루트 기준이며 생략하면 꺼진다. SAFEHANDOFF_TRANSCRIPT_CONTENT=1은 모델 입력/검증된 작성 초안을 추가하는 명시적 opt-in이며 DIR 없이 설정하면 시작 오류다. 기본 메타데이터에는 본문이 없다. API 키/endpoint/모델 이름/reviewer 내부 설명은 자동 기록하지 않는다. 본문 속 비밀 자동 제거 기능은 없다.
-
-기존 HTTP 요청/응답 필드는 그대로이며 transcript 조회 API는 없다. 파일은 로컬 내부 기록이고 녹화 재생은 실제 호출 표시와 구분해야 한다. [이벤트 계약과 보존 제한](transcript.md)을 따른다. 작업 삭제 연동/상시 24시간 만료는 후속 구현이다.
-
-## fake-app CDP 연출 화면
-
-GET `/__presentation`, `/__presentation.js`, `/__presentation.css`는 fake-app만 제공하는 고정 자원입니다.
-기존 `/__demo` 설정 화면과 병행하며 실제 app이나 공통 server에는 추가하지 않습니다.
-연출의 분석/공개 선택은 브라우저 상태이며 새로운 task/decision API가 아닙니다.
-생성/저장/조회는 위 `/api/sharing`, `/api/documents` 계약을 그대로 사용합니다.
-
-## ToyRecord 팩 스모크
-
-HTTP 필드와 환경 변수는 추가하지 않았다. OSS CLI는 `--catalog`와 `--pack-version`을 함께 받으며 `--registration`의 pack pin/target/정확한 image digest를 대조한다. `--seed`는 기본 42인 unsigned 32-bit 정수다. 기존 catalog 없는 image 등록 경로도 유지한다. 새 bound installation을 catalog 없이 쓰면 거부한다. 보고서 selected_pack과 transcript pack_selected가 같은 팩 지문을 담는다. [명세/실행 절차](toyrecord-pack.md)를 따른다.
-
-
-## F02 분석 라이브러리
-
-`POST /api/analysis`를 추가했으며 환경 변수는 추가하지 않았다. 실제 앱은 Engine을 주입하고,
-Engine이 없는 앱에서는 503 `CORE_NOT_IMPLEMENTED`를 반환한다. 잘못된 분석 입력은 400,
-모델 오류는 503으로 반환한다. 연결 종료는 분석 취소 신호로 전달한다.
-
-주입된 Engine의 `analyze({task,sources}, {signal?})`는 base64 원자료/source SHA-256/version/
-included 바인딩을 검사하고 `{evidence,proposals}`를 반환한다. 이 응답은 공개 결정이 아니며
-`/api/analysis`는 결과를 저장하지 않는다. 별도 내부 경로 `TaskStore.analysis`/`runTaskAnalysis`가
-source/evidence/job을 저장하고 CAS로 채택하지만 이 라우트와 연결되지 않았다.
-[파서 위치/한도/nullable 정규화/오류 계약](f02-analyze-plan.md)을 따른다. 원자료는 analysis 역할의
-설정된 모델로만 전달하고 writer 세션과 공유하지 않는다. 현재 라이브러리 자체가 프로세스의
-인터넷 차단이나 DB 권한/revision/CAS를 집행하는 것은 아니다. 분석 본문은 transcript에 기록하지 않는다.
-
-
-## F02 내부 저장/채택
-
-이 절의 분석 라이브러리는 새 HTTP 경로를 만들지 않는다. 기존 `/api/analysis`는 stateless로
-유지한다. task/decision CRUD와 job polling은 아래 `인증된 task/공개 결정 API` 절에서 별도로
-열며, 그 경로가 이 저장 함수를 호출한다. TaskStore의 migration v2는 source version/선택, evidence,
-분석 job snapshot, 후보 provenance를 추가하며 기존 문서/후보/결정을 보존한다.
-
-내부 호출 순서는 `store.analysis.replaceSources(id, revision, sources)` 후
-`runTaskAnalysis(store, engine, id, revision, {signal?})`다. 분석 시작은 이전 현재 후보/결정을
-무효화하고 revision을 올린다. 성공 채택도 새 revision이며 오래된 결과는 adopted=false다.
-모델 없는 `analysis.addManual`은 candidate와 evidence_ids 또는 user_note 중 하나를 받는다.
-현재 후보를 새 ID로 복제하되 선택은 옮기지 않으며 revision은 한 번 증가한다.
-
-새 내부 오류는 INVALID_ANALYSIS/ANALYSIS_NOT_FOUND다. 삭제된 job은 다시 만들지 않으며
-취소/실패/stale terminal 상태를 성공으로 복귀시키지 않는다. caller가 내부 job/source 조회 결과를
-일반 로그/공개 응답으로 직렬화하면 안 된다. [전체 내부 범위](f02-analyze-plan.md)를 따른다.
-
-## 인증된 task/공개 결정 API (단일 운영자 개발용)
+## 5. 인증된 task/공개 결정 API (단일 운영자 개발용)
 
 기존 `/api/analysis`는 stateless로 유지한다. 아래 v1 경로는 실제 앱에서
 `SAFEHANDOFF_WORKFLOW_ENABLED=1`로 켠 경우 활성화된다. 기존 WORKFLOW_TOKEN 설정도 활성화 입력으로 지원한다. 미설정/fake-app은

@@ -1,50 +1,71 @@
-# 앱/서버 껍데기/코어의 경계
+# SafeHandoff 아키텍처 - TypeScript 9개 패키지 구조와 의존성 경계
 
-최종 조립 앱은 app, 연출용 가짜 앱은 fake-app이다. 두 앱은 같은 서버 껍데기와 코어 인터페이스를 사용하며 코어 구현을 각각 주입한다. 가짜 연출을 바꾸기 위해 실제 앱/진짜 코어를 수정하지 않는다.
+문서 버전: 2.0 / 기준일: 2026-10-31 / 상태: 현행 정본 / 연결: [prd.md](prd.md), [decisions.md](decisions.md), [api.md](api.md), [ERD.md](ERD.md)
 
-| 패키지 | 책임 | 의존할 수 있는 구현 |
-| --- | --- | --- |
-| core-interface | 요청/응답 DTO, Core 인터페이스, 오류, 입력 검증 | 없음 |
-| server | HTTP 경로/요청 검증/SQLite 저장, 주입한 Core 호출 | core-interface만 |
-| fake-core | 연출용 문구/결과 템플릿 | core-interface만 |
-| fake-app | 가짜 앱 조립/조절 화면/지연/실패 연출 | server, fake-core, core-interface |
-| core | 주입형 작성/검토 Engine과 builtin | core-interface만 |
-| app | 최종 실제 앱과 모델/실행기 조립 | server, core, core-interface, model-adapter, sandbox-runner |
-| model-adapter | 설정 기반 호환 HTTP ModelClient | core-interface만 |
-| sandbox-runner | 고정 toy 이미지의 Docker 실행 | core-interface만 |
-| skill-loader | 팩 경로/manifest/digest 검증과 pin 재검증 | core-interface만 |
-| client | 별도 웹 클라이언트/HTTP 프록시 | 현재는 구현 패키지 의존성 없음 |
+## 1. 패키지 구성과 의존성 방향
+
+SafeHandoff는 `pnpm` 워크스페이스의 9개 TypeScript 패키지로 구성된다. 모든 도메인/실행 패키지는 순수 인터페이스 패키지인 `@safehandoff/core-interface`에만 의존하며, 화살표 역방향의 의존이나 순환 참조를 금지한다.
 
 ```mermaid
 flowchart TD
-  C[client] -->|같은 HTTP API| A[app]
-  C -->|대상 변경으로 시험| F[fake-app]
-  A --> S[server]
-  A --> R[core: 진짜 코어]
-  F --> S
-  F --> K[fake-core]
-  S --> I[core-interface]
-  R --> I
-  K --> I
-  S --> D[SQLite]
+  CI["@safehandoff/core-interface (순수 타입/검증/투영, 런타임 의존성 0)"]
+  CORE["@safehandoff/core (RealCore: analyze / write / review / writeReviewed / builtin-tools)"]
+  MA["@safehandoff/model-adapter (HttpModelClient: OpenAI 호환 HTTP)"]
+  SR["@safehandoff/sandbox-runner (DockerReproRunner: --network=none 4회 실행)"]
+  SL["@safehandoff/skill-loader (FsSkillPackLoader: manifest/경로/SHA-256 지문)"]
+  SRV["@safehandoff/server (HTTP 라우터 / DocumentStore / TaskStore node:sqlite)"]
+  APP["@safehandoff/app (실제 실행 엔트리 :8080)"]
+  FAKE["@safehandoff/fake-app (시연/연출 엔트리 :8081)"]
+  CLI["@safehandoff/client (React 19 + Vite 웹 UI :5173/:5174)"]
+
+  CORE --> CI
+  MA --> CI
+  SR --> CI
+  SL --> CI
+  SRV --> CI
+  APP --> SRV
+  APP --> CORE
+  APP --> MA
+  APP --> SR
+  FAKE --> SRV
+  CLI -. "HTTP /api/*" .-> SRV
 ```
 
-server는 app/core/fake-core/fake-app을 import하지 않는다. Core를 생성자 인수로 받아 HTTP 입력을 전달한다. 진짜 core는 fake 구현을 import하지 않는다. app에는 fake 코드/조절 API/자동 fallback이 없다. workspace 의존성과 실제 TypeScript import를 architecture.test.mjs에서 검사한다. 다른 패키지의 src를 상대 경로로 직접 가져오는 것도 거부한다.
+| 패키지 | 경로 | 핵심 책임 | 외부/내장 의존성 제약 |
+| --- | --- | --- | --- |
+| `@safehandoff/core-interface` | `packages/core-interface` | `Core`, `Engine`, `ModelClient`, `ReproRunner`, `SkillPackLoader`, `TranscriptSink` 포트 계약 및 `parseSources`, `composeFactPack`, `groundFacts`, `validatePackLayout`, `resolveToolAccess` 순수 함수 | 런타임 외부 패키지 0개, Node 내장 모듈(`node:*`) import 금지 |
+| `@safehandoff/core` | `packages/core` | `RealCore`(`analyze`, `write`, `review`, `writeReviewed`, `reproduce`, `generate`), 프롬프트 조립, 응답 엄격 검증, `builtin-tools` 5종, `FileTranscriptSink` | `@safehandoff/core-interface`, `node:crypto`, `node:fs`, `node:path` |
+| `@safehandoff/model-adapter` | `packages/model-adapter` | `HttpModelClient`: OpenAI 호환 `/v1/chat/completions` 호출, 타임아웃/버퍼 상한(1 MiB), redirect 차단, 고정 오류 코드 매핑 | `@safehandoff/core-interface` |
+| `@safehandoff/sandbox-runner` | `packages/sandbox-runner` | `DockerReproRunner`: 입력 디렉터리 심볼릭 링크 거부, 등록 이미지 digest 검증, `--network=none` + `--read-only` 컨테이너 실행, 4회 실행 고정 oracle 판정 | `@safehandoff/core-interface`, `node:child_process`, `node:fs` |
+| `@safehandoff/skill-loader` | `packages/skill-loader` | `FsSkillPackLoader`: `O_NOFOLLOW` 경로 검증, `manifest.json`/참조 파일 SHA-256 지문 계산 및 설치 pin 대조(`load`/`verify`), `skillSetHash` | `@safehandoff/core-interface`, `node:crypto`, `node:fs` |
+| `@safehandoff/server` | `packages/server` | `createServer`: HTTP 라우팅(`/api/health`, `/api/core/status`, `/api/core/generate`, `/api/documents`), `DocumentStore` 및 `TaskStore`(`node:sqlite`) | `@safehandoff/core-interface`, `node:http`, `node:sqlite` |
+| `@safehandoff/app` | `packages/app` | 실제 서버 실행 조립(`RealCore` + `HttpModelClient` + `DockerReproRunner` + `DocumentStore`, 기본 `:8080`) | `server`, `core`, `model-adapter`, `sandbox-runner` |
+| `@safehandoff/fake-app` | `packages/fake-app` | 시연용 가짜 코어(`FakeCore`) + 제어 API(`POST /__demo`, 기본 `:8081`) | `server`, `core-interface` |
+| `@safehandoff/client` | `packages/client` | React 19 + Vite 프론트엔드(`ApiClient` + 웹 화면) | `react`, `react-dom` |
 
-## 실제 앱과 연출 앱
+---
 
-실제 app은 기본 8080과 .local/data/safehandoff.sqlite를 사용한다. 앱 진입점은 설정 파일과 환경 변수에서 ModelClient를 구성해 RealCore에 주입한다. 설정 누락/호출 실패는 CORE_UNAVAILABLE이며 가짜 결과로 대체하지 않는다. 기존 문서 저장/조회는 그대로 동작한다. 진짜 구현은 packages/core 안에서 Core 계약을 구현하면 되고 server/fake-app 수정이 필요하지 않다.
+## 2. 핵심 데이터/권한 경계
 
-fake-app은 기본 8081과 .local/data/demo.sqlite를 사용한다. 실제 DATABASE_PATH 환경 변수를 재사용하지 않으며 DEMO_DATABASE_PATH를 별도로 지정한다. /__demo에서 가짜 코어의 제목/도입/마무리와 연결 지연/앞으로 실패할 요청 수를 변경한다. 설정은 메모리에 있으며 재시작하면 초기화한다. 이는 모델/네트워크/의미 검토의 실제 품질 검증이 아니다.
+1. **원자료와 작성기(`Writer`) 분리 (`INV-04`)**:
+   - 원자료(`SourceFile`)와 내부 근거(`Evidence`)는 `parseSources()`와 `RealCore.analyze()`에서만 읽는다.
+   - 사용자가 선택한 결정(`Decision`)과 활성 규칙(`Rule`)은 `composeFactPack()`을 통해 불투명 `fact_id`만 가진 `FactPack`(`fact_pack.v1`)으로 투영된다.
+   - `RealCore.write()`는 오직 `FactPack`만 모델에 전달한다.
+2. **결정적 Grounding과 기본 거부 검토 (`INV-05`, `INV-10`)**:
+   - `groundFacts(context, pack, now)`는 모든 공개 사실이 유효한 신규 승인(`fresh_decision`) 또는 범위/만료/철회/목표(`goal_variant`)가 검증된 재사용 규칙(`reused_rule`)에 연결되어 있는지 먼저 코드로 확인한다.
+   - 근거가 없거나 만료/철회된 결정이 하나라도 있으면 **모델을 호출하기 전에** 즉시 `needs_decision` (`NEEDS_DISCLOSURE_DECISION`)으로 차단한다.
+   - `RealCore.writeReviewed()`는 `needs_changes` 발생 시 리뷰어의 자유 설명 문장을 제거하고 고정 `reason_code`와 승인된 `fact_id`/`block_id`만으로 최대 1회 자동 수리를 수행한다.
+3. **도구 권한 교집합과 샌드박스 실행 (`INV-02`, `INV-15`)**:
+   - `resolveToolAccess()`는 `앱 등록 도구 교집합 역할 허용 목록 교집합 활성 SkillPack 교집합 현재 승인 grant`의 교집합만 허용한다.
+   - 컨테이너 실행(`DockerReproRunner`)은 셸 문자열 대신 고정 인자 배열(`execFile`)을 사용하며 호스트 DB/모델 API 키/네트워크를 마운트하지 않는다.
 
-가짜 연결 지연/실패는 fake-app 내부 connection.ts가 담당한다. 별도의 connector 앱 패키지는 없다. 가짜 연결부는 대상 Core를 주입받으며 fake-core의 구체 구현을 import하지 않는다. 취소된 지연 요청은 코어를 호출하지 않는다.
+---
 
-## 도구와 검증
+## 3. 분리된 실행 환경 (App / Fake-App / Client)
 
-Node/pnpm/just는 mise, 의존성은 pnpm-lock.yaml로 고정한다. 패키지 exports와 workspace 의존성으로 실행 경계를 만들고 pnpm build가 위상 순서로 빌드한다. 개발 시 development export condition으로 각 패키지의 TypeScript 원본을 실행한다. 배포 start는 빌드된 JS를 사용한다.
-
-just check는 QG를 직접 실행하고 QG가 타입/빌드/pnpm test를 호출한다. pnpm test는 패키지별 Node 테스트와 의존성 경계/QG 정책 테스트를 실행한다. 공식 @slop-lab/qg-rules-js의 js preset을 적용하며 JS 타입 검사 표식/테스트 fixture 복제/패키지 매니저 혼용/pnpm lockfile 일치 등을 검사한다. 패키지 이름은 safehandoff 또는 @safehandoff/ 하위로 제한한다.
-
-3라운드의 내부 TaskStore와 Docker 실행기 경계는 [축소 범위](round3-scope.md)를 따른다. task/decision 저장은 HTTP로 노출하지 않았으며 기존 문서 API와 독립적이다. Docker에는 고정 공개 toy 이미지와 등록 합성 입력만 전달한다.
-
-F07의 `packages/skill-loader`는 core-interface만 참조하는 leaf 패키지다. 경로 문자열 검증은 core-interface의 순수 함수이며 실제 파일/digest 검증은 로더가 수행한다. app/core/server에 자동 연결하지 않았으며 catalog 등록/ToyRecord CLI 연결은 구현했으며, 역할별 프롬프트 조립/앱의 팩 변경 무효화는 후속이다. 상세 상태는 [F07 계획](f07-extensions-plan.md)과 [팩 연결](toyrecord-pack.md)을 따른다.
+| 실행 대상 | 명령 | 기본 주소 | 용도 |
+| --- | --- | --- | --- |
+| 실제 서버 | `just app` | `http://127.0.0.1:8080` | 사내/로컬 LLM 및 SQLite 연동 실행 |
+| 시연용 서버 | `just fake-app` | `http://127.0.0.1:8081` | 외부 LLM 없이 UI 상태/응답 시나리오 확인 (`POST /__demo`) |
+| 클라이언트 (실제 연결) | `just client` | `http://127.0.0.1:5173` | `/api` 요청을 `:8080`으로 프록시 |
+| 클라이언트 (시연 연결) | `just client-fake` | `http://127.0.0.1:5174` | `/api` 및 `/__demo` 요청을 `:8081`로 프록시 |

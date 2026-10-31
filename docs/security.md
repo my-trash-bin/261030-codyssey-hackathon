@@ -1,8 +1,6 @@
 # 실행 경계와 자료 취급
 
-> 보존한 제품 설계/이전 기록이다. 현재 구현은 TypeScript 서버/클라이언트의 문서 저장/조회만 제공한다. 현재 실행과 API는 [README](../README.md) 및 [api](api.md)를 따른다.
-
-버전: 1.0 / 기준일: 2026-10-31 / 상태: 구현 기준안
+버전: 2.0 / 기준일: 2026-10-31 / 상태: 현행 구현 기준 (TypeScript 워크스페이스 및 `DockerReproRunner` 하드닝 반영)
 
 이 문서는 [PRD](prd.md)의 PRD-03/06/08/12와 [동작 명세](spec.md)의 INV-01-16을 실제 배치/권한/자료 수명으로 연결한다. SafeHandoff의 목적은 사람이 공유 자료를 준비하는 일을 돕는 것이다. 아래 경계는 그 과정에서 원문과 승인되지 않은 자료가 의도하지 않은 경로로 전달되는 일을 줄이기 위한 설계다. 모델의 의미 판단이 항상 정확하다는 약속은 포함하지 않는다.
 
@@ -113,17 +111,8 @@ endpoint/모델 ID/인증 방식은 운영자가 시작 설정으로 제공한�
 
 - [S-SEC-01 Docker: None network driver](https://docs.docker.com/engine/network/drivers/none/) - 2026-10-31 확인. 컨테이너의 `none` 네트워크 동작 참고. SafeHandoff의 나머지 권한/보존/배치 규칙은 본 프로젝트의 설계 결정이다.
 
-현재 구현된 transcript는 [로컬 실행 기록](transcript.md) 범위다. 위 표의 상시 24시간 만료와 task 삭제 연동은 목표이며 아직 완성되지 않았다. 현재는 기록 시작 때 만료 파일을 정리하고 owner 전용 파일에 저장한다. 본문은 별도 opt-in이며 원자료 자동 수집/비밀 자동 제거/공개용 자동 정제는 제공하지 않는다.
+현재 구현된 transcript는 [에이전트 역할 계약](agent-workflow.md) 10 범위다. 위 표의 상시 24시간 만료와 task 삭제 연동은 목표이며 아직 완성되지 않았다. 현재는 기록 시작 때 만료 파일을 정리하고 owner 전용 파일에 저장한다. 본문은 별도 opt-in이며 원자료 자동 수집/비밀 자동 제거/공개용 자동 정제는 제공하지 않는다.
 
+F02 Engine 분석(`RealCore.analyze`)은 전달받은 included snapshot을 결정적으로 파싱하고 설정된 `ModelClient`에 원자료와 근거를 보낸다. analyst의 도구/파일 조회 경로는 제공하지 않으며 분석과 writer 호출은 분리한다. 상세 transcript를 켜도 분석 본문은 저장하지 않는다.
 
-F02 Engine 분석은 전달받은 included snapshot을 결정적으로 파싱하고 설정된 ModelClient에
-원자료와 근거를 보낸다. analyst의 도구/파일 조회 경로는 제공하지 않으며 분석과 writer 호출은
-분리한다. 상세 transcript를 켜도 분석 본문은 저장하지 않는다. 호출자 권한/DB snapshot/CAS/
-프로세스 네트워크 격리와 사내 모델의 실제 운영 권한은 이 라이브러리만으로 완성하지 않는다.
-
-
-F02 내부 저장은 서버가 source hash와 snapshot revision을 고정하고, 비동기 Engine 호출 후
-현재 job/revision/source/skill/context를 다시 대조해 채택한다. source version과 job snapshot은
-불변이며 task 삭제 시 source/근거/job/provenance도 cascade로 제거한다. 새 수동 후보는 공개
-결정을 승계하지 않는다. 이는 내부 라이브러리이며 stateless 분석 HTTP/인증/CSRF/원자료 실행
-환경 격리/Rule 철회 전파/전체 artifact/export 제어를 자동 완성한 것은 아니다. selector도 발급하지 않는다.
+F02 내부 저장(`TaskStore.analysis`)은 서버가 source hash와 snapshot revision을 고정하고, 비동기 Engine 호출 후 현재 job/revision/source/skill/context를 다시 대조해 채택한다. source version과 job snapshot은 불변이며 task 삭제 시 source/근거/job/provenance도 cascade로 제거한다. 새 수동 후보는 공개 결정을 승계하지 않는다.

@@ -7,7 +7,7 @@
 
 | 항목 | 출처 | 크기/위험 |
 | --- | --- | --- |
-| `roleDocuments` -> `RealCore` 프롬프트 연결 (`AnalyzeRequest`/`FactPack`에 팩 문서 자리 없음) | [F07 2번 - 인벤토리+테스트 방법 정리 완료](f07-extensions-plan.md), 구현은 아직 | 작음, 계약 확장 1회 필요 |
+| `roleDocuments` -> `RealCore` 프롬프트 연결 (`AnalyzeRequest`/`FactPack`에 팩 문서 자리 없음) | [F07 2번 - 인벤토리+테스트 방법 정리 완료](extensions.md), 구현은 아직 | 작음, 계약 확장 1회 필요 |
 | `toyrecord-repro` 스킬 팩을 실제 catalog로 로딩해 OSS 스모크에 연결 | F07 6번 + OSS 계획 | **연결 완료** - task 변경 무효화는 별도 |
 | `check_doc_ip_context_v1` (`ProcessToolRunner` 첫 구현) | F07 4번 | 큼, 보안 판단 필요 |
 | `scan_candidate_bundle_v1` | F07 5번 | 중간 |
@@ -19,7 +19,7 @@
 ## 구현 완료: `toyrecord-repro` 스킬 팩을 실제로 로딩하게 연결
 
 아래 계약과 순서에 따라 `tools/toyrecord-pack.mjs`, 팩 fixture, OSS CLI 연결을 구현했다.
-[설치/실행 안내](toyrecord-pack.md)와 [실제 Docker 세 사례 확인](toyrecord-pack-smoke-2026-10-31.md)을
+[설치/실행 안내](extensions.md)와 [실제 Docker 세 사례 확인](검증보고서.md)을
 참고한다. 기존 `--registration` 경로도 유지하며 모델 의미 판정을 회귀 검사에 넣지 않았다.
 
 ### 구현 전 확인한 간극

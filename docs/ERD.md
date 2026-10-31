@@ -1,8 +1,16 @@
-# 데이터 모델과 저장 계약
+# 데이터 모델과 저장 계약 (ERD)
 
-> 보존한 제품 설계/이전 기록이다. 현재 구현은 TypeScript 서버/클라이언트의 문서 저장/조회만 제공한다. 현재 실행과 API는 [README](../README.md) 및 [api](api.md)를 따른다.
+문서 버전: 2.0 / 기준일: 2026-10-31 / 상태: 현행 정본 (TypeScript `node:sqlite` 워크스페이스 기준) / 참조 DDL: [schema.sql](../contracts/schema.sql), [task-schema.ts](../packages/server/src/task-schema.ts) / 공통 enum: [domain-contract.json](../contracts/domain-contract.json)
 
-참조 초기 DDL: [schema.sql](../contracts/schema.sql). 공통 enum: [domain-contract.json](../contracts/domain-contract.json). DDL은 구현할 초기 migration의 출발점이며 앱 데이터베이스가 만들어져 있다는 뜻이 아니다. payload JSON의 의미/동일 작업 소속/불변 판본/SHA-256 일치는 서비스 계층에서 추가 검사한다.
+## 0. 현행 TypeScript SQLite 구현 테이블과 전체 목표 스키마 매핑
+
+현재 `@safehandoff/server`는 Node 24 내장 `node:sqlite`(`DatabaseSync`, `WAL` 모드, `PRAGMA foreign_keys = ON`) 위에서 두 계층의 스키마를 운용한다.
+
+| 계층 | 구현 위치 | 테이블 목록 | 현재 상태 |
+| --- | --- | --- | --- |
+| 1. 문서 저장소 (`DocumentStore`) | `packages/server/src/db.ts` | `documents` (`id`, `title`, `content`, `created_at`, `updated_at`) | HTTP API (`/api/documents`) 및 React 클라이언트 연결 완료 |
+| 2. 워크플로우 저장소 (`TaskStore`) | `packages/server/src/task-schema.ts`, `task-store.ts` | `workflow_tasks`, `workflow_candidates`, `workflow_decisions`, `workflow_current_decisions`, `workflow_fact_packs`, `workflow_artifacts`, `workflow_reviews` (7개 핵심 테이블) | Revision CAS, 결정 대체(`supersedes_id`), 아티팩트 stale 무효화, 트랜잭션 롤백 단위 테스트 검증 완료 |
+| 3. 전체 제품 참조 DDL (24개 테이블) | `contracts/schema.sql` | 아래 1-5의 `tasks`, `source_versions`, `evidence`, `candidate_sets`, `candidates`, `disclosure_previews`, `decisions`, `current_decisions`, `rules`, `fact_packs`, `artifacts`, `artifact_files`, `reviews`, `findings`, `exports`, `jobs`, `tool_runs`, `run_traces`, `events`, `idempotency_keys`, `deletion_receipts` 등 24개 테이블 | SQLite DDL 정합성 검증 완료 (`tools/validate_docs.py`) 및 `TaskStore` 확장 기준 |
 
 ## 1. 세 가지 데이터 경로
 
@@ -159,7 +167,7 @@ DB 트랜잭션은 모델/실행기 대기 시간까지 유지하지 않는다. 
 
 ## 6. 해시와 직렬화
 
-파일은 실제 bytes로 hash를 계산한다. 내부 구조화 payload는 `canonical_json.v1`이라는 서버 공통 함수 하나로 직렬화한다. 최소 계약은 map key의 UTF-8 사전순 정렬, 공백 없는 JSON, 배열 순서 유지, 정수 또는 decimal string, 유효 Unicode만, 중복 키 거부다. 문자열 escaping은 Go `encoding/json`의 기본 JSON 문자열 encoding을 사용하고 결과 끝의 LF는 제외한다. 함수별로 HTML escaping 설정을 달리하지 않는다. 언어를 바꾸면 기준 벡터와 동일한 bytes를 내야 한다.
+파일은 실제 bytes로 hash를 계산한다. 내부 구조화 payload는 `canonical_json.v1`(`packages/core-interface/src/grounding.ts`의 결정적 직렬화)이라는 공통 함수 하나로 직렬화한다. 최소 계약은 객체 key의 UTF-8 코드유닛 사전순 정렬, 공백 없는 JSON, 배열 순서 유지, 정수 또는 decimal string, 유효 Unicode만, 중복 키 거부다. 문자열 escaping은 표준 `JSON.stringify`의 UTF-8 JSON 문자열 인코딩을 사용하고 결과 끝의 LF는 제외한다. 함수별로 HTML escaping 설정을 달리하지 않는다.
 
 `source_set_hash`는 included source_version_id와 sha256의 정렬 목록, `policy_hash`는 해당 snapshot 생성 시점의 scope/결정/규칙 판본/활성 조건의 목록, `skill_set_hash`는 등록 pack/template/tool digest의 정렬 목록으로 만든다. 목록의 전체 필드를 snapshot에 함께 저장한다. task snapshot은 revision 생성 시점을, job snapshot은 그 실행 직전 유효 상태를 나타낸다. 둘의 policy_hash가 다를 수 있으며 compose는 job snapshot과 현재 유효성 검사를 사용한다. hash 하나만으로 디버그하거나 원자료 존재 여부를 추정하지 않는다.
 

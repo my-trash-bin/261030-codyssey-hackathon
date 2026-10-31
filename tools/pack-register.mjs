@@ -1,5 +1,5 @@
 // @ts-check
-// F07 submission/registration CLI (docs/extensions.md §10, f07-extensions-plan.md "제출 절차").
+// F07 submission/registration CLI (docs/extensions.md §10).
 // Loads+validates a pack directory with the install-time allowlist and appends a digest-pinned
 // entry to a local catalog file. Never installs a pack by its own asserted product/purpose/tool
 // IDs -- the allowlist is operator-supplied, never read from the pack itself.

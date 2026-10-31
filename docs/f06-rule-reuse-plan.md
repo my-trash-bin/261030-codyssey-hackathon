@@ -1,7 +1,7 @@
 # F06 Rule 재사용 - 본체 계획의 시작 (제안/검색 메모)
 
 `docs/next-round-plan.md`가 F06 본체(서버 `rules` 테이블/scope 매칭/철회/만료 전파)를 "큼, 별도
-기능"으로 남겨둔 그 작업의 전용 계획 문서다. [review-grounding-plan.md](review-grounding-plan.md)는
+기능"으로 남겨둔 그 작업의 전용 계획 문서다. [review-grounding-plan.md](agent-workflow.md)는
 F06 section 2("서버만 현재 입력과 기준을 매칭한다")를 Engine 쪽에서 독립 재검증하는 **결정적** 경로만
 구현했고, section 4에서 "Rule 매칭 자체는 범위 밖"이라고 명시했다. 이 문서는 그 범위 밖 작업 중
 하나인 "Rule 제안(검색)" 설계만 적는다. 아직 구현하지 않았다.
@@ -53,7 +53,7 @@ SkillPack들**(F07, `.agents/skills` 관례를 따르는 팩)의 `(id, version, 
 | 판정자 | 코드 (`grounding.ts`의 `scopeValid`/`canonical` 비교) | **미정** - F03 `proposeDisclosure`(공개 결정 제안 단계) 또는 리뷰 단계, 둘 중 어디에 붙일지 결정 필요 |
 | 근거 문서 | `features/06-decision-reuse.md` section 2, `review-grounding-plan.md` | 없음 - 위 "기존 문서가 실제로 말하는 것"에서 추론한 확장 제안 |
 | 결과 | `applied_rule_id`/`version`으로 grounding, 사람에게 다시 안 물음 | "참고할 만한 선례가 있다"는 제안만, 최종 반영은 여전히 fresh decision 취급 |
-| 상태 | 구현 완료([review-grounding-plan.md](review-grounding-plan.md)) | 미구현, 어디에 붙일지도 미정 |
+| 상태 | 구현 완료([review-grounding-plan.md](agent-workflow.md)) | 미구현, 어디에 붙일지도 미정 |
 
 어디에 붙이든 제안 경로는 결정적 grounding을 우회하지 않는다 - 과거 Rule을 "참고"했다고 그
 fact가 `reused_rule`로 grounding되지는 않으며, 여전히 `fresh_decision`으로 취급되고 사람의 새

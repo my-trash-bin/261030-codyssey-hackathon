@@ -1,6 +1,6 @@
 # 에이전트 역할/데이터 계약/실패 처리
 
-> 보존한 제품 설계/이전 기록이다. 현재 구현은 TypeScript 서버/클라이언트의 문서 저장/조회만 제공한다. 현재 실행과 API는 [README](../README.md) 및 [api](api.md)를 따른다.
+문서 버전: 2.0 / 기준일: 2026-10-31 / 상태: 현행 정본 (TypeScript `@safehandoff/core` 및 `@safehandoff/core-interface` 기준) / 연결: [spec.md](spec.md), [api.md](api.md), [F02](features/02-evidence-analysis.md), [F04](features/04-compose-review.md)
 
 같은 사내 모델을 역할별로 순차 호출한다. 아래 역할은 논리적 역할이며 서로 다른 모델을 요구하지 않는다. 권한/공개 선택/파일 생성의 최종 판단은 앱 코드가 한다. 전체 흐름은 [spec](spec.md), 구현 책임은 [F02](features/02-evidence-analysis.md)와 [F04](features/04-compose-review.md).
 
@@ -183,3 +183,14 @@
 run마다 mode, provider/model 식별자, prompt 버전, extension digest, 입력 revision, 호출 수, 지연, 오류 코드, 수동 개입, 재현 결과, 출력 해시를 기록한다. 미측정 usage는 null이다. 모델 호출 실패 후 fixture가 응답을 대신하면 성공처럼 보일 수 있으므로 이 대체는 금지한다.
 
 평가는 작성만/작성 중 검토 추가/결정적 검사 추가를 구분할 수 있어야 한다. 같은 모델의 재검토가 실제 도움이 되는지는 별도 측정한다. 자세한 기준은 [QA](qa.md).
+
+## 10. 현행 TypeScript 구현 계약 (`groundFacts` / `writeReviewed` / `transcript.v1`)
+
+1. **결정적 Grounding과 기본 거부 (`groundFacts`)**:
+   - `packages/core-interface/src/grounding.ts`의 `groundFacts(context, pack, now)`는 `ComposeFactPackInput`에서 `FactPack`을 다시 계산해 각 사실이 유효한 신규 결정(`fresh_decision`) 또는 활성 재사용 규칙(`reused_rule`, `rule_id` + `rule_version`)에 연결되는지 확인한다.
+   - `exact_value`, `approved_excerpt`, 실제값 `selected_fields`의 재사용 시도, `revoked` 또는 만료된 규칙, `scope`/`source_set_hash`/`projection_sha256`/`goal_variant` 불일치, 근거 메타데이터 누락은 **모델 호출 전** 즉시 `{ result: "needs_decision", issues: [{ reason_code: "NEEDS_DISCLOSURE_DECISION" }] }`로 거부한다.
+2. **검토 결합 작성 (`RealCore.writeReviewed`)**:
+   - `packages/core/src/real-core.ts`의 `writeReviewed(factPack, options)`는 `groundFacts` 통과 후 `write()` -> `validateDraft()` -> `review()`를 실행하고, `needs_changes`일 때 리뷰어의 `internal_explanation`을 제외한 고정 `reason_code`와 승인 `fact_id`/`block_id`만으로 최대 1회 자동 수리를 수행한다.
+3. **실행 Transcript (`FileTranscriptSink`, `transcript.v1`)**:
+   - `SAFEHANDOFF_TRANSCRIPT_DIR` 설정 시 실행별 `transcript-<run_id>.jsonl`(`0600` 권한, 24시간 경과 파일 자동 정리)에 `run_started`, `pack_selected`, `model_started`, `model_completed`, `model_failed`, `review_completed`, `repair_started`, `reproduction_started`, `reproduction_completed`, `run_completed` 이벤트를 기록한다.
+   - `SAFEHANDOFF_TRANSCRIPT_CONTENT=1`을 켜더라도 원자료, 모델 API 키, 엔드포인트 URL, 리뷰어 내부 설명은 기록하지 않는다.

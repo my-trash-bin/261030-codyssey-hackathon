@@ -1,8 +1,6 @@
 # 제품별 지침, 보조 도구와 재현 확장
 
-> 보존한 제품 설계/이전 기록이다. 현재 구현은 TypeScript 서버/클라이언트의 문서 저장/조회만 제공한다. 현재 실행과 API는 [README](../README.md) 및 [api](api.md)를 따른다.
-
-버전: 1.0 / 기준일: 2026-10-31 / 상태: 구현 계약
+버전: 2.0 / 기준일: 2026-10-31 / 상태: 현행 구현 계약 (`@safehandoff/skill-loader`, `@safehandoff/core`, `@safehandoff/sandbox-runner` 기준)
 
 이 문서는 PRD-10/11의 구현 경계다. 라이브러리나 제품별로 먼저 확인할 질문, 공유 양식, 변환, 검사를 추가할 수 있게 한다. 기능 담당자는 [F07](features/07-domain-extensions.md)과 [F08](features/08-reproduction.md)를 함께 읽는다. 제품별 전문성을 매번 긴 프롬프트에 다시 입력하지 않고 등록된 지침과 검사로 재사용하는 것이 목적이다.
 
@@ -10,10 +8,10 @@
 
 | 종류 | 맡는 일 | 이번 PoC |
 | --- | --- | --- |
-| 업무 지침 팩 | 필요한 정보/미확인 사항/질문 순서/공개 양식 정의 | `vendorstore-support`, `toyrecord-repro` 두 팩 |
-| 결정적 변환 | 승인한 사실로 추이/시간/예시 설정을 계산 | builtin Go 함수 |
+| 업무 지침 팩 | 필요한 정보/미확인 사항/질문 순서/공개 양식 정의 | `vendorstore-support`, `toyrecord-repro` 두 팩 (`FsSkillPackLoader` 및 `pack-register.mjs`) |
+| 결정적 변환 | 승인한 사실로 추이/시간/예시 설정을 계산 | builtin TypeScript 함수 5종 (`packages/core/src/builtin-tools.ts`) |
 | 맥락 검사기 | 제품 구조/생성 경위/현재 승인과 finding의 일치 검사 | 내장 IP checker와 동일 계약의 process 실행기 |
-| 재현 레시피 | 고정 대상/입력 계약/실행법/관찰 판정 지정 | 의도적 결함이 있는 `toyrecord` |
+| 재현 레시피 | 고정 대상/입력 계약/실행법/관찰 판정 지정 | 의도적 결함이 있는 `toyrecord` (`DockerReproRunner` 4회 실행) |
 
 이번 범위에서 사용자가 올린 임의 스크립트를 바로 실행하지 않는다. 팀이 새 검사기를 코드 검토한 뒤 설치 설정에 등록할 수 있다. 사용자는 설치된 팩을 선택한다. 외부 마켓/자동 다운로드/실행 중 코드 생성은 후속이다.
 
@@ -65,7 +63,7 @@ UI-09에는 설치 팩의 이름/버전/지문/호환 목적/검사 환경 상�
 
 ## 4. 역할과 도구 권한
 
-실행 가능 도구는 **앱 registry intersection 역할 허용 목록 intersection 선택 팩 intersection 현재 결정**의 교집합이다. 팩의 `tool_ids`는 요구 목록이지 허가 자체가 아니다. writer는 승인된 결과를 읽고 필요한 슬롯을 제안할 수 있지만 도구 실행 명령을 직접 수행하지 않는다. 오케스트레이터가 typed request를 구성한다.
+실행 가능 도구는 **앱 registry 교집합 역할 허용 목록 교집합 선택 팩 교집합 현재 결정**의 교집합이다. 팩의 `tool_ids`는 요구 목록이지 허가 자체가 아니다. writer는 승인된 결과를 읽고 필요한 슬롯을 제안할 수 있지만 도구 실행 명령을 직접 수행하지 않는다. 오케스트레이터가 typed request를 구성한다.
 
 | 도구 | 입력 | 공개 결과 | 별도 조건 |
 | --- | --- | --- | --- |
@@ -86,7 +84,7 @@ UI-09에는 설치 팩의 이름/버전/지문/호환 목적/검사 환경 상�
 
 ## 5. 내장 도구와 process 도구
 
-`ToolRunner`는 builtin과 process 어댑터를 둔다. builtin은 Go 함수 호출이며 등록한 인수만 받는다. process는 사전 등록 실행 파일을 JSON stdin/JSON stdout으로 호출한다. IP checker는 같은 판정 함수를 CLI로 감싸 builtin과 process의 정상/오류 결과가 같은지 확인한다.
+`ToolRunner`는 builtin과 process 어댑터를 둔다. builtin은 TypeScript 순수 함수(`packages/core/src/builtin-tools.ts`) 호출이며 등록한 인수만 받는다. process는 사전 등록 실행 파일을 JSON stdin/JSON stdout으로 호출한다. IP checker는 같은 판정 함수를 CLI로 감싸 builtin과 process의 정상/오류 결과가 같은지 확인한다.
 
 process 등록에는 실행 파일/이미지 digest, 고정 argv, input/output schema, 마운트 허용 파일, 시간/출력/자원 상한을 포함한다. 요청에서 argv나 mount 경로를 받지 않는다. 컨테이너 stdout은 계약 JSON 하나이며 stderr는 내부 진단 전용이다. 종료코드/JSON status가 모순되거나 뒤에 JSON이 더 붙으면 `TOOL_CONTRACT_ERROR`다.
 
@@ -176,9 +174,11 @@ RFC 5737의 문서 예시용 대역인 `192.0.2.0/24`, `198.51.100.0/24`, `203.0
 
 결과가 부족하면 환경/target/입력/관찰을 확인한 뒤 사용자에게 추가 선택 또는 문의 범위 조정을 제안한다. 같은 실패를 반복하면서 자동으로 원문/실제 고객값을 더 넣지 않는다. 구체 판정표와 공개 패키지는 [F08](features/08-reproduction.md)에 정의한다.
 
-## 10. 팀이 새 확장을 추가할 때
+## 10. 팀이 새 확장을 추가할 때와 카탈로그 CLI
 
 새 팩 작성 -> 내부용/공개용 지침 분리 -> schema/도구/검사 등록 -> 정상/경계/오류 예시 작성 -> 공개 결과와 권한 검토 -> digest 고정 -> catalog 등록 순서로 진행한다. 코드를 붙였다는 이유만으로 지원 제품 목록에 올리지 않고 실제 대상과 입력에서 시험한다.
+
+현행 구현에서는 `node tools/pack-register.mjs --root <팩경로> --allowlist <허용목록> --catalog <카탈로그JSON>`으로 `FsSkillPackLoader.load()` 검증을 통과한 팩의 `manifest_sha256`과 `pack_sha256`을 로컬 카탈로그에 고정한다. `toyrecord-repro` 팩은 `assets/reproduction.v1.json`(`toyrecord_reproduction.v1`)과 운영자 설치 핀(`toyrecord_installation.v1`)을 `FsSkillPackLoader.verify()`로 대조한 뒤에만 `tools/oss-repro-smoke.mjs`에서 실행한다.
 
 문서와 도구를 추가해도 `INV-03`, `INV-04`, `INV-07`, `INV-09`, `INV-12-16`은 유지한다. 필요한 권한 변경은 기능 파일에만 숨기지 말고 [spec](spec.md), [API](api.md), [ERD](ERD.md)를 같은 변경으로 갱신한다.
 

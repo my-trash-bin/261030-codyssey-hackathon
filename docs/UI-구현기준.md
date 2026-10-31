@@ -24,7 +24,7 @@ UI 구현 기준은 [README](../README.md)와 아래의 `docs/` 문서다.
 | 현재 노출된 HTTP API와 연결 한계 | [실제 API](api.md) |
 | 분석 연결 뒤 남은 서버 요청과 수용 기준 | [분석 UI 이후 서버 요청](ui-api-requests.md) |
 | 초안/최종 파일/재사용/이력/실행 환경 API | [현재 API](api.md) |
-| 내부 저장과 현재 구현 범위 | [3라운드 범위](round3-scope.md) |
+| 내부 저장과 현재 구현 범위 | [3라운드 범위](architecture.md) |
 
 ### 적용 원칙
 
