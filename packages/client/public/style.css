@@ -493,6 +493,18 @@ textarea[aria-invalid="true"]:focus-visible {
   font-weight: 700;
 }
 
+/* 동의 문장은 한 줄이 길어 같은 크기로 두면 과하게 무겁다. 본문보다 한 단계 작게, 자간은 그대로. */
+.option--consent > label {
+  font-size: 0.9375rem;
+  line-height: 1.6;
+  font-weight: 400;
+  max-width: 46ch;
+}
+
+.option--consent:has(input:checked) > label {
+  font-weight: 500;
+}
+
 .custom {
   padding-top: 16px;
   border-top: 1px solid var(--rule-strong);

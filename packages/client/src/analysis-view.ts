@@ -149,7 +149,7 @@ export function mountAnalysis(root: HTMLElement, options: MountOptions): { works
   const fileList = make('ul', 'plain-list');
   fileListSection.append(fileListHeading, fileSummary, fileList);
 
-  const consentOption = make('div', 'option');
+  const consentOption = make('div', 'option option--consent');
   const consentInput = make('input');
   consentInput.type = 'checkbox';
   consentInput.id = 'analysis-consent';
