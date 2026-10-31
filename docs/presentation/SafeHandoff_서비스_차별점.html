@@ -1,0 +1,417 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#163172">
+<meta name="description" content="SafeHandoff 07. 서비스 차별점 - 대분류 비교 매트릭스">
+<title>SafeHandoff · 07. 서비스 차별점</title>
+<link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --blue:#2563eb;
+  --navy:#163172;
+  --dark-pill:#223042;
+  --ink:#111827;
+  --body:#334155;
+  --muted:#64748b;
+  --line:#dce4f0;
+  --paper:#ffffff;
+}
+*{box-sizing:border-box}
+html{
+  scroll-behavior:smooth;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+}
+body{
+  margin:0;
+  background:#e8edf5;
+  color:var(--ink);
+  font-family:"Pretendard Variable",Pretendard,"Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+  font-size:14px;
+  font-weight:600;
+  line-height:1.4;
+  word-break:keep-all;
+  overflow-wrap:break-word;
+}
+h1,h2,h3,h4,p,figure{margin:0}
+h1,h2,h3,h4{line-height:1.25;letter-spacing:-.035em}
+a{color:inherit;text-decoration:none}
+button{font:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
+
+.toolbar{
+  height:64px;
+  position:sticky;
+  top:0;
+  z-index:30;
+  background:#fffffff7;
+  border-bottom:1px solid var(--line);
+  backdrop-filter:blur(12px);
+}
+.toolbar-inner{
+  height:100%;
+  width:min(1280px,calc(100% - 40px));
+  margin:auto;
+  display:flex;
+  justify-content:space-between;
+  gap:20px;
+  align-items:center;
+}
+.brand{
+  font-size:19px;
+  font-weight:900;
+  color:var(--navy);
+  white-space:nowrap;
+  letter-spacing:-.03em;
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+.brand-badge{
+  display:inline-grid;
+  place-items:center;
+  width:26px;
+  height:26px;
+  border-radius:7px;
+  background:#0f9f90;
+  color:#fff;
+  font-size:14px;
+  font-weight:900;
+}
+.brand small{
+  font-size:11px;
+  letter-spacing:.08em;
+  font-weight:700;
+  margin-left:4px;
+  color:var(--muted);
+}
+.tools{display:flex;gap:8px;align-items:center}
+.tool-button{
+  font-size:12px;
+  font-weight:700;
+  color:var(--navy);
+  background:#fff;
+  border:1.5px solid var(--line);
+  border-radius:8px;
+  padding:7px 13px;
+  line-height:1.5;
+}
+.tool-button:hover{background:#f0f5ff}
+
+.reader{padding:28px 0 42px}
+.page-shell{
+  position:relative;
+  margin:0 auto 28px;
+  width:1280px;
+  height:720px;
+}
+.page{
+  position:relative;
+  width:1280px;
+  height:720px;
+  padding:26px 46px 24px;
+  background:var(--paper);
+  box-shadow:0 6px 28px #16317212;
+  transform-origin:top left;
+  overflow:hidden;
+  display:flex;
+  flex-direction:column;
+}
+
+.page-header{
+  border-bottom:2px solid var(--navy);
+  padding-bottom:11px;
+  margin-bottom:14px;
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-end;
+  gap:16px;
+  flex-shrink:0;
+}
+.page-header h2{
+  font-size:32px;
+  color:var(--ink);
+  font-weight:900;
+  letter-spacing:-.04em;
+}
+.header-sub{
+  font-size:13px;
+  font-weight:700;
+  color:var(--muted);
+  padding-bottom:2px;
+}
+
+/* 레퍼런스 이미지 완벽 대응: 5열 대분류 비교 그리드 */
+.matrix-wrap{
+  flex:1;
+  min-height:0;
+  display:grid;
+  grid-template-columns:168px 1fr 1fr 1fr 1.24fr;
+  column-gap:12px;
+  align-items:stretch;
+}
+
+.matrix-col{
+  display:grid;
+  grid-template-rows:68px repeat(7, minmax(0, 1fr));
+  min-height:0;
+}
+
+/* 상단 컬럼 헤더 박스 */
+.col-head{
+  background:var(--dark-pill);
+  color:#ffffff;
+  border-radius:10px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  padding:8px 10px;
+}
+.col-head strong{
+  font-size:15.5px;
+  font-weight:800;
+  letter-spacing:-.025em;
+  line-height:1.25;
+}
+.col-head span{
+  font-size:11px;
+  font-weight:600;
+  color:#cbd5e1;
+  margin-top:3px;
+  letter-spacing:-.01em;
+}
+
+/* 우측 우리 서비스(SafeHandoff) 강조 컬럼 */
+.matrix-col.ours .col-head{
+  background:var(--blue);
+  border-radius:10px 10px 4px 4px;
+  box-shadow:0 4px 14px rgba(37,99,235,0.22);
+}
+.matrix-col.ours .col-head strong{
+  font-size:19px;
+  font-weight:900;
+}
+.matrix-col.ours .col-head span{
+  color:#dbeafe;
+  font-size:11.5px;
+  font-weight:700;
+}
+
+/* 각 셀 공통 */
+.m-cell{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  padding:6px 10px;
+  border-bottom:1px solid #e2e8f0;
+  font-size:13.2px;
+  font-weight:600;
+  color:#64748b;
+  line-height:1.38;
+}
+.matrix-col .m-cell:last-child{
+  border-bottom:0;
+}
+
+/* 1열(구분) 스타일 */
+.matrix-col.label-col .m-cell{
+  align-items:flex-start;
+  text-align:left;
+  padding-left:6px;
+  font-size:14.5px;
+  font-weight:800;
+  color:#334155;
+  flex-direction:row;
+  justify-content:flex-start;
+  gap:7px;
+}
+.star-icon{
+  width:17px;
+  height:17px;
+  flex-shrink:0;
+  fill:#f59e0b;
+}
+
+/* 5열(SafeHandoff) 본문 박스 스타일 */
+.matrix-col.ours .m-cell{
+  background:#f2f7ff;
+  border-left:2.2px solid var(--blue);
+  border-right:2.2px solid var(--blue);
+  border-bottom:1px solid #dbeafe;
+  color:#111827;
+  font-size:13.8px;
+  font-weight:800;
+  padding:6px 14px;
+}
+.matrix-col.ours .m-cell:nth-child(2){
+  padding-top:8px;
+}
+.matrix-col.ours .m-cell:last-child{
+  border-bottom:2.2px solid var(--blue);
+  border-radius:0 0 10px 10px;
+}
+.matrix-col.ours .m-cell.highlight{
+  color:var(--blue);
+  font-weight:900;
+}
+
+@media(max-width:760px){
+  .toolbar-inner{width:calc(100% - 24px)}
+  .reader{padding:16px 0 25px}
+  .page-shell{width:calc(100% - 24px)!important;height:auto!important;margin-bottom:16px}
+  .page{width:100%;height:auto;padding:20px 16px;transform:none!important;overflow:visible}
+  .matrix-wrap{overflow-x:auto;min-width:900px}
+}
+
+@media print{
+  @page{size:1280px 720px;margin:0}
+  body{background:#fff;margin:0;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .toolbar{display:none!important}
+  .reader{padding:0;margin:0}
+  .page-shell{width:1280px!important;height:720px!important;margin:0!important}
+  .page{width:1280px!important;height:720px!important;transform:none!important;box-shadow:none!important;overflow:hidden!important}
+}
+</style>
+</head>
+<body>
+<header class="toolbar">
+  <div class="toolbar-inner">
+    <a class="brand" href="#diff"><span class="brand-badge">S</span>SafeHandoff <small>07 · DIFFERENTIATION</small></a>
+    <div class="tools">
+      <a class="tool-button" href="SafeHandoff_목차.html">00. 목차</a>
+      <a class="tool-button" href="SafeHandoff_서비스_플로우.html">04. 유저 플로우</a>
+      <a class="tool-button" href="SafeHandoff_서비스_시연_영상.html">05. 시연 영상</a>
+      <a class="tool-button" href="SafeHandoff_서비스_아키텍처.html">‹ 06. 아키텍처</a>
+      <a class="tool-button" href="SafeHandoff_기대효과.html">08. 기대효과 ›</a>
+      <button class="tool-button" id="print-document" type="button">인쇄 / PDF 저장</button>
+    </div>
+  </div>
+</header>
+
+<main class="reader" aria-label="SafeHandoff 서비스 차별점">
+  <div class="page-shell" id="sheet-diff">
+    <section class="page" id="diff" aria-labelledby="diff-title">
+      <header class="page-header">
+        <h2 id="diff-title">서비스 차별점</h2>
+        <span class="header-sub">공개할 내용 판단 · 재작성 · 예제 확인 · 검토를 하나의 과정으로 연결해 준비 부담을 줄입니다</span>
+      </header>
+
+      <div class="matrix-wrap" role="table" aria-label="기존 대분류 솔루션 대비 SafeHandoff 차별점 비교">
+
+        <!-- 1열: 구분 -->
+        <div class="matrix-col label-col" role="rowgroup">
+          <div class="col-head" role="columnheader">
+            <strong>구분</strong>
+          </div>
+          <div class="m-cell" role="rowheader">주 대상 자료</div>
+          <div class="m-cell" role="rowheader">공개 범위 설정</div>
+          <div class="m-cell" role="rowheader">원본 처리 방식</div>
+          <div class="m-cell" role="rowheader">
+            <svg class="star-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+            조건 변경 시
+          </div>
+          <div class="m-cell" role="rowheader">
+            <svg class="star-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+            단서 · 제약 보존
+          </div>
+          <div class="m-cell" role="rowheader">
+            <svg class="star-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+            판단 근거 확인
+          </div>
+          <div class="m-cell" role="rowheader">반복 작업 부담</div>
+        </div>
+
+        <!-- 2열: 대분류 1 (개인정보 마스킹 · 보안 통제) -->
+        <div class="matrix-col" role="rowgroup">
+          <div class="col-head" role="columnheader">
+            <strong>개인정보 마스킹 · 보안 통제</strong>
+            <span>Limina · Private AI · MS Purview</span>
+          </div>
+          <div class="m-cell">개인정보 항목 · 보안 라벨 문서</div>
+          <div class="m-cell">고정 항목 마스킹<br>또는 외부 접근 차단</div>
+          <div class="m-cell">원문 속 단어만 치환<br>(업무 맥락·함수명 잔존)</div>
+          <div class="m-cell">단어 치환만 수행<br>(문장·표 연동 없음)</div>
+          <div class="m-cell">일괄 삭제로<br>문제 해결 단서 손실</div>
+          <div class="m-cell">탐지된 항목만 표시<br>(블랙박스 필터링)</div>
+          <div class="m-cell">고정 탐지 규칙만 적용<br>(목적별 조정은 수작업)</div>
+        </div>
+
+        <!-- 3열: 대분류 2 (합성 데이터 · 버그 리포팅) -->
+        <div class="matrix-col" role="rowgroup">
+          <div class="col-head" role="columnheader">
+            <strong>합성 데이터 · 기술지원 도구</strong>
+            <span>Tonic · Jam · StepStitch · Cloudflare</span>
+          </div>
+          <div class="m-cell">DB 테이블 · 브라우저 버그 기록</div>
+          <div class="m-cell">합성 데이터 생성<br>또는 로그 표식 정리</div>
+          <div class="m-cell">데이터·화면만 별도 추출<br>(문의 본문과 분리됨)</div>
+          <div class="m-cell">예제·로그만 따로 재생성</div>
+          <div class="m-cell">버그 기록 위주<br>(일반 자문·업무 제약 미지원)</div>
+          <div class="m-cell">실행 로그 · 증거 묶음만 제공</div>
+          <div class="m-cell">수정 사례 참고만 가능</div>
+        </div>
+
+        <!-- 4열: 대분류 3 (일반 AI + 실무자 수작업) -->
+        <div class="matrix-col" role="rowgroup">
+          <div class="col-head" role="columnheader">
+            <strong>일반 AI + 실무자 수작업</strong>
+            <span>프롬프트 지시 + 직접 가림 · 대조</span>
+          </div>
+          <div class="m-cell">사내 로그 · 운영 표 · 문의 초안</div>
+          <div class="m-cell">매번 지시문 작성<br>+ 사람이 직접 삭제</div>
+          <div class="m-cell">외부 AI에 원본 먼저 전송<br>(유출 위험 발생)</div>
+          <div class="m-cell">본문·표의 숫자를<br>사람이 일일이 다시 수정</div>
+          <div class="m-cell">빠진 조건과 오류 여부를<br>담당자가 눈으로 대조</div>
+          <div class="m-cell">담당자 기억과 수동 비교</div>
+          <div class="m-cell">문의 때마다 처음부터 반복</div>
+        </div>
+
+        <!-- 5열: 우리 서비스 (SafeHandoff) -->
+        <div class="matrix-col ours" role="rowgroup">
+          <div class="col-head" role="columnheader">
+            <strong>SafeHandoff</strong>
+            <span>우리 서비스</span>
+          </div>
+          <div class="m-cell">기술 문의(오류·정산)부터<br>일반 내부 자료(자문·운영)까지</div>
+          <div class="m-cell">공개 수준(A~D) 4단계 선택<br>(사실만 · 추이만 · 마스킹 · 비율)</div>
+          <div class="m-cell">인터넷 차단 사내 공간 +<br>허용 범위로만 새 초안 작성</div>
+          <div class="m-cell highlight">선택 변경 시 관련된<br>본문 · 표 · 설명 동시 자동 갱신</div>
+          <div class="m-cell highlight">검토 AI가 빠진 제약 복원 +<br>새 예제 오류 재현까지 확인</div>
+          <div class="m-cell highlight">문장별 원문 근거 위치 연결<br>+ 공개 이유 문장 제시</div>
+          <div class="m-cell">검증된 기준을 스킬(Skill)로 등록<br>조건 일치 시 자동 재사용</div>
+        </div>
+
+      </div>
+    </section>
+  </div>
+</main>
+
+<script>
+(() => {
+  'use strict';
+  const shells = Array.from(document.querySelectorAll('.page-shell'));
+  function fitPages() {
+    const mobile = innerWidth <= 760;
+    const width = Math.min(1280, innerWidth - 40);
+    shells.forEach(shell => {
+      shell.style.width = mobile ? '' : width + 'px';
+      shell.style.height = mobile ? '' : 720 * width / 1280 + 'px';
+      shell.querySelector('.page').style.transform = mobile ? '' : 'scale(' + width / 1280 + ')';
+    });
+  }
+  document.getElementById('print-document').addEventListener('click', () => window.print());
+  window.addEventListener('resize', fitPages);
+  window.addEventListener('afterprint', fitPages);
+  fitPages();
+})();
+</script>
+</body>
+</html>

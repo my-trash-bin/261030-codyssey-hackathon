@@ -69,3 +69,7 @@ GET `/__presentation`, `/__presentation.js`, `/__presentation.css`는 fake-app�
 기존 `/__demo` 설정 화면과 병행하며 실제 app이나 공통 server에는 추가하지 않습니다.
 연출의 분석·공개 선택은 브라우저 상태이며 새로운 task/decision API가 아닙니다.
 생성·저장·조회는 위 `/api/sharing`, `/api/documents` 계약을 그대로 사용합니다.
+
+## ToyRecord 팩 스모크
+
+HTTP 필드와 환경 변수는 추가하지 않았다. OSS CLI는 `--catalog`와 `--pack-version`을 함께 받으며 `--registration`의 pack pin·target·정확한 image digest를 대조한다. `--seed`는 기본 42인 unsigned 32-bit 정수다. 기존 catalog 없는 image 등록 경로도 유지한다. 새 bound installation을 catalog 없이 쓰면 거부한다. 보고서 selected_pack과 transcript pack_selected가 같은 팩 지문을 담는다. [명세·실행 절차](toyrecord-pack.md)를 따른다.

@@ -199,6 +199,6 @@ A–D를 모두 시도하고 실제 output 전체를 검사한다. D에서 B로 
 
 ## 8. 결과 보고에 기록할 것
 
-실행 모드, 코드 commit, 입력·결정·프롬프트·팩·checker·target 판본, 실제 모델 호출, 사람 개입, artifact/ZIP hash, 재현 상태, 자동·사람 판정, 수신자 행동, 작업·대기·준비 시간을 기록한다. 현재 제공한 [report-template.json](../evaluation/results/report-template.json)은 `not_run`이며 수치 측정값은 null이다.
+실행 모드, 코드 commit, 입력·결정·프롬프트·팩·checker·target 판본, 실제 모델 호출, 사람 개입, artifact/ZIP hash, 재현 상태, 자동·사람 판정, 수신자 행동, 작업·대기·준비 시간을 기록한다. 실행 전 보고서는 `status=not_run`이며 수치 측정값은 null로 둔다. 실행 결과 파일은 로컬 기록이며 저장소에 기본 제공하지 않는다.
 
 fixture 최종 문장을 hardcode하는 것은 도메인/UI 시험에서는 가능하나 live 품질·가치 성과에 넣을 수 없다. 실제 live 평가에서는 새 source의 근거·새 선택·새 입력을 처리해야 한다.

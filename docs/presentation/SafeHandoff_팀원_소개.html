@@ -1,0 +1,524 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#163172">
+<meta name="description" content="SafeHandoff 10. 팀원 소개 및 역할 분담 — 16:9 와이드스크린 발표 슬라이드">
+<title>SafeHandoff · 10 팀원 소개 및 역할 분담</title>
+<link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#eef2f7;
+  --paper:#ffffff;
+  --ink:#0f172a;
+  --body:#334155;
+  --muted:#64748b;
+  --navy:#163172;
+  --blue:#2563eb;
+  --teal:#0d9488;
+  --line:#dce4f0;
+  --shadow:0 18px 42px rgba(15,23,42,0.08);
+}
+*{box-sizing:border-box}
+html{
+  scroll-behavior:smooth;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+  text-rendering:optimizeLegibility;
+}
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--ink);
+  font-family:"Pretendard Variable",Pretendard,"Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+  line-height:1.45;
+  letter-spacing:-.02em;
+  word-break:keep-all;
+  overflow-wrap:break-word;
+}
+h1,h2,h3,h4,p,figure,ul{margin:0}
+a{color:inherit;text-decoration:none}
+button{font:inherit;cursor:pointer}
+
+.toolbar{
+  height:64px;
+  position:sticky;
+  top:0;
+  z-index:30;
+  background:#ffffffeb;
+  border-bottom:1px solid var(--line);
+  backdrop-filter:blur(10px);
+}
+.toolbar-inner{
+  height:100%;
+  width:min(1280px,calc(100% - 40px));
+  margin:auto;
+  display:flex;
+  justify-content:space-between;
+  gap:16px;
+  align-items:center;
+}
+.brand{
+  font-size:19px;
+  font-weight:900;
+  color:var(--navy);
+  white-space:nowrap;
+  letter-spacing:-.03em;
+  display:flex;
+  align-items:center;
+  gap:9px;
+}
+.brand-badge{
+  display:inline-grid;
+  place-items:center;
+  width:26px;
+  height:26px;
+  border-radius:7px;
+  background:#0f9f90;
+  color:#fff;
+  font-size:14px;
+  font-weight:900;
+}
+.brand small{
+  font-size:11.5px;
+  letter-spacing:.08em;
+  font-weight:700;
+  color:var(--muted);
+}
+.tools{
+  display:flex;
+  gap:8px;
+  align-items:center;
+  flex-wrap:wrap;
+  justify-content:flex-end;
+}
+.tool-button{
+  font-size:12px;
+  font-weight:700;
+  color:var(--navy);
+  background:#fff;
+  border:1.5px solid var(--line);
+  border-radius:8px;
+  padding:6px 12px;
+  line-height:1.4;
+}
+.tool-button:hover{
+  background:#f4f8ff;
+}
+
+.reader{
+  padding:24px 0 36px;
+}
+.page-shell{
+  position:relative;
+  margin:0 auto;
+  width:1280px;
+  height:720px;
+}
+.page{
+  width:1280px;
+  height:720px;
+  background:var(--paper);
+  box-shadow:var(--shadow);
+  position:relative;
+  overflow:hidden;
+  transform-origin:top left;
+  padding:30px 44px 26px;
+  display:flex;
+  flex-direction:column;
+}
+
+/* ==================== 상단 헤더 ==================== */
+.page-header{
+  display:flex;
+  align-items:baseline;
+  justify-content:space-between;
+  gap:16px;
+  padding-bottom:13px;
+  border-bottom:2px solid #2b4c8c;
+  margin-bottom:20px;
+  flex-shrink:0;
+}
+.header-left{
+  display:flex;
+  align-items:baseline;
+  gap:16px;
+}
+.page-header h2{
+  font-size:32px;
+  font-weight:900;
+  letter-spacing:-.035em;
+  color:#0f172a;
+  line-height:1.15;
+}
+.header-sub{
+  font-size:15px;
+  font-weight:700;
+  color:#64748b;
+}
+.team-badge{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  background:#eff6ff;
+  border:1.5px solid #bfdbfe;
+  border-radius:999px;
+  padding:6px 16px;
+  font-size:13.5px;
+  font-weight:900;
+  color:var(--blue);
+}
+
+/* ==================== 5인 팀원 역할 분담 카드 그리드 ==================== */
+.team-grid{
+  display:grid;
+  grid-template-columns:repeat(5,minmax(0,1fr));
+  gap:14px;
+  flex:1;
+  min-height:0;
+}
+
+.member-card{
+  background:#ffffff;
+  border:1.5px solid #e2e8f0;
+  border-top:4px solid var(--blue);
+  border-radius:14px;
+  padding:18px 16px 16px;
+  display:flex;
+  flex-direction:column;
+  box-shadow:0 4px 14px rgba(15,23,42,0.03);
+}
+.member-card:nth-child(2n){
+  border-top-color:#1e3a8a;
+}
+
+.avatar-wrap{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  margin-bottom:12px;
+}
+.avatar-squircle{
+  width:54px;
+  height:54px;
+  flex-shrink:0;
+  display:block;
+}
+.role-tag{
+  font-size:11.5px;
+  font-weight:800;
+  color:var(--blue);
+  background:#eff6ff;
+  border:1px solid #bfdbfe;
+  padding:4px 10px;
+  border-radius:999px;
+  white-space:nowrap;
+}
+.member-card:nth-child(2n) .role-tag{
+  color:#1e3a8a;
+  background:#eef2f9;
+  border-color:#cbd5e1;
+}
+
+.member-name{
+  font-size:22px;
+  font-weight:900;
+  color:#0f172a;
+  letter-spacing:-.03em;
+  margin-bottom:3px;
+}
+.member-title{
+  font-size:13.2px;
+  font-weight:800;
+  color:var(--blue);
+  margin-bottom:12px;
+  padding-bottom:11px;
+  border-bottom:1.5px dashed #e2e8f0;
+  white-space:nowrap;
+}
+.member-card:nth-child(2n) .member-title{
+  color:#1e3a8a;
+}
+
+.contrib-label{
+  font-size:11px;
+  font-weight:800;
+  color:#64748b;
+  letter-spacing:.04em;
+  margin-bottom:8px;
+}
+.contrib-list{
+  list-style:none;
+  padding:0;
+  display:grid;
+  gap:8px;
+  margin-bottom:12px;
+}
+.contrib-list li{
+  font-size:12px;
+  font-weight:600;
+  color:#334155;
+  line-height:1.42;
+  padding-left:10px;
+  position:relative;
+}
+.contrib-list li::before{
+  content:"·";
+  position:absolute;
+  left:0;
+  top:0;
+  font-weight:900;
+  color:var(--blue);
+}
+.contrib-list li b{
+  color:#0f172a;
+  font-weight:800;
+}
+
+.stack-box{
+  margin-top:auto;
+  background:#f8fafc;
+  border:1px solid #e2e8f0;
+  border-radius:9px;
+  padding:8px 10px;
+  display:flex;
+  flex-wrap:wrap;
+  gap:5px;
+}
+.stack-chip{
+  font-size:10.5px;
+  font-weight:800;
+  color:#475569;
+  background:#ffffff;
+  border:1px solid #cbd5e1;
+  padding:2.5px 7px;
+  border-radius:5px;
+}
+
+/* ==================== 하단 협업 방식 요약 바 ==================== */
+.collab-bar{
+  margin-top:16px;
+  background:#f8fafc;
+  border:1.5px solid #dbe4f0;
+  border-radius:11px;
+  padding:11px 20px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:16px;
+  flex-shrink:0;
+}
+.collab-left{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  font-size:13px;
+  font-weight:800;
+  color:#0f172a;
+}
+.collab-pill{
+  background:var(--navy);
+  color:#ffffff;
+  font-size:11.5px;
+  font-weight:800;
+  padding:4px 11px;
+  border-radius:6px;
+}
+.collab-right{
+  font-size:12px;
+  font-weight:700;
+  color:#64748b;
+}
+
+@media(max-width:760px){
+  .toolbar-inner{width:calc(100% - 24px)}
+  .reader{padding:16px 0 25px}
+  .page-shell{width:calc(100% - 24px)!important;height:auto!important;margin-bottom:16px}
+  .page{width:100%;height:auto;padding:22px 16px;transform:none!important;overflow:visible}
+  .page-header{flex-direction:column;align-items:flex-start;gap:6px}
+  .team-grid{grid-template-columns:1fr}
+}
+
+@media print{
+  @page{size:1280px 720px;margin:0}
+  body{background:#fff;margin:0;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .toolbar{display:none!important}
+  .reader{padding:0;margin:0}
+  .page-shell{width:1280px!important;height:720px!important;margin:0!important}
+  .page{width:1280px!important;height:720px!important;transform:none!important;box-shadow:none!important;overflow:hidden!important}
+}
+</style>
+</head>
+<body>
+<header class="toolbar">
+  <div class="toolbar-inner">
+    <a class="brand" href="#team"><span class="brand-badge">S</span>SafeHandoff <small>10 · TEAM ROLES &amp; CONTRIBUTIONS</small></a>
+    <div class="tools">
+      <a class="tool-button" href="SafeHandoff_목차.html">00. 목차</a>
+      <a class="tool-button" href="SafeHandoff_기대효과.html">08. 기대효과</a>
+      <a class="tool-button" href="SafeHandoff_확장_가능성.html">‹ 09. 확장 가능성</a>
+      <button class="tool-button" id="print-document" type="button">인쇄 / PDF 저장</button>
+    </div>
+  </div>
+</header>
+
+<main class="reader" aria-label="SafeHandoff 팀원 소개 및 역할 분담">
+  <div class="page-shell" id="sheet-team">
+    <section class="page" id="team" aria-labelledby="team-title">
+      <header class="page-header">
+        <div class="header-left">
+          <h2 id="team-title">팀원 소개 및 역할 분담</h2>
+          <span class="header-sub">SafeHandoff를 직접 설계·구현한 팀 ‘지피한테물어봐’의 5인 역할 분담 및 기여 내역</span>
+        </div>
+        <span class="team-badge">TEAM · 지피한테물어봐</span>
+      </header>
+
+      <!-- 공통 아바타 심볼 (첨부 레퍼런스 이미지와 동일한 연보라-블루 스쿼클 + 인물 실루엣) -->
+      <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+        <defs>
+          <symbol id="member-avatar" viewBox="0 0 64 64">
+            <rect x="2" y="2" width="60" height="60" rx="22" ry="22" fill="#8ea4e8"/>
+            <circle cx="32" cy="24" r="9.5" fill="#dce5fb"/>
+            <path d="M18 48.5 C18 39.5 23.5 36.5 32 36.5 C40.5 36.5 46 39.5 46 48.5 Z" fill="#dce5fb"/>
+          </symbol>
+        </defs>
+      </svg>
+
+      <div class="team-grid" contenteditable="true" spellcheck="false" aria-label="5인 팀원별 담당 업무 및 기여 내용">
+        <!-- 1. 김병철 (팀장 · 백엔드) -->
+        <article class="member-card">
+          <div class="avatar-wrap">
+            <svg class="avatar-squircle" aria-hidden="true"><use href="#member-avatar"/></svg>
+            <span class="role-tag">팀장 · 백엔드</span>
+          </div>
+          <h3 class="member-name">김병철</h3>
+          <div class="member-title">팀 총괄 · 보안 격리 백엔드 설계</div>
+          <div class="contrib-label">담당 업무 및 주요 기여</div>
+          <ul class="contrib-list">
+            <li><b>프로젝트 총괄 및 아키텍처:</b> 사내 작업 공간 원문 격리(CaMeL) 구조 및 핵심 API 서버 설계·구현</li>
+            <li><b>사내 근거 매핑 엔진 개발:</b> 반출용 초안 문장과 사내 원본 문서(운영메모.md) 위치 연결 백엔드 구현</li>
+            <li><b>시스템 통합 및 품질 검증:</b> 멀티 에이전트 파이프라인과 백엔드 상태 동기화 총괄</li>
+          </ul>
+          <div class="stack-box">
+            <span class="stack-chip">Team Lead</span>
+            <span class="stack-chip">Backend Arch</span>
+          </div>
+        </article>
+
+        <!-- 2. 김민성 (AI 서빙) -->
+        <article class="member-card">
+          <div class="avatar-wrap">
+            <svg class="avatar-squircle" aria-hidden="true"><use href="#member-avatar"/></svg>
+            <span class="role-tag">AI 서빙</span>
+          </div>
+          <h3 class="member-name">김민성</h3>
+          <div class="member-title">멀티 에이전트 · AI 추론 서빙</div>
+          <div class="contrib-label">담당 업무 및 주요 기여</div>
+          <ul class="contrib-list">
+            <li><b>3단계 AI 서빙 파이프라인:</b> 분석·작성·검토 에이전트 추론 서빙 및 응답 지연 최적화 구현</li>
+            <li><b>모델 교체형 추론 인터페이스:</b> 사내 LLM 및 경량 공개 모델(sLLM) 즉시 연결·교체 서빙 구조 개발</li>
+            <li><b>JSON Schema 제어 및 검증:</b> 유사 항목 묶음 질문(A~D) 및 3-Way 의미 대조 추론 안정화</li>
+          </ul>
+          <div class="stack-box">
+            <span class="stack-chip">AI Serving</span>
+            <span class="stack-chip">LLM Agent</span>
+          </div>
+        </article>
+
+        <!-- 3. 임재홍 (백엔드) -->
+        <article class="member-card">
+          <div class="avatar-wrap">
+            <svg class="avatar-squircle" aria-hidden="true"><use href="#member-avatar"/></svg>
+            <span class="role-tag">백엔드</span>
+          </div>
+          <h3 class="member-name">임재홍</h3>
+          <div class="member-title">비식별 규칙 엔진 · 스킬 저장소 서버</div>
+          <div class="contrib-label">담당 업무 및 주요 기여</div>
+          <ul class="contrib-list">
+            <li><b>공개 수준(A~D) 변환 엔진 개발:</b> 실제 수치·단가를 선택한 공개 수준(추이·비율·마스킹)으로 안전하게 변환하는 백엔드 구현</li>
+            <li><b>조건부 스킬(Skill) 엔진 구현:</b> 검증된 가림 기준 저장 및 ‘목적·수신처·조건’ 일치 판별 백엔드 개발</li>
+            <li><b>누락 제약 복원 로직:</b> 필수 업무 제약(“기존 접수 채널 유지”) 자동 탐지 및 복원 처리</li>
+          </ul>
+          <div class="stack-box">
+            <span class="stack-chip">Backend Dev</span>
+            <span class="stack-chip">Rule &amp; Skill</span>
+          </div>
+        </article>
+
+        <!-- 4. 맹주영 (풀스택) -->
+        <article class="member-card">
+          <div class="avatar-wrap">
+            <svg class="avatar-squircle" aria-hidden="true"><use href="#member-avatar"/></svg>
+            <span class="role-tag">풀스택</span>
+          </div>
+          <h3 class="member-name">맹주영</h3>
+          <div class="member-title">워크스페이스 UI · 동시 갱신 연동</div>
+          <div class="contrib-label">담당 업무 및 주요 기여</div>
+          <ul class="contrib-list">
+            <li><b>5단계 워크스페이스 구현:</b> 자료 입력 → 공개 수준(A~D) 선택 → 직접 입력(D) → 최종 확인 풀스택 개발</li>
+            <li><b>본문·표·설명 동시 갱신:</b> A~D 선택 변경 시 연결된 문장·표·설명을 실시간 동기화하고 잔존 숫자를 제거</li>
+            <li><b>공유본 반출 인터페이스:</b> 내부 근거 분리 표시 및 최종 결과 복사·다운로드 기능 구현</li>
+          </ul>
+          <div class="stack-box">
+            <span class="stack-chip">Full-Stack</span>
+            <span class="stack-chip">Sync UI/API</span>
+          </div>
+        </article>
+
+        <!-- 5. 이상혁 (PM) -->
+        <article class="member-card">
+          <div class="avatar-wrap">
+            <svg class="avatar-squircle" aria-hidden="true"><use href="#member-avatar"/></svg>
+            <span class="role-tag">PM</span>
+          </div>
+          <h3 class="member-name">이상혁</h3>
+          <div class="member-title">서비스 기획 총괄 · UX 및 시장 전략</div>
+          <div class="contrib-label">담당 업무 및 주요 기여</div>
+          <ul class="contrib-list">
+            <li><b>문제 정의 및 도메인 기획:</b> 기업 보안 사고 사례 조사 및 타겟 페르소나·유즈케이스·요구사항 정의</li>
+            <li><b>공개 수준(A~D) UX 설계:</b> 실무자 친화적 4단계 공개 기준(사실만·추이만·마스킹·비율) 및 플로우 설계</li>
+            <li><b>확장 전략 및 스토리라인:</b> 타겟 시장(TAM-SAM-SOM) 로드맵, 서비스 차별점 및 발표 구성 총괄</li>
+          </ul>
+          <div class="stack-box">
+            <span class="stack-chip">Product PM</span>
+            <span class="stack-chip">UX &amp; Strategy</span>
+          </div>
+        </article>
+      </div>
+
+      <footer class="collab-bar">
+        <div class="collab-left">
+          <span class="collab-pill">협업 및 직접 개발 원칙</span>
+          <span>서비스 기획(PM)부터 AI 서빙, 보안·스킬 백엔드, 동시 갱신 풀스택 워크스페이스까지 전 과정을 팀원 5인이 직접 분담·구현</span>
+        </div>
+        <span class="collab-right">CODYSSEY HACKATHON · 지피한테물어봐</span>
+      </footer>
+    </section>
+  </div>
+</main>
+
+<script>
+(() => {
+  'use strict';
+  const shells = Array.from(document.querySelectorAll('.page-shell'));
+  function fitPages() {
+    const mobile = innerWidth <= 760;
+    const width = Math.min(1280, innerWidth - 40);
+    shells.forEach(shell => {
+      shell.style.width = mobile ? '' : width + 'px';
+      shell.style.height = mobile ? '' : 720 * width / 1280 + 'px';
+      shell.querySelector('.page').style.transform = mobile ? '' : 'scale(' + width / 1280 + ')';
+    });
+  }
+  document.getElementById('print-document').addEventListener('click', () => window.print());
+  window.addEventListener('resize', fitPages);
+  window.addEventListener('afterprint', fitPages);
+  fitPages();
+})();
+</script>
+</body>
+</html>

@@ -74,3 +74,7 @@ builtin 5개와 tools/oss-repro-smoke.mjs를 구현했다. builtin 실행은 tas
 완료 플래그는 스모크 연결과 모델 검토의 완료를 뜻한다. 모든 출력에 document_status=reviewed_draft_not_finalized와 manual_review_required=true를 기록해 자동 최종화와 구분한다. 실제 모델이 pass를 주어도 의미 정확성이 보장되는 것은 아니다. 원자료 분석·사람 승인·최종화 UI는 여전히 제외했다.
 
 최종 실행은 [3차 실제 기록](live-smoke-2026-10-31c.md)에 남겼다. 앞선 실행의 자연어 횟수 오류와 의미 정규식 검사 제거도 구분해 기록했다.
+
+후속 구현: 이번 계획에서 제외했던 toyrecord-repro 팩 연결은 이후 [catalog 연결](toyrecord-pack.md)로
+구현했다. 별도 운영자 image 등록과 실행 전 pin 검증을 사용하며, 기존 수동 candidate·결정 fixture와
+모델 프롬프트 지침 미연결 범위는 그대로다.

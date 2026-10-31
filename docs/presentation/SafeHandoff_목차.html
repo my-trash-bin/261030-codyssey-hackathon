@@ -1,0 +1,405 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#163172">
+<meta name="description" content="SafeHandoff 기획서 목차 (WHY · WHO · HOW)">
+<title>SafeHandoff · 00. 목차 (INDEX)</title>
+<link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --blue:#1e5eff;
+  --navy:#163172;
+  --num-blue:#7da6ff;
+  --ink:#111827;
+  --body:#334155;
+  --muted:#64748b;
+  --line:#e2e8f0;
+  --row-line:#eef2f7;
+  --paper:#ffffff;
+}
+*{box-sizing:border-box}
+html{
+  scroll-behavior:smooth;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+}
+body{
+  margin:0;
+  background:#e8edf5;
+  color:var(--ink);
+  font-family:"Pretendard Variable",Pretendard,"Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+  font-size:15px;
+  font-weight:600;
+  line-height:1.55;
+  word-break:keep-all;
+  overflow-wrap:break-word;
+}
+h1,h2,h3,h4,p,figure,blockquote,ul{margin:0}
+a{color:inherit;text-decoration:none}
+button{font:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
+
+.toolbar{
+  height:64px;
+  position:sticky;
+  top:0;
+  z-index:30;
+  background:#fffffff7;
+  border-bottom:1px solid var(--line);
+  backdrop-filter:blur(12px);
+}
+.toolbar-inner{
+  height:100%;
+  width:min(1280px,calc(100% - 40px));
+  margin:auto;
+  display:flex;
+  justify-content:space-between;
+  gap:20px;
+  align-items:center;
+}
+.brand{
+  font-size:19px;
+  font-weight:900;
+  color:var(--navy);
+  text-decoration:none;
+  white-space:nowrap;
+  letter-spacing:-.03em;
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+.brand-badge{
+  display:inline-grid;
+  place-items:center;
+  width:26px;
+  height:26px;
+  border-radius:7px;
+  background:#0f9f90;
+  color:#fff;
+  font-size:14px;
+  font-weight:900;
+}
+.brand small{
+  font-size:11px;
+  letter-spacing:.08em;
+  font-weight:700;
+  margin-left:4px;
+  color:var(--muted);
+}
+.tools{display:flex;gap:9px;align-items:center}
+.tool-button{
+  font-size:12px;
+  font-weight:700;
+  color:var(--navy);
+  background:#fff;
+  border:1.5px solid var(--line);
+  border-radius:8px;
+  padding:7px 14px;
+  line-height:1.5;
+  text-decoration:none;
+}
+.tool-button:hover{background:#f0f5ff}
+
+.reader{padding:28px 0 42px}
+.page-shell{
+  position:relative;
+  margin:0 auto 28px;
+  width:1280px;
+  height:720px;
+}
+.page{
+  position:relative;
+  width:1280px;
+  height:720px;
+  padding:56px 76px 48px;
+  background:var(--paper);
+  box-shadow:0 6px 28px #16317212;
+  transform-origin:top left;
+  overflow:hidden;
+  display:flex;
+  flex-direction:column;
+}
+
+/* 상단 CONTENTS / INDEX 헤더 영역 */
+.index-header{
+  border-bottom:2.5px solid var(--navy);
+  padding-bottom:22px;
+  flex-shrink:0;
+}
+.index-kicker{
+  font-size:15px;
+  font-weight:800;
+  color:var(--blue);
+  letter-spacing:.26em;
+  margin-bottom:8px;
+}
+.index-title-row{
+  display:flex;
+  justify-content:space-between;
+  align-items:baseline;
+  gap:24px;
+}
+.index-title-row h1{
+  font-size:84px;
+  font-weight:900;
+  color:var(--navy);
+  letter-spacing:-.035em;
+  line-height:1;
+}
+.index-subtitle{
+  font-size:15.5px;
+  font-weight:700;
+  color:var(--muted);
+  letter-spacing:-.02em;
+}
+
+/* 4단 WHY / WHO / HOW / NEXT 레이아웃 */
+.index-grid{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  flex:1;
+  min-height:0;
+}
+.index-col{
+  padding:36px 28px 16px;
+  border-right:1.5px solid var(--line);
+  display:flex;
+  flex-direction:column;
+}
+.index-col:first-child{
+  padding-left:4px;
+}
+.index-col:last-child{
+  border-right:0;
+  padding-right:4px;
+}
+.col-en{
+  font-size:38px;
+  font-weight:900;
+  color:var(--blue);
+  letter-spacing:-.02em;
+  line-height:1.1;
+  margin-bottom:8px;
+}
+.col-ko{
+  font-size:17px;
+  font-weight:700;
+  color:var(--muted);
+  letter-spacing:-.025em;
+  margin-bottom:26px;
+}
+
+.index-list{
+  list-style:none;
+  padding:0;
+  margin:0;
+  display:flex;
+  flex-direction:column;
+}
+.index-list li{
+  border-bottom:1.5px solid var(--row-line);
+}
+.index-link{
+  display:flex;
+  align-items:center;
+  gap:18px;
+  padding:15px 2px;
+  transition:transform .15s ease, color .15s ease;
+}
+.index-link:hover{
+  transform:translateX(4px);
+}
+.index-link:hover .item-title{
+  color:var(--blue);
+}
+.item-num{
+  font-size:17px;
+  font-weight:800;
+  color:var(--num-blue);
+  width:26px;
+  flex-shrink:0;
+}
+.item-title{
+  font-size:19px;
+  font-weight:800;
+  color:var(--body);
+  letter-spacing:-.03em;
+}
+
+@media(max-width:760px){
+  .toolbar-inner{width:calc(100% - 24px)}
+  .reader{padding:16px 0 25px}
+  .page-shell{width:calc(100% - 24px)!important;height:auto!important;margin-bottom:16px}
+  .page{width:100%;height:auto;padding:32px 22px 28px;transform:none!important;overflow:visible}
+  .index-title-row{flex-direction:column;align-items:flex-start;gap:10px}
+  .index-title-row h1{font-size:56px}
+  .index-grid{grid-template-columns:1fr}
+  .index-col{padding:28px 0 12px!important;border-right:0;border-bottom:1.5px solid var(--line)}
+  .index-col:last-child{border-bottom:0}
+}
+
+@media print{
+  @page{size:1280px 720px;margin:0}
+  body{background:#fff;margin:0;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .toolbar{display:none!important}
+  .reader{padding:0;margin:0}
+  .page-shell{width:1280px!important;height:720px!important;margin:0!important}
+  .page{width:1280px!important;height:720px!important;transform:none!important;box-shadow:none!important;overflow:hidden!important}
+}
+</style>
+</head>
+<body>
+<header class="toolbar">
+  <div class="toolbar-inner">
+    <a class="brand" href="#index"><span class="brand-badge">S</span>SafeHandoff <small>00 · CONTENTS INDEX</small></a>
+    <div class="tools">
+      <a class="tool-button" href="SafeHandoff_표지.html">‹ 표지</a>
+      <a class="tool-button" href="SafeHandoff_프로젝트_배경.html">01. 프로젝트 배경 ›</a>
+      <a class="tool-button" href="SafeHandoff_타겟_페르소나.html">02. 타겟 페르소나</a>
+      <a class="tool-button" href="SafeHandoff_서비스_플로우.html">03. 서비스 플로우</a>
+      <a class="tool-button" href="SafeHandoff_기술_스택.html">04. 기술 스택</a>
+      <a class="tool-button" href="SafeHandoff_AI기술_개발범위.html">05. AI 기술·개발범위</a>
+      <a class="tool-button" href="SafeHandoff_서비스_아키텍처.html">06. 아키텍처</a>
+      <a class="tool-button" href="SafeHandoff_서비스_차별점.html">07. 차별점</a>
+      <a class="tool-button" href="SafeHandoff_기대효과.html">08. 기대효과</a>
+      <a class="tool-button" href="SafeHandoff_확장_가능성.html">09. 확장 가능성</a>
+      <a class="tool-button" href="SafeHandoff_팀원_소개.html">10. 팀원 소개</a>
+      <button class="tool-button" id="print-document" type="button">인쇄 / PDF 저장</button>
+    </div>
+  </div>
+</header>
+
+<main class="reader" aria-label="SafeHandoff 목차">
+  <div class="page-shell" id="sheet-index">
+    <section class="page" id="index" aria-labelledby="index-heading">
+      <header class="index-header">
+        <div class="index-kicker">CONTENTS</div>
+        <div class="index-title-row">
+          <h1 id="index-heading">INDEX</h1>
+          <p class="index-subtitle">SafeHandoff · 오류는 보여주고 내부 정보는 덜 보이게, 사내 AI 기반 공유 자료 준비 도구</p>
+        </div>
+      </header>
+
+      <nav class="index-grid" aria-label="전체 목차">
+        <!-- WHY: 왜 이 문제인가 -->
+        <div class="index-col">
+          <h2 class="col-en">WHY</h2>
+          <p class="col-ko">왜 이 문제인가</p>
+          <ul class="index-list">
+            <li>
+              <a class="index-link" href="SafeHandoff_프로젝트_배경.html">
+                <span class="item-num">01</span>
+                <span class="item-title">프로젝트 배경</span>
+              </a>
+            </li>
+          </ul>
+        </div>
+
+        <!-- WHO: 누구를 위해 -->
+        <div class="index-col">
+          <h2 class="col-en">WHO</h2>
+          <p class="col-ko">누구를 위해</p>
+          <ul class="index-list">
+            <li>
+              <a class="index-link" href="SafeHandoff_타겟_페르소나.html">
+                <span class="item-num">02</span>
+                <span class="item-title">타겟 페르소나</span>
+              </a>
+            </li>
+            <li>
+              <a class="index-link" href="SafeHandoff_서비스_플로우.html">
+                <span class="item-num">03</span>
+                <span class="item-title">서비스 플로우</span>
+              </a>
+            </li>
+          </ul>
+        </div>
+
+        <!-- HOW: 어떻게 작동하나 -->
+        <div class="index-col">
+          <h2 class="col-en">HOW</h2>
+          <p class="col-ko">어떻게 작동하나</p>
+          <ul class="index-list">
+            <li>
+              <a class="index-link" href="SafeHandoff_기술_스택.html">
+                <span class="item-num">04</span>
+                <span class="item-title">기술 스택</span>
+              </a>
+            </li>
+            <li>
+              <a class="index-link" href="SafeHandoff_AI기술_개발범위.html">
+                <span class="item-num">05</span>
+                <span class="item-title">AI 기술 및 개발 범위</span>
+              </a>
+            </li>
+            <li>
+              <a class="index-link" href="SafeHandoff_서비스_아키텍처.html">
+                <span class="item-num">06</span>
+                <span class="item-title">서비스 아키텍처</span>
+              </a>
+            </li>
+            <li>
+              <a class="index-link" href="SafeHandoff_서비스_차별점.html">
+                <span class="item-num">07</span>
+                <span class="item-title">서비스 차별점</span>
+              </a>
+            </li>
+          </ul>
+        </div>
+
+        <!-- NEXT: 앞으로의 가치와 팀 -->
+        <div class="index-col">
+          <h2 class="col-en">NEXT</h2>
+          <p class="col-ko">기대 가치와 확장</p>
+          <ul class="index-list">
+            <li>
+              <a class="index-link" href="SafeHandoff_기대효과.html">
+                <span class="item-num">08</span>
+                <span class="item-title">기대효과</span>
+              </a>
+            </li>
+            <li>
+              <a class="index-link" href="SafeHandoff_확장_가능성.html">
+                <span class="item-num">09</span>
+                <span class="item-title">확장 가능성</span>
+              </a>
+            </li>
+            <li>
+              <a class="index-link" href="SafeHandoff_팀원_소개.html">
+                <span class="item-num">10</span>
+                <span class="item-title">팀원 소개</span>
+              </a>
+            </li>
+          </ul>
+        </div>
+      </nav>
+    </section>
+  </div>
+</main>
+
+<script>
+(() => {
+  'use strict';
+  const shells = Array.from(document.querySelectorAll('.page-shell'));
+  function fitPages() {
+    const mobile = innerWidth <= 760;
+    const width = Math.min(1280, innerWidth - 40);
+    shells.forEach(shell => {
+      shell.style.width = mobile ? '' : width + 'px';
+      shell.style.height = mobile ? '' : 720 * width / 1280 + 'px';
+      shell.querySelector('.page').style.transform = mobile ? '' : 'scale(' + width / 1280 + ')';
+    });
+  }
+  document.getElementById('print-document').addEventListener('click', () => window.print());
+  window.addEventListener('resize', fitPages);
+  window.addEventListener('afterprint', fitPages);
+  fitPages();
+})();
+</script>
+</body>
+</html>
+

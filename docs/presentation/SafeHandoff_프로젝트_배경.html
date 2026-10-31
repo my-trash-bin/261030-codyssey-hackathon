@@ -1,0 +1,391 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#163172">
+<meta name="description" content="SafeHandoff 프로젝트 배경: 사내 기밀 유출 사고·통계와 기존 단순 마스킹의 한계">
+<title>SafeHandoff · 01. 프로젝트 배경</title>
+<link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --blue:#2563eb;
+  --navy:#163172;
+  --teal:#0f766e;
+  --ink:#111827;
+  --body:#334155;
+  --muted:#64748b;
+  --line:#dbe3ef;
+  --card-bg:#f4f6fa;
+  --paper:#ffffff;
+}
+*{box-sizing:border-box}
+html{
+  scroll-behavior:smooth;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+}
+body{
+  margin:0;
+  background:#e8edf5;
+  color:var(--ink);
+  font-family:"Pretendard Variable",Pretendard,"Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+  font-size:15px;
+  font-weight:600;
+  line-height:1.65;
+  word-break:keep-all;
+  overflow-wrap:break-word;
+}
+h1,h2,h3,h4,p,figure,blockquote,ul{margin:0}
+h1,h2,h3,h4{line-height:1.35;letter-spacing:-.035em}
+a{color:inherit}
+button{font:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
+
+.toolbar{
+  height:64px;
+  position:sticky;
+  top:0;
+  z-index:30;
+  background:#fffffff7;
+  border-bottom:1px solid var(--line);
+  backdrop-filter:blur(12px);
+}
+.toolbar-inner{
+  height:100%;
+  width:min(1280px,calc(100% - 40px));
+  margin:auto;
+  display:flex;
+  justify-content:space-between;
+  gap:20px;
+  align-items:center;
+}
+.brand{
+  font-size:19px;
+  font-weight:900;
+  color:var(--navy);
+  text-decoration:none;
+  white-space:nowrap;
+  letter-spacing:-.03em;
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+.brand-badge{
+  display:inline-grid;
+  place-items:center;
+  width:26px;
+  height:26px;
+  border-radius:7px;
+  background:#0f9f90;
+  color:#fff;
+  font-size:14px;
+  font-weight:900;
+}
+.brand small{
+  font-size:11px;
+  letter-spacing:.08em;
+  font-weight:700;
+  margin-left:4px;
+  color:var(--muted);
+}
+.tools{display:flex;gap:9px;align-items:center}
+.tool-button{
+  font-size:12px;
+  font-weight:700;
+  color:var(--navy);
+  background:#fff;
+  border:1.5px solid var(--line);
+  border-radius:8px;
+  padding:7px 14px;
+  line-height:1.5;
+  text-decoration:none;
+}
+.tool-button:hover{background:#f0f5ff}
+
+.reader{padding:28px 0 42px}
+.page-shell{
+  position:relative;
+  margin:0 auto 28px;
+  width:1280px;
+  height:720px;
+}
+.page{
+  position:relative;
+  width:1280px;
+  height:720px;
+  padding:34px 54px 30px;
+  background:var(--paper);
+  box-shadow:0 6px 28px #16317212;
+  transform-origin:top left;
+  overflow:hidden;
+  display:flex;
+  flex-direction:column;
+}
+
+/* 상단 타이틀 & 구분선 */
+.page-header{
+  border-bottom:2.5px solid var(--navy);
+  padding-bottom:14px;
+  margin-bottom:20px;
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-end;
+  gap:20px;
+}
+.page-header h2{
+  font-size:33px;
+  color:var(--ink);
+  font-weight:900;
+  letter-spacing:-.04em;
+}
+.page-header .eyebrow{
+  font-size:12px;
+  font-weight:800;
+  color:var(--muted);
+  letter-spacing:.08em;
+  white-space:nowrap;
+  padding-bottom:3px;
+}
+
+.section-subhead{
+  font-size:19px;
+  font-weight:800;
+  color:var(--blue);
+  letter-spacing:-.03em;
+  margin-bottom:18px;
+}
+
+/* 3단 카드 레이아웃 */
+.three{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:22px;
+  flex:1;
+}
+.discovery-card{
+  background:var(--card-bg);
+  border-radius:14px;
+  padding:26px 26px 24px;
+  display:flex;
+  flex-direction:column;
+}
+.discovery-top{
+  text-align:center;
+  display:flex;
+  flex-direction:column;
+}
+.discovery-kicker{
+  font-size:13.5px;
+  font-weight:800;
+  color:var(--blue);
+  letter-spacing:-.01em;
+  margin-bottom:8px;
+}
+.discovery-card h3{
+  font-size:21.5px;
+  font-weight:900;
+  color:var(--ink);
+  letter-spacing:-.035em;
+  line-height:1.35;
+  min-height:58px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+.visual-slot{
+  height:190px;
+  margin:14px 0 12px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+.news-capture{
+  width:100%;
+  height:100%;
+  background:#fff;
+  border:1.5px solid #d5dfef;
+  border-radius:10px;
+  padding:8px 10px;
+  box-shadow:0 3px 12px rgba(15,23,42,0.05);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  overflow:hidden;
+}
+.news-capture img{
+  width:100%;
+  height:100%;
+  object-fit:contain;
+  display:block;
+}
+.big-stat{
+  font-size:48px;
+  font-weight:900;
+  color:var(--navy);
+  letter-spacing:-.04em;
+  line-height:1.15;
+}
+.stat-caption{
+  font-size:14px;
+  font-weight:700;
+  color:var(--muted);
+  line-height:1.5;
+  min-height:42px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+.card-divider{
+  border:0;
+  border-top:1.5px solid var(--line);
+  margin:16px 0;
+}
+.pain-list{
+  padding-left:18px;
+  display:grid;
+  gap:10px;
+  color:var(--body);
+  font-size:14.5px;
+  font-weight:600;
+  line-height:1.68;
+  letter-spacing:-.02em;
+}
+.pain-list li::marker{
+  color:#334155;
+}
+.pain-list strong{
+  font-weight:800;
+  color:var(--ink);
+}
+
+@media(max-width:760px){
+  .toolbar-inner{width:calc(100% - 24px)}
+  .reader{padding:16px 0 25px}
+  .page-shell{width:calc(100% - 24px)!important;height:auto!important;margin-bottom:16px}
+  .page{width:100%;height:auto;padding:26px 20px 22px;transform:none!important;overflow:visible}
+  .page-header{flex-direction:column;align-items:flex-start;gap:6px}
+  .page-header h2{font-size:23px}
+  .section-subhead{font-size:16px}
+  .three{grid-template-columns:1fr;gap:16px}
+  .discovery-card{min-height:0;padding:24px 22px}
+  .discovery-card h3{min-height:0}
+  .visual-slot{height:auto;min-height:140px}
+  .big-stat{font-size:40px}
+  .stat-caption{min-height:0}
+}
+
+@media print{
+  @page{size:1280px 720px;margin:0}
+  body{background:#fff;margin:0;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .toolbar{display:none!important}
+  .reader{padding:0;margin:0}
+  .page-shell{width:1280px!important;height:720px!important;margin:0!important}
+  .page{width:1280px!important;height:720px!important;transform:none!important;box-shadow:none!important;overflow:hidden!important}
+}
+</style>
+</head>
+<body>
+<header class="toolbar">
+  <div class="toolbar-inner">
+    <a class="brand" href="#background"><span class="brand-badge">S</span>SafeHandoff <small>01 · PROJECT BACKGROUND</small></a>
+    <div class="tools">
+      <a class="tool-button" href="SafeHandoff_목차.html">‹ 00. 목차</a>
+      <a class="tool-button" href="SafeHandoff_타겟_페르소나.html">02. 타겟 페르소나 보기 ›</a>
+      <button class="tool-button" id="print-document" type="button">인쇄 / PDF 저장</button>
+    </div>
+  </div>
+</header>
+
+<main class="reader" aria-label="SafeHandoff 프로젝트 배경">
+  <div class="page-shell" id="sheet-background">
+    <section class="page background" id="background" aria-labelledby="background-title">
+      <header class="page-header">
+        <h2 id="background-title">프로젝트 배경: 외부에 물어야 일은 풀리는데, 그대로 보내면 유출이 된다</h2>
+        <span class="eyebrow">01 / PROJECT BACKGROUND</span>
+      </header>
+
+      <p class="section-subhead">실제 보안 사고 뉴스와 기업 데이터 반출 조사에서 확인한 세 가지 배경</p>
+
+      <div class="three">
+        <!-- 배경 1: 실제 기밀 유출 사고 (삼성전자 뉴스 캡처) -->
+        <article class="discovery-card">
+          <div class="discovery-top">
+            <div class="discovery-kicker">배경 1 · 현실의 기밀 유출 사고</div>
+            <h3>급한 오류·회의록을 외부에 묻다<br>회사 기밀이 유출된다</h3>
+            <div class="visual-slot">
+              <figure class="news-capture">
+                <img src="news_samsung_chatgpt.png" alt="[단독] 우려가 현실로…삼성전자, 챗GPT 빗장 풀자마자 ‘오남용’ 속출">
+              </figure>
+            </div>
+            <p class="stat-caption">회사 데이터 외부 AI 입력 1년 새 485% 폭증<br>삼성전자 반도체 부문 코드·회의록 유출 3건 발생</p>
+          </div>
+          <hr class="card-divider">
+          <ul class="pain-list">
+            <li>당장 급한 오류를 고치려 <strong>소스코드 전체를 복붙</strong>하고, <strong>비공개 회의록</strong>을 통째로 넣어 요약을 맡겼다가 핵심 기밀이 외부 서버로 유출됨</li>
+          </ul>
+        </article>
+
+        <!-- 배경 2: 차단 vs 우회 (이스트시큐리티 설문 이미지) -->
+        <article class="discovery-card">
+          <div class="discovery-top">
+            <div class="discovery-kicker">배경 2 · 막아도 쓰게 되는 현실</div>
+            <h3>유출이 두려워 회사에서 막아도,<br>당장 급한 직원은 몰래 복붙한다</h3>
+            <div class="visual-slot">
+              <figure class="news-capture">
+                <img src="news_estsecurity_ai.png" alt="이스트시큐리티, 보안 담당자 200명 설문... AI 민감 정보 유출 우려 커">
+              </figure>
+            </div>
+            <p class="stat-caption">기업 보안 우려 1위 ‘민감 정보 유출’(64.5%)<br>하지만 개인 계정으로 몰래 쓰는 비율은 73.8%</p>
+          </div>
+          <hr class="card-divider">
+          <ul class="pain-list">
+            <li>외부에 가장 많이 복붙하는 자료는 <strong>① 고객지원 문의(16.3%) ② 소스코드(12.7%) ③ 내부 문서(10.8%)</strong> 순으로, 회사에서 막아도 일을 해결하려 몰래 보내게 됨</li>
+          </ul>
+        </article>
+
+        <!-- 배경 3: 단순 마스킹의 한계 (서울대 AI 비식별화 보도자료 캡처) -->
+        <article class="discovery-card">
+          <div class="discovery-top">
+            <div class="discovery-kicker">배경 3 · 이름만 가리는 방식의 한계</div>
+            <h3>이름·번호만 지워선 비밀이 새고,<br>너무 많이 지우면 대화가 안 된다</h3>
+            <div class="visual-slot">
+              <figure class="news-capture">
+                <img src="news_snu_deid.png" alt="문맥은 살리고 개인정보만 가린다 — 서울대 이재진 교수팀, AI 비식별화 개발">
+              </figure>
+            </div>
+            <p class="stat-caption">덜 가리면 주변 내용으로 회사 정보가 드러나고<br>너무 많이 가리면 앞뒤 맥락이 깨져 이해 불가</p>
+          </div>
+          <hr class="card-divider">
+          <ul class="pain-list">
+            <li>이름·연락처만 가리면 <strong>주변 내용과 합쳐져 회사 정보가 드러나고</strong>, 반대로 너무 많이 지우면 <strong>앞뒤 맥락이 끊기며 사람이 일일이 찾아 고치는 데 큰 시간</strong>이 듦</li>
+          </ul>
+        </article>
+      </div>
+    </section>
+  </div>
+</main>
+
+<script>
+(() => {
+  'use strict';
+  const shells = Array.from(document.querySelectorAll('.page-shell'));
+  function fitPages() {
+    const mobile = innerWidth <= 760;
+    const width = Math.min(1280, innerWidth - 40);
+    shells.forEach(shell => {
+      shell.style.width = mobile ? '' : width + 'px';
+      shell.style.height = mobile ? '' : 720 * width / 1280 + 'px';
+      shell.querySelector('.page').style.transform = mobile ? '' : 'scale(' + width / 1280 + ')';
+    });
+  }
+  document.getElementById('print-document').addEventListener('click', () => window.print());
+  window.addEventListener('resize', fitPages);
+  window.addEventListener('afterprint', fitPages);
+  fitPages();
+})();
+</script>
+</body>
+</html>

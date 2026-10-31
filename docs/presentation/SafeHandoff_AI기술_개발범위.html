@@ -1,0 +1,779 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#163172">
+<meta name="description" content="SafeHandoff 05. 핵심 AI 파이프라인 및 직접 개발 범위 — 16:9 와이드스크린 발표 슬라이드">
+<title>SafeHandoff · 05 핵심 AI 파이프라인 및 직접 개발 범위</title>
+<link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#eef2f7;
+  --paper:#ffffff;
+  --ink:#0f172a;
+  --body:#334155;
+  --muted:#64748b;
+  --navy:#163172;
+  --blue:#2563eb;
+  --line:#dce4f0;
+  --shadow:0 18px 42px rgba(15,23,42,0.08);
+}
+*{box-sizing:border-box}
+html{
+  scroll-behavior:smooth;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+  text-rendering:optimizeLegibility;
+}
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--ink);
+  font-family:"Pretendard Variable",Pretendard,"Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+  line-height:1.4;
+  letter-spacing:-.02em;
+  word-break:keep-all;
+  overflow-wrap:break-word;
+}
+h1,h2,h3,h4,p,figure,ul{margin:0}
+a{color:inherit;text-decoration:none}
+button{font:inherit;cursor:pointer}
+
+.toolbar{
+  height:64px;
+  position:sticky;
+  top:0;
+  z-index:30;
+  background:#ffffffeb;
+  border-bottom:1px solid var(--line);
+  backdrop-filter:blur(10px);
+}
+.toolbar-inner{
+  height:100%;
+  width:min(1280px,calc(100% - 40px));
+  margin:auto;
+  display:flex;
+  justify-content:space-between;
+  gap:16px;
+  align-items:center;
+}
+.brand{
+  font-size:19px;
+  font-weight:900;
+  color:var(--navy);
+  white-space:nowrap;
+  letter-spacing:-.03em;
+  display:flex;
+  align-items:center;
+  gap:9px;
+}
+.brand-badge{
+  display:inline-grid;
+  place-items:center;
+  width:26px;
+  height:26px;
+  border-radius:7px;
+  background:#0f9f90;
+  color:#fff;
+  font-size:14px;
+  font-weight:900;
+}
+.brand small{
+  font-size:11.5px;
+  letter-spacing:.08em;
+  font-weight:700;
+  color:var(--muted);
+}
+.tools{
+  display:flex;
+  gap:8px;
+  align-items:center;
+  flex-wrap:wrap;
+  justify-content:flex-end;
+}
+.tool-button{
+  font-size:12px;
+  font-weight:700;
+  color:var(--navy);
+  background:#fff;
+  border:1.5px solid var(--line);
+  border-radius:8px;
+  padding:6px 12px;
+  line-height:1.4;
+}
+.tool-button:hover{
+  background:#f4f8ff;
+}
+
+.reader{
+  padding:24px 0 36px;
+}
+.page-shell{
+  position:relative;
+  margin:0 auto;
+  width:1280px;
+  height:720px;
+}
+.page{
+  width:1280px;
+  height:720px;
+  background:var(--paper);
+  box-shadow:var(--shadow);
+  position:relative;
+  overflow:hidden;
+  transform-origin:top left;
+  padding:28px 44px 22px;
+  display:flex;
+  flex-direction:column;
+}
+
+/* ==================== 상단 헤더 ==================== */
+.page-header{
+  display:flex;
+  align-items:baseline;
+  justify-content:space-between;
+  gap:16px;
+  padding-bottom:11px;
+  border-bottom:2px solid #2b4c8c;
+  margin-bottom:16px;
+  flex-shrink:0;
+}
+.page-header h2{
+  font-size:30px;
+  font-weight:900;
+  letter-spacing:-.035em;
+  color:#0f172a;
+  line-height:1.15;
+}
+.header-sub{
+  font-size:14px;
+  font-weight:700;
+  color:#64748b;
+  letter-spacing:-.02em;
+}
+
+/* ==================== 2x2 카드 그리드 ==================== */
+.pipeline-grid{
+  flex:1;
+  min-height:0;
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  grid-template-rows:1fr 1fr;
+  gap:16px 22px;
+}
+
+.pipe-card{
+  background:#ffffff;
+  border:1.5px solid #e2e8f0;
+  border-top:4px solid var(--blue);
+  border-radius:14px;
+  padding:14px 18px 12px;
+  display:flex;
+  flex-direction:column;
+  justify-content:space-between;
+  box-shadow:0 4px 14px rgba(15,23,42,0.03);
+  min-width:0;
+}
+
+/* 카드 상단 메타 + 공식 SVG 기술 스택 & 직접개발 뱃지 (2줄 분리로 충돌 원천 방지) */
+.card-head{
+  display:flex;
+  flex-direction:column;
+  gap:5px;
+  margin-bottom:8px;
+}
+.card-top-row{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:8px;
+  min-width:0;
+}
+.en-kicker{
+  font-size:10.5px;
+  font-weight:800;
+  color:var(--blue);
+  letter-spacing:.04em;
+  text-transform:uppercase;
+  white-space:nowrap;
+}
+.card-head h3{
+  font-size:18px;
+  font-weight:900;
+  color:#0f172a;
+  letter-spacing:-.035em;
+  white-space:nowrap;
+}
+
+.tech-pills{
+  display:flex;
+  align-items:center;
+  gap:5px;
+  flex-wrap:nowrap;
+  justify-content:flex-end;
+  flex-shrink:0;
+}
+.tech-pill{
+  display:inline-flex;
+  align-items:center;
+  gap:4px;
+  background:#f8fafc;
+  border:1px solid #cbd5e1;
+  border-radius:999px;
+  padding:3px 8px;
+  font-size:10.2px;
+  font-weight:800;
+  color:#0f172a;
+  white-space:nowrap;
+}
+.tech-pill svg{
+  width:13px;
+  height:13px;
+  flex-shrink:0;
+  display:block;
+}
+.tech-pill.direct{
+  background:#eff6ff;
+  border-color:#93c5fd;
+  color:#1d4ed8;
+}
+.pill-check{
+  width:13px;
+  height:13px;
+  border-radius:50%;
+  background:#2563eb;
+  color:#fff;
+  display:inline-grid;
+  place-items:center;
+  font-size:8.5px;
+  font-weight:900;
+  flex-shrink:0;
+}
+
+/* 카드 내부 점선 플로우 박스 */
+.flow-well{
+  flex:1;
+  background:#f8fafc;
+  border:1.5px dashed #cbd5e1;
+  border-radius:11px;
+  padding:10px 10px;
+  display:grid;
+  grid-template-columns:1fr 20px 1fr 20px 1fr;
+  align-items:center;
+  min-width:0;
+}
+
+.flow-step{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  text-align:center;
+}
+.step-icon{
+  width:44px;
+  height:44px;
+  border-radius:12px;
+  background:#ffffff;
+  border:1px solid #e2e8f0;
+  box-shadow:0 3px 8px rgba(15,23,42,0.05);
+  display:grid;
+  place-items:center;
+  margin-bottom:7px;
+  color:#1e3a8a;
+}
+.step-icon svg{
+  width:22px;
+  height:22px;
+}
+.step-icon.active-blue{
+  background:var(--blue);
+  border-color:var(--blue);
+  color:#ffffff;
+  box-shadow:0 5px 12px rgba(37,99,235,0.24);
+}
+.step-icon.accent-red{
+  color:#ef4444;
+}
+.step-icon.accent-green{
+  color:#10b981;
+}
+
+.step-title{
+  font-size:13px;
+  font-weight:900;
+  color:#0f172a;
+  letter-spacing:-.03em;
+  margin-bottom:2px;
+  white-space:nowrap;
+}
+.step-sub{
+  font-size:10.8px;
+  font-weight:600;
+  color:#64748b;
+  letter-spacing:-.025em;
+  white-space:nowrap;
+}
+
+.flow-arrow{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:#94a3b8;
+  padding-bottom:16px;
+}
+.flow-arrow svg{
+  width:16px;
+  height:16px;
+}
+
+/* 카드 하단: 아키텍처·기술스택 연계 및 [API 활용 vs 직접 개발] 구분 바 */
+.scope-strip{
+  margin-top:8px;
+  padding-top:7px;
+  border-top:1px solid #eef2f6;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:6px;
+  font-size:10.3px;
+  white-space:nowrap;
+}
+.scope-api{
+  color:#475569;
+  font-weight:700;
+}
+.scope-api strong{
+  color:#0f172a;
+  font-weight:800;
+}
+.scope-dev{
+  color:#1d4ed8;
+  font-weight:800;
+  background:#f0f7ff;
+  padding:2px 7px;
+  border-radius:5px;
+}
+
+/* 슬라이드 하단 요약 바 */
+.page-footer{
+  margin-top:11px;
+  padding-top:8px;
+  border-top:1px dashed #cbd5e1;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  font-size:10.8px;
+  font-weight:700;
+  color:#64748b;
+  flex-shrink:0;
+  white-space:nowrap;
+}
+.page-footer strong{
+  color:#0f172a;
+  font-weight:800;
+}
+.page-footer .footer-right{
+  color:#1d4ed8;
+  font-weight:800;
+}
+
+@media(max-width:760px){
+  .toolbar-inner{width:calc(100% - 24px)}
+  .reader{padding:16px 0 25px}
+  .page-shell{width:calc(100% - 24px)!important;height:auto!important;margin-bottom:16px}
+  .page{width:100%;height:auto;padding:20px 16px;transform:none!important;overflow:visible}
+  .page-header{flex-direction:column;align-items:flex-start;gap:4px}
+  .pipeline-grid{grid-template-columns:1fr}
+}
+
+@media print{
+  @page{size:1280px 720px;margin:0}
+  body{background:#fff;margin:0;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .toolbar{display:none!important}
+  .reader{padding:0;margin:0}
+  .page-shell{width:1280px!important;height:720px!important;margin:0!important}
+  .page{width:1280px!important;height:720px!important;transform:none!important;box-shadow:none!important;overflow:hidden!important}
+}
+</style>
+</head>
+<body>
+<header class="toolbar">
+  <div class="toolbar-inner">
+    <a class="brand" href="#ai-pipeline"><span class="brand-badge">S</span>SafeHandoff <small>05 · AI PIPELINE &amp; DEV SCOPE</small></a>
+    <div class="tools">
+      <a class="tool-button" href="SafeHandoff_목차.html">00. 목차</a>
+      <a class="tool-button" href="SafeHandoff_서비스_플로우.html">03. 서비스 플로우</a>
+      <a class="tool-button" href="SafeHandoff_기술_스택.html">‹ 04. 기술 스택</a>
+      <a class="tool-button" href="SafeHandoff_서비스_아키텍처.html">06. 서비스 아키텍처 ›</a>
+      <a class="tool-button" href="SafeHandoff_서비스_차별점.html">07. 차별점</a>
+      <a class="tool-button" href="SafeHandoff_기대효과.html">08. 기대효과</a>
+      <a class="tool-button" href="SafeHandoff_확장_가능성.html">09. 확장 가능성</a>
+      <a class="tool-button" href="SafeHandoff_팀원_소개.html">10. 팀원 소개</a>
+      <button class="tool-button" id="print-document" type="button">인쇄 / PDF 저장</button>
+    </div>
+  </div>
+</header>
+
+<main class="reader" aria-label="SafeHandoff 핵심 AI 파이프라인 및 직접 개발 범위">
+  <div class="page-shell" id="sheet-ai-pipeline">
+    <section class="page" id="ai-pipeline" aria-labelledby="ai-pipe-title">
+      <header class="page-header">
+        <h2 id="ai-pipe-title">핵심 AI 파이프라인 및 직접 개발 범위</h2>
+        <span class="header-sub">AI Engine(TypeScript · FastAPI · LLM/sLLM · PyTorch)과 자체 개발 보안·동기화·스킬 엔진 구조</span>
+      </header>
+
+      <div class="pipeline-grid">
+        <!-- ==================== 카드 1: 로그 비식별화 · 문맥 단서 분리 및 A~D 묶음 질문 ==================== -->
+        <article class="pipe-card">
+          <div class="card-head">
+            <div class="card-top-row">
+              <span class="en-kicker">LOG DE-IDENTIFICATION AGENT</span>
+              <div class="tech-pills">
+                <!-- OpenAI / LLM API 공식 SVG -->
+                <span class="tech-pill">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#0f172a" d="M22.2819 9.8211a5.9847 5.9847 0 0 0-.5157-4.9108 6.0462 6.0462 0 0 0-6.5098-2.9A6.0651 6.0651 0 0 0 4.9807 4.1818a5.9847 5.9847 0 0 0-3.9977 2.9 6.0462 6.0462 0 0 0 .7427 7.0966 5.98 5.98 0 0 0 .511 4.9107 6.051 6.051 0 0 0 6.5146 2.9001A5.9847 5.9847 0 0 0 13.2599 24a6.0557 6.0557 0 0 0 5.7718-4.2058 5.9894 5.9894 0 0 0 3.9977-2.9001 6.0557 6.0557 0 0 0-.7475-7.0729zm-9.022 12.6081a4.4755 4.4755 0 0 1-2.8764-1.0408l.1419-.0804 4.7783-2.7582a.7948.7948 0 0 0 .3927-.6813v-6.7369l2.02 1.1686a.071.071 0 0 1 .038.052v5.5826a4.504 4.504 0 0 1-4.4945 4.4944zm-9.6607-4.1254a4.4708 4.4708 0 0 1-.5346-3.0137l.142.0852 4.783 2.7582a.7712.7712 0 0 0 .7806 0l5.8428-3.3685v2.3324a.0804.0804 0 0 1-.0332.0615L9.74 19.9502a4.4992 4.4992 0 0 1-6.1408-1.6464zM2.3408 7.8956a4.485 4.485 0 0 1 2.3655-1.9728V11.6a.7664.7664 0 0 0 .3879.6765l5.8144 3.3543-2.0201 1.1685a.0757.0757 0 0 1-.071 0l-4.8303-2.7865A4.504 4.504 0 0 1 2.3408 7.872zm16.5963 3.8558L13.1038 8.364 15.1192 7.2a.0757.0757 0 0 1 .071 0l4.8303 2.7913a4.4944 4.4944 0 0 1-.6765 8.1042v-5.6772a.79.79 0 0 0-.407-.667zm2.0107-3.0231l-.142-.0852-4.7735-2.7818a.7759.7759 0 0 0-.7854 0L9.409 9.2297V6.8974a.0662.0662 0 0 1 .0284-.0615l4.8303-2.7866a4.4992 4.4992 0 0 1 6.6802 4.66zM8.3065 12.863l-2.02-1.1638a.0804.0804 0 0 1-.038-.0567V6.0742a4.4992 4.4992 0 0 1 7.3757-3.4537l-.142.0805L8.704 5.459a.7948.7948 0 0 0-.3927.6813zm1.0976-2.3654l2.602-1.4998 2.6069 1.4998v2.9994l-2.5974 1.4997-2.6067-1.4997Z"/></svg>
+                  LLM API
+                </span>
+                <!-- FastAPI 공식 SVG -->
+                <span class="tech-pill">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="11" fill="#05998b"/><polygon points="13,5 7,13 12,13 10,20 17,11 12,11" fill="#ffffff"/></svg>
+                  FastAPI
+                </span>
+                <span class="tech-pill direct"><span class="pill-check">✓</span>직접 개발 · 묶음 질문기</span>
+              </div>
+            </div>
+            <h3>로그 비식별화 · 공개 수준(A~D) 질문 생성</h3>
+          </div>
+
+          <div class="flow-well">
+            <div class="flow-step">
+              <div class="step-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                  <polyline points="14 2 14 8 20 8"/>
+                  <line x1="9" y1="13" x2="15" y2="13"/>
+                  <line x1="9" y1="17" x2="13" y2="17"/>
+                </svg>
+              </div>
+              <div class="step-title">기업 A 사내 원본 로그</div>
+              <div class="step-sub">오류 로그 · 현황표 · 운영 메모</div>
+            </div>
+
+            <div class="flow-arrow" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="5" y1="12" x2="19" y2="12"/><polyline points="13 6 19 12 13 18"/>
+              </svg>
+            </div>
+
+            <div class="flow-step">
+              <div class="step-icon active-blue" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="3" y="4" width="6" height="6" rx="1"/>
+                  <rect x="15" y="4" width="6" height="6" rx="1"/>
+                  <rect x="9" y="14" width="6" height="6" rx="1"/>
+                  <path d="M6 10v2a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2v-2"/>
+                </svg>
+              </div>
+              <div class="step-title">문맥 단서 · 민감도 분리</div>
+              <div class="step-sub">함수명·단가·건수 클러스터링</div>
+            </div>
+
+            <div class="flow-arrow" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="5" y1="12" x2="19" y2="12"/><polyline points="13 6 19 12 13 18"/>
+              </svg>
+            </div>
+
+            <div class="flow-step">
+              <div class="step-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="9"/>
+                  <line x1="3.6" y1="9" x2="20.4" y2="9"/>
+                  <line x1="3.6" y1="15" x2="20.4" y2="15"/>
+                  <path d="M11.5 3a17 17 0 0 0 0 18"/>
+                  <path d="M12.5 3a17 17 0 0 1 0 18"/>
+                </svg>
+              </div>
+              <div class="step-title">공개 수준(A~D) 질문 UI</div>
+              <div class="step-sub">사실만·추이만·마스킹·비율</div>
+            </div>
+          </div>
+
+          <div class="scope-strip">
+            <span class="scope-api"><strong>AI 활용:</strong> LLM API · FastAPI 비동기 추론</span>
+            <span class="scope-dev">직접 개발: JSON Schema 유사 단서 묶음 질문기</span>
+          </div>
+        </article>
+
+        <!-- ==================== 카드 2: CaMeL 원문 격리 초안 작성 및 본문·표 동시 갱신 ==================== -->
+        <article class="pipe-card">
+          <div class="card-head">
+            <div class="card-top-row">
+              <span class="en-kicker">CAMEL ISOLATED DRAFTING AGENT</span>
+              <div class="tech-pills">
+                <!-- Gemini / sLLM 공식 SVG -->
+                <span class="tech-pill">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2 C13.8 9, 15.8 11, 22 12 C15.8 13, 13.8 15, 12 22 C10.2 15, 8.2 13, 2 12 C8.2 11, 10.2 9, 12 2 Z" fill="#6366f1"/></svg>
+                  Gemini / sLLM
+                </span>
+                <!-- TypeScript 공식 SVG -->
+                <span class="tech-pill">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><rect width="24" height="24" rx="4" fill="#3178C6"/><text x="12" y="17" text-anchor="middle" fill="#fff" font-size="12" font-weight="900">TS</text></svg>
+                  TypeScript
+                </span>
+                <span class="tech-pill direct"><span class="pill-check">✓</span>직접 개발 · 동시 갱신 엔진</span>
+              </div>
+            </div>
+            <h3>원문 격리 초안 작성 · 본문·표 동시 갱신</h3>
+          </div>
+
+          <div class="flow-well">
+            <div class="flow-step">
+              <div class="step-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="3" y="4" width="18" height="16" rx="2"/>
+                  <line x1="7" y1="8" x2="13" y2="8"/>
+                  <line x1="7" y1="12" x2="17" y2="12"/>
+                  <line x1="7" y1="16" x2="15" y2="16"/>
+                </svg>
+              </div>
+              <div class="step-title">CaMeL 원문 격리 주입</div>
+              <div class="step-sub">승인된 A~D 허용 사실만 전달</div>
+            </div>
+
+            <div class="flow-arrow" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="5" y1="12" x2="19" y2="12"/><polyline points="13 6 19 12 13 18"/>
+              </svg>
+            </div>
+
+            <div class="flow-step">
+              <div class="step-icon active-blue" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 4.44-2.04Z"/>
+                  <path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-4.44-2.04Z"/>
+                </svg>
+              </div>
+              <div class="step-title">선택 기준 맞춤 초안 생성</div>
+              <div class="step-sub">실제 수치 가림 · 추이·비율 변환</div>
+            </div>
+
+            <div class="flow-arrow" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="5" y1="12" x2="19" y2="12"/><polyline points="13 6 19 12 13 18"/>
+              </svg>
+            </div>
+
+            <div class="flow-step">
+              <div class="step-icon accent-red" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+                  <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+                </svg>
+              </div>
+              <div class="step-title">본문·표·설명 동시 갱신</div>
+              <div class="step-sub">React 단일 상태 트리 동기화</div>
+            </div>
+          </div>
+
+          <div class="scope-strip">
+            <span class="scope-api"><strong>AI 활용:</strong> Gemini / 사내 sLLM 교체형 초안 생성</span>
+            <span class="scope-dev">직접 개발: CaMeL 원문 격리 &amp; 본문·표 동시 갱신 엔진</span>
+          </div>
+        </article>
+
+        <!-- ==================== 카드 3: 해결 스킬 추천 · 3자 대조 검증 및 사내 근거 매핑 ==================== -->
+        <article class="pipe-card">
+          <div class="card-head">
+            <div class="card-top-row">
+              <span class="en-kicker">3-WAY CROSS-CHECK &amp; SKILL AGENT</span>
+              <div class="tech-pills">
+                <!-- PyTorch 공식 SVG -->
+                <span class="tech-pill">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#EE4C2C" d="M12.005 0L4.952 7.053a9.865 9.865 0 000 14.022 9.866 9.866 0 0014.022 0c3.984-3.9 3.986-10.205.085-14.023l-1.744 1.743c2.904 2.905 2.904 7.634 0 10.538s-7.634 2.904-10.538 0-2.904-7.634 0-10.538l4.647-4.646.582-.665zm3.568 3.899a1.327 1.327 0 00-1.327 1.327 1.327 1.327 0 001.327 1.328A1.327 1.327 0 0016.9 5.226 1.327 1.327 0 0015.573 3.9z"/></svg>
+                  PyTorch
+                </span>
+                <!-- RLS Shield 아이콘 -->
+                <span class="tech-pill">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="#0f172a" stroke-width="2.2" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                  RLS 격리
+                </span>
+                <span class="tech-pill direct"><span class="pill-check">✓</span>직접 개발 · 사내 근거 매핑</span>
+              </div>
+            </div>
+            <h3>해결 스킬 추천 · 3자 대조 및 필수 제약 복원</h3>
+          </div>
+
+          <div class="flow-well">
+            <div class="flow-step">
+              <div class="step-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                  <line x1="12" y1="9" x2="12" y2="13"/>
+                  <line x1="12" y1="17" x2="12.01" y2="17"/>
+                </svg>
+              </div>
+              <div class="step-title">누락 · 과다 노출 위험</div>
+              <div class="step-sub">원문 · 선택 기준 · 초안 입력</div>
+            </div>
+
+            <div class="flow-arrow" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="5" y1="12" x2="19" y2="12"/><polyline points="13 6 19 12 13 18"/>
+              </svg>
+            </div>
+
+            <div class="flow-step">
+              <div class="step-icon active-blue" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="18" cy="5" r="3"/>
+                  <circle cx="6" cy="12" r="3"/>
+                  <circle cx="18" cy="19" r="3"/>
+                  <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
+                  <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+                </svg>
+              </div>
+              <div class="step-title">3-Way 대조 · 스킬 추천</div>
+              <div class="step-sub">유사 문제 분류 · 사내 근거 연결</div>
+            </div>
+
+            <div class="flow-arrow" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="5" y1="12" x2="19" y2="12"/><polyline points="13 6 19 12 13 18"/>
+              </svg>
+            </div>
+
+            <div class="flow-step">
+              <div class="step-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="9 11 12 14 22 4"/>
+                  <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+                </svg>
+              </div>
+              <div class="step-title">빠진 필수 제약 복원</div>
+              <div class="step-sub">“기존 접수 채널 유지” 반영</div>
+            </div>
+          </div>
+
+          <div class="scope-strip">
+            <span class="scope-api"><strong>AI 활용:</strong> PyTorch 유사 문제 분류 &amp; 3자 대조</span>
+            <span class="scope-dev">직접 개발: 사내 문서 근거 매핑 &amp; 누락 제약 복원기</span>
+          </div>
+        </article>
+
+        <!-- ==================== 카드 4: Skill Repository 등록 및 기업 간 재사용 자동화 ==================== -->
+        <article class="pipe-card">
+          <div class="card-head">
+            <div class="card-top-row">
+              <span class="en-kicker">SKILL REPOSITORY &amp; REUSE ENGINE</span>
+              <div class="tech-pills">
+                <!-- PostgreSQL Slonik 공식 SVG -->
+                <span class="tech-pill">
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M9.6 4.4 C4.6 3.3 2.2 5.8 2.6 10.8 C3.0 15.2 5.4 18.2 8.2 17.6" fill="#dbeafe" stroke="#336791" stroke-width="1.8" stroke-linecap="round"/>
+                    <path d="M15.4 4.6 C19.0 3.6 21.4 6.0 20.8 10.4 C20.2 14.2 18.2 16.2 16.0 15.8" fill="#dbeafe" stroke="#336791" stroke-width="1.8" stroke-linecap="round"/>
+                    <path d="M8.8 6.8 C8.8 3.6 16.4 3.6 16.4 6.8 C16.4 9.6 15.6 12.8 15.4 17.6 C15.3 20.0 13.9 21.4 12.3 21.4 C10.7 21.4 10.3 20.0 10.3 17.4 Z" fill="#eff6ff" stroke="#336791" stroke-width="1.8"/>
+                  </svg>
+                  PostgreSQL
+                </span>
+                <!-- Prisma 공식 SVG -->
+                <span class="tech-pill">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#0f172a" d="M21.807 18.285L13.553.757a1.32 1.32 0 0 0-1.129-.755a1.31 1.31 0 0 0-1.206.626l-8.952 14.5a1.36 1.36 0 0 0 .016 1.455l4.376 6.778a1.41 1.41 0 0 0 1.58.581l12.703-3.757c.389-.115.707-.39.873-.755s.164-.783-.007-1.145m-1.848.752L9.18 22.224a.452.452 0 0 1-.575-.52l3.85-18.438c.072-.345.549-.4.699-.08l7.129 15.138a.515.515 0 0 1-.325.713"/></svg>
+                  Prisma
+                </span>
+                <span class="tech-pill direct"><span class="pill-check">✓</span>직접 개발 · 스킬 매칭 엔진</span>
+              </div>
+            </div>
+            <h3>스킬 저장소(Skill Repo) 등록 · 기업 간 재사용</h3>
+          </div>
+
+          <div class="flow-well">
+            <div class="flow-step">
+              <div class="step-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <ellipse cx="12" cy="5" rx="9" ry="3"/>
+                  <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/>
+                  <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/>
+                </svg>
+              </div>
+              <div class="step-title">Skill Repository 등록</div>
+              <div class="step-sub">기업 A 승인 완료 스킬 저장</div>
+            </div>
+
+            <div class="flow-arrow" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="5" y1="12" x2="19" y2="12"/><polyline points="13 6 19 12 13 18"/>
+              </svg>
+            </div>
+
+            <div class="flow-step">
+              <div class="step-icon active-blue" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+                  <polyline points="3 3 3 8 8 8"/>
+                  <polyline points="12 7 12 12 15 15"/>
+                </svg>
+              </div>
+              <div class="step-title">3대 조건 · 테넌트 판별</div>
+              <div class="step-sub">목적 · 수신처 · Auth 권한 검증</div>
+            </div>
+
+            <div class="flow-arrow" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="5" y1="12" x2="19" y2="12"/><polyline points="13 6 19 12 13 18"/>
+              </svg>
+            </div>
+
+            <div class="flow-step">
+              <div class="step-icon accent-green" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="8" y="3" width="8" height="8" rx="1.5"/>
+                  <rect x="3" y="13" width="8" height="8" rx="1.5"/>
+                  <rect x="13" y="13" width="8" height="8" rx="1.5"/>
+                </svg>
+              </div>
+              <div class="step-title">기업 B 유사 문제 재사용</div>
+              <div class="step-sub">일치 시 즉시 적용 · 변경 시 재질문</div>
+            </div>
+          </div>
+
+          <div class="scope-strip">
+            <span class="scope-api"><strong>인프라 활용:</strong> PostgreSQL · Prisma ORM · Auth</span>
+            <span class="scope-dev">직접 개발: Skill Repository &amp; 조건부 스킬 매칭 엔진</span>
+          </div>
+        </article>
+      </div>
+
+      <footer class="page-footer">
+        <span>* <strong>외부 AI·인프라 연동:</strong> LLM API(OpenAI) · Gemini / 사내 sLLM · PyTorch 분류 · FastAPI 서빙 · PostgreSQL / Prisma</span>
+        <span class="footer-right">✓ 우리 팀 직접 개발: TypeScript AI Engine · CaMeL 원문 격리 · 본문·표 동시 갱신 · 3자 대조 근거 매핑 · Skill Repository</span>
+      </footer>
+    </section>
+  </div>
+</main>
+
+<script>
+(() => {
+  'use strict';
+  const shells = Array.from(document.querySelectorAll('.page-shell'));
+  function fitPages() {
+    const mobile = innerWidth <= 760;
+    const width = Math.min(1280, innerWidth - 40);
+    shells.forEach(shell => {
+      shell.style.width = mobile ? '' : width + 'px';
+      shell.style.height = mobile ? '' : 720 * width / 1280 + 'px';
+      shell.querySelector('.page').style.transform = mobile ? '' : 'scale(' + width / 1280 + ')';
+    });
+  }
+  document.getElementById('print-document').addEventListener('click', () => window.print());
+  window.addEventListener('resize', fitPages);
+  window.addEventListener('afterprint', fitPages);
+  fitPages();
+})();
+</script>
+</body>
+</html>

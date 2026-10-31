@@ -1,0 +1,14 @@
+{
+  "schema_version": "skill_manifest.v1",
+  "id": "toyrecord-repro",
+  "version": "1.0.0",
+  "product_ids": ["toyrecord"],
+  "purpose_ids": ["oss_issue"],
+  "role_documents": {
+    "analyst": ["SKILL.md", "references/product.md"],
+    "writer": ["references/public-writing.md"],
+    "reviewer": ["references/reviewer-checks.md"]
+  },
+  "tool_ids": ["make_synthetic_inputs_v1", "run_repro_v1"],
+  "template_ids": ["oss_issue.v1"]
+}

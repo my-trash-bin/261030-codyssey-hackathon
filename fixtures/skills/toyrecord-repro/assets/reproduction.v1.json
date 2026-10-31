@@ -1,0 +1,20 @@
+{
+  "schema_version": "toyrecord_reproduction.v1",
+  "target_pair_id": "toyrecord.sandbox-observation.v1",
+  "oracle_id": "toyrecord.encode.v1",
+  "supervisor": "sandbox_observation.v1",
+  "targets": [
+    "buggy",
+    "fixed"
+  ],
+  "input_kinds": [
+    "ascii",
+    "multibyte"
+  ],
+  "codepoint_count": 6,
+  "tool_ids": [
+    "make_synthetic_inputs_v1",
+    "run_repro_v1"
+  ],
+  "result_contract": "target_run.v1"
+}

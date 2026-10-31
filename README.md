@@ -145,3 +145,5 @@ Chrome은 macOS 기본 경로를 사용하며 `CHROME_PATH`로 바꿀 수 있습
 
 [제출 영상](docs/demo-media/SafeHandoff-demo.mp4) · [미리보기](docs/demo-media/preview.png) ·
 [영상 검증 기록](evaluation/results/cdp-submission-run.json)
+
+ToyRecord 팩을 실제 catalog에서 선택해 OSS 스모크로 연결할 수 있다. `--catalog`, `--pack-version`, 운영자 `--registration`을 함께 사용하며 실행 전에 digest를 재검증한다. [설치·실행 절차](docs/toyrecord-pack.md)를 따른다.

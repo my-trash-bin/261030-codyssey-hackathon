@@ -146,4 +146,4 @@ F 번호는 [기능 파일](features/)의 책임 영역, INV 번호는 [spec.md]
 
 core 구현 완료, live 사람 도움 완료, live 모델 단계 완료, 확장 검증 완료, 제품가치 확인을 따로 보고한다. 전체 PoC 검증 완료에는 core, 실제 사내 모델, 예정된 확장, 선택변경·복구, 독립 수신자 결과가 필요하다. 제품가치가 아직 미측정이면 그 사실을 그대로 적는다.
 
-보고 양식: [report-template.json](../evaluation/results/report-template.json). 실제 실행 전에는 이 틀의 `status=not_run`을 유지한다.
+보고 필드는 [시험 데이터의 실행 보고 기준](test-data.md)을 따른다. 실행하지 않은 항목은 `status=not_run`으로 기록한다.
