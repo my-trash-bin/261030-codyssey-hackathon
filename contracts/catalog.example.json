@@ -1,0 +1,125 @@
+{
+  "schema_version": "catalog_example.v1",
+  "status": "fictional_configuration_example_not_installed",
+  "projects": [
+    {
+      "id": "project_demo",
+      "display_name": "SafeHandoff 가상 데모"
+    }
+  ],
+  "recipients": [
+    {
+      "id": "public_issue",
+      "display_name": "공개 오픈소스 이슈",
+      "audience": "public",
+      "purpose_ids": [
+        "oss_issue"
+      ]
+    },
+    {
+      "id": "vendor_lab",
+      "display_name": "가상 VendorStore 지원팀",
+      "audience": "named_external",
+      "purpose_ids": [
+        "vendor_support"
+      ]
+    },
+    {
+      "id": "operations_advisor",
+      "display_name": "가상 외부 운영 자문사",
+      "audience": "named_external",
+      "purpose_ids": [
+        "operations_advice"
+      ]
+    }
+  ],
+  "purposes": [
+    {
+      "id": "oss_issue",
+      "display_name": "오픈소스 버그 제보",
+      "goal_variants": [
+        "default",
+        "observations_only",
+        "reproduction_evidence"
+      ],
+      "template_id": "oss_issue.v1"
+    },
+    {
+      "id": "vendor_support",
+      "display_name": "B2B 기술지원 문의",
+      "goal_variants": [
+        "default",
+        "observations_only",
+        "ask_for_diagnostics",
+        "reproduction_evidence"
+      ],
+      "template_id": "vendor_support.v1"
+    },
+    {
+      "id": "operations_advice",
+      "display_name": "외부 운영 자문",
+      "goal_variants": [
+        "default"
+      ],
+      "template_id": "operations_advice.v1"
+    }
+  ],
+  "packs": [
+    {
+      "id": "toyrecord-repro",
+      "version": "1.0.0",
+      "purpose_ids": [
+        "oss_issue"
+      ],
+      "provides_reproduction": true,
+      "product_id": "toyrecord",
+      "documents": [
+        "fixtures/reference-pack/public/products/toyrecord.md"
+      ]
+    },
+    {
+      "id": "vendorstore-support",
+      "version": "1.0.0",
+      "purpose_ids": [
+        "vendor_support"
+      ],
+      "provides_reproduction": false,
+      "product_id": "vendorstore-lab",
+      "documents": [
+        "fixtures/reference-pack/public/products/vendorstore-lab.md"
+      ]
+    }
+  ],
+  "extension_options": [
+    {
+      "id": "toyrecord.synthetic_pair.v1",
+      "pack_id": "toyrecord-repro",
+      "input_length": 6,
+      "seed_strategy": "server_generated_and_frozen_in_preview",
+      "result_contract": "target_run.v1",
+      "allowed_public_fields": [
+        "status",
+        "reason_code",
+        "target_digest",
+        "input_digest",
+        "observations"
+      ]
+    },
+    {
+      "id": "vendorstore.documentation_config.v1",
+      "pack_id": "vendorstore-support",
+      "example_address": "192.0.2.17",
+      "checker_id": "check_doc_ip_context_v1"
+    }
+  ],
+  "default_templates": [
+    "oss_issue.v1",
+    "vendor_support.v1",
+    "operations_advice.v1"
+  ],
+  "notes": [
+    "reproduction_evidence is offered only when a compatible registered pack exists; vendorstore-support alone does not provide one.",
+    "Installing a pack or choosing a recipient is not disclosure approval.",
+    "Runtime installation resolves and pins every executable/document/asset digest. This example does not provide a ready installed pack."
+  ]
+}

@@ -1,0 +1,72 @@
+{
+  "schema_version": "evaluation_report.v1",
+  "report_kind": "unexecuted_template",
+  "status": "not_run",
+  "run_id": null,
+  "case_id": null,
+  "started_at": null,
+  "finished_at": null,
+  "execution": {
+    "mode": null,
+    "code_commit": null,
+    "model_identifier": null,
+    "provider_config_hash": null,
+    "human_assisted": null,
+    "fixture_substitution": false,
+    "prompt_versions": {},
+    "contract_versions": {},
+    "extension_versions": {},
+    "runner_digest": null,
+    "target_digest": null
+  },
+  "inputs": {
+    "source_hashes": [],
+    "decision_plan": [],
+    "goal_variant": null,
+    "source_selection": [],
+    "generator_version": null,
+    "seed": null,
+    "variation": null
+  },
+  "results": {
+    "task_revision": null,
+    "artifact_set_hash": null,
+    "archive_sha256": null,
+    "export_files": [],
+    "reproduction_status": null,
+    "reproduction_reason_code": null
+  },
+  "automated_checks": [],
+  "semantic_checks": [],
+  "human_interventions": [],
+  "model_calls": [],
+  "recipient_observations": [],
+  "metrics": {
+    "human_active_seconds": null,
+    "total_elapsed_seconds": null,
+    "model_wait_seconds": null,
+    "tool_seconds": null,
+    "initial_setup_seconds": null,
+    "extension_maintenance_seconds": null,
+    "questions_answered": null,
+    "manual_edits": null,
+    "source_reopens": null,
+    "input_tokens": null,
+    "output_tokens": null
+  },
+  "comparison": {
+    "method": null,
+    "use_stage": null,
+    "equivalent_case_group": null,
+    "quality_threshold_met": null,
+    "recipient_burden": null
+  },
+  "failures": [],
+  "not_run_reasons": [
+    "This file is an empty reporting template. No application test has been executed."
+  ],
+  "limitations": [],
+  "notes": [
+    "Use null for unmeasured values, not zero. Separate fixture/live, human-assisted/model-completed, injected/natural errors. Never include this report or evaluation expectations in public export."
+  ]
+}

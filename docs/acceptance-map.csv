@@ -1,0 +1,128 @@
+acceptance_id,feature_id,feature_file,acceptance_criterion,test_ids,execution_status
+AC-F01-01,F01,features/01-task-intake.md,목적·수신자·TXT/CSV/JSON을 저장하면 API와 새로고침 화면에서 같은 task/source 판본 확인,T29;T41;T58,not_run
+AC-F01-02,F01,features/01-task-intake.md,자료 추가·교체·제외가 각각 불변 과거 판본과 새 현재 집합을 유지하고 revision을 한 번 올림,T26;T29,not_run
+AC-F01-03,F01,features/01-task-intake.md,"파일 수·파일/합계 바이트 한도 정확히 이하는 허용, 1개/1바이트 초과는 배치 변경 없이 거부",T25,not_run
+AC-F01-04,F01,features/01-task-intake.md,"깨진 UTF-8·JSON·CSV 또는 잘못된 파일이 한 배치에 있으면 전체 배치 미반영, 오류 항목 표시",T29,not_run
+AC-F01-05,F01,features/01-task-intake.md,"동일 멱등 요청은 한 번만 적용, 다른 요청의 키 충돌과 오래된 revision은 409",T19;T30,not_run
+AC-F01-06,F01,features/01-task-intake.md,비인증 요청·다른 task의 source ID·위조 CSRF는 원자료를 읽거나 바꾸지 못함,T42;T43,not_run
+AC-F01-07,F01,features/01-task-intake.md,파일명이 경로·HTML·제어문자를 포함해도 서버 경로로 사용하거나 코드로 실행하지 않음,T28,not_run
+AC-F01-08,F01,features/01-task-intake.md,"수신자/자료 변경 직후 이전 결과의 복사·확정 불가, 늦은 job이 현재 결과를 덮어쓰지 않음",T03;T06;T26,not_run
+AC-F01-09,F01,features/01-task-intake.md,자료 저장 후 모델 접수 실패 시 입력은 남고 분석만 재시도 가능,T18,not_run
+AC-F01-10,F01,features/01-task-intake.md,원자료 업로드·프로젝트 이름·내부 메모가 공개결정이나 작성기 공개 입력으로 자동 포함되지 않음,T01;T10;T38,not_run
+AC-F02-01,F02,features/02-evidence-analysis.md,txt/CSV/JSON 근거 ID가 원본 판본·위치·hash와 연결되고 화면에서 원문 대조 가능,T31;T58,not_run
+AC-F02-02,F02,features/02-evidence-analysis.md,"timeout과 재시도 성공을 관찰로, 서버 완료/중복/원인을 unknown으로 분리",T09,not_run
+AC-F02-03,F02,features/02-evidence-analysis.md,서로 충돌하는 근거를 한 사실로 조용히 합치지 않음,T08,not_run
+AC-F02-04,F02,features/02-evidence-analysis.md,"알 수 없는 evidence ID, 다른 task 참조, UTF-8 중간 offset은 거부",T31;T43,not_run
+AC-F02-05,F02,features/02-evidence-analysis.md,model 후보 statement/내부 제목/파일명은 공개 결정 전 writer로 넘어가지 않음,T01,not_run
+AC-F02-06,F02,features/02-evidence-analysis.md,잘린 JSON·중복/미지 키·한도 초과·잘못된 enum을 strict 오류로 처리,T17,not_run
+AC-F02-07,F02,features/02-evidence-analysis.md,"파일 업로드 성공과 모델 분석 가능성을 구분, 문맥 초과를 부분 성공으로 표시하지 않음",T25,not_run
+AC-F02-08,F02,features/02-evidence-analysis.md,늦은 분석 결과·취소 후 응답·삭제 후 응답은 현재 결과를 바꾸지 않음,T03;T44;T51,not_run
+AC-F02-09,F02,features/02-evidence-analysis.md,수동 user_note가 source/evidence/후보가 되지만 공개 결정은 별도로 필요,T38,not_run
+AC-F02-10,F02,features/02-evidence-analysis.md,"수동 후보 추가 시 한 revision에서 새 집합 생성, 이전 선택은 참고만, 재결정 필요",T38,not_run
+AC-F02-11,F02,features/02-evidence-analysis.md,동일 스키마의 새 자료에 저장 기준을 다시 계산하고 모순되는 기준은 질문,T04;T49,not_run
+AC-F02-12,F02,features/02-evidence-analysis.md,"fixture/live 구분, 인증 실패·한도 초과에서 fixture로 바꾸지 않음",T18,not_run
+AC-F02-13,F02,features/02-evidence-analysis.md,need_keys ID 존재만으로 의미 충족을 단정하지 않고 최종 의미 검토로 연결,T08;T39,not_run
+AC-F02-14,F02,features/02-evidence-analysis.md,reproduction_result를 실행 전 필수 후보로 요구해 재현 시작을 막지 않음,T54,not_run
+AC-F03-01,F03,features/03-disclosure-decisions.md,A/B/C/D가 각각 표시된 미리보기와 일치한 결정·승인팩을 만듦,T30;T35,not_run
+AC-F03-02,F03,features/03-disclosure-decisions.md,"A에는 실제값·비율·관찰 개수·간격 없음, B에는 순서·방향만 있고 실제값·비율·날짜 없음",T35,not_run
+AC-F03-03,F03,features/03-disclosure-decisions.md,명시 승인한 C/exact/raw 값은 확인한 범위에서 실제 결과에 남음. 모든 숫자를 지워 통과하지 않음,T37,not_run
+AC-F03-04,F03,features/03-disclosure-decisions.md,"상대지수는 100/141/212, 기준0은 INDEX_BASELINE_ZERO, 결측/음수/타입오류는 조용히 처리하지 않음",T34,not_run
+AC-F03-05,F03,features/03-disclosure-decisions.md,ambiguous/unsupported 조건은 적용되지 않고 사용자 입력·기존 결정 유지,T33,not_run
+AC-F03-06,F03,features/03-disclosure-decisions.md,자료 업로드·편집·모델 제안만으로 allow/규칙 활성화가 생기지 않음,T10;T22;T38,not_run
+AC-F03-07,F03,features/03-disclosure-decisions.md,다른 자료 판본·수신자·후보·미리보기 hash로 결정 요청하면 배치 전체 거부,T05;T26;T30;T43,not_run
+AC-F03-08,F03,features/03-disclosure-decisions.md,"배치 한 번에 revision 한 번, 중복 요청 한 번만 적용, 늦은 compose 결과 미적용",T03;T19;T30,not_run
+AC-F03-09,F03,features/03-disclosure-decisions.md,현재 결정 철회/만료 후 과거 allow로 복귀하지 않고 확정·다운로드 차단,T06;T21;T50,not_run
+AC-F03-10,F03,features/03-disclosure-decisions.md,"exact/raw/C는 재사용 저장 불가, 방향 규칙 적용은 F06 조건을 모두 만족해야 함",T04;T49,not_run
+AC-F03-11,F03,features/03-disclosure-decisions.md,보류/필수 미결정이 있으면 임시 초안 표시 가능하지만 확정 불가,T32,not_run
+AC-F03-12,F03,features/03-disclosure-decisions.md,"required 제외 시 범위 축소·대체 선택을 안내, 자동 공개 확대나 빈 성공 파일 없음",T39,not_run
+AC-F03-13,F03,features/03-disclosure-decisions.md,UTF-8 중간 경계·범위 밖·해시 불일치·만료 원문 사용을 거부,T26;T31,not_run
+AC-F03-14,F03,features/03-disclosure-decisions.md,"다른 task의 candidate/preview/decision ID, 비인증/위조 CSRF가 상태를 바꾸지 못함",T42;T43,not_run
+AC-F04-01,F04,features/04-compose-review.md,실제 writer 요청에 승인팩/공개 지침만 있고 원자료·파일명·내부 설명·stderr가 없음,T01,not_run
+AC-F04-02,F04,features/04-compose-review.md,작성 도중 reviewer가 들어오며 새 선택이 필요하면 UI 질문으로 돌아감,T32,not_run
+AC-F04-03,F04,features/04-compose-review.md,needs_changes는 승인 fact ID와 fixed code만으로 복구하고 원문 자유 설명을 전달하지 않음,T01,not_run
+AC-F04-04,F04,features/04-compose-review.md,잘못된 causality·unknown 누락·필수 제약 삭제를 의미 검토와 사람 평가에서 확인,T08;T09;T39,not_run
+AC-F04-05,F04,features/04-compose-review.md,A/B/C/D 변경 뒤 본문·표·첨부 모두 새 선택과 일치하고 이전판본 복사 차단,T02;T35,not_run
+AC-F04-06,F04,features/04-compose-review.md,중복·미지 키·참조·truncation·예산 초과가 ready로 처리되지 않음,T17;T18;T40,not_run
+AC-F04-07,F04,features/04-compose-review.md,같은 revision의 교체된 job 또는 다른 revision의 지연 응답은 적용되지 않음,T03,not_run
+AC-F04-08,F04,features/04-compose-review.md,편집은 새 revision/검토이며 새 사실 공개 허용을 자동 생성하지 않음,T22,not_run
+AC-F04-09,F04,features/04-compose-review.md,인간 의미 검토는 mode=human으로 표시하고 hard gate 우회 불가,T23,not_run
+AC-F04-10,F04,features/04-compose-review.md,자동 검토/변환 뒤 한 바이트라도 바뀌면 대상 hash 검토를 다시 요구,T20,not_run
+AC-F04-11,F04,features/04-compose-review.md,default 관찰 문의는 재현 환경 없이 완료할 수 있으나 재현 성공이라고 쓰지 않음,T15,not_run
+AC-F04-12,F04,features/04-compose-review.md,reproduction_evidence는 실행 전 결과누락으로 순환 차단되지 않고 최종 단계에서 reproduced를 요구,T15;T54,not_run
+AC-F04-13,F04,features/04-compose-review.md,"모델 실패·재시작·취소 때 선택과 이력 유지, fixture 대체 없음",T18;T24;T51,not_run
+AC-F04-14,F04,features/04-compose-review.md,전체 파일생성 실패 시 일부 파일만 ready로 표시하지 않고 오류·재시도 안내,T20,not_run
+AC-F04-15,F04,features/04-compose-review.md,새 도구 결과를 투영할 때 승인한 결과schema/field범위 밖 자유 stdout·stderr는 팩에 들어가지 않음,T01,not_run
+AC-F05-01,F05,features/05-export.md,모든 실제 파일을 확인·확정하고 다운로드한 bytes가 확인 대상 hash와 정확히 일치,T20,not_run
+AC-F05-02,F05,features/05-export.md,명시 승인한 원문/정확값/공개 asset은 정확히 포함되며 필요한 기술 단서를 보존,T16;T37,not_run
+AC-F05-03,F05,features/05-export.md,검사 후 본문·파일명·첨부 한 바이트 변경 시 이전 검토로 확정 불가,T20,not_run
+AC-F05-04,F05,features/05-export.md,실제 ZIP에 allowlist 파일만 있고 내부 원자료·trace·평가·원래 경로/시각 없음,T16,not_run
+AC-F05-05,F05,features/05-export.md,절대경로·../·역슬래시·중복 경로·심볼릭 링크·크기 초과 거부,T25;T28,not_run
+AC-F05-06,F05,features/05-export.md,보류·필수 미결정·만료·철회·깨진 참조·필수 검사 오류면 API 직접 호출도 차단,T06;T31;T32;T55,not_run
+AC-F05-07,F05,features/05-export.md,human fallback은 별도 기록하고 hard check를 우회하지 않음,T23,not_run
+AC-F05-08,F05,features/05-export.md,"default 미재현 문의는 확정 가능, reproduction_evidence 미충족은 확정 불가",T15,not_run
+AC-F05-09,F05,features/05-export.md,확정 중 선택 변경·동일 요청 재전송·다른 hash의 멱등 키 재사용을 계약대로 처리,T03;T19;T20;T30,not_run
+AC-F05-10,F05,features/05-export.md,확정 후 철회/선택 변경 시 과거 URL과 멱등 재응답으로도 파일을 받을 수 없음,T06;T52,not_run
+AC-F05-11,F05,features/05-export.md,비인증·다른 task의 artifact/file·잘못된 CSRF 요청이 파일을 읽거나 확정하지 못함,T42;T43,not_run
+AC-F05-12,F05,features/05-export.md,A/B/C/D 변경의 결과가 실제 파일에 반영되고 복사 실패를 성공처럼 표시하지 않음,T02;T35;T58,not_run
+AC-F05-13,F05,features/05-export.md,앱/원자료 없이 공개 파일만 받은 수신자가 해당 사례의 다음 행동 수행 가능,T59,not_run
+AC-F06-01,F06,features/06-decision-reuse.md,같은 scope·schema의 새 입력 820/780/1740에 기존 방향 기준을 적용하면 감소·증가로 다시 계산,T04;T07,not_run
+AC-F06-02,F06,features/06-decision-reuse.md,공개 이슈로 수신자/audience를 바꾸면 지정 공급사 기준이 자동 적용되지 않음,T05,not_run
+AC-F06-03,F06,features/06-decision-reuse.md,"정확값·원문 결정을 규칙 저장 API로 보내면 422, 활성 기준 없음",T49,not_run
+AC-F06-04,F06,features/06-decision-reuse.md,일반 문서의 유사 후보는 사용자 적용 전까지 허용 상태가 아님,T49,not_run
+AC-F06-05,F06,features/06-decision-reuse.md,기준이 만료·철회되면 현재 내보내기 API가 차단되고 과거 결정으로 복구되지 않음,T06;T21;T50,not_run
+AC-F06-06,F06,features/06-decision-reuse.md,"기준 수정 중 다른 탭의 낡은 version은 409, 최신 판본 보존",T50,not_run
+AC-F06-07,F06,features/06-decision-reuse.md,"겹치는 기준의 결과가 충돌하면 선택 카드 생성, 자동 최대공개 금지",T49,not_run
+AC-F06-08,F06,features/06-decision-reuse.md,열 타입 불일치·결측·0 기준 지수 오류를 조용히 건너뛰지 않고 사용자가 수정 가능,T34;T49,not_run
+AC-F06-09,F06,features/06-decision-reuse.md,원래 작업 삭제 후에도 남긴 기준에는 원문·개별 값·작업의 비밀 설명이 없음,T45,not_run
+AC-F06-10,F06,features/06-decision-reuse.md,late job·중복 요청이 current decision과 revision을 이중 변경하지 않음,T03;T19,not_run
+AC-F06-11,F06,features/06-decision-reuse.md,최종 확인 화면에서 적용 범위·변환 결과를 확인할 수 있고 기준 재사용이 최종 확인을 생략하지 않음,T58,not_run
+AC-F07-01,F07,features/07-domain-extensions.md,두 팩을 catalog에서 선택하고 각 제품의 다른 질문·양식이 적용됨,T47;T58,not_run
+AC-F07-02,F07,features/07-domain-extensions.md,writer 실제 요청에는 공개 지침만 있고 내부 제품 문서·SKILL.md 전문은 없음,T01;T47,not_run
+AC-F07-03,F07,features/07-domain-extensions.md,승인한 새 설정은 문맥 조건에 따라 IP finding만 해소됨,T11,not_run
+AC-F07-04,F07,features/07-domain-extensions.md,같은 IP가 원래 접속 로그에 있으면 새 설정 예외로 해소되지 않음,T11,not_run
+AC-F07-05,F07,features/07-domain-extensions.md,동일 문맥에서 다른 문서용 IP도 값 고정 없이 판정 가능,T48,not_run
+AC-F07-06,F07,features/07-domain-extensions.md,"다른 hash/finding, timeout, parse 오류는 허용으로 처리되지 않음",T12,not_run
+AC-F07-07,F07,features/07-domain-extensions.md,팩 파일 변경·도구 digest 변경·잘못된 경로는 실행 전 차단됨,T27;T47,not_run
+AC-F07-08,F07,features/07-domain-extensions.md,builtin과 process checker가 정상·거절·오류 corpus에서 같은 계약 결과를 냄,T12;T48,not_run
+AC-F07-09,F07,features/07-domain-extensions.md,Docker 미설치 시 호스트 실행으로 대체되지 않으며 필수 checker가 막은 이유 표시,T55,not_run
+AC-F07-10,F07,features/07-domain-extensions.md,도구에 미허용 파일·환경변수·네트워크가 없음을 실행 환경으로 확인,T57,not_run
+AC-F07-11,F07,features/07-domain-extensions.md,진행 중 팩 변경 뒤 늦은 결과가 현재 finding·artifact를 변경하지 않음,T03;T47,not_run
+AC-F07-12,F07,features/07-domain-extensions.md,UI에서 특정 finding 해소 이유와 새 공개 승인의 차이를 확인 가능,T11;T58,not_run
+AC-F08-01,F08,features/08-reproduction.md,새 ASCII/한글 입력을 실제 실행해 표의 네 결과와 파일 바이트 확인,T54,not_run
+AC-F08-02,F08,features/08-reproduction.md,원래 7글자 고객값 없이 새 6글자 입력으로 지정 조건을 확인,T54,not_run
+AC-F08-03,F08,features/08-reproduction.md,"seed 변경 입력에서도 같은 기술 조건 검증, 고정 성공 문구로 대체 금지",T54,not_run
+AC-F08-04,F08,features/08-reproduction.md,parse/validate 오류를 encode 재현으로 세지 않음,T13,not_run
+AC-F08-05,F08,features/08-reproduction.md,"대조군·fixed 실패를 inconclusive, runner 오류를 error로 구분",T14,not_run
+AC-F08-06,F08,features/08-reproduction.md,환경 없음은 not_run/no_environment. default/observations_only의 B2B 관찰 문의는 확정 가능하지만 reproduction_evidence는 차단,T15;T55,not_run
+AC-F08-07,F08,features/08-reproduction.md,"target/input digest 변경을 실행 전 차단, 판정기 runtime 수정 불가",T27,not_run
+AC-F08-08,F08,features/08-reproduction.md,취소·공개 선택 변경 뒤 늦은 실행 결과가 현재 자료를 덮어쓰지 않음,T03;T51,not_run
+AC-F08-09,F08,features/08-reproduction.md,실행 결과 추가 후 실제 공개 파일과 새 해시에 대한 검토 수행,T20,not_run
+AC-F08-10,F08,features/08-reproduction.md,독립 수신자가 공개 패키지만으로 실행해 동일 판정 확인,T59,not_run
+AC-F08-11,F08,features/08-reproduction.md,실패 시 사용자가 UI-04로 돌아가 조건을 고를 수 있고 자동 추가 공개 없음. 목표 축소는 명시 선택·revision 증가·재분석·새 결정 필요,T39;T58,not_run
+AC-F08-12,F08,features/08-reproduction.md,공개 패키지에 내부 원자료·평가 정답·수신자 전용 trace·원시 stderr 없음,T16;T56,not_run
+AC-F09-01,F09,features/09-history-recovery.md,새로고침·다른 화면 이동·SSE 재연결 후 저장 선택·phase·현재 결과가 복원됨,T41;T58,not_run
+AC-F09-02,F09,features/09-history-recovery.md,오래된/중복/역순 이벤트와 이전 job 응답이 현재 revision·포인터를 되돌리지 않음,T03;T41,not_run
+AC-F09-03,F09,features/09-history-recovery.md,"queued/running 중 프로세스 종료 후 모두 failed/INTERRUPTED, 입력 보존, 명시적 재시도",T24,not_run
+AC-F09-04,F09,features/09-history-recovery.md,"취소 응답이 늦어도 결과 적용 불가, 사용자 새 선택 저장을 막지 않음",T51,not_run
+AC-F09-05,F09,features/09-history-recovery.md,"모델/도구 오류·예산 소진을 실제 원인으로 표시, fixture 대체·성공 위장 없음",T18;T40,not_run
+AC-F09-06,F09,features/09-history-recovery.md,"제목만 변경해도 revision 증가·이전 결과 stale, 안내와 재검토 경로 제공",T51,not_run
+AC-F09-07,F09,features/09-history-recovery.md,DELETE 입력·기준 보존 확인 후 원자료·결정·결과·export·trace·event·관련 임시/멱등 내용 제거,T44,not_run
+AC-F09-08,F09,features/09-history-recovery.md,실행 중 삭제와 늦은 응답 이후에도 task/자료가 부활하지 않음,T44,not_run
+AC-F09-09,F09,features/09-history-recovery.md,"확인 불일치/오래된 revision은 미변경, 이미 삭제된 요청 재전송은 민감 응답을 복원하지 않음",T44,not_run
+AC-F09-10,F09,features/09-history-recovery.md,원작업 삭제 후 규칙은 최소 비민감 provenance로 남고 사용자에게 남는 사실을 표시,T45,not_run
+AC-F09-11,F09,features/09-history-recovery.md,"기본 trace 본문 미저장, opt-in 본문 24시간 정리·작업 삭제 즉시 제거",T46,not_run
+AC-F09-12,F09,features/09-history-recovery.md,"다른 task의 job/event/artifact ID 혼합·비인증 요청 차단, 내부 저장소 정적 제공 없음",T42;T43;T53,not_run
+AC-F09-13,F09,features/09-history-recovery.md,과거 finalized 기록이 현재 만료/철회 export를 복원하지 않음,T06;T52,not_run
+AC-F09-14,F09,features/09-history-recovery.md,"미측정 시간은 미측정, fixture/live·human/model·실패/미수행을 구별",T58;T60,not_run
+AC-F10-01,F10,features/10-runtime-boundary.md,"비루프백 시작 설정 거절, 토큰 없이 작업 목록·원자료·파일 API 접근 불가",T42,not_run
+AC-F10-02,F10,features/10-runtime-boundary.md,토큰 5분 만료·한 번 사용·세션 8시간 만료·logout·재시작 폐기 시험,T42,not_run
+AC-F10-03,F10,features/10-runtime-boundary.md,잘못된 Host/Origin/CSRF와 외부 CORS 요청 거절,T42,not_run
+AC-F10-04,F10,features/10-runtime-boundary.md,source나 모델 출력의 URL·tool_calls가 임의 연결·실행으로 이어지지 않음,T10;T27,not_run
+AC-F10-05,F10,features/10-runtime-boundary.md,실제 writer 요청 캡처에 미승인 원문·파일명·검토 설명·stderr 없음,T01,not_run
+AC-F10-06,F10,features/10-runtime-boundary.md,live provider 실패가 fixture 응답으로 대체되지 않고 선택은 보존됨,T18,not_run
+AC-F10-07,F10,features/10-runtime-boundary.md,다른 작업의 ID와 낡은 revision/hash를 사용한 요청이 거절됨,T03;T43,not_run
+AC-F10-08,F10,features/10-runtime-boundary.md,process에서 네트워크·회사 DB·모델 인증키·Docker socket 접근 불가,T55;T57,not_run
+AC-F10-09,F10,features/10-runtime-boundary.md,"raw trace 기본 미저장, opt-in 표시, 만료/작업 삭제 후 제거",T46,not_run
+AC-F10-10,F10,features/10-runtime-boundary.md,삭제한 작업의 늦은 실행 결과가 데이터를 복원하지 않음,T44,not_run
+AC-F10-11,F10,features/10-runtime-boundary.md,원자료 속 HTML·원격 이미지·실행 링크가 실행/외부 요청을 만들지 않음,T28,not_run
+AC-F10-12,F10,features/10-runtime-boundary.md,최종확인·사람검토 API로 hard gate를 우회하지 못하며 저장 bytes만 다운로드됨,T20;T23;T52,not_run

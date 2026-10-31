@@ -1,0 +1,4 @@
+DEMO NOTICE: All entities and values in this file are fictional.
+2026-04-21T09:00:00Z event=save input="REFKEY" stage=persist result=success customer="DEMO_CUSTOMER_R"
+2026-04-21T09:00:10Z event=save input="라온제조공장점" codepoints=7 utf8_bytes=21 stage=encode code=E_ENCODE_SHORT_BUFFER
+2026-04-21T09:00:10Z internal_path="/srv/demo-product/customer-r/labels" auth_marker="DEMO_ONLY_SECRET_A"

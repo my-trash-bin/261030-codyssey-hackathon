@@ -1,0 +1,305 @@
+{
+  "schema_version": "domain_contract.v1",
+  "status": "proposed_implementation_baseline",
+  "date": "2026-10-31",
+  "enums": {
+    "purpose_id": [
+      "oss_issue",
+      "vendor_support",
+      "operations_advice"
+    ],
+    "goal_variant": [
+      "default",
+      "observations_only",
+      "ask_for_diagnostics",
+      "reproduction_evidence"
+    ],
+    "audience": [
+      "public",
+      "named_external"
+    ],
+    "output_language": [
+      "ko",
+      "en"
+    ],
+    "task_phase": [
+      "needs_analysis",
+      "needs_decisions",
+      "ready_to_generate",
+      "processing",
+      "needs_attention",
+      "ready_to_finalize",
+      "finalized"
+    ],
+    "artifact_status": [
+      "draft",
+      "checking",
+      "blocked",
+      "ready",
+      "finalized",
+      "stale"
+    ],
+    "job_kind": [
+      "analyze",
+      "interpret_condition",
+      "compose",
+      "review",
+      "reproduce",
+      "provider_check"
+    ],
+    "job_status": [
+      "queued",
+      "running",
+      "succeeded",
+      "failed",
+      "cancelled",
+      "stale"
+    ],
+    "review_result": [
+      "pass",
+      "needs_changes",
+      "needs_decision",
+      "error"
+    ],
+    "review_mode": [
+      "model",
+      "human"
+    ],
+    "reproduction_status": [
+      "not_requested",
+      "not_run",
+      "running",
+      "reproduced",
+      "not_reproduced",
+      "inconclusive",
+      "error"
+    ],
+    "disposition": [
+      "allow",
+      "exclude",
+      "defer"
+    ],
+    "representation_kind": [
+      "fact_summary",
+      "derived_table",
+      "selected_fields",
+      "exact_value",
+      "approved_excerpt"
+    ],
+    "candidate_kind": [
+      "observation",
+      "constraint",
+      "hypothesis",
+      "unknown"
+    ],
+    "candidate_origin": [
+      "model",
+      "human",
+      "parser"
+    ],
+    "uncertainty": [
+      "observed",
+      "reported",
+      "inferred",
+      "unknown"
+    ],
+    "relevance": [
+      "required",
+      "optional"
+    ],
+    "provider_mode": [
+      "fixture",
+      "live"
+    ],
+    "condition_status": [
+      "supported",
+      "ambiguous",
+      "unsupported"
+    ],
+    "context_check_status": [
+      "allowed",
+      "denied",
+      "unknown",
+      "error"
+    ],
+    "source_format": [
+      "txt",
+      "log",
+      "md",
+      "csv",
+      "json"
+    ]
+  },
+  "purpose_goal_variants": {
+    "oss_issue": [
+      "default",
+      "observations_only",
+      "reproduction_evidence"
+    ],
+    "vendor_support": [
+      "default",
+      "observations_only",
+      "ask_for_diagnostics",
+      "reproduction_evidence"
+    ],
+    "operations_advice": [
+      "default"
+    ]
+  },
+  "scope_fields": [
+    "project_id",
+    "purpose_id",
+    "goal_variant",
+    "recipient_id",
+    "audience",
+    "skill_set_hash"
+  ],
+  "rule_extra_match_fields": [
+    "schema_id",
+    "schema_version",
+    "source_slot",
+    "selector",
+    "transform_id",
+    "transform_version"
+  ],
+  "limits": {
+    "max_files": 10,
+    "max_file_bytes": 262144,
+    "max_task_source_bytes": 1048576,
+    "max_export_bytes": 20971520,
+    "max_model_input_bytes": 24576,
+    "max_model_response_bytes": 262144,
+    "max_json_depth": 16,
+    "max_candidates": 30,
+    "max_blocks": 60,
+    "max_string_bytes": 8192,
+    "max_attempts_per_step": 2,
+    "max_review_repairs": 2,
+    "max_model_calls_per_run": 12,
+    "request_timeout_seconds": 120,
+    "global_model_concurrency": 1,
+    "bootstrap_token_minutes": 5,
+    "session_hours": 8,
+    "raw_trace_retention_hours": 24,
+    "max_series_count": 9007199254740991
+  },
+  "transforms": [
+    {
+      "id": "series_fact_summary.v1",
+      "representation": "fact_summary",
+      "reusable": true
+    },
+    {
+      "id": "series_direction_only.v1",
+      "representation": "derived_table",
+      "reusable": true
+    },
+    {
+      "id": "series_index_base100.v1",
+      "representation": "derived_table",
+      "reusable": true,
+      "default_decimal_places": 0,
+      "allowed_decimal_places": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "rounding": "HALF_UP"
+    },
+    {
+      "id": "select_fields.v1",
+      "representation": "selected_fields",
+      "reusable": false
+    }
+  ],
+  "series_schema": {
+    "id": "requests_v1",
+    "version": 1,
+    "source_slot": "request_summary",
+    "format": "csv",
+    "columns": [
+      "observed_at",
+      "count"
+    ],
+    "count_type": "nonnegative_integer",
+    "default_values": [
+      820,
+      1160,
+      1740
+    ],
+    "count_max": 9007199254740991
+  },
+  "template_needs": {
+    "oss_issue:default": [
+      "environment",
+      "observation",
+      "expectation",
+      "uncertainty",
+      "question"
+    ],
+    "oss_issue:observations_only": [
+      "environment",
+      "observation",
+      "uncertainty",
+      "question"
+    ],
+    "oss_issue:reproduction_evidence": [
+      "environment",
+      "observation",
+      "expectation",
+      "uncertainty",
+      "question",
+      "reproduction_result"
+    ],
+    "vendor_support:default": [
+      "environment",
+      "observed_sequence",
+      "uncertainty",
+      "question"
+    ],
+    "vendor_support:observations_only": [
+      "environment",
+      "observed_sequence",
+      "uncertainty",
+      "question"
+    ],
+    "vendor_support:ask_for_diagnostics": [
+      "environment",
+      "observed_sequence",
+      "uncertainty",
+      "diagnostic_question"
+    ],
+    "vendor_support:reproduction_evidence": [
+      "environment",
+      "observation",
+      "uncertainty",
+      "question",
+      "reproduction_result"
+    ],
+    "operations_advice:default": [
+      "process",
+      "constraints",
+      "question"
+    ]
+  },
+  "notes": [
+    "Template needs are semantic slots; matching ids alone does not establish that their meaning is satisfied. Model or human review is required.",
+    "reproduction_evidence requires a registered compatible pack and reproduced status to satisfy the task goal. Other variants can finalize without a runnable environment.",
+    "Authority rules, SHA-256 matching, raw byte locators, and transaction checks are domain checks beyond JSON schema.",
+    "These are specification constants, not evidence of an implemented application."
+  ],
+  "finalization_only_needs": [
+    "reproduction_result"
+  ],
+  "state_recovery": {
+    "queued": "failed/INTERRUPTED",
+    "running": "failed/INTERRUPTED",
+    "retry": "explicit_new_job"
+  },
+  "snapshots": {
+    "task_snapshot": "immutable state when revision created",
+    "job_snapshot": "effective current validated state at job start"
+  }
+}

@@ -1,0 +1,7 @@
+DEMO NOTICE: All entities and values in this file are fictional.
+2026-04-21T09:02:00.000Z event=request operation_id=op_demo_007 attempt_id=att_demo_01
+2026-04-21T09:02:05.000Z event=response_timeout operation_id=op_demo_007 attempt_id=att_demo_01
+2026-04-21T09:02:06.000Z event=retry operation_id=op_demo_007 attempt_id=att_demo_02
+2026-04-21T09:02:06.200Z event=response status=200 operation_id=op_demo_007 attempt_id=att_demo_02
+2026-04-21T09:02:06.201Z internal_payload="DEMO_CUSTOMER_B:contract-price:42000" auth_marker="DEMO_ONLY_SECRET_B"
+2026-04-21T09:02:06.202Z event=connection_log remote_ip=192.0.2.17 context=observed_connection

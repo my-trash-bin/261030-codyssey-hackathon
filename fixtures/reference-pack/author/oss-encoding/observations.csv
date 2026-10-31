@@ -1,0 +1,3 @@
+case_id,character_class,codepoints,utf8_bytes,input_validation,encode_result,output_exists
+observed_ascii,ascii,6,6,passed,ok,true
+observed_multibyte,hangul,7,21,passed,E_ENCODE_SHORT_BUFFER,false
