@@ -131,3 +131,25 @@ transcript에 저장하지 않는다. 분석 결과는 자동으로 writer나 �
 출력 예산을 거의 다 쓴 것으로 보인다. 이건 모델/설정 튜닝 문제이고 공유 `config.json`의
 `provider.max_output_tokens`는 모든 역할(write/review도)에 적용되는 값이라 제가 임의로
 올리지 않았다 — 비용/지연에 영향을 주는 판단이라 확인이 필요하다.
+
+## 다음 내부 서버 라운드의 코딩 전 범위 축소
+
+기존 TaskStore를 확장하되 task/decision HTTP API는 추가하지 않는다. 기존 documents·결정·
+미리보기 레코드를 보존하는 additive migration으로 source version·현재 source 선택·근거·
+분석 job·후보 provenance만 추가한다. 전체 task.v1을 구현하는 라운드가 아니다.
+
+1. 서버가 실제 source 바이트를 검증·저장하고 source_set_hash를 계산한다. 동일 version ID의
+   바이트/metadata 수정은 거부한다. source 교체는 revision을 올리고 현재 후보·결정 포인터를 비운다.
+2. 모델 없는 수동 후보는 현재 근거 또는 새 user_note에 묶는다. 현재 후보는 새 영속 ID로 복제하고
+   선택은 복사하지 않는다. user_note·근거·새 후보 집합을 같은 트랜잭션에서 만들고 revision은 한 번만 올린다.
+3. 분석 시작 시 source/context/skill hash와 revision을 고정하고 이전 현재 결과를 무효화한다.
+   Engine 호출은 DB transaction 밖에서 수행한다. 성공 시 현재 revision·job 상태·source/skill
+   바인딩과 근거 범위/hash·후보 참조를 확인한 뒤 원자적으로 새 집합을 채택한다.
+4. 영속 후보 ID와 origin/conflict group은 서버가 부여한다. 검증된 selector는 아직 발급하지 않는다.
+   취소·source/결정 변경·재분석·삭제 뒤 늦은 응답은 채택하지 않는다. 실패 결과를 현재 후보에 합치지 않는다.
+5. 회귀는 모델 없는 수동 경로, rollback·재열기·migration 보존, 참조/판본 바인딩, 작업 간 치환,
+   지연된 가상 Engine으로 CAS·취소·삭제를 결정적으로 검사한다. 의미 정확도와 live 모델 성공은 판정하지 않는다.
+
+인증·CSRF·Host/Origin·task CRUD·UI·Rule·roleDocuments·artifact/export 무효화의 전체 연결은
+이번에 포함하지 않는다. HTTP 분석의 stateless 경로도 그대로 유지한다. 실제 모델의 length 종료는
+공유 config를 임의 변경해 해결하지 않고 별도 역할별 예산/운영 검증 과제로 남긴다.
