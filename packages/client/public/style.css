@@ -545,6 +545,141 @@ textarea[aria-invalid="true"]:focus-visible {
   max-width: 46ch;
 }
 
+.primary__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  min-width: 0;
+}
+
+.primary__actions .button {
+  flex: 1 1 auto;
+  max-width: 100%;
+}
+
+/* 파일 분석 — 입력, 그리고 내부 결과 */
+
+.analysis {
+  display: grid;
+  gap: 20px;
+  min-width: 0;
+}
+
+.analysis__files {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+
+.analysis__files .plain-list {
+  font-size: 0.9375rem;
+}
+
+.analysis__problem {
+  border-left: 2px solid var(--ink);
+  padding-left: 12px;
+}
+
+.analysis__problem:empty {
+  display: none;
+}
+
+.analysis-results {
+  margin-top: var(--block-gap);
+  padding-top: 24px;
+  border-top: 1px solid var(--ink);
+  min-width: 0;
+}
+
+.analysis-results:focus {
+  outline: none;
+}
+
+.analysis-results:focus-visible {
+  outline: 3px solid var(--ink);
+  outline-offset: 2px;
+}
+
+.analysis-results__head {
+  display: grid;
+  gap: 8px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--ink);
+}
+
+.analysis-results__head .hint {
+  max-width: 68ch;
+}
+
+.analysis-results .status {
+  max-width: 68ch;
+  margin-top: 16px;
+}
+
+.analysis-results__body {
+  display: grid;
+  gap: 16px;
+  margin-top: 16px;
+  min-width: 0;
+}
+
+.analysis-results__body h3 {
+  margin-top: 8px;
+}
+
+.analysis-results__stale {
+  padding-left: 12px;
+  border-left: 2px solid var(--ink);
+}
+
+.analysis-evidence,
+.analysis-candidates,
+.analysis-conflicts {
+  display: grid;
+  gap: 16px;
+  min-width: 0;
+}
+
+.analysis-evidence__item,
+.analysis-candidate,
+.analysis-conflict {
+  min-width: 0;
+  padding-top: 12px;
+  border-top: 1px solid var(--ink);
+}
+
+.analysis-evidence__excerpt {
+  margin: 8px 0 0;
+  padding: 12px;
+  border: 1px solid var(--ink);
+  max-width: 100%;
+  min-width: 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-family: inherit;
+  font-size: 0.9375rem;
+  line-height: 1.5;
+}
+
+.analysis-candidate > * + *,
+.analysis-conflict > * + * {
+  margin-top: 8px;
+}
+
+.analysis-results__body .meta {
+  overflow-wrap: anywhere;
+}
+
+.analysis-candidate__statement {
+  font-size: 1.0625rem;
+  overflow-wrap: anywhere;
+}
+
+.analysis-conflict__reason {
+  font-size: 0.9375rem;
+  overflow-wrap: anywhere;
+}
+
 /* 보관 — 내부 메모와 저장 목록 */
 
 .archive {

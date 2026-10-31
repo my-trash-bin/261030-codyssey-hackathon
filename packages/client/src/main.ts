@@ -1,8 +1,10 @@
 // SafeHandoff 작업 화면 동작.
-// 실제 서버에 연결된 API는 GET/POST /api/documents, GET /api/core다.
+// 실제 서버에 연결된 API는 GET/POST /api/documents, GET /api/core, POST /api/analysis다.
 // 공개 결정 영역은 disclosure-view.ts에서 후보별로 렌더한다. GET /api/v1/tasks/{id}의
 // 요청 경로는 준비됐지만 서버 라우트는 미제공이며, 미리보기·결정 저장·철회·해석 성공을 만들지 않는다.
+// 파일 분석 영역은 analysis-view.ts가 맡고 결과를 task 후보·공개 허가로 바꾸지 않는다.
 
+import { mountAnalysis } from './analysis-view.js';
 import { mountDisclosures } from './disclosure-view.js';
 
 interface DocumentRecord { id: string; text: string; createdAt: string }
@@ -29,11 +31,21 @@ const disclosureMount = required<HTMLElement>('disclosure-mount');
 
 // 서버 API가 없는 동작은 어떤 경우에도 활성화하지 않는다.
 // 클릭 핸들러를 붙이지 않으므로 성공 토스트나 가짜 결과가 생기지 않는다.
-for (const id of ['analyze', 'generate-document', 'finalize-document', 'register-skill']) {
+// 자료 분석 버튼은 analysis-view가 입력·동의 상태에 따라 직접 관리한다.
+for (const id of ['generate-document', 'finalize-document', 'register-skill']) {
   required<HTMLButtonElement>(id).disabled = true;
 }
 
 mountDisclosures(disclosureMount);
+
+mountAnalysis(required<HTMLElement>('analysis-mount'), {
+  purposeInput: required<HTMLInputElement>('purpose'),
+  recipientInput: required<HTMLInputElement>('recipient'),
+  analyzeButton: required<HTMLButtonElement>('analyze'),
+  analyzeReason: required<HTMLElement>('analyze-reason'),
+  cancelButton: required<HTMLButtonElement>('analysis-cancel'),
+  results: required<HTMLElement>('analysis-results'),
+});
 
 function setBusy(button: HTMLButtonElement, busy: boolean): void {
   button.disabled = busy;

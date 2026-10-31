@@ -25,6 +25,7 @@
     <nav class="masthead__nav" aria-label="화면 구역">
       <a href="#workspace">작업 공간</a>
       <a href="#disclosure-decisions">공개 결정</a>
+      <a href="#analysis-results">분석 결과</a>
       <a href="#saved-documents">저장 문서</a>
       <a href="#execution-environment">실행 정보</a>
     </nav>
@@ -35,25 +36,20 @@
       <div class="work__side">
         <section class="block" aria-labelledby="intent-heading">
           <h2 id="intent-heading">전달 조건</h2>
-          <p class="hint" id="intent-hint">목적·수신처는 서버에 저장되지 않습니다.</p>
+          <p class="hint" id="intent-hint">목적·수신처는 서버에 저장되지 않습니다. 다만 분석을 실행하면 선택한 파일과 함께 분석 요청 본문에 담겨 설정된 분석 모델로 전송됩니다.</p>
 
           <div class="field">
             <label for="purpose">전달 목적</label>
-            <input id="purpose" name="purpose" type="text" autocomplete="off" aria-describedby="intent-hint">
+            <input id="purpose" name="purpose" type="text" autocomplete="off" aria-describedby="intent-hint analysis-problem">
           </div>
           <div class="field">
             <label for="recipient">수신처</label>
-            <input id="recipient" name="recipient" type="text" autocomplete="off" aria-describedby="intent-hint">
+            <input id="recipient" name="recipient" type="text" autocomplete="off" aria-describedby="intent-hint analysis-problem">
           </div>
 
-          <details class="fold">
-            <summary>파일 첨부 · 연결 대기</summary>
-            <div class="field">
-              <label for="source-file">원자료 파일</label>
-              <input id="source-file" name="source-file" type="file" disabled aria-describedby="source-file-reason source-hint">
-              <p class="hint" id="source-file-reason">파일 업로드 기능이 아직 연결되지 않아 파일을 선택할 수 없습니다.</p>
-              <p class="hint" id="source-hint">내부 메모 저장은 파일 분석과 별개의 기능입니다.</p>
-            </div>
+          <details class="fold" id="analysis-panel" open>
+            <summary>파일 분석 · 내부 근거</summary>
+            <div class="fold__body" id="analysis-mount"></div>
           </details>
         </section>
       </div>
@@ -86,7 +82,7 @@
           <p class="hint">내부 참고용입니다. 공유 파일에는 포함되지 않습니다.</p>
 
           <h3>근거</h3>
-          <p class="hint">후보별 인용 근거는 공개 결정 영역의 각 후보에 표시됩니다. 후보를 조회하지 못했거나 task 응답에 근거가 없으면 여기에는 아무것도 표시하지 않습니다.</p>
+          <p class="hint">파일 분석으로 받은 내부 근거와 후보 제안은 위의 분석 결과 영역에 표시됩니다. 여기는 공개 결정 영역의 task 후보 인용 근거 자리이며, 후보를 조회하지 못했거나 task 응답에 근거가 없으면 아무것도 표시하지 않습니다.</p>
 
           <h3>검토</h3>
           <p class="hint">검토 기록 API가 연결되지 않아 검토 기록이 없습니다.</p>
@@ -109,10 +105,15 @@
     <section class="primary" aria-labelledby="action-heading">
       <div class="primary__text">
         <h2 id="action-heading">주요 동작</h2>
-        <p class="hint" id="analyze-reason">자료 분석 기능이 아직 연결되지 않았습니다.</p>
+        <p class="hint" id="analyze-reason">파일·목적·수신처와 승인 환경 확인 동의가 필요합니다.</p>
       </div>
-      <button class="button" id="analyze" type="button" disabled aria-describedby="analyze-reason">자료 분석 시작</button>
+      <div class="primary__actions">
+        <button class="button" id="analyze" type="button" disabled aria-describedby="analyze-reason">자료 분석 시작</button>
+        <button class="button" id="analysis-cancel" type="button" disabled aria-describedby="analyze-reason">분석 취소</button>
+      </div>
     </section>
+
+    <section class="analysis-results" id="analysis-results" aria-label="분석 결과 (내부)" tabindex="-1"></section>
 
     <div class="archive">
       <section class="block" aria-labelledby="store-heading">
@@ -169,9 +170,18 @@
             <h3>이 화면에서 실제로 연결된 기능</h3>
             <ul class="plain-list">
               <li>GET /api/core — 실행 모드·연결 방식·준비 상태 설정 조회</li>
+              <li>POST /api/analysis — 선택한 파일의 내부 근거·후보 제안 요청(분석 응답이며 공개 허가가 아닙니다)</li>
               <li>GET /api/documents — 저장된 내부 텍스트 조회</li>
               <li>POST /api/documents — 내부 텍스트 저장</li>
               <li>GET /api/v1/tasks/{id} — 공개 결정 화면의 task 집계 조회(계약에 정의됨, 서버 라우트가 없으면 404 오류로 표시)</li>
+            </ul>
+          </div>
+
+          <div class="env">
+            <h3>이 화면에서 확인할 수 없는 것</h3>
+            <ul class="plain-list">
+              <li>분석에 쓰이는 실제 모델의 주소와 그 모델이 승인된 사내·로컬 환경인지 여부 — GET /api/core는 구현·연결·준비 상태만 알려줍니다</li>
+              <li>분석 결과의 저장 여부·공개 허가 여부 — 분석 응답은 이 화면 안에서만 쓰이고 저장되지 않습니다</li>
             </ul>
           </div>
 
@@ -181,7 +191,7 @@
               <li>공개 미리보기·결정 배치 저장·결정 철회·직접 입력 조건 해석 — 화면과 전송 경계만 있고 서버 라우트가 없어 요청이 오류로 끝납니다</li>
               <li>공유 초안 생성·확정·다운로드</li>
               <li>내부 검토·이력 조회, 스킬 등록</li>
-              <li>원자료 파일 업로드와 자료 분석</li>
+              <li>원자료 파일의 서버 저장 — 파일은 분석 요청 본문으로만 쓰이고 보관되지 않습니다</li>
               <li>POST /api/sharing 호출</li>
             </ul>
           </div>

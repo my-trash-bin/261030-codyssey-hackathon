@@ -26,8 +26,8 @@ UI 작업은 이 README와 `docs/`의 문서를 기준으로 하며, 화면·승
 - 공개 결정 영역을 후보별 목록으로 바꿨습니다. 후보마다 미선택·허용·제외·보류를 따로 관리하며, 실제 미리보기 확인과 전체 일괄 적용을 분리합니다. 작업 ID로 조회를 시도할 수 있지만 현재 서버에는 task HTTP 경로가 없어 실제 후보가 표시되지는 않습니다.
 - 디자인은 `design-pick`의 `web-swiss-grid`를 유지합니다. 흰 바탕·검정 글자·12열 그리드·직각·무그림자를 적용하고, 전달 조건·공유 초안·접이식 근거 아래에 전체 폭의 공개 결정 목록을 둡니다. 내부 메모와 상세 실행 정보는 작업 영역 뒤에 둡니다.
 - 작업 도구에 맞춰 팩의 홍보용 대형 제목·큰 섹션 간격은 줄였습니다. 외부 웹폰트 대신 시스템 글꼴을 사용해 기존 CSP와 외부 자산 미호출 경계를 유지합니다. 미연결 사유는 동작 가까이에 짧게 표시하고 개발용 예시 모드는 항상 보입니다.
-- 이 화면에서 실제 서버와 연결된 기능은 `GET /api/core`와 `GET/POST /api/documents`입니다. 서버에는 `POST /api/analysis`도 있지만 분석 UI와 연결되지는 않았습니다. 내부 메모 저장·조회는 공개 승인이나 공유 초안 생성과 별개입니다. 목적·수신처는 서버에 저장하지 않습니다.
-- F03의 후보별 선택·미리보기 표·해석 결과·일괄 적용·철회 UI와 HTTP 전송 경계를 추가했습니다. 운영 화면에는 세션 토큰을 제공하지 않아 모든 쓰기가 차단됩니다. C의 필드 선택은 Core 참고 정의에는 있지만 HTTP 참고 스키마에는 없고, 필드 목록·서버 변환도 미구현이라 비활성입니다. 새 작업 계약이나 API를 신설하지 않고 기존 요구를 사용합니다. 파일 첨부·분석·공유 초안 생성·최종 파일 확인·다운로드·스킬 등록은 계속 미연결이며 `/api/sharing`을 호출하지 않습니다. [10개 항목별 반영과 연결 조건](docs/f03-ui-prerequisites.md)을 참고하세요.
+- 이 화면에서 실제 서버와 연결된 기능은 `GET /api/core`, `GET/POST /api/documents`, `POST /api/analysis`입니다. 분석은 사용자가 목적·수신처·파일을 확인하고 승인된 사내·로컬 분석 환경 확인에 동의한 뒤에만 호출하며, 응답의 근거와 후보 제안은 내부 검토용으로만 표시합니다. 임시 evidence·후보 참조를 task·candidate로 저장하거나 공개 허가로 바꾸지 않습니다. 파일을 고르는 것만으로 전송하지 않고 입력이 바뀌면 동의를 해제합니다. 사내 LAN의 HTTP 접속처럼 `crypto.subtle`을 쓸 수 없는 보안 문맥에서는 요청 전에 오류를 안내합니다. 내부 메모 저장·조회는 공개 승인이나 공유 초안 생성과 별개입니다. 목적·수신처는 서버에 저장하지 않습니다.
+- F03의 후보별 선택·미리보기 표·해석 결과·일괄 적용·철회 UI와 HTTP 전송 경계를 추가했습니다. 운영 화면에는 세션 토큰을 제공하지 않아 모든 쓰기가 차단됩니다. C의 필드 선택은 Core 참고 정의에는 있지만 HTTP 참고 스키마에는 없고, 필드 목록·서버 변환도 미구현이라 비활성입니다. 새 작업 계약이나 API를 신설하지 않고 기존 요구를 사용합니다. 파일 선택과 `POST /api/analysis` 호출은 연결했지만 분석 결과를 task 후보로 저장하거나 공개 결정으로 넘기지 않습니다. 공유 초안 생성·최종 파일 확인·다운로드·스킬 등록은 계속 미연결이며 `/api/sharing`을 호출하지 않습니다. [10개 항목별 반영과 연결 조건](docs/f03-ui-prerequisites.md), [분석 UI 이후 서버 요청](docs/ui-api-requests.md)을 참고하세요.
 - 저장·목록 조회 실패 시 입력과 이전 목록을 보존하고, 저장 전 조회가 진행 중이면 끝난 뒤 저장 이후 목록을 다시 조회합니다. 저장 후 목록 갱신까지 중복 저장을 막습니다.
 - F03 확인: `mise exec -- pnpm --filter @safehandoff/client typecheck` 통과, `mise exec -- node --test packages/client/src/disclosure-state.test.ts` 31개 통과. 기존 클라이언트 검사 2개도 통과했습니다. Node는 mise에 설치된 고정 버전 24.21.0을 사용했습니다.
 - 실제 화면에서 task 조회의 404와 후보 미생성·쓰기 차단을 확인했습니다. 별도 임시 응답기를 사용한 브라우저 검사에서는 후보별 선택, B 표·해시, D의 모호·미지원·지원 분기와 입력 보존, 정확값 재사용 차단, 단일 배치, 철회, 409 재조회와 미리보기 무효화를 확인했습니다. 320px에서 실제 화면과 가상 작업 화면의 문서 폭은 모두 320px였고, 조건 입력 초점과 키보드 이동도 확인했습니다. 이 검사는 실제 분석·인증·모델 호출·서버 승인 저장·전체 F03 종단간 동작을 검증한 것이 아닙니다.
@@ -80,7 +80,7 @@ intent.md·제품 설계·contracts·fixtures/demo·과거 evaluation 기록은 
 
 `OpenAICompatibleModelClient(providerConfig, env?)`는 설정에 지정한 환경 변수 이름으로 URL·모델·키를 조회합니다. 환경 변수는 아래 연결 표를 따릅니다. 한 complete 호출은 HTTP 요청 한 번이며 재시도는 Engine이 담당합니다. HTTP 테스트는 로컬 목 서버만 사용합니다.
 
-`RealCore.analyze()`의 결정적 근거 파싱·후보 검증과 `POST /api/analysis`는 구현했습니다. 공개 제안·미리보기 계산과 task/decision HTTP API·분석 UI 연결은 미구현입니다. Docker 실행기와 내부 task/decision 저장은 [3라운드 범위](docs/round3-scope.md)로 구현했습니다. `composeFactPack`은 서버가 범위·원자료·hash를 검증한 현재 결정과 미리보기를 입력받는 순수 변환이며 승인 저장을 대신하지 않습니다.
+`RealCore.analyze()`의 결정적 근거 파싱·후보 검증과 `POST /api/analysis`는 구현했고, 작업 화면은 파일 입력을 이 API에 연결해 근거·후보 제안을 표시합니다. 공개 제안·미리보기 계산과 task/decision HTTP API·분석 결과의 서버 candidate_set 채택은 미구현입니다. Docker 실행기와 내부 task/decision 저장은 [3라운드 범위](docs/round3-scope.md)로 구현했습니다. `composeFactPack`은 서버가 범위·원자료·hash를 검증한 현재 결정과 미리보기를 입력받는 순수 변환이며 승인 저장을 대신하지 않습니다.
 
 ## 모델·실행기 환경 변수
 
@@ -96,7 +96,7 @@ intent.md·제품 설계·contracts·fixtures/demo·과거 evaluation 기록은 
 
 상대 설정 경로는 저장소 루트 기준입니다. 모델 세 변수가 모두 있어야 ready=true이며 이는 서버 응답이나 의미 정확성을 확인했다는 뜻은 아닙니다. 시작 시 모델을 호출하지 않습니다. TLS가 기본이며 HTTP 예외·기능·호출 제한은 설정 파일의 provider 블록으로 지정합니다. response_mode=text인 서버에는 response_format을 보내지 않고, JSON 출력은 프롬프트와 응답 검증으로 요구합니다. config.json과 .env는 커밋하지 않습니다.
 
-내부 `TaskStore`는 기존 SQLite 파일에 별도 workflow 테이블을 추가합니다. 현재는 앱 HTTP 경로와 연결하지 않았으며 자동으로 문서나 원자료를 작업으로 옮기지 않습니다. Docker 설치·등록·검증 절차는 [실행기 안내](packages/sandbox-runner/image/README.md)를 따릅니다.
+내부 `TaskStore`는 기존 SQLite 파일에 별도 workflow 테이블을 추가합니다. 현재는 앱 HTTP 경로와 연결하지 않았으며 자동으로 문서나 원자료를 작업으로 옮기지 않습니다. 분석 UI도 결과를 이 저장 계층의 task·candidate로 넘기지 않습니다. 필요한 저장·결정 HTTP 접점과 C 필드 요청은 [분석 UI 이후 서버 요청](docs/ui-api-requests.md)에 정리했습니다. Docker 설치·등록·검증 절차는 [실행기 안내](packages/sandbox-runner/image/README.md)를 따릅니다.
 
 F07 1번의 파일시스템 로더는 [사용법과 제한](packages/skill-loader/README.md)을 따릅니다. 등록 CLI와 ToyRecord catalog 연결은 구현했습니다. 역할별 프롬프트 연결·앱의 팩 선택 및 변경 무효화는 후속이며 앱 시작 시 팩을 자동으로 읽거나 실행하지 않습니다.
 

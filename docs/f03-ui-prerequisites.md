@@ -94,7 +94,7 @@ candidate 목록 구조(1번)가 생긴 뒤에 그 위에 얹는 게 자연스�
 
 다음은 UI 구조 준비와 구분해야 하는 실제 연결 조건이다.
 
-- F02 분석 응답의 서버 candidate_set 채택과 task·preview·decision·job HTTP 라우트의 실제 제공. `POST /api/analysis`는 추가됐지만 이 저장·조회·결정 경로와 연결되지는 않았다.
+- F02 분석 응답의 서버 candidate_set 채택과 task·preview·decision·job HTTP 라우트의 실제 제공. `POST /api/analysis`는 작업 화면의 파일 입력과 연결되어 근거·후보 제안을 내부 검토용으로 표시하지만, 응답의 임시 evidence·후보 참조를 task·candidate로 저장하거나 조회·결정 경로로 넘기지는 않는다. 서버의 candidate_set 채택과 task HTTP 조회는 여전히 미연결이다.
 - C의 정의·구현 정리. 보존된 `contracts/core/shared.schema.json`에는 이미 `select_fields.v1`의
   `parameters.fields: string[]`가 있다. 반면 UI 준비 기준으로 삼은 HTTP 스키마에는 `fields`와
   `select_fields.v1`이 없다. 이는 참고 자료 간 불일치이지 실제 서버가 해당 필드를 거부한 관측이 아니다.
@@ -103,7 +103,7 @@ candidate 목록 구조(1번)가 생긴 뒤에 그 위에 얹는 게 자연스�
 - 세션 응답의 CSRF 토큰 필드·획득 방식. `/api/v1/session`의 성공 응답 `data`는 아직 구체화되지 않았다.
 - 후보 전용 조회와 일괄 적용·철회 응답의 구체적인 DTO. 적용·철회 뒤에는 성공 응답을 추정하지 않고 작업 전체를 재조회한다.
 
-임의 필드·인증 응답·성공 결과를 만들지 않는다. UI 동작 확인과 실제 서버 승인·저장은 별도로 보고한다.
+임의 필드·인증 응답·성공 결과를 만들지 않는다. UI 동작 확인과 실제 서버 승인·저장은 별도로 보고한다. 분석 결과 채택·결정 HTTP·C 필드의 남은 요청은 [분석 UI 이후 서버 요청](ui-api-requests.md)에 대상·기존 기능·빠진 접점·수용 기준으로 나눠 적었다.
 
 ## UI 선행 작업 반영
 
