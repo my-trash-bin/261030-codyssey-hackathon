@@ -1,0 +1,55 @@
+{
+  "schema_version": "demo_video_source.v1",
+  "source_commit": "8894bc6610b9c4faac19ee4a83608265ad0e5fec",
+  "source_branch": "origin/feat/cdp-demo-presentation",
+  "mode": "historical_fixture",
+  "current_app_compatible": false,
+  "video": {
+    "original": "docs/demo-media/SafeHandoff-demo.mp4",
+    "sha256": "8197b9c69dde353cecefee9526f51ad170fdeb6c8930c7e8a8b6bc70deac1825",
+    "bytes": 42040512,
+    "historical_duration_ms": 103140
+  },
+  "poster": {
+    "original": "docs/demo-media/preview.png",
+    "file": "poster.png",
+    "sha256": "071ad740d4b77ab25c73c387804fb66fc6c5783f20d67b83097b4eedef465b3b"
+  },
+  "source_files": [
+    {
+      "original": "scripts/demo/cdp.mjs",
+      "snapshot": "reference/cdp.mjs.txt",
+      "sha256": "4b3c1c84ee8bcc286a52ed99496f2f610207161eb61576fcdb0be14e2a3e8efe"
+    },
+    {
+      "original": "scripts/demo/playback.mjs",
+      "snapshot": "reference/playback.mjs.txt",
+      "sha256": "f4893e5606373c7feb8672e8758ea8495b704347aef64afe53aa9f662c646d13"
+    },
+    {
+      "original": "scripts/demo/stage.mjs",
+      "snapshot": "reference/stage.mjs.txt",
+      "sha256": "9c1c7ebe0973f41de2c57a2bd5722b82f225530810498da727bea8e530250544"
+    },
+    {
+      "original": "scripts/demo/scenes.mjs",
+      "snapshot": "reference/scenes.mjs.txt",
+      "sha256": "b9de2c4fadde1676212572f33bfb3f972f8c724ad92b7a520a38711d4fdb2fe3"
+    },
+    {
+      "original": "scripts/demo/recording.mjs",
+      "snapshot": "reference/recording.mjs.txt",
+      "sha256": "37d0922f5e45acc84dd35189fe6fe8b8741925b9fd60ddfbfd4b806c8b30dd09"
+    },
+    {
+      "original": "scripts/demo/run.mjs",
+      "snapshot": "reference/run.mjs.txt",
+      "sha256": "64a77663848f04da4a2609aaa9f8ac58d534056a077a864c635d28379e542854"
+    },
+    {
+      "original": "scripts/demo/encode.swift",
+      "snapshot": "reference/encode.swift.txt",
+      "sha256": "df22018121f39d8a656c14b1868226b93cf04fb40e302fd32b2becb1ed46f265"
+    }
+  ]
+}
