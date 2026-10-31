@@ -764,6 +764,13 @@ export class DisclosureWorkspace {
     await this.loadTask(snap.id);
   }
 
+  // 세션을 연 뒤 CSRF 토큰을 주입한다. 빈 값은 무시해 차단 상태를 유지한다.
+  setCsrfToken(token: string): void {
+    if (token === '') return;
+    this.csrfToken = token;
+    this.notify();
+  }
+
   private notify(): void {
     try {
       this.onChange();

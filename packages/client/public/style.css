@@ -327,6 +327,7 @@ a:focus-visible {
 }
 
 input[type="text"],
+input[type="password"],
 textarea {
   width: 100%;
   min-width: 0;
@@ -359,6 +360,7 @@ input[type="file"] {
 }
 
 input[type="text"]:focus-visible,
+input[type="password"]:focus-visible,
 textarea:focus-visible {
   outline: 3px solid var(--ink);
   outline-offset: 2px;
@@ -435,6 +437,43 @@ textarea[aria-invalid="true"]:focus-visible {
 .button--solid:disabled {
   background: var(--paper);
   color: var(--ink-muted);
+}
+
+/* 로컬 접속 — 모든 v1 쓰기의 전제라 작업 그리드 위에 전체 폭으로 둔다 */
+
+.session {
+  display: grid;
+  gap: 16px;
+  min-width: 0;
+  margin-bottom: var(--block-gap);
+  padding: 20px 24px;
+  border: 1px solid var(--rule);
+  background: var(--surface);
+}
+
+.session > p {
+  max-width: 68ch;
+}
+
+.session__form {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 16px;
+}
+
+.session__form > .button {
+  min-height: 46px;
+  justify-content: center;
+}
+
+@media (max-width: 640px) {
+  .session {
+    padding: 16px;
+  }
+
+  .session__form {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 
 .action {

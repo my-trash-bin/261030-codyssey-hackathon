@@ -23,6 +23,7 @@ const MODULES: Record<string, string> = {
   '/disclosure-contract.js': 'disclosure-contract',
   '/disclosure-dom.js': 'disclosure-dom',
   '/disclosure-evidence.js': 'disclosure-evidence',
+  '/session-client.js': 'session-client',
 };
 
 // 다른 API는 기존 10초 제한을 유지한다. 분석은 모델 응답이 그보다 오래 걸릴 수 있으므로

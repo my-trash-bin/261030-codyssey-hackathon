@@ -27,7 +27,7 @@ test('client serves its own UI and forwards document JSON to the configured serv
   const base = await listen(client);
   try {
     assert.equal((await fetch(base + '/style.css')).status, 200);
-    for (const path of ['/disclosure.css', '/disclosure-contract.js', '/disclosure-dom.js', '/disclosure-evidence.js']) {
+    for (const path of ['/disclosure.css', '/disclosure-contract.js', '/disclosure-dom.js', '/disclosure-evidence.js', '/session-client.js']) {
       assert.equal((await fetch(base + path)).status, 200, path);
     }
     const stateModule = await (await fetch(base + '/disclosure-state.js')).text();

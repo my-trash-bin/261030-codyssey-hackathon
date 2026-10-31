@@ -1,11 +1,14 @@
 // SafeHandoff 작업 화면 동작.
 // 실제 서버에 연결된 API는 GET/POST /api/documents, GET /api/core, POST /api/analysis다.
-// 공개 결정 영역은 disclosure-view.ts에서 후보별로 렌더한다. GET /api/v1/tasks/{id}의
-// 서버 경로는 제공되지만 운영 mount의 세션 연결은 후속이다. 실제 성공 응답 없이 완료를 표시하지 않는다.
+// 로컬 접속 영역은 session-client.ts로 POST·GET /api/v1/session을 호출해 CSRF 토큰을 받고,
+// 그 토큰을 공개 결정 영역에 넘겨 쓰기를 연다. 토큰은 메모리에만 두고 저장하지 않는다.
+// 공개 결정 영역은 disclosure-view.ts에서 후보별로 렌더한다. 실제 성공 응답 없이 완료를 표시하지 않는다.
 // 파일 분석 영역은 analysis-view.ts가 맡고 결과를 task 후보·공개 허가로 바꾸지 않는다.
 
 import { mountAnalysis } from './analysis-view.js';
 import { mountDisclosures } from './disclosure-view.js';
+import { openSession, restoreSession, sessionFailureMessage } from './session-client.js';
+import type { SessionInfo } from './session-client.js';
 
 interface DocumentRecord { id: string; text: string; createdAt: string }
 type LoadResult = 'ok' | 'failed';
@@ -28,6 +31,10 @@ const refreshButton = required<HTMLButtonElement>('refresh');
 const documentsRegion = required<HTMLDivElement>('documents');
 const documentsStatus = required<HTMLParagraphElement>('documents-status');
 const disclosureMount = required<HTMLElement>('disclosure-mount');
+const sessionForm = required<HTMLFormElement>('session-form');
+const sessionToken = required<HTMLInputElement>('session-token');
+const sessionConnect = required<HTMLButtonElement>('session-connect');
+const sessionStatus = required<HTMLParagraphElement>('session-status');
 
 // 서버 API가 없는 동작은 어떤 경우에도 활성화하지 않는다.
 // 클릭 핸들러를 붙이지 않으므로 성공 토스트나 가짜 결과가 생기지 않는다.
@@ -36,7 +43,7 @@ for (const id of ['generate-document', 'finalize-document', 'register-skill']) {
   required<HTMLButtonElement>(id).disabled = true;
 }
 
-mountDisclosures(disclosureMount);
+const workspace = mountDisclosures(disclosureMount);
 
 mountAnalysis(required<HTMLElement>('analysis-mount'), {
   purposeInput: required<HTMLInputElement>('purpose'),
@@ -253,3 +260,75 @@ runtimeRefresh.addEventListener('click', () => { void checkRuntime(); });
 
 void checkRuntime();
 void loadDocuments();
+
+// 로컬 접속. 세션이 열려야 공개 결정 영역의 쓰기가 열린다.
+function applySession(session: SessionInfo, restored: boolean): void {
+  workspace.setCsrfToken(session.csrfToken);
+  sessionToken.value = '';
+  sessionToken.removeAttribute('aria-invalid');
+  const at = new Date(session.expiresAt);
+  const expiry = Number.isNaN(at.getTime())
+    ? '만료 시각 확인 불가'
+    : at.toLocaleTimeString('ko-KR', { hour12: false, hour: '2-digit', minute: '2-digit' });
+  const environment = session.environment;
+  const providerNote = environment?.providerOrigin
+    ? `분석 provider ${environment.providerOrigin}`
+    : '분석 provider 주소 미표시';
+  const approvalNote = environment?.approvalStatus === 'operator_confirmation_required'
+    ? ' 모델 연결 승인은 운영자가 확인해야 합니다.'
+    : '';
+  const blocked = workspace.writeBlockReason;
+  const writeNote = blocked === '' ? ' 공개 결정 쓰기가 열렸습니다.' : ` ${blocked}`;
+  sessionStatus.textContent = `${restored ? '이전 세션을 확인했습니다' : '세션을 열었습니다'}. 만료 ${expiry}. ${providerNote}.${approvalNote}${writeNote}`;
+}
+
+let sessionBusy = false;
+
+async function connectSession(): Promise<void> {
+  if (sessionBusy) return;
+  const submitted = sessionToken.value;
+  sessionBusy = true;
+  setBusy(sessionConnect, true);
+  sessionForm.setAttribute('aria-busy', 'true');
+  sessionStatus.textContent = '세션을 여는 중입니다…';
+  try {
+    const result = await openSession(fetch, submitted);
+    if (!result.ok) {
+      sessionStatus.textContent = sessionFailureMessage(result.failure);
+      if (result.failure.kind === 'invalid_token') {
+        sessionToken.setAttribute('aria-invalid', 'true');
+        sessionToken.focus();
+      }
+      return;
+    }
+    applySession(result.session, false);
+  } finally {
+    sessionBusy = false;
+    setBusy(sessionConnect, false);
+    sessionForm.removeAttribute('aria-busy');
+  }
+}
+
+sessionForm.addEventListener('submit', (event: SubmitEvent) => {
+  event.preventDefault();
+  void connectSession();
+});
+
+sessionToken.addEventListener('input', () => {
+  if (sessionToken.getAttribute('aria-invalid') !== 'true') return;
+  sessionToken.removeAttribute('aria-invalid');
+  sessionStatus.textContent = '';
+});
+
+async function restoreLocalSession(): Promise<void> {
+  const result = await restoreSession(fetch);
+  if (result.ok) {
+    applySession(result.session, true);
+    return;
+  }
+  sessionStatus.textContent = result.failure.kind === 'no_session'
+    ? '아직 세션이 없습니다. 운영자 토큰을 입력해 세션을 시작하세요.'
+    : sessionFailureMessage(result.failure);
+}
+
+void restoreLocalSession();

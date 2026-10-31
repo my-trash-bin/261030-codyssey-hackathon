@@ -25,6 +25,7 @@
 
     <nav class="masthead__nav" aria-label="화면 구역">
       <a href="#workspace">작업 공간</a>
+      <a href="#session">로컬 접속</a>
       <a href="#disclosure-decisions">공개 결정</a>
       <a href="#analysis-results">분석 결과</a>
       <a href="#saved-documents">저장 문서</a>
@@ -33,6 +34,19 @@
   </header>
 
   <main class="workspace" id="workspace" tabindex="-1">
+    <section class="session" id="session" aria-labelledby="session-heading">
+      <h2 id="session-heading">로컬 접속</h2>
+      <p class="hint" id="session-hint">서버를 시작할 때 설정한 운영자 토큰으로 세션을 엽니다. 토큰은 이 화면의 메모리에만 쓰고 저장하지 않습니다. 세션은 1시간 뒤 만료되며, 만료되면 다시 입력해야 합니다.</p>
+      <form class="form session__form" id="session-form" novalidate>
+        <div class="field">
+          <label for="session-token">운영자 토큰</label>
+          <input id="session-token" name="token" type="password" autocomplete="off" spellcheck="false" aria-describedby="session-hint session-status">
+        </div>
+        <button class="button button--solid" id="session-connect" type="submit">세션 열기</button>
+      </form>
+      <p class="status" id="session-status" role="status" aria-live="polite">세션 상태를 확인하는 중입니다…</p>
+    </section>
+
     <div class="work">
       <div class="work__side">
         <section class="block" aria-labelledby="intent-heading">
