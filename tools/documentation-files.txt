@@ -36,13 +36,6 @@ docs/spec.md
 docs/test-data.md
 docs/traceability.csv
 docs/uj.md
-docs/검증보고서.md
-evaluation/effect-compare/cases.json
-evaluation/expected/b2b-ids-allowed.json
-evaluation/expected/b2b-ids-excluded.json
-evaluation/expected/operations-direction.json
-evaluation/expected/operations-index.json
-evaluation/expected/oss-baseline.json
 fixtures/reference-pack/author/README.md
 fixtures/reference-pack/author/b2b-timeout/client-log.txt
 fixtures/reference-pack/author/b2b-timeout/request-summary.csv
@@ -54,6 +47,12 @@ fixtures/reference-pack/author/oss-encoding/app-log.txt
 fixtures/reference-pack/author/oss-encoding/incident-notes.md
 fixtures/reference-pack/author/oss-encoding/observations.csv
 fixtures/reference-pack/author/oss-encoding/sample-input.json
+fixtures/reference-pack/evaluator/expected/b2b-ids-allowed.json
+fixtures/reference-pack/evaluator/expected/b2b-ids-excluded.json
+fixtures/reference-pack/evaluator/expected/operations-direction.json
+fixtures/reference-pack/evaluator/expected/operations-index.json
+fixtures/reference-pack/evaluator/expected/oss-baseline.json
+fixtures/reference-pack/evaluator/README.md
 fixtures/reference-pack/public/products/toyrecord.md
 fixtures/reference-pack/public/products/vendorstore-lab.md
 fixtures/reference-pack/public/toyrecord/README.md

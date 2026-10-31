@@ -1,6 +1,6 @@
 # QA와 인수 기준
 
-문서 버전: 2.0 / 기준일: 2026-10-31 / 상태: **품질 시험 명세 (`T01-T60`) 및 자동화 테스트 연결 기준**. 각 시험의 실제 TypeScript 자동 테스트 매핑과 실행 상태는 [traceability.csv](traceability.csv) 및 [검증보고서.md](검증보고서.md)에 기록한다.
+문서 버전: 2.1 / 기준일: 2026-10-31 / 상태: **품질 시험 명세 (`T01-T60`) 및 자동화 테스트 연결 기준**. 각 시험의 실제 TypeScript 자동 테스트 매핑과 실행 상태는 [traceability.csv](traceability.csv)에 기록한다.
 
 ## 1. 무엇을 각각 검증하는가
 
@@ -96,7 +96,7 @@ F 번호는 [기능 파일](features/)의 책임 영역, INV 번호는 [spec.md]
 | T53 | F09 F10 / INV-01 INV-16 | 일반 DB 경로로 demo-reset 시도, 내부 저장소 HTTP 경로 탐색 | 전용 demo 외 reset 거부. DB/BLOB/내부 trace 정적 제공 없음 |
 | T54 | F02 F04 F08 / INV-13 INV-15 | reproduction_result가 아직 없는 상태에서 새 ASCII6/한글6 입력으로 buggy/fixed4회 시작/실행, 다른 seed 반복 | 실행 전 결과누락으로 시작을 순환 차단하지 않음. 새 입력/실제 target 실행/고정oracle/파일바이트 일치, reproduction_evidence는 최종단계에서 reproduced 필요. 준비된 성공JSON 대체 금지 |
 | T55 | F07 F08 F10 / INV-12 INV-13 INV-14 | Docker 없음, 필수 process checker 없음, 선택적 재현만 없음 | 필수 검사 미수행은 확정 차단. 선택적 재현 없음은 관찰 문의 허용. 호스트 shell 자동 대체 없음 |
-| T56 | F02 F04 F10 / INV-15 | 앱/도구에서 fixtures/reference-pack/recipient 또는 evaluation/expected 열기 시도 | 접근 목록/mount/입력에서 제외. B2B 문의가 공급사 내부 결론을 미리 아는 것처럼 쓰지 않음 |
+| T56 | F02 F04 F10 / INV-15 | 앱/도구에서 fixtures/reference-pack/recipient 또는 fixtures/reference-pack/evaluator 열기 시도 | 접근 목록/mount/입력에서 제외. B2B 문의가 공급사 내부 결론을 미리 아는 것처럼 쓰지 않음 |
 | T57 | F10 / INV-01 INV-02 | runtime 격리에서 사전 준비한 비민감 네트워크 시험, runner 권한/환경 점검 | 지정 사내 LLM 외 인터넷 경로 차단, runner network none/비밀 env/Docker socket/원자료 전체 미제공. 프롬프트 금지만으로 통과하지 않음 |
 | T58 | F01 F03 F05 F09 / INV-03 INV-09 |1280x720/1366x768 화면/키보드로 시작->선택->변경->확정, 빈/오류상태/클립보드거부 | 전체 페이지 가로 넘침 없음, 비활성 이유/진행/fixture/live/human/model/미측정 표시, 선택 복원. UIA/B/C/D와 실제 결과 연결을 사용자가 설명 가능. 복사실패는 성공표시하지 않고 수동복사/다운로드 경로 제공 |
 | T59 | F04 F05 F08 / INV-06 INV-13 | 독립 수신자에게 공개 파일만 전달. OSS/B2B ID허용/제외/일반자료 각 수행 | OSS 실행조건 확인, B2B ID허용은 공급사 조사 연결/제외는 필요한 최소후속정보 요청, 일반자료는 중복작업/채널유지 이해. 근거는 수신자 기록 |

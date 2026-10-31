@@ -13,7 +13,7 @@ AC-F02-01,F02,features/02-evidence-analysis.md,txt/CSV/JSON 근거 ID가 원본 
 AC-F02-02,F02,features/02-evidence-analysis.md,"timeout과 재시도 성공을 관찰로, 서버 완료/중복/원인을 unknown으로 분리",T09,hackathon_core,packages/core/src/engine.test.ts;packages/core/src/analyze.test.ts;packages/core/src/evidence-parser.test.ts,passed
 AC-F02-03,F02,features/02-evidence-analysis.md,서로 충돌하는 근거를 한 사실로 조용히 합치지 않음,T08,hackathon_core,packages/core/src/engine.test.ts;packages/core/src/analyze.test.ts;packages/core/src/evidence-parser.test.ts,passed
 AC-F02-04,F02,features/02-evidence-analysis.md,"알 수 없는 evidence ID, 다른 task 참조, UTF-8 중간 offset은 거부",T31;T43,hackathon_core,packages/core/src/engine.test.ts;packages/core/src/analyze.test.ts;packages/core/src/evidence-parser.test.ts,passed
-AC-F02-05,F02,features/02-evidence-analysis.md,model 후보 statement/내부 제목/파일명은 공개 결정 전 writer로 넘어가지 않음,T01,hackathon_core,tools/value-comparison.test.mjs,passed
+AC-F02-05,F02,features/02-evidence-analysis.md,model 후보 statement/내부 제목/파일명은 공개 결정 전 writer로 넘어가지 않음,T01,hackathon_core,backlog,not_run
 AC-F02-06,F02,features/02-evidence-analysis.md,잘린 JSON·중복/미지 키·한도 초과·잘못된 enum을 strict 오류로 처리,T17,hackathon_core,packages/core/src/engine.test.ts;packages/core/src/analyze.test.ts;packages/core/src/evidence-parser.test.ts,passed
 AC-F02-07,F02,features/02-evidence-analysis.md,"파일 업로드 성공과 모델 분석 가능성을 구분, 문맥 초과를 부분 성공으로 표시하지 않음",T25,product_backlog,backlog,not_run
 AC-F02-08,F02,features/02-evidence-analysis.md,늦은 분석 결과·취소 후 응답·삭제 후 응답은 현재 결과를 바꾸지 않음,T03;T44;T51,product_backlog,backlog,not_run
@@ -37,7 +37,7 @@ AC-F03-11,F03,features/03-disclosure-decisions.md,보류/필수 미결정이 있
 AC-F03-12,F03,features/03-disclosure-decisions.md,"required 제외 시 범위 축소·대체 선택을 안내, 자동 공개 확대나 빈 성공 파일 없음",T39,product_backlog,backlog,not_run
 AC-F03-13,F03,features/03-disclosure-decisions.md,UTF-8 중간 경계·범위 밖·해시 불일치·만료 원문 사용을 거부,T26;T31,hackathon_core,packages/core/src/builtin-tools.test.ts,partial
 AC-F03-14,F03,features/03-disclosure-decisions.md,"다른 task의 candidate/preview/decision ID, 비인증/위조 CSRF가 상태를 바꾸지 못함",T42;T43,product_backlog,backlog,not_run
-AC-F04-01,F04,features/04-compose-review.md,실제 writer 요청에 승인팩/공개 지침만 있고 원자료·파일명·내부 설명·stderr가 없음,T01,hackathon_core,tools/value-comparison.test.mjs,passed
+AC-F04-01,F04,features/04-compose-review.md,실제 writer 요청에 승인팩/공개 지침만 있고 원자료·파일명·내부 설명·stderr가 없음,T01,hackathon_core,backlog,not_run
 AC-F04-02,F04,features/04-compose-review.md,작성 도중 reviewer가 들어오며 새 선택이 필요하면 UI 질문으로 돌아감,T32,hackathon_core,packages/core/src/engine.test.ts;packages/core/src/analyze.test.ts;packages/core/src/evidence-parser.test.ts,passed
 AC-F04-03,F04,features/04-compose-review.md,needs_changes는 승인 fact ID와 fixed code만으로 복구하고 원문 자유 설명을 전달하지 않음,T01,hackathon_core,packages/core/src/engine.test.ts;packages/core/src/analyze.test.ts;packages/core/src/evidence-parser.test.ts,passed
 AC-F04-04,F04,features/04-compose-review.md,잘못된 causality·unknown 누락·필수 제약 삭제를 의미 검토와 사람 평가에서 확인,T08;T09;T39,hackathon_core,packages/core/src/engine.test.ts;packages/core/src/analyze.test.ts;packages/core/src/evidence-parser.test.ts,passed
@@ -118,7 +118,7 @@ AC-F10-01,F10,features/10-runtime-boundary.md,"명시한 네트워크 바인딩�
 AC-F10-02,F10,features/10-runtime-boundary.md,토큰 5분 만료·한 번 사용·세션 8시간 만료·logout·재시작 폐기 시험,T42,product_backlog,backlog,not_run
 AC-F10-03,F10,features/10-runtime-boundary.md,잘못된 Host/Origin/CSRF와 외부 CORS 요청 거절,T42,product_backlog,backlog,not_run
 AC-F10-04,F10,features/10-runtime-boundary.md,source나 모델 출력의 URL·tool_calls가 임의 연결·실행으로 이어지지 않음,T10;T27,product_backlog,backlog,not_run
-AC-F10-05,F10,features/10-runtime-boundary.md,실제 writer 요청 캡처에 미승인 원문·파일명·검토 설명·stderr 없음,T01,hackathon_core,tools/value-comparison.test.mjs,passed
+AC-F10-05,F10,features/10-runtime-boundary.md,실제 writer 요청 캡처에 미승인 원문·파일명·검토 설명·stderr 없음,T01,hackathon_core,backlog,not_run
 AC-F10-06,F10,features/10-runtime-boundary.md,live provider 실패가 fixture 응답으로 대체되지 않고 선택은 보존됨,T18,hackathon_core,packages/core/src/core.test.ts,passed
 AC-F10-07,F10,features/10-runtime-boundary.md,다른 작업의 ID와 낡은 revision/hash를 사용한 요청이 거절됨,T03;T43,product_backlog,backlog,not_run
 AC-F10-08,F10,features/10-runtime-boundary.md,process에서 네트워크·회사 DB·모델 인증키·Docker socket 접근 불가,T55;T57,hackathon_core,packages/sandbox-runner/src/docker.test.ts,passed
