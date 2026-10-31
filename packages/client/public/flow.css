@@ -405,15 +405,27 @@
   color: var(--color-text-accent);
 }
 
-/* 목록에서 고르는 버튼은 글자만 강조하고 상자 무게를 줄인다. */
+/* 목록 한 줄은 상자 대신 바탕색과 왼쪽 괘선으로 상태를 보여 준다.
+   테두리를 두르면 같은 목록의 다른 줄과 무게가 달라져 목록이 아니라 버튼 더미로 보인다. */
 .button--list {
   min-height: var(--num-13);
   gap: var(--space-3);
   justify-content: flex-start;
   padding: var(--space-2) var(--space-3);
+  border: 0;
+  background: transparent;
   font-size: var(--type-body-sm-size);
   font-weight: var(--font-weight-bold);
   text-align: start;
+}
+
+.button--list:hover {
+  background: var(--color-surface-muted);
+}
+
+.button--list[aria-current="true"] {
+  background: var(--color-surface-accent-subtle);
+  box-shadow: inset var(--border-width-marker) 0 0 var(--color-border-accent);
 }
 
 /* 목록 한 줄 안에 들어가는 동작은 작은 크기를 쓴다. 행 높이를 밀어 올리지 않는다. */
