@@ -116,3 +116,45 @@ mise exec -- make test-docs
 문서 링크·AC/QA 연결·가상 자료·참조 SQL을 검사합니다. [문서 검사 결과](validation-report.json)는 제품 시험 결과와 별개입니다. 현재 앱의 실행 증거는 [fixture](evaluation/results/fixture-run.json), [확장](evaluation/results/extensions-run.json), [live 미수행](evaluation/results/live-run.json) 및 [검증보고서](docs/검증보고서.md)를 참고하세요.
 
 Go **1.27.3**, modernc.org/sqlite **v1.61.0**, GNU Make **4.4.1**을 고정했습니다. Go 및 드라이버는 [공식 배포 목록](https://go.dev/dl/)과 [버전 문서](https://pkg.go.dev/modernc.org/sqlite@v1.61.0)를 확인하고 실제 빌드했습니다. 런타임 웹 자원·한국어 글꼴은 실행 파일에 포함되며 CDN을 사용하지 않습니다. Noto Sans KR의 [OFL 라이선스](web/static/NotoSansKR-OFL.txt)를 포함합니다.
+
+## CDP 화면 시연
+
+Chrome을 별도 창으로 열어 가상 자료 업로드, 공개 미리보기, 시연용 선택 적용,
+초안 작성과 실제 파일 확인을 순서대로 보여줍니다. 큰 자막·강조·커서가 표시되며
+화면의 일시정지·재생·이전·다음 버튼으로 제어합니다.
+하단에는 각 과정의 의미, 6단계 진행 위치, 세부 장면 번호와 진행률을 표시합니다.
+단계 버튼·장면 목록·타임라인으로 원하는 장면을 선택하면 해당 위치에서 멈춥니다.
+장면 이동은 새 가상 작업으로 상태를 다시 만들며, 도착 후 재생 버튼으로 계속합니다.
+종료 버튼은 시연 창과 서버를 닫습니다.
+
+```bash
+mise exec -- make build
+mise exec -- npm run demo:cdp
+```
+
+macOS Google Chrome을 기본으로 사용합니다. 다른 설치 위치는 `CHROME_PATH`로 지정합니다.
+실행마다 별도 Chrome 프로필과 `var/cdp-demo-*` fixture DB를 만들고 loopback 서버를 실행합니다.
+최종 확정·다운로드는 직접 수행합니다. 창을 닫거나 터미널에서 Ctrl+C를 누르면 서버도 종료합니다.
+자동 검증은 `mise exec -- npm run demo:cdp -- --headless --fast`로 실행합니다.
+실제 실행 기록과 마지막 화면은 해당 실행 폴더의 `run.json`, `final.png`에 저장됩니다.
+완료 후 화면과 재생 제어는 유지됩니다. 처음으로 버튼이나 장면 선택으로 다시 살펴봅니다.
+재생 제어 검증은 위 자동 검증 명령에 `--verify-playback`을 추가합니다.
+
+자동 재생은 제출 제한 110초를 기준으로 장면별 해설·전환 시간을 배정합니다.
+정상 속도의 실행 시간은 실행 폴더 `run.json`의 `timing`에서 확인합니다.
+일시정지·장면 재탐색·`--fast` 실행은 제출 길이 검증과 구분합니다.
+
+macOS에서 제출용 MP4를 만들려면 다음을 실행합니다. Xcode Command Line Tools의
+Swift와 AVFoundation을 사용하며 별도 인코더 다운로드는 없습니다.
+
+```bash
+mise exec -- npm run demo:cdp -- --headless --record
+```
+
+해당 실행 폴더에 `submission.mp4`와 실제 영상 길이·프레임 검사 결과를 저장합니다.
+110초를 초과하면 검사 실패로 종료합니다. 영상은 가상 자료의 실제 CDP 화면 녹화이며
+마지막 확정은 자동 실행하지 않습니다.
+
+[제출 영상 MP4](docs/demo-media/SafeHandoff-demo.mp4) · [미리보기](docs/demo-media/preview.png) · [검증 결과](evaluation/results/cdp-submission-run.json)
+
+제출 영상은 가상 자료로 실행한 **1분 43.14초** 녹화본입니다.

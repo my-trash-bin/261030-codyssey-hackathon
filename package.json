@@ -6,7 +6,8 @@
     "test": "qg check --full",
     "test:go": "mise exec -- make test-go",
     "test:docs": "python3 tools/validate_docs.py",
-    "test:qg": "node --test tools/qg.test.mjs"
+    "test:qg": "node --test tools/qg.test.mjs",
+    "demo:cdp": "node scripts/demo/run.mjs"
   },
   "engines": {
     "node": ">=24.0.0"

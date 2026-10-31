@@ -49,6 +49,8 @@
 | `docs/decisions.md` | 무엇이 사용자 방향·기본 설계·확인 필요인가? | 승인·설계 결정·확인된 환경 | 관련 문서 변경의 이유 |
 | `docs/구조와설계.md`, `docs/API와역할계약.md`, `docs/시연안내.md` | 공통 설계·API·시연의 한국어 요약. 독립 계약을 정의하지 않음 | architecture/API/agent-workflow/demo | 같은 기준으로 유지하는 안내 |
 | `docs/검증보고서.md` | 현재 코드의 구현·미완료 및 실제 실행 증거 | 코드·실제 시험·현재 명세 | 후속 구현과 검증 |
+| `docs/demo-media/` | 검증한 제출 영상과 미리보기 | CDP fixture 실행·검증 기록 | GitHub에서 내려받아 보는 시연 산출물 |
+| `scripts/demo/` | CDP 연결·fixture 화면 시연·탭 전용 자막 | demo, 실제 UI | 별도 시연 DB·실행 기록 |
 | `.qg.yaml`, `package.json`, `tools/qg.test.mjs` | recommended 품질 규칙·한국어 허용·테스트 실행 | 문서 언어 정책과 기존 시험 | npm/Make의 동일 품질 gate |
 | `docs/implementation-start.md`, `docs/demo.md` | 구현을 어떻게 시작하고 무엇을 보여주는가? | 전체 공통 계약 | 에이전트 인계·팀 시연 |
 

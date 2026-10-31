@@ -10,6 +10,7 @@ artifacts:
       - var/**
       - bin/**
       - evaluation/results/**
+      - docs/demo-media/**
       - contracts/openapi.json
       - contracts/*.v1.schema.json
 
@@ -30,7 +31,7 @@ rules:
     options:
       ignoredDirectories: [.git, .local, .qg, node_modules, dist, var, bin]
       # Vendored font binary; its source and OFL notice are tracked alongside it.
-      ignoredPaths: [web/static/NotoSansKR.ttf]
+      ignoredPaths: [web/static/NotoSansKR.ttf, docs/demo-media/SafeHandoff-demo.mp4]
   files/max-line-length:
     severity: error
     options:
