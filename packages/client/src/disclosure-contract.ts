@@ -85,9 +85,43 @@ export interface Scope {
   skill_set_hash: string;
 }
 
+// task 집계의 context·intake는 서버가 정본이다. 화면은 표시만 하고 값을 만들지 않는다.
+export interface TaskContext {
+  purpose: string;
+  recipient: string;
+  goal_variant?: string;
+  output_language?: string;
+}
+
+export interface TaskIntake {
+  internal_title: string;
+  project_id: string;
+  purpose_id: string;
+  recipient_id: string;
+  audience: string;
+  skill_ids: string[];
+}
+
+// GET /tasks/{id}/candidates/{candidate_id}/fields 응답. fields는 서버가 정렬한 필드 이름 목록이며
+// 빈 JSON pointer("")도 하나의 필드 이름으로 남는다. 선택 필드 표현은 재사용 저장을 지원하지 않는다.
+export interface FieldList {
+  candidateId: string;
+  inputRevision: number;
+  sourceVersionId: string;
+  fields: string[];
+  reusable: false;
+}
+
 export interface Snapshot {
   id: string;
   revision: number;
+  // 아래 값은 실제 task 집계 응답에 실리는 메타데이터다. 기존 fixtures 호환을 위해 전부 optional로 둔다.
+  phase?: string;
+  context?: TaskContext;
+  intake?: TaskIntake;
+  current_job_id?: string | null;
+  current_artifact_id?: string | null;
+  cancellation_requested?: boolean;
   candidates: Candidate[];
   evidence: Evidence[];
   sources: Source[];
@@ -105,6 +139,8 @@ export interface Draft {
   jobId: string | null;
   jobStatus: string | null;
   representation: Representation | null;
+  // C(선택 필드)의 체크박스 상태. 필드 이름을 그대로 key로 두어 빈 JSON pointer("")도 잃지 않는다.
+  selection: ReadonlyMap<string, boolean>;
   message: string;
 }
 
@@ -137,9 +173,11 @@ export const REPRESENTATION_KINDS: Record<string, true> = {
   approved_excerpt: true,
 };
 
+// cancel_requested는 서버가 취소를 접수하고 작업이 아직 정리 중인 진행 상태다.
 export const JOB_STATUSES: Record<string, true> = {
   queued: true,
   running: true,
+  cancel_requested: true,
   succeeded: true,
   failed: true,
   cancelled: true,
@@ -152,6 +190,9 @@ export const REUSABLE_FORBIDDEN: Record<string, true> = {
   approved_excerpt: true,
   selected_fields: true,
 };
+
+// C(선택 필드) 표현은 이 변환 id와 parameters.fields만 서버가 받는다(core validateRepresentation).
+export const SELECTED_FIELDS_TRANSFORM = 'select_fields.v1';
 
 export const KNOWN_CANDIDATE_KEYS: Record<string, true> = {
   id: true,
@@ -412,6 +453,68 @@ export function parseScope(value: unknown): Scope {
   return { project_id, purpose_id, recipient_id, audience, skill_set_hash };
 }
 
+function parseTaskContext(value: unknown): TaskContext {
+  if (!isRecord(value)) throw new Error('작업 응답의 context가 객체가 아닙니다.');
+  const purpose = asString(value.purpose);
+  const recipient = asString(value.recipient);
+  if (purpose === null || recipient === null) throw new Error('작업 응답의 context에 purpose·recipient가 없습니다.');
+  const out: TaskContext = { purpose, recipient };
+  for (const key of ['goal_variant', 'output_language'] as const) {
+    const entry = value[key];
+    if (entry === undefined) continue;
+    if (typeof entry !== 'string') throw new Error(`작업 응답의 context.${key}가 문자열이 아닙니다.`);
+    out[key] = entry;
+  }
+  return out;
+}
+
+function parseTaskIntake(value: unknown): TaskIntake {
+  if (!isRecord(value)) throw new Error('작업 응답의 intake가 객체가 아닙니다.');
+  const texts: Record<string, string> = {};
+  for (const key of ['internal_title', 'project_id', 'purpose_id', 'recipient_id', 'audience'] as const) {
+    const entry = asString(value[key]);
+    if (entry === null) throw new Error(`작업 응답의 intake.${key}가 없습니다.`);
+    texts[key] = entry;
+  }
+  const skill_ids = asStringArray(value.skill_ids);
+  if (skill_ids === null) throw new Error('작업 응답의 intake.skill_ids가 문자열 배열이 아닙니다.');
+  return {
+    internal_title: texts.internal_title!,
+    project_id: texts.project_id!,
+    purpose_id: texts.purpose_id!,
+    recipient_id: texts.recipient_id!,
+    audience: texts.audience!,
+    skill_ids,
+  };
+}
+
+export function parseFieldList(body: unknown): FieldList {
+  if (!isRecord(body) || !isRecord(body.data)) throw new Error('필드 목록 응답에 data 객체가 없습니다.');
+  const data = body.data;
+  const candidateId = asNonEmptyString(data.candidate_id);
+  const inputRevision = asInt(data.input_revision);
+  const sourceVersionId = asNonEmptyString(data.source_version_id);
+  if (candidateId === null || inputRevision === null || sourceVersionId === null) {
+    throw new Error('필드 목록 응답에 후보·revision·자료 식별자가 없습니다.');
+  }
+  if (!Array.isArray(data.fields)) throw new Error('필드 목록 응답의 fields가 배열이 아닙니다.');
+  // 선택 필드 표현은 서버(core validateRepresentation)가 1~100개만 받는다. 같은 한도를 화면에서도 지킨다.
+  if (data.fields.length === 0 || data.fields.length > 100) {
+    throw new Error('필드 목록은 1개 이상 100개 이하여야 합니다.');
+  }
+  const fields: string[] = [];
+  for (const entry of data.fields) {
+    // 빈 문자열도 유효한 JSON pointer(문서 루트)라 falsy 검사로 걸러내지 않는다.
+    if (typeof entry !== 'string') throw new Error('필드 이름이 문자열이 아닙니다.');
+    fields.push(entry);
+  }
+  if (new Set(fields).size !== fields.length) throw new Error('필드 목록에 중복된 이름이 있습니다.');
+  if (data.reusable !== undefined && data.reusable !== false) {
+    throw new Error('선택 필드 표현은 재사용 저장을 지원하지 않습니다(서버 응답 불일치).');
+  }
+  return { candidateId, inputRevision, sourceVersionId, fields, reusable: false };
+}
+
 export function parseSnapshot(body: unknown): Snapshot {
   if (!isRecord(body) || !isRecord(body.data)) throw new Error('작업 응답에 data 객체가 없습니다.');
   const data = body.data;
@@ -444,7 +547,28 @@ export function parseSnapshot(body: unknown): Snapshot {
     if (!isRecord(data.decisions)) throw new Error('decisions가 객체가 아닙니다.');
     for (const [key, entry] of Object.entries(data.decisions)) decisions[key] = parseSavedDecision(entry);
   }
-  return { id, revision, candidates, evidence, sources, decisions, scope: parseScope(data.scope) };
+  const snapshot: Snapshot = { id, revision, candidates, evidence, sources, decisions, scope: parseScope(data.scope) };
+  // 서버 집계는 phase·context·intake·현재 job/artifact를 함께 준다. 없는 응답도 계약상 정상이라 optional로만 채운다.
+  if (data.phase !== undefined) {
+    const phase = asNonEmptyString(data.phase);
+    if (phase === null) throw new Error('작업 응답의 phase가 문자열이 아닙니다.');
+    snapshot.phase = phase;
+  }
+  if (data.context !== undefined && data.context !== null) snapshot.context = parseTaskContext(data.context);
+  if (data.intake !== undefined && data.intake !== null) snapshot.intake = parseTaskIntake(data.intake);
+  for (const key of ['current_job_id', 'current_artifact_id'] as const) {
+    const value = data[key];
+    if (value === undefined) continue;
+    if (value !== null && typeof value !== 'string') throw new Error(`작업 응답의 ${key}가 문자열이 아닙니다.`);
+    snapshot[key] = value;
+  }
+  if (data.cancellation_requested !== undefined) {
+    if (typeof data.cancellation_requested !== 'boolean') {
+      throw new Error('작업 응답의 cancellation_requested가 불리언이 아닙니다.');
+    }
+    snapshot.cancellation_requested = data.cancellation_requested;
+  }
+  return snapshot;
 }
 
 export function parseProposal(value: unknown): Proposal {

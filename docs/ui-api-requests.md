@@ -9,17 +9,18 @@
 
 | 요청 | 서버 | 화면 |
 | --- | --- | --- |
-| 1. 분석 채택/task 조회 | task 생성/조회/삭제, 원자료 snapshot 교체, 분석 job 시작/조회/취소, 서버 ID/CAS 채택, 모델 없는 수동 후보 | `useTaskFlow`가 `createTask` -> `replaceSources` -> `startAnalysis` -> `readAnalysisJob`과 취소를 호출. 수동 후보 입력 화면은 없음 |
-| 2. 미리보기/결정/세션 | 운영자 세션/CSRF/Host/Origin, 로그아웃, 불변 미리보기, 원자적/멱등 결정 배치, 철회, 조건 해석 제안 job | `useSession`이 복원/열기를 하고 `App`이 CSRF 토큰을 `useDisclosures`에 전달. 로그아웃과 만료 재확인은 미연결 |
-| 3. C 필드/변환 | 단일 CSV/JSON 후보의 검증된 근거 필드 목록, 실제 선택 값/projection hash, 미등록/중복/불완전 셀 거부 | 화면 입력 비활성 |
-| 4. 재사용 규칙(F06) | 결정 배치의 `save_reusable_rule`과 규칙 목록/판본/철회/적용 경로 | 재사용 체크박스만 있고 규칙 목록/적용/철회 화면은 없음 |
+| 1. 분석 채택/task 조회 | task 생성/조회/삭제, 원자료 snapshot 교체, 분석 job 시작/조회/취소, 서버 ID/CAS 채택, 모델 없는 수동 후보 | `useTaskFlow`가 `readCatalog` -> `createTask({ intake })` -> `startAnalysis` -> `readAnalysisJob`과 취소, 수동 후보, 원자료 해제를 호출. 실행 확인 완료 |
+| 2. 미리보기/결정/세션 | 운영자 세션/CSRF/Host/Origin, 로그아웃, 불변 미리보기, 원자적/멱등 결정 배치, 철회, 조건 해석 제안 job | `useSession`이 복원/열기/로그아웃(`DELETE`)을 호출하고 `App`이 CSRF 토큰을 `useDisclosures`에 전달. 만료 재확인도 화면에 있음 |
+| 3. C 필드/변환 | 단일 CSV/JSON 후보의 검증된 근거 필드 목록, 실제 선택 값/projection hash, 미등록/중복/불완전 셀 거부 | 필드 목록 조회와 선택, 미리보기, 배치 저장 연결. 실행 확인 완료 |
+| 4. 재사용 규칙(F06) | 결정 배치의 `save_reusable_rule`과 규칙 목록/판본/철회/적용 경로 | 배치 본문 `save_reusable_rule`, 규칙 화면의 저장/목록/새 판본/철회/명시 적용 연결. 실행 확인 완료 |
+| 5. 초안/파일/이력 | `compose`/`review` job, DocAST 편집, 사람 의미 검토, 확정, ZIP/개별 파일 다운로드, 작업 목록/이벤트 | `useArtifacts`/`useTaskBrowser`/`useTaskHistory`가 호출. 실행 확인 완료 |
 | 관련: 모델 환경 메타데이터 | 인증된 세션에서 설정 provider origin만 제공. 키/경로/query/URL 자격 증명 제외. 운영자 확인 필요 상태를 명시 | 세션 안내 문구로만 표시 |
 
 분석은 등록한 task snapshot으로 서버가 다시 실행한다. 브라우저가 보낸 AnalyzeResult를 신뢰해
-채택하는 라우트는 없다. 기존 stateless `/api/analysis`의 임시 evidence/local_key는 계속 영속
-ID나 공개 허가가 아니다. 영속 채택 결과는 task candidates의 local_key->id 대응으로 확인한다.
-같은 쓰기 경로/멱등 키/본문의 재시도는 같은 결과를 반환한다. 다른 본문/판본은 전체 거부한다.
-취소/재분석/원자료 변경/삭제 뒤 늦은 응답은 채택되지 않는다.
+채택하는 라우트는 없다. stateless `/api/analysis` 라우트는 서버에 남아 있으나 작업 화면은 호출하지
+않고, 원자료 등록은 `PUT /api/v1/tasks/{id}/sources`로 한다. 영속 채택 결과는 task candidates의
+local_key->id 대응으로 확인한다. 같은 쓰기 경로/멱등 키/본문의 재시도는 같은 결과를 반환한다. 다른
+본문/판본은 전체 거부한다. 취소/재분석/원자료 변경/삭제 뒤 늦은 응답은 채택되지 않는다.
 
 미리보기와 조건 해석은 결정 저장과 분리돼 있다. 모델이 제안한 필드도 실제 preview에서 원자료/
 근거/필드 검증을 다시 거친다. apply는 현재 preview의 representation/hash/revision/source/
@@ -34,37 +35,27 @@ scope를 대조한다. 철회 후 과거 allow로 복귀하지 않는다. 미리
 
 ## 남은 UI 연결
 
-<!-- // TODO: UI-API-01 세션 로그아웃과 만료 뒤 재확인 UX를 연결한다. -->
-세션 복원(`GET /api/v1/session`)과 열기(`POST /api/v1/session`)는 `useSession`이 호출하고, 받은
-CSRF 토큰은 `App`의 상태를 거쳐 `useDisclosures`와 `useTaskFlow`의 쓰기 헤더로 전달된다. 토큰은
-메모리에만 두고 코드나 localStorage에 넣지 않는다. 남은 것은 로그아웃(`DELETE /api/v1/session`)과
-만료 뒤 재확인 경로다. API가 비활성이면 WORKFLOW_API_DISABLED, 미인증이면 AUTH_REQUIRED로
-안내한다.
+남은 항목은 서버 경로가 없는 기능이 아니라 이미 연결된 흐름의 표시 간격이다.
 
-<!-- // TODO: UI-API-02 수동 후보 입력과 catalog 기반 작업 등록 화면을 연결한다. -->
-task 생성/원자료 등록/분석 job의 시작, 조회, 취소는 `useTaskFlow`가 실제 서버로 호출한다. 서버 job
-성공과 task 조회에서 받은 영속 ID만 공개 결정 영역에 전달하고, 네트워크 실패/409/취소를 저장
-성공으로 표시하지 않는다. 화면은 아직 `context`(목적, 수신처)만 보내므로 catalog의 프로젝트와
-수신자, 양식을 고르는 `intake` 폼, 수동 후보 입력, 원자료 개별 삭제가 남아 있다.
-
-<!-- // TODO: UI-API-03 C의 서버 필드 목록/필드 선택/재조회와 실제 preview를 연결한다. -->
-C의 화면 입력은 지금도 비활성이다. 필드 목록 API의 input_revision에 묶어 선택하고
-select_fields.v1 parameters.fields로 요청한다. JSON root의 빈 pointer, CSV 논리 행 번호,
-빈 셀을 보존한다. 선택 값은 브라우저에서 재계산하지 않고 서버 projection만 렌더한다.
-
-<!-- // TODO: UI-API-04 지원 표현의 규칙 저장과 규칙 목록/적용/철회 화면을 연결한다. -->
-세션 응답의 capabilities.reusable_rules는 true이므로 false를 전제로 쓰기 버튼을 막지 않는다.
-규칙은 csv 셀 계열 후보의 `derived_table` 표현(`series_direction_only.v1`,
-`series_index_base100.v1`)만 저장되며, 정확한 값과 승인 발췌, 선택 필드 표현은 클라이언트의
-`REUSABLE_FORBIDDEN`과 서버 검증이 함께 거부한다. catalog 범위가 없는 작업은
-RULE_SCOPE_REQUIRED, 그 밖의 미지원 표현은 RULE_NOT_REUSABLE 422로 거부된다. 화면은 배치 본문에
-`save_reusable_rule`만 싣고, 규칙 목록(`GET /api/v1/rules`), 새 판본, 철회, 재적용
-(`POST /api/v1/tasks/{id}/rules/apply`) 화면은 아직 없다. 성공 뒤에는 task를 재조회한다.
-
-<!-- // TODO: UI-API-05 인증된 환경 메타데이터를 분석 동의 화면에 연결한다. -->
-provider_origin은 설정 위치일 뿐 승인 판정이 아니다. approval_status는 항상
-operator_confirmation_required, verified_at은 null이다. 운영자가 승인 환경을 확인하기 전
-자동 확인 완료로 표시하지 않는다. 기존 사용자 동의도 외부 AI 반출 승인이 아니다.
+- 세션: `GET`/`POST`/`DELETE /api/v1/session`을 모두 호출한다. 세션이 인정되지 않으면 화면이
+  세션을 닫고 새 시작 토큰이 필요하다고 안내한다. 서버가 세션을 열지 못하는 환경(503
+  `WORKFLOW_API_DISABLED` 등)은 안내 문구만 확인했다.
+- 작업 등록: catalog 기반 `intake` 폼과 `GET /api/v1/catalog` 선택지, 수동 후보, 원자료 개별
+  해제를 모두 호출한다. 기존 `context` 경로는 남아 있지만 기본 화면은 intake를 쓴다.
+- C: 필드 목록의 `input_revision`에 묶어 선택하고 `select_fields.v1` parameters.fields로 요청한다.
+  JSON root의 빈 pointer, CSV 논리 행 번호, 빈 셀을 보존하고, 선택 값은 브라우저에서 재계산하지
+  않고 서버 projection만 렌더한다.
+- 규칙: 세션 응답의 capabilities.reusable_rules가 true일 때 규칙 저장을 연다. 지원 변환은
+  `series_direction_only.v1`, `series_index_base100.v1`이며 정확한 값, 승인 발췌, 선택 필드 표현은
+  `REUSABLE_FORBIDDEN`과 서버 검증이 함께 거부한다. 범위가 없는 작업은 RULE_SCOPE_REQUIRED,
+  그 밖의 미지원 표현은 RULE_NOT_REUSABLE 422로 거부된다. 새 판본을 만들면 과거 판본은 새 적용에
+  쓰이지 않고, 전 판본을 철회하면 그 규칙을 쓰던 결정도 함께 철회된다.
+- 확정 뒤 화면: 확정 정보(export id, ZIP 해시)는 메모리에만 있어 새로고침하면 내보내기 패널이
+  사라진다. 같은 파일 집합을 다시 확정하면 서버가 같은 bytes로 새 export를 만들므로 다운로드는
+  복구되지만, 버튼 문구는 아직 `이 파일들로 확정`이다.
+- 환경 메타데이터: provider_origin은 설정 위치일 뿐 승인 판정이 아니다. approval_status는
+  operator_confirmation_required, verified_at은 null이다. 운영자가 승인 환경을 확인하기 전
+  자동 확인 완료로 표시하지 않는다.
 
 ## 지원 한도와 별도 범위
 

@@ -2,6 +2,7 @@
 // 훅은 이 계획을 실행하고, reducer는 응답을 상태로 옮긴다.
 import { NO_TOKEN_REASON, REUSABLE_FORBIDDEN, representationSignature, toWireRepresentation } from './disclosure-contract.ts';
 import type { Candidate, Disposition, Draft, Representation, SavedDecision, Snapshot } from './disclosure-contract.ts';
+import { seriesBlockReason } from './disclosure-state.ts';
 import type { DisclosuresState, JobRequest, PreviewRequest } from './disclosure-state.ts';
 
 export function writeBlockReason(state: DisclosuresState, csrfToken: string, busy: boolean = state.busy): string {
@@ -73,14 +74,18 @@ export function collectOperations(state: DisclosuresState): DecisionOperation[] 
 function allowReadyReason(snapshot: Snapshot, cand: Candidate, draft: Draft): string {
   const rep = draft.representation;
   if (!rep) {
-    if (draft.mode === 'C') return `${describe(cand)}의 C(선택 필드)는 화면의 필드 선택 연결이 없어 저장할 수 없습니다.`;
+    if (draft.mode === 'C') return `${describe(cand)}의 C(선택 필드)는 공개할 필드를 하나 이상 골라야 저장할 수 있습니다.`;
     return `${describe(cand)}의 공개 방식(A·B·D)을 먼저 고르세요.`;
   }
   if (rep.kind === 'selected_fields') {
-    return `${describe(cand)}의 C(선택 필드)는 화면의 필드 선택 연결이 없어 저장할 수 없습니다.`;
+    const fields = rep.parameters?.fields;
+    if (!Array.isArray(fields) || fields.length === 0) {
+      return `${describe(cand)}의 C(선택 필드)는 공개할 필드를 하나 이상 골라야 저장할 수 있습니다.`;
+    }
   }
-  if (draft.mode === 'B' && cand.kind !== 'series') {
-    return `${describe(cand)}의 B(추이 표)는 series 후보에만 쓸 수 있습니다.`;
+  if (draft.mode === 'B') {
+    const reason = seriesBlockReason(cand, snapshot.evidence);
+    if (reason !== '') return `${describe(cand)} ${reason}`;
   }
   if (draft.mode === 'D' && draft.interpretation !== 'supported') {
     return `${describe(cand)}의 D 조건은 해석 지원(supported) 뒤에야 저장할 수 있습니다.`;
@@ -162,28 +167,41 @@ export function planPreview(
   if (!snapshot || !candidate) return { kind: 'notice', message: '작업을 먼저 불러오세요.' };
   const draft = draftOverride ?? state.drafts.get(id);
   if (!draft || draft.mode === null) {
-    return { kind: 'draft-notice', id, message: '공개 방식(A·B·D)을 먼저 고르세요. C는 계약에 없어 쓸 수 없습니다.' };
+    return { kind: 'draft-notice', id, message: '공개 방식(A·B·C·D)을 먼저 고르세요.' };
   }
   if (draft.mode === 'D' && draft.interpretation !== 'supported') {
     return { kind: 'draft-notice', id, message: 'D는 조건 확인(해석)이 지원(supported)되어야 미리보기가 가능합니다.' };
   }
-  if (draft.mode === 'B' && candidate.kind !== 'series') {
-    return { kind: 'draft-notice', id, message: 'B(추이 표)는 series 후보에만 쓸 수 있습니다.' };
+  if (draft.mode === 'B') {
+    const reason = seriesBlockReason(candidate, snapshot.evidence);
+    if (reason !== '') return { kind: 'draft-notice', id, message: reason };
   }
   const representation = draft.representation;
   if (!representation) {
     return {
       kind: 'draft-notice',
       id,
-      message: '전송할 표현 방식이 정해지지 않았습니다. C의 필드 선택·서버 변환은 아직 제공되지 않습니다.',
+      message: draft.mode === 'C'
+        ? 'C(선택 필드)는 서버가 준 필드 목록에서 공개할 필드를 하나 이상 골라야 미리보기를 만들 수 있습니다.'
+        : '전송할 표현 방식이 정해지지 않았습니다.',
     };
   }
   if (representation.kind === 'selected_fields') {
-    return {
-      kind: 'draft-notice',
-      id,
-      message: 'C(선택 필드)는 선택 가능한 필드 목록과 서버 변환이 아직 제공되지 않아 미리보기가 차단됩니다.',
-    };
+    const fields = representation.parameters?.fields;
+    if (!Array.isArray(fields) || fields.length === 0) {
+      return {
+        kind: 'draft-notice',
+        id,
+        message: 'C(선택 필드)는 공개할 필드를 하나 이상 골라야 미리보기를 만들 수 있습니다.',
+      };
+    }
+    if (!draft.selection.size || !fields.every((field) => draft.selection.get(field) === true)) {
+      return {
+        kind: 'draft-notice',
+        id,
+        message: 'C(선택 필드)의 표현과 체크박스 선택이 어긋나 미리보기를 보내지 않습니다. 필드를 다시 고르세요.',
+      };
+    }
   }
   return {
     kind: 'request',
@@ -250,11 +268,11 @@ export function planRefreshInterpretation(
   if (!draft || !draft.jobId) {
     return { kind: 'notice', message: '조회할 해석 작업이 없습니다. 먼저 조건 확인을 누르세요.' };
   }
-  if (draft.jobStatus !== 'queued' && draft.jobStatus !== 'running') {
+  if (draft.jobStatus !== 'queued' && draft.jobStatus !== 'running' && draft.jobStatus !== 'cancel_requested') {
     return {
       kind: 'draft-notice',
       id,
-      message: '이미 끝난 해석은 다시 조회하지 않습니다. 대기·진행 중일 때만 조회합니다.',
+      message: '이미 끝난 해석은 다시 조회하지 않습니다. 대기·진행·취소 접수 상태일 때만 조회합니다.',
     };
   }
   return {
@@ -327,4 +345,25 @@ export function planRevoke(
   const target = decisionId.trim();
   if (target === '') return { kind: 'notice', message: '철회할 결정을 고르세요.' };
   return { kind: 'request', taskId: snapshot.id, revision: snapshot.revision, decisionId: target };
+}
+
+export type FieldsPlan =
+  | { kind: 'notice'; message: string }
+  | { kind: 'request'; taskId: string; candidateId: string; loadSeq: number };
+
+// 필드 목록 조회는 읽기(GET)라 CSRF 토큰을 요구하지 않는다. 세션은 서버가 검사한다.
+export function planFieldList(state: DisclosuresState, id: string): FieldsPlan {
+  const snapshot = state.snapshot;
+  if (!snapshot) return { kind: 'notice', message: '작업을 먼저 불러오세요.' };
+  if (!snapshot.candidates.some((item) => item.id === id)) {
+    return { kind: 'notice', message: '목록에 없는 후보의 필드는 불러오지 않습니다.' };
+  }
+  if (state.stale) {
+    return { kind: 'notice', message: '표시 중인 작업 정보가 오래되었습니다. 작업을 다시 불러온 뒤 필드 목록을 요청하세요.' };
+  }
+  const entry = state.fieldLists.get(id);
+  if (entry && entry.status === 'loading') {
+    return { kind: 'notice', message: '필드 목록을 이미 불러오는 중입니다.' };
+  }
+  return { kind: 'request', taskId: snapshot.id, candidateId: id, loadSeq: state.loadSeq };
 }

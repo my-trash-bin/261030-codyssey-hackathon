@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { cancelAnalysis, createTask, readAnalysisJob, replaceSources, startAnalysis } from './task-client.ts';
+import { cancelAnalysis, createTask, readAnalysisJob, readCatalog, replaceSources, startAnalysis } from './task-client.ts';
 import type { WireSource } from './analysis-state.ts';
 
 interface Call {
@@ -42,15 +42,24 @@ const source: WireSource = {
   included: true,
 };
 
-test('목적·수신처로 작업을 만들고 CSRF·멱등 키를 붙인다', async () => {
+const intake = {
+  internal_title: '공개 검토',
+  project_id: 'demo',
+  purpose_id: 'oss_issue',
+  recipient_id: 'maintainer',
+  audience: 'public' as const,
+  skill_ids: [],
+};
+
+test('카탈로그 intake로 작업을 만들고 CSRF·멱등 키를 붙인다', async () => {
   const { calls, fetchFn } = stubFetch(() => jsonResponse({ data: { id: 'task-1', revision: 1 } }, 201));
-  const result = await createTask(fetchFn, 'csrf-value', { purpose: '공개 검토', recipient: '팀' });
+  const result = await createTask(fetchFn, 'csrf-value', intake);
   assert.equal(calls.length, 1);
   assert.equal(calls[0]?.url, '/api/v1/tasks');
   assert.equal(calls[0]?.method, 'POST');
   assert.equal(calls[0]?.headers['x-csrf-token'], 'csrf-value');
   assert.ok((calls[0]?.headers['idempotency-key'] ?? '').length > 0);
-  assert.deepEqual(JSON.parse(calls[0]?.body ?? '{}'), { context: { purpose: '공개 검토', recipient: '팀' } });
+  assert.deepEqual(JSON.parse(calls[0]?.body ?? '{}'), { intake });
   assert.ok(result.ok);
   assert.equal(result.value.id, 'task-1');
   assert.equal(result.value.revision, 1);
@@ -84,7 +93,7 @@ test('상태 코드를 실패 종류로 구분한다', async () => {
   ] as const;
   for (const [status, code, kind] of cases) {
     const { fetchFn } = stubFetch(() => jsonResponse({ error: code }, status));
-    const result = await createTask(fetchFn, 'csrf-value', { purpose: 'p', recipient: 'r' });
+    const result = await createTask(fetchFn, 'csrf-value', intake);
     assert.equal(result.ok, false, `${status}는 성공이 아니다`);
     if (!result.ok) {
       assert.equal(result.failure.kind, kind);
@@ -96,7 +105,7 @@ test('상태 코드를 실패 종류로 구분한다', async () => {
 test('응답에 작업 ID나 판본이 없으면 성공으로 보지 않는다', async () => {
   for (const payload of [{ data: { revision: 1 } }, { data: { id: 'task-1' } }, { data: { id: 'task-1', revision: 0 } }, {}]) {
     const { fetchFn } = stubFetch(() => jsonResponse(payload, 201));
-    const result = await createTask(fetchFn, 'csrf-value', { purpose: 'p', recipient: 'r' });
+    const result = await createTask(fetchFn, 'csrf-value', intake);
     assert.equal(result.ok, false, JSON.stringify(payload));
     if (!result.ok) assert.equal(result.failure.kind, 'malformed');
   }
@@ -104,7 +113,7 @@ test('응답에 작업 ID나 판본이 없으면 성공으로 보지 않는다',
 
 test('연결 실패는 network로 돌려준다', async () => {
   const fetchFn = async (): Promise<Response> => { throw new Error('ECONNREFUSED'); };
-  const result = await createTask(fetchFn, 'csrf-value', { purpose: 'p', recipient: 'r' });
+  const result = await createTask(fetchFn, 'csrf-value', intake);
   assert.equal(result.ok, false);
   if (!result.ok) assert.equal(result.failure.kind, 'network');
 });
@@ -140,11 +149,32 @@ test('모르는 job 상태는 성공으로 보지 않는다', async () => {
   }
 });
 
-test('분석 취소는 cancelled 값을 그대로 돌려준다', async () => {
-  const { calls, fetchFn } = stubFetch(() => jsonResponse({ data: { cancelled: true } }));
+test('분석 취소는 서버의 cancel_requested 접수 값을 그대로 돌려준다', async () => {
+  const { calls, fetchFn } = stubFetch(() => jsonResponse({ data: { cancel_requested: true, job_id: 'job-1' } }, 202));
   const result = await cancelAnalysis(fetchFn, 'csrf-value', 'task-1', 'job-1', 3);
   assert.equal(calls[0]?.url, '/api/v1/tasks/task-1/jobs/job-1/cancel');
   assert.deepEqual(JSON.parse(calls[0]?.body ?? '{}'), { expected_revision: 3 });
   assert.ok(result.ok);
-  assert.equal(result.value.cancelled, true);
+  assert.equal(result.value.requested, true);
+});
+
+test('cancel_requested job 상태는 진행 중 상태로 읽는다', async () => {
+  const { fetchFn } = stubFetch(() => jsonResponse({ data: { id: 'job-1', revision: 3, status: 'cancel_requested', error_code: null } }));
+  const result = await readAnalysisJob(fetchFn, 'csrf-value', 'task-1', 'job-1');
+  assert.ok(result.ok);
+  assert.equal(result.value.status, 'cancel_requested');
+});
+
+test('빈 카탈로그는 성공으로 읽고, 목록이 빠진 응답은 성공으로 보지 않는다', async () => {
+  const empty = stubFetch(() => jsonResponse({
+    data: { projects: [], recipients: [], purposes: [], goals: [], templates: [], limits: null },
+  }));
+  const emptyResult = await readCatalog(empty.fetchFn, 'csrf-value');
+  assert.ok(emptyResult.ok);
+  assert.deepEqual(emptyResult.value.projects, []);
+
+  const broken = stubFetch(() => jsonResponse({ data: { projects: [], recipients: [], templates: [], goals: [] } }));
+  const brokenResult = await readCatalog(broken.fetchFn, 'csrf-value');
+  assert.equal(brokenResult.ok, false);
+  if (!brokenResult.ok) assert.equal(brokenResult.failure.kind, 'malformed');
 });

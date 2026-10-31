@@ -142,7 +142,7 @@ function draftOf(api: DisclosuresApi, id: string): Draft {
 /** 실제 React root에서 훅을 실행하고, 테스트가 끝나면 언마운트한다. */
 async function mount(
   t: TestContext,
-  options: { csrfToken: string | null; fetch: typeof fetch },
+  options: { csrfToken: string | null; fetch: typeof fetch; onAuthRequired?: () => void },
 ): Promise<HookResult<DisclosuresApi>> {
   const hook = await renderHook(() => useDisclosures(options));
   t.after(async () => {
@@ -258,23 +258,40 @@ test('로컬 선택은 토큰 없이도 정상 동작한다', async t => {
   assert.equal(draftOf(result.current, 'c1').reusable, true);
 });
 
-test('B는 series 후보에만 근거 있는 매핑을 만들고 C는 차단된다', async t => {
+test('B는 한 CSV 한 열의 서로 다른 행 근거에만 열리고 C는 필드 목록 전까지 차단된다', async t => {
+  const cell = (id: string, row: number, column = 'count', source = 's1') => ({
+    id,
+    source_version_id: source,
+    start: 0,
+    end: 2,
+    locator: { kind: 'csv_cell', row, column },
+  });
   const { fetch } = stubFetch(() =>
     jsonResponse(
-      taskEnvelope({ candidates: [candidate({ id: 'c1', kind: 'observation' }), candidate({ id: 'c2', kind: 'series' })] }),
+      taskEnvelope({
+        candidates: [
+          candidate({ id: 'c1', evidence_ids: ['e1', 'e2', 'e3'] }),
+          candidate({ id: 'c2', evidence_ids: ['e1', 'e4'] }),
+          candidate({ id: 'c3', evidence_ids: ['e1', 'e5'] }),
+        ],
+        evidence: [cell('e1', 1), cell('e2', 2), cell('e3', 3), cell('e4', 1, 'other'), cell('e5', 1, 'count', 's2')],
+      }),
     ),
   );
   const { result } = await mount(t, { fetch, csrfToken: 'fixture-token' });
   await run(() => result.current.loadTask('t1'));
+  // 같은 자료·같은 열·서로 다른 행만 서버 계열 변환 조건을 만족한다.
   await run(() => result.current.chooseMode('c1', 'B'));
-  assert.equal(draftOf(result.current, 'c1').representation, null);
-  assert.notEqual(draftOf(result.current, 'c1').message, '');
-  await run(() => result.current.chooseMode('c2', 'B'));
-  assert.deepEqual(draftOf(result.current, 'c2').representation, {
+  assert.deepEqual(draftOf(result.current, 'c1').representation, {
     kind: 'derived_table',
     transform_id: 'series_direction_only.v1',
     parameters: {},
   });
+  await run(() => result.current.chooseMode('c2', 'B'));
+  assert.equal(draftOf(result.current, 'c2').representation, null);
+  assert.notEqual(draftOf(result.current, 'c2').message, '');
+  await run(() => result.current.chooseMode('c3', 'B'));
+  assert.equal(draftOf(result.current, 'c3').representation, null);
   await run(() => result.current.chooseMode('c1', 'C'));
   assert.equal(draftOf(result.current, 'c1').representation, null);
 });
@@ -794,4 +811,137 @@ test('생성 가능 여부는 철회·만료·supersedes를 반영한 현재 저
     await run(() => result.current.loadTask('t1'));
     assert.equal(result.current.canGenerate, expected);
   }
+});
+
+function fieldsEnvelope(overrides: Record<string, unknown> = {}) {
+  return {
+    data: {
+      candidate_id: 'c1',
+      input_revision: 1,
+      source_version_id: 's1',
+      fields: ['name', '', 'amount'],
+      reusable: false,
+      ...overrides,
+    },
+  };
+}
+
+/** fetch 응답 마이크로태스크·매크로태스크를 한 번 흘려보내 실제 응답 반영을 기다린다. */
+async function settle(): Promise<void> {
+  await new Promise<void>(resolve => {
+    setTimeout(resolve, 0);
+  });
+}
+
+test('C는 서버 필드 목록을 그대로 쓰고 빈 JSON pointer 선택을 표현에 남긴다', async t => {
+  const { calls, fetch } = stubFetch(call => {
+    if (call.url.endsWith('/fields')) return jsonResponse(fieldsEnvelope());
+    if (call.url.endsWith('/disclosure-previews')) {
+      return jsonResponse(
+        previewEnvelope({
+          representation: { kind: 'selected_fields', transform_id: 'select_fields.v1', parameters: { fields: ['name', ''] } },
+          projection: { statement: '', columns: ['name', ''], rows: [['a', 'b']] },
+        }),
+      );
+    }
+    return jsonResponse(taskEnvelope());
+  });
+  const { result } = await mount(t, { fetch, csrfToken: 'fixture-token' });
+  await run(() => result.current.loadTask('t1'));
+  await run(() => result.current.chooseDisposition('c1', 'allow'));
+  await run(() => result.current.chooseMode('c1', 'C'));
+  await run(settle);
+  const entry = result.current.fields.get('c1');
+  assert.ok(entry);
+  assert.equal(entry.status, 'ready');
+  assert.deepEqual(entry.fields, ['name', '', 'amount']);
+  await run(() => result.current.toggleField('c1', 'name', true));
+  await run(() => result.current.toggleField('c1', '', true));
+  const draft = draftOf(result.current, 'c1');
+  assert.deepEqual(draft.representation, {
+    kind: 'selected_fields',
+    transform_id: 'select_fields.v1',
+    parameters: { fields: ['name', ''] },
+  });
+  await run(() => result.current.preview('c1'));
+  const sent = calls.find(call => call.url.endsWith('/disclosure-previews'));
+  assert.ok(sent);
+  const body = JSON.parse(sent.body) as { representation: { kind: string; parameters: { fields: string[] } } };
+  assert.equal(body.representation.kind, 'selected_fields');
+  assert.deepEqual(body.representation.parameters.fields, ['name', '']);
+  assert.deepEqual(draftOf(result.current, 'c1').preview?.projection.columns, ['name', '']);
+});
+
+test('필드 목록 revision이 현재 작업과 다르면 선택·미리보기를 버리고 작업을 다시 조회한다', async t => {
+  const { calls, fetch } = stubFetch(call =>
+    call.url.endsWith('/fields') ? jsonResponse(fieldsEnvelope({ input_revision: 2 })) : jsonResponse(taskEnvelope()),
+  );
+  const { result } = await mount(t, { fetch, csrfToken: 'fixture-token' });
+  await run(() => result.current.loadTask('t1'));
+  await run(() => result.current.chooseDisposition('c1', 'allow'));
+  await run(() => result.current.chooseMode('c1', 'C'));
+  await run(settle);
+  const entry = result.current.fields.get('c1');
+  assert.equal(entry?.status, 'failed');
+  assert.equal(entry?.inputRevision, 2);
+  assert.equal(draftOf(result.current, 'c1').representation, null);
+  assert.equal(draftOf(result.current, 'c1').selection.size, 0);
+  // 재조회로 복구하기 전에는 미리보기를 보내지 않는다.
+  await run(() => result.current.preview('c1'));
+  assert.equal(calls.filter(call => call.url.endsWith('/disclosure-previews')).length, 0);
+  await run(() => result.current.toggleField('c1', 'name', true));
+  assert.equal(draftOf(result.current, 'c1').representation, null);
+  assert.notEqual(draftOf(result.current, 'c1').message, '');
+});
+
+test('401은 성공으로 두지 않고 세션 재확인 콜백을 한 번 부른다', async t => {
+  let authRequests = 0;
+  const { fetch } = stubFetch(() => jsonResponse({ error: 'UNAUTHENTICATED' }, 401));
+  const { result } = await mount(t, {
+    fetch,
+    csrfToken: 'fixture-token',
+    onAuthRequired: () => {
+      authRequests += 1;
+    },
+  });
+  await run(() => result.current.loadTask('t1'));
+  assert.equal(authRequests, 1);
+  assert.equal(result.current.snapshot, null);
+  assert.notEqual(result.current.message, '');
+});
+
+test('cancel_requested 해석 작업은 진행 상태로 파싱되고 계속 조회된다', async t => {
+  const { calls, fetch } = stubFetch(call => {
+    if (call.url === '/api/v1/jobs/job-1') return jsonResponse(jobEnvelope({ status: 'cancel_requested' }));
+    return call.method === 'POST' ? jsonResponse(jobEnvelope({ status: 'running' })) : jsonResponse(taskEnvelope());
+  });
+  const { result } = await mount(t, { fetch, csrfToken: 'fixture-token' });
+  await run(() => result.current.loadTask('t1'));
+  await run(() => result.current.chooseDisposition('c1', 'allow'));
+  await run(() => result.current.chooseMode('c1', 'D'));
+  await run(() => result.current.setCondition('c1', '조건'));
+  await run(() => result.current.interpret('c1'));
+  assert.equal(draftOf(result.current, 'c1').jobStatus, 'running');
+  await run(() => result.current.refreshInterpretation('c1'));
+  assert.equal(draftOf(result.current, 'c1').jobStatus, 'cancel_requested');
+  assert.match(draftOf(result.current, 'c1').message, /취소/);
+  await run(() => result.current.refreshInterpretation('c1'));
+  assert.equal(calls.filter(call => call.method === 'GET' && call.url === '/api/v1/jobs/job-1').length, 2);
+});
+
+test('작업을 비우면 snapshot·초안·필드 목록이 모두 사라진다', async t => {
+  const { fetch } = stubFetch(call =>
+    call.url.endsWith('/fields') ? jsonResponse(fieldsEnvelope()) : jsonResponse(taskEnvelope()),
+  );
+  const { result } = await mount(t, { fetch, csrfToken: 'fixture-token' });
+  await run(() => result.current.loadTask('t1'));
+  await run(() => result.current.chooseDisposition('c1', 'allow'));
+  await run(() => result.current.chooseMode('c1', 'C'));
+  await run(settle);
+  assert.ok(result.current.fields.get('c1'));
+  await run(() => result.current.clearTask());
+  assert.equal(result.current.snapshot, null);
+  assert.equal(result.current.drafts.size, 0);
+  assert.equal(result.current.fields.size, 0);
+  assert.notEqual(result.current.message, '');
 });

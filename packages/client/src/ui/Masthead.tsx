@@ -19,9 +19,13 @@ export function Masthead(props: { modeLabel: string }): JSX.Element {
       <nav className="masthead__nav" aria-label="화면 구역">
         <a href="#workspace">작업 공간</a>
         <a href="#session">로컬 접속</a>
+        <a href="#task-browser">작업 목록</a>
+        <a href="#task-create">목적·자료</a>
         <a href="#disclosure-decisions">공개 결정</a>
-        <a href="#analysis-results">분석 결과</a>
-        <a href="#saved-documents">저장 문서</a>
+        <a href="#draft-workspace">작성·파일 확인</a>
+        <a href="#reusable-rules">재사용 규칙</a>
+        <a href="#task-history">검토·이력</a>
+        <a href="#internal-note-panel">내부 메모</a>
         <a href="#execution-environment">실행 정보</a>
       </nav>
     </header>

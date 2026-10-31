@@ -1,5 +1,5 @@
 // 공개 결정 reducer의 액션과 요청 시점 조건. 상태 전이 입력만 표현하고 로직은 두지 않는다.
-import type { Disposition, Job, Mode, Preview, Snapshot } from './disclosure-contract.ts';
+import type { Disposition, FieldList, Job, Mode, Preview, Snapshot } from './disclosure-contract.ts';
 
 // 요청 시점의 초안·스냅샷 조건. 응답이 도착했을 때 사용자가 같은 화면을 보고 있는지 판단한다.
 export interface PreviewRequest {
@@ -30,9 +30,24 @@ export type JobOutcome =
   | { kind: 'unreadable' }
   | { kind: 'ok'; job: Job };
 
+// 필드 목록 조회는 읽기(GET)라 다른 쓰기 요청의 점유(activeRef)를 쓰지 않는다.
+// 대신 requestId로 같은 후보의 이전 요청 응답을 구분해 폐기한다.
+export interface FieldsRequest {
+  loadSeq: number;
+  candidateId: string;
+  requestId: number;
+}
+
+export type FieldsOutcome =
+  | { kind: 'network' }
+  | { kind: 'http'; status: number; code: string }
+  | { kind: 'unreadable' }
+  | { kind: 'ok'; list: FieldList };
+
 export type DisclosuresAction =
   | { type: 'task/load-start' }
   | { type: 'task/loaded'; taskId: string; snapshot: Snapshot }
+  | { type: 'task/clear' }
   | { type: 'task/unreadable' }
   | { type: 'task/mismatch' }
   | { type: 'task/network-error' }
@@ -48,6 +63,9 @@ export type DisclosuresAction =
   | { type: 'scope/reduction'; value: boolean }
   | { type: 'draft/preview-result'; id: string; request: PreviewRequest; result: PreviewOutcome }
   | { type: 'draft/job-result'; id: string; usage: 'interpret' | 'refresh'; request: JobRequest; result: JobOutcome }
+  | { type: 'fields/start'; id: string; requestId: number }
+  | { type: 'fields/result'; id: string; request: FieldsRequest; result: FieldsOutcome }
+  | { type: 'fields/toggle'; id: string; field: string; checked: boolean }
   | { type: 'batch/sent' }
   | { type: 'batch/conflict' }
   | { type: 'batch/failed'; status: number; code: string }

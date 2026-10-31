@@ -24,6 +24,10 @@
   box-sizing: border-box;
 }
 
+[hidden] {
+  display: none !important;
+}
+
 html {
   background: var(--paper);
 }
@@ -328,6 +332,9 @@ a:focus-visible {
 
 input[type="text"],
 input[type="password"],
+input[type="number"],
+input[type="datetime-local"],
+select,
 textarea {
   width: 100%;
   min-width: 0;
@@ -361,6 +368,9 @@ input[type="file"] {
 
 input[type="text"]:focus-visible,
 input[type="password"]:focus-visible,
+input[type="number"]:focus-visible,
+input[type="datetime-local"]:focus-visible,
+select:focus-visible,
 textarea:focus-visible {
   outline: 3px solid var(--ink);
   outline-offset: 2px;

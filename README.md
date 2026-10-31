@@ -38,7 +38,7 @@ Node 24(`node:sqlite`, `node --test`) + TypeScript 5.8 + React 19 기반 `pnpm` 
 | `@safehandoff/server` | HTTP 서버 및 SQLite 저장소 | `createServer` (`/api/documents`, `/api/sharing`, `/api/analysis`), `TaskStore` (`workflow_*` 11개 테이블/migration v2/`TaskStore.analysis` CAS) |
 | `@safehandoff/app` | 실제 실행 서버 (`:8080`) | `RealCore` + `OpenAICompatibleModelClient` + `DockerReproRunner` + SQLite 연결 |
 | `@safehandoff/fake-app` | 시연/연출용 서버 (`:8081`) | `FakeCore` + 시연 상태 제어 (`/__demo`, `/api/demo/settings`) 및 CDP 연출 화면 (`/__presentation`) |
-| `@safehandoff/client` | 웹 클라이언트 (`:5173` / `:5174`, React 19 + Vite) | Swiss Grid 작업 화면, 원자료 분석 연결(`POST /api/analysis`), 후보별 공개 결정 화면, 문서 보관소. 상태는 순수 reducer(`analysis-reducer.ts`, `disclosure-state.ts`)와 훅(`ui/hooks/`)이 소유 |
+| `@safehandoff/client` | 웹 클라이언트 (`:5173` / `:5174`, React 19 + Vite) | Swiss Grid 작업 화면. 세션, 카탈로그 기반 작업 등록, 원자료, 분석, 공개 결정, 초안/검토/확정, 규칙, 이력, 문서 보관소를 인증된 `/api/v1` 경로로 호출. 상태는 순수 reducer(`disclosure-state.ts`)와 훅(`ui/hooks/`)이 소유 |
 
 ---
 
@@ -123,21 +123,30 @@ provider 확인은 기존 텍스트 경로를 유지합니다.
 
 작업 화면과 fake-app 연출 화면은 React + TypeScript 함수 컴포넌트입니다. 상태 소유자는 클래스나
 구독 어댑터 객체가 아니라 `packages/client/src`의 순수 reducer와, 그 reducer를 `useReducer`로 붙인
-훅입니다. `analysisReducer`(`analysis-reducer.ts`)와 `disclosuresReducer`(`disclosure-state.ts`)가
-화면 상태의 단일 원천이고, 파생 값과 명령 계획은 `disclosure-selectors.ts`가 현재 상태만으로
-계산합니다. 파일 검증/직렬화/응답 계약 검사는 순수 함수(`analysis-format.ts`,
-`disclosure-format.ts`, `disclosure-contract.ts`)로 분리하며, `useRef`는 요청 세대 번호와
-`AbortController`, 진행 중 점유 같은 요청 수명만 다룹니다. 세션 CSRF 토큰은 `App`의 React 상태로
-공유합니다.
+훅입니다. `disclosuresReducer`(`disclosure-state.ts`)와 작업 흐름 훅(`ui/hooks/useTaskFlow.ts`,
+공유 타입과 상수는 `task-flow-model.ts`)이 화면 상태의 단일 원천이고, 파생 값과 명령 계획은
+`disclosure-selectors.ts`가 현재 상태만으로 계산합니다. 파일 검증/직렬화/응답 계약 검사는 순수
+함수(`analysis-state.ts`, `disclosure-format.ts`, `disclosure-contract.ts`)로 분리하며, `useRef`는
+요청 세대 번호와 `AbortController`, 진행 중 점유 같은 요청 수명만 다룹니다. 세션 CSRF 토큰은
+`App`의 React 상태로 공유합니다.
 
 서버 배선은 다음 범위까지 코드로 연결돼 있습니다.
 
-- `useSession`이 `restoreSession`/`openSession`으로 `GET`/`POST /api/v1/session`을 호출하고, 받은
-  토큰을 `App`이 `useDisclosures({ csrfToken })`/`useTaskFlow({ csrfToken })`로 내려 쓰기 헤더에
-  실립니다(`session-client.ts`).
-- `useTaskFlow`가 `createTask` -> `replaceSources` -> `startAnalysis` -> `readAnalysisJob` 순서로
-  작업 생성/원자료 등록/분석 job을 진행하고(`task-client.ts`), `useDisclosures`가
-  `GET /api/v1/tasks/{id}` 조회와 미리보기/조건 해석/결정 배치/철회를 호출합니다.
+- `useSession`이 `restoreSession`/`openSession`/`logoutSession`으로 `GET`/`POST`/`DELETE
+  /api/v1/session`을 호출하고, 받은 토큰을 `App`이 `useDisclosures({ csrfToken })`/
+  `useTaskFlow({ csrfToken })`로 내려 쓰기 헤더에 실립니다(`session-client.ts`).
+- `useTaskFlow`가 `readCatalog` -> `createTask({ intake })` -> `startAnalysis` ->
+  `readAnalysisJob` 순서로 작업 생성/원자료 등록/분석 job을 진행하고, 수동 후보 추가, 원자료 해제,
+  분석 취소를 같은 훅에서 호출합니다(`task-client.ts`).
+- `useDisclosures`가 `GET /api/v1/tasks/{id}` 조회와 C 필드 목록, 미리보기/조건 해석/결정 배치/
+  철회를 호출합니다. C는 서버가 준 필드 목록에서만 고를 수 있고 선택 값은 브라우저에서 다시
+  계산하지 않습니다.
+- `useArtifacts`가 공유 초안 생성(`compose`)과 자동 검토, DocAST 편집 저장, 사람 의미 검토 기록,
+  최종 확정, ZIP/개별 파일 다운로드를 호출합니다(`artifacts-client.ts`). 다운로드는 서버가 준 bytes를
+  그대로 저장하며 다시 렌더링하지 않습니다.
+- `useRules`/`useTaskBrowser`/`useTaskHistory`가 규칙 저장/목록/새 판본/철회/명시 적용, 작업 목록/
+  삭제, 작업 이벤트 조회를 호출합니다(`rules-client.ts`, `task-browser-client.ts`,
+  `workflow-client.ts`).
 - 공개 결정 영역은 후보별로 미선택/허용/제외/보류를 따로 관리하고, 실제 미리보기 확인과 전체 일괄
   적용을 분리합니다. 배치가 409를 받으면 reducer가 재조회 요청을 만들고 훅의 효과가 그것을 한 번만
   소비합니다.
@@ -148,10 +157,15 @@ provider 확인은 기존 텍스트 경로를 유지합니다.
   전송하지 않으며 입력이 바뀌면 동의를 해제합니다. `crypto.subtle`을 쓸 수 없는 보안 문맥에서는
   요청 전에 오류를 안내합니다. 이 경로의 근거/후보 제안은 내부 검토용이며 task 후보나 공개 허가로
   자동 저장하지 않습니다. 내부 메모 저장/조회도 공개 승인/공유 초안과 별개입니다.
-- 공유 초안 생성/검토 job, 아티팩트 편집/사람 검토, 최종 파일 확정/다운로드, 재사용 규칙
-  목록/적용/철회, 작업 목록/이벤트, `/api/v1/runtime`은 서버 경로가 있습니다
-  ([docs/api.md](docs/api.md) 5절과 초안/파일/규칙/이력 API). 화면은 이 경로들을 호출하지 않아 해당
-  버튼이 비활성이고, 기존 `/api/sharing`도 호출하지 않습니다. C의 필드 선택도 계속 비활성입니다.
+- `/api/v1/runtime`과 `/api/sharing`은 화면이 호출하지 않습니다. 실행 환경 패널은 `/api/core`의 세
+  값과 세션 응답의 `analysis_environment`만 표시합니다.
+
+이 배선은 합성 모델 client와 메모리 저장소로 띄운 서버에 실제 브라우저를 붙여 세션 열기/복원/
+로그아웃, 카탈로그 작업 생성, 원자료 등록/해제, 분석 실행/취소, C 필드 선택과 미리보기, 결정 배치,
+철회, 수동 후보 추가, 규칙 저장/새 판본/명시 적용/철회, 초안 작성/자동 검토, 사람 의미 검토,
+확정, ZIP/개별 파일 다운로드(내려받은 파일 해시가 화면 표시값과 일치), 작업 삭제까지 한 번씩
+실행해 확인했습니다. 세부 결과와 남은 간격은 [docs/UI-구현기준.md](docs/UI-구현기준.md)의 실행 확인
+절에 적습니다. 실제 모델로 같은 흐름을 돌린 기록은 아니며, 그 구분을 유지합니다.
 
 시각 기준은 [docs/UI-구현기준.md](docs/UI-구현기준.md)의 시각 기준 절을 따릅니다. 종이색 바탕과
 직각, 무그림자에 12열 그리드를 쓰고 강조색은 한 색만 쓰며, 제목만 명조 계열이고 나머지는 시스템

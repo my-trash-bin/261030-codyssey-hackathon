@@ -1,12 +1,14 @@
 // 표현 방식 선택과 조건 해석. A·B를 고르면 곧바로 미리보기를 요청하고(결정 저장 아님),
-// D는 조건 해석이 지원된 뒤에만 미리보기를 만들 수 있다. C는 서버 필드 목록 연결이 없어 차단한다.
+// D는 조건 해석이 지원된 뒤에만, C는 서버 필드 목록에서 필드를 고른 뒤에 미리보기를 만든다.
 
 import { Fragment } from 'react';
 import type { JSX } from 'react';
 
+import { seriesBlockReason } from '../disclosure-state.ts';
 import type { Candidate, Draft, Mode } from '../disclosure-state.ts';
 import type { DisclosuresApi } from './hooks/useDisclosures.ts';
-import { MODE_LABELS, kindLabel, representationLabel, interpretationText } from '../disclosure-format.ts';
+import { MODE_LABELS, representationLabel, interpretationText } from '../disclosure-format.ts';
+import { CandidateFields } from './CandidateFields.tsx';
 
 export function CandidateMode(props: {
   workspace: DisclosuresApi;
@@ -18,20 +20,18 @@ export function CandidateMode(props: {
   const { workspace, candidate, draft, uid, token } = props;
   // 표현 선택 자체는 미리보기 요청이다. 결정 저장은 하지 않는다.
   const canRequest = workspace.writeBlockReason === '';
-  const reasons: Partial<Record<Mode, string>> = {
-    C: 'C(선택 필드)는 이 화면의 서버 필드 목록·선택 연결이 아직 없어 사용할 수 없습니다.',
-  };
-  if (candidate.kind !== 'series') {
-    reasons.B = `이 후보의 종류는 ${kindLabel(candidate.kind)}입니다. B는 series 후보에만 쓸 수 있어 차단합니다.`;
-  }
+  const reasons: Partial<Record<Mode, string>> = {};
+  // 서버 계열 변환과 같은 조건: 한 CSV 자료의 같은 열·서로 다른 행 셀 근거.
+  const seriesReason = seriesBlockReason(candidate, workspace.snapshot?.evidence ?? []);
+  if (seriesReason !== '') reasons.B = seriesReason;
   const groupName = `${uid}-mode-${token}`;
   return (
     <fieldset className="candidate__mode">
       <legend>표현 방식</legend>
       <p className="hint">
         {canRequest
-          ? 'A·B를 고르면 서버에 미리보기를 요청합니다(결정 저장 아님). D는 조건 해석이 지원된 뒤에, C는 차단 상태라 요청하지 않습니다.'
-          : 'A·B를 고르면 표현만 정해집니다. 지금은 쓰기 차단 사유가 있어 미리보기를 요청하지 않으며, D도 해석이 지원된 뒤에만 요청할 수 있습니다.'}
+          ? 'A·B를 고르면 서버에 미리보기를 요청합니다(결정 저장 아님). C는 필드 목록에서 필드를 고른 뒤, D는 조건 해석이 지원된 뒤에 요청합니다.'
+          : 'A·B를 고르면 표현만 정해집니다. 지금은 쓰기 차단 사유가 있어 미리보기를 요청하지 않으며, C·D도 같은 조건에서만 요청할 수 있습니다.'}
       </p>
       {(['A', 'B', 'C', 'D'] as Mode[]).map(mode => {
         const reason = reasons[mode];
@@ -69,6 +69,17 @@ export function CandidateMode(props: {
           <p className="hint">
             D는 조건 해석이 지원(supported)으로 끝나야 미리보기를 만들 수 있습니다.
           </p>
+        )
+        : null}
+      {draft.mode === 'C'
+        ? (
+          <CandidateFields
+            workspace={workspace}
+            candidate={candidate}
+            draft={draft}
+            uid={uid}
+            token={token}
+          />
         )
         : null}
       {draft.representation

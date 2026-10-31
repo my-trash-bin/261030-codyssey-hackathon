@@ -38,29 +38,27 @@ export function ExecutionSection(props: { runtime: RuntimeInfoApi }): JSX.Elemen
             <h3>이 화면에서 실제로 연결된 기능</h3>
             <ul className="plain-list">
               <li>GET /api/core — 실행 모드·연결 방식·준비 상태 설정 조회</li>
-              <li>POST /api/analysis — 선택한 파일의 내부 근거·후보 제안 요청(분석 응답이며 공개 허가가 아닙니다)</li>
-              <li>GET /api/documents — 저장된 내부 텍스트 조회</li>
-              <li>POST /api/documents — 내부 텍스트 저장</li>
-              <li>GET /api/v1/tasks/{'{id}'} — 공개 결정 task 집계 조회(인증된 세션 필요, API 비활성·미인증·작업 부재를 오류 코드로 구분)</li>
+              <li>인증된 세션의 작업 등록·원자료 저장·분석 job과 서버 후보 조회</li>
+              <li>A·B·C·D 서버 미리보기·사람의 공개 결정 저장·철회</li>
+              <li>승인 사실로 초안 작성·검토·편집·파일 확인·확정 후 다운로드</li>
+              <li>재사용 규칙 목록·판본·철회·적용과 작업 목록·이력·인증된 실행 정보 조회</li>
             </ul>
           </div>
 
           <div className="env">
             <h3>이 화면에서 확인할 수 없는 것</h3>
             <ul className="plain-list">
-              <li>분석에 쓰이는 실제 모델의 주소와 그 모델이 승인된 사내·로컬 환경인지 여부 — GET /api/core는 구현·연결·준비 상태만 알려줍니다</li>
-              <li>분석 결과의 저장 여부·공개 허가 여부 — 분석 응답은 이 화면 안에서만 쓰이고 저장되지 않습니다</li>
+              <li>모델 주소가 승인된 사내·로컬 환경인지 여부 — 세션에 제공자 주소를 표시해도 운영자의 승인은 별도로 필요합니다</li>
+              <li>모델 품질과 외부 제출 허가 — 분석 결과나 검토 통과가 외부 반출 승인을 대신하지 않습니다</li>
             </ul>
           </div>
 
           <div className="env">
-            <h3>연결되지 않은 기능</h3>
+            <h3>현재 지원하지 않는 범위</h3>
             <ul className="plain-list">
-              <li>공개 미리보기·결정 배치 저장·결정 철회·직접 입력 조건 해석 — 서버 API는 제공되며 화면 로그인·CSRF 토큰 전달 연결은 후속입니다</li>
-              <li>공유 초안 생성·확정·다운로드</li>
-              <li>내부 검토·이력 조회, 스킬 등록</li>
-              <li>원자료 파일의 서버 저장 — 파일은 분석 요청 본문으로만 쓰이고 보관되지 않습니다</li>
-              <li>POST /api/sharing 호출</li>
+              <li>승인 발췌·타임라인 공개 표현과 재현 job 연결</li>
+              <li>스킬 팩 등록·다중 사용자 권한·LAN 운영 인증</li>
+              <li>외부 게시·메시지 전송 — 내보낸 파일을 실제로 전달하는 작업은 이 화면의 범위가 아닙니다</li>
             </ul>
           </div>
         </div>

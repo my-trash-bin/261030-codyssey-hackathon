@@ -2,15 +2,17 @@
 // 요청 소유권(세대 번호)·멱등 재시도 키는 요청 수명 메타데이터라 ref에 두고, 화면 상태는 reducer에만 있다.
 import { useCallback, useEffect, useReducer, useRef } from 'react';
 
-import { newIdempotencyKey, parseJob, parsePreview, parseSnapshot, serverErrorCode, toWireRepresentation } from '../../disclosure-contract.ts';
+import { newIdempotencyKey, parseFieldList, parseJob, parsePreview, parseSnapshot, serverErrorCode, toWireRepresentation } from '../../disclosure-contract.ts';
 import type { Mode, Disposition, Draft, Snapshot } from '../../disclosure-contract.ts';
-import { blankDraft, disclosuresReducer, initialDisclosuresState, withMode } from '../../disclosure-state.ts';
-import type { BatchRetry, JobOutcome, PreviewOutcome } from '../../disclosure-state.ts';
-import { batchBlockReason, canGenerate, planApply, planInterpret, planLoadTask, planPreview, planRefreshInterpretation, planRevoke, writeBlockReason } from '../../disclosure-selectors.ts';
+import { blankDraft, disclosuresReducer, initialDisclosuresState, withFieldSelection, withMode } from '../../disclosure-state.ts';
+import type { BatchRetry, FieldEntry, FieldsOutcome, JobOutcome, PreviewOutcome } from '../../disclosure-state.ts';
+import { batchBlockReason, canGenerate, planApply, planFieldList, planInterpret, planLoadTask, planPreview, planRefreshInterpretation, planRevoke, writeBlockReason } from '../../disclosure-selectors.ts';
 
 export interface DisclosuresApi {
   readonly snapshot: Snapshot | null;
   readonly drafts: ReadonlyMap<string, Draft>;
+  /** 후보별 서버 필드 목록 상태(C 선택 필드). 목록 자체가 정본이라 화면은 캐시하지 않는다. */
+  readonly fields: ReadonlyMap<string, FieldEntry>;
   readonly busy: boolean;
   readonly message: string;
   readonly acceptScopeReduction: boolean;
@@ -18,11 +20,17 @@ export interface DisclosuresApi {
   readonly batchBlockReason: string;
   readonly canGenerate: boolean;
   loadTask(id: string): Promise<void>;
+  /** 작업이 삭제된 뒤 이전 snapshot·초안·필드 목록을 모두 버린다. */
+  clearTask(): void;
   chooseDisposition(id: string, disposition: Disposition | null): void;
   /** 다음 초안을 함께 돌려준다. 같은 tick에서 미리보기를 이어 부를 때 렌더 지연 없이 쓴다. */
   chooseMode(id: string, mode: Mode): Draft | null;
   setCondition(id: string, text: string): void;
   setReusable(id: string, value: boolean): void;
+  /** C 필드 목록을 서버에서 다시 불러온다. */
+  loadFields(id: string): Promise<void>;
+  /** 체크박스 전이. 다음 초안을 함께 돌려주며, 목록을 모르면 null이다. */
+  toggleField(id: string, field: string, checked: boolean): Draft | null;
   setScopeReduction(value: boolean): void;
   preview(id: string, draftAtRequest?: Draft): Promise<void>;
   interpret(id: string): Promise<void>;
@@ -38,7 +46,12 @@ function readJson(response: Response): Promise<unknown> {
 // 전역 fetch는 receiver를 요구하므로 호출 시점에 메서드로 부른다. 렌더마다 새 함수를 만들지 않는다.
 const defaultFetch: typeof fetch = (input, init) => globalThis.fetch(input, init);
 
-export function useDisclosures(options: { csrfToken: string | null; fetch?: typeof fetch }): DisclosuresApi {
+export function useDisclosures(options: {
+  csrfToken: string | null;
+  fetch?: typeof fetch;
+  /** 401 응답을 받았을 때 세션 재확인을 요청한다. 토큰 무효화 시점은 세션 소유자가 정한다. */
+  onAuthRequired?: () => void;
+}): DisclosuresApi {
   const [state, dispatch] = useReducer(disclosuresReducer, initialDisclosuresState);
   const csrfToken = options.csrfToken ?? '';
   const fetchFn = options.fetch ?? defaultFetch;
@@ -47,12 +60,32 @@ export function useDisclosures(options: { csrfToken: string | null; fetch?: type
   const activeRef = useRef<number | null>(null);
   const lastBatchRef = useRef<BatchRetry | null>(null);
   const handledReloadRef = useRef(0);
+  const aliveRef = useRef(true);
+  // 필드 목록 요청 번호. 같은 후보의 이전 응답을 reducer가 구분해 버린다.
+  const fieldRequestRef = useRef(0);
+  // 401 통지는 세션 소유자 콜백으로 넘긴다. 콜백이 바뀌어도 진행 중인 요청은 최신 것을 쓴다.
+  const authRef = useRef(options.onAuthRequired);
+  const stateRef = useRef(state);
+  stateRef.current = state;
+  useEffect(() => {
+    authRef.current = options.onAuthRequired;
+  }, [options.onAuthRequired]);
 
-  useEffect(() => () => {
-    // 언마운트 뒤 도착한 응답이 상태를 건드리지 않도록 요청 세대를 올리고 점유를 비운다.
-    seqRef.current += 1;
-    activeRef.current = null;
+  useEffect(() => {
+    aliveRef.current = true;
+    return () => {
+      // 언마운트 뒤 도착한 응답이 상태를 건드리지 않도록 요청 세대를 올리고 점유를 비운다.
+      aliveRef.current = false;
+      seqRef.current += 1;
+      activeRef.current = null;
+    };
   }, []);
+
+  // 인증이 만료되면 서버는 401을 준다. 화면은 실패 문구를 남기고 세션 소유자에게 재확인을 요청한다.
+  function notifyAuth(status: number): void {
+    if (status !== 401) return;
+    authRef.current?.();
+  }
 
   function begin(): number {
     const owner = ++seqRef.current;
@@ -91,6 +124,7 @@ export function useDisclosures(options: { csrfToken: string | null; fetch?: type
     release(owner);
     dispatch({ type: 'request/end' });
     if (!response.ok) {
+      notifyAuth(response.status);
       dispatch({ type: 'task/http-error', status: response.status, code: serverErrorCode(body) });
       return;
     }
@@ -116,6 +150,59 @@ export function useDisclosures(options: { csrfToken: string | null; fetch?: type
     dispatch({ type: 'reload/consumed' });
     void loadTask(reload.taskId);
   }, [state.reload, loadTask]);
+
+  // 필드 목록 조회는 읽기라 activeRef/busy 점유를 쓰지 않는다. 대신 requestId로 이전 응답을 버린다.
+  const loadFields = useCallback(async (id: string): Promise<void> => {
+    const plan = planFieldList(stateRef.current, id);
+    if (plan.kind === 'notice') {
+      dispatch({ type: 'notice', message: plan.message });
+      return;
+    }
+    const requestId = fieldRequestRef.current + 1;
+    fieldRequestRef.current = requestId;
+    const request = { loadSeq: plan.loadSeq, candidateId: plan.candidateId, requestId };
+    dispatch({ type: 'fields/start', id, requestId });
+    let response: Response;
+    try {
+      response = await fetchFn(
+        `/api/v1/tasks/${encodeURIComponent(plan.taskId)}/candidates/${encodeURIComponent(plan.candidateId)}/fields`,
+        { method: 'GET', headers: { Accept: 'application/json' }, credentials: 'same-origin' },
+      );
+    } catch {
+      if (!aliveRef.current) return;
+      dispatch({ type: 'fields/result', id, request, result: { kind: 'network' } });
+      return;
+    }
+    const body = await readJson(response);
+    if (!aliveRef.current) return;
+    notifyAuth(response.status);
+    let result: FieldsOutcome;
+    if (response.ok) {
+      try {
+        result = { kind: 'ok', list: parseFieldList(body) };
+      } catch {
+        result = { kind: 'unreadable' };
+      }
+    } else {
+      result = { kind: 'http', status: response.status, code: serverErrorCode(body) };
+    }
+    dispatch({ type: 'fields/result', id, request, result });
+  }, [fetchFn]);
+
+  const loadFieldsRef = useRef(loadFields);
+  loadFieldsRef.current = loadFields;
+
+  useEffect(() => {
+    // 작업을 (다시) 조회하면 C 후보의 필드 목록을 한 번만 새로 받는다. 실패는 사용자가 다시 요청한다.
+    if (state.loadSeq === 0) return;
+    const current = stateRef.current;
+    if (!current.snapshot) return;
+    for (const [id, draft] of current.drafts) {
+      if (draft.mode !== 'C') continue;
+      if (current.fieldLists.has(id)) continue;
+      void loadFieldsRef.current(id);
+    }
+  }, [state.loadSeq]);
 
   async function preview(id: string, draftAtRequest?: Draft): Promise<void> {
     const plan = planPreview(state, csrfToken, id, draftAtRequest, activeRef.current !== null);
@@ -163,6 +250,7 @@ export function useDisclosures(options: { csrfToken: string | null; fetch?: type
         result = { kind: 'unreadable' };
       }
     } else {
+      notifyAuth(response.status);
       result = { kind: 'http', status: response.status, code: serverErrorCode(body) };
     }
     release(owner);
@@ -216,6 +304,7 @@ export function useDisclosures(options: { csrfToken: string | null; fetch?: type
         result = { kind: 'unreadable' };
       }
     } else {
+      notifyAuth(response.status);
       result = { kind: 'http', status: response.status, code: serverErrorCode(body) };
     }
     release(owner);
@@ -259,6 +348,7 @@ export function useDisclosures(options: { csrfToken: string | null; fetch?: type
         result = { kind: 'unreadable' };
       }
     } else {
+      notifyAuth(response.status);
       result = { kind: 'http', status: response.status, code: serverErrorCode(body) };
     }
     release(owner);
@@ -309,6 +399,7 @@ export function useDisclosures(options: { csrfToken: string | null; fetch?: type
     dispatch({ type: 'request/end' });
     if (!response.ok) {
       lastBatchRef.current = null;
+      notifyAuth(response.status);
       if (response.status === 409) {
         dispatch({ type: 'batch/conflict' });
       } else {
@@ -358,6 +449,7 @@ export function useDisclosures(options: { csrfToken: string | null; fetch?: type
     release(owner);
     dispatch({ type: 'request/end' });
     if (!response.ok) {
+      notifyAuth(response.status);
       if (response.status === 409) {
         dispatch({ type: 'revoke/conflict' });
       } else {
@@ -379,14 +471,28 @@ export function useDisclosures(options: { csrfToken: string | null; fetch?: type
     writeBlockReason: writeBlockReason(state, csrfToken),
     batchBlockReason: batchBlockReason(state, csrfToken),
     canGenerate: canGenerate(state),
+    fields: state.fieldLists,
     loadTask,
+    clearTask: (): void => {
+      dispatch({ type: 'task/clear' });
+    },
+    loadFields,
     chooseDisposition: (id: string, disposition: Disposition | null): void => {
       dispatch({ type: 'draft/select', id, disposition });
     },
     chooseMode: (id: string, mode: Mode): Draft | null => {
       const candidate = state.snapshot?.candidates.find((item) => item.id === id) ?? null;
       dispatch({ type: 'draft/mode', id, mode });
-      return candidate ? withMode(candidate, state.drafts.get(id) ?? blankDraft(), mode) : null;
+      // C는 서버 필드 목록이 있어야 필드를 고를 수 있다. 선택 자체가 조회 계기다.
+      if (mode === 'C') void loadFieldsRef.current(id);
+      return candidate ? withMode(candidate, state.drafts.get(id) ?? blankDraft(), mode, state.snapshot?.evidence ?? []) : null;
+    },
+    toggleField: (id: string, field: string, checked: boolean): Draft | null => {
+      dispatch({ type: 'fields/toggle', id, field, checked });
+      const entry = state.fieldLists.get(id);
+      const draft = state.drafts.get(id) ?? blankDraft();
+      if (!entry || entry.status !== 'ready' || draft.mode !== 'C' || !entry.fields.includes(field)) return null;
+      return withFieldSelection(draft, entry, field, checked);
     },
     setCondition: (id: string, text: string): void => {
       dispatch({ type: 'draft/condition', id, text });

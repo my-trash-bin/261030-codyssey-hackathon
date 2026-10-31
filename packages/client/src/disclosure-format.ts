@@ -139,6 +139,7 @@ export function emptyDraft(): Draft {
     jobId: null,
     jobStatus: null,
     representation: null,
+    selection: new Map<string, boolean>(),
     message: '',
   };
 }
@@ -152,7 +153,11 @@ export function writeNoteText(reason: string): string {
 export function previewBlockReason(draft: Draft, writeReason: string, busy: boolean): string | null {
   if (writeReason) return `쓰기 차단: ${writeReason}`;
   if (busy) return '다른 요청이 진행 중입니다. 끝난 뒤 다시 시도하세요.';
-  if (!draft.representation) return '표현 방식을 먼저 고르세요.';
+  if (!draft.representation) {
+    return draft.mode === 'C'
+      ? 'C는 서버가 준 필드 목록에서 공개할 필드를 하나 이상 골라야 미리보기를 만들 수 있습니다.'
+      : '표현 방식을 먼저 고르세요.';
+  }
   if (draft.mode === 'D' && draft.interpretation !== 'supported') {
     return 'D는 조건 해석이 지원됨으로 끝나야 미리보기를 만들 수 있습니다.';
   }

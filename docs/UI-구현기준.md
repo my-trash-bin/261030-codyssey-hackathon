@@ -130,11 +130,11 @@ observed_at,request_count
 
 작업 화면은 React 함수 컴포넌트다. 상태 소유자는 클래스나 어댑터 객체가 아니라 `packages/client/src`의 순수 reducer와, 그 reducer를 `useReducer`로 붙인 훅이다.
 
-- 상태 소유: `analysisReducer`(`analysis-reducer.ts`)와 `disclosuresReducer`(`disclosure-state.ts`)가 화면 상태의 단일 원천이다. 파생 값과 명령 계획은 `disclosure-selectors.ts`가 현재 상태와 입력만으로 계산하고 상태를 바꾸지 않는다. 컴포넌트는 reducer가 만든 상태와 selector 결과만 읽는다.
+- 상태 소유: `disclosuresReducer`(`disclosure-state.ts`)와 작업 흐름 훅(`ui/hooks/useTaskFlow.ts`, 공유 타입과 상수는 `task-flow-model.ts`)이 화면 상태의 단일 원천이다. 파생 값과 명령 계획은 `disclosure-selectors.ts`가 현재 상태와 입력만으로 계산하고 상태를 바꾸지 않는다. 컴포넌트는 reducer가 만든 상태와 selector 결과만 읽는다.
 - 불변 갱신: 모든 전이는 기존 상태를 고치지 않고 새 객체/새 `Map`으로 만든다. 같은 상태를 여러 곳에서 고치는 공유 가변 컨테이너를 두지 않는다.
-- 훅의 책임: `useAnalysis`/`useDisclosures`/`useTaskFlow`/`useSession`/`useDocuments`/`useRuntimeInfo`는 요청 수명(요청 세대 번호, `AbortController`, 진행 중 점유)만 `useRef`로 다루고 화면 상태를 복제하지 않는다. `useSession`이 받은 CSRF 토큰은 `App`의 상태로 올려 `useDisclosures({ csrfToken })`/`useTaskFlow({ csrfToken })`가 같은 값으로 쓰기 헤더를 만든다.
+- 훅의 책임: `useSession`/`useTaskFlow`/`useDisclosures`/`useArtifacts`/`useRules`/`useTaskBrowser`/`useTaskHistory`/`useDocuments`/`useRuntimeInfo`는 요청 수명(요청 세대 번호, `AbortController`, 진행 중 점유)만 `useRef`로 다루고 화면 상태를 복제하지 않는다. `useSession`이 받은 CSRF 토큰은 `App`의 상태로 올려 `useDisclosures({ csrfToken })`/`useTaskFlow({ csrfToken })`가 같은 값으로 쓰기 헤더를 만든다.
 - 늦은 응답: 요청을 시작할 때 세대 번호를 올려 소유자를 잡고, 응답을 처리하기 전에 세대가 같은지 확인한다. 다른 요청이 시작됐거나 언마운트됐으면 응답을 버리고 상태를 바꾸지 않는다. 공개 결정 배치가 409를 받으면 reducer가 재조회 요청을 만들고 훅의 효과가 그것을 한 번만 소비한다.
-- 검사 도구: 요청 계약(메서드/경로/헤더/멱등 키)은 `session-client.test.ts`/`task-client.test.ts`가 스텁 fetch로 확인한다. 훅 동작은 `disclosure-state.test.ts`/`analysis-state.test.ts`가 `test-helpers/react-hook.ts`의 `renderHook`으로 실제 React root에 훅을 mount하고, 명령 호출을 `React act` 안에서 수행해 확인한다. 상태는 렌더마다 snapshot이므로 매번 `result.current`에서 읽는다.
+- 검사 도구: 요청 계약(메서드/경로/헤더/멱등 키)은 `session-client`/`task-client`/`artifacts-client`/`rules-client`/`task-browser-client`의 `*.test.ts`가 스텁 fetch로 확인한다. 훅 동작은 `disclosure-state.test.ts`/`analysis-state.test.ts`가 `test-helpers/react-hook.ts`의 `renderHook`으로 실제 React root에 훅을 mount하고, 명령 호출을 `React act` 안에서 수행해 확인한다. 상태는 렌더마다 snapshot이므로 매번 `result.current`에서 읽는다.
 
 ## 구현/연결 상태와 수용 기준
 
@@ -149,39 +149,63 @@ evidence/후보 참조는 임시 값이며 task/candidate 저장, 공개 허가,
 
 파일 크기 검사를 통과해도 근거 최대 100개를 넘기면 분석할 수 없다. 화면은 이 한도와 `INVALID_CORE_INPUT`의 원인을 추측하지 않는 표시, 파일 크기와 무관한 `MODEL_BUDGET_EXCEEDED`를 구분해 안내한다. 전체 조건은 [분석 UI 이후 서버 요청](ui-api-requests.md)에 적었다.
 
-공개 결정 영역은 이제 `useDisclosures`가 `GET /api/v1/tasks/{id}` 조회와 미리보기/해석 요청/결정
-배치/철회를 HTTP로 호출하고, 작업 생성과 원자료 등록/분석 job은 `useTaskFlow`가 `createTask` ->
-`replaceSources` -> `startAnalysis` -> `readAnalysisJob` 순서로 호출한다
-(`packages/client/src/ui/hooks/`, `packages/client/src/task-client.ts`). 세션 CSRF 토큰이 없으면
-쓰기는 사유만 표시하고 전송하지 않는다. 이 연결은 코드 배선으로 확인한 것이며, 실제 서버/브라우저에서
-통과했다는 실행 확인은 [분석 연결 실행 확인](#분석-연결-실행-확인) 범위 밖이고 이번 전환에서 새로
-실행하지 않았다. 초안/최종 파일/재사용 규칙/이력/실행 환경 경로는 서버에 있으며(`docs/api.md` 5절과
-초안/파일/규칙/이력 API), 화면은 아직 호출하지 않아 해당 버튼이 계속 비활성이다. C의 필드 선택도
-계속 비활성이다.
+공개 결정 영역은 `useDisclosures`가 `GET /api/v1/tasks/{id}` 조회와 C 필드 목록/미리보기/해석
+요청/결정 배치/철회를 HTTP로 호출하고, 작업 등록은 `useTaskFlow`가 `readCatalog` ->
+`createTask({ intake })` -> `startAnalysis` -> `readAnalysisJob` 순서로 호출한다
+(`packages/client/src/ui/hooks/`, `packages/client/src/task-client.ts`). 초안과 파일은
+`useArtifacts`가, 규칙은 `useRules`가, 작업 목록/삭제와 이력은 `useTaskBrowser`/`useTaskHistory`가
+호출한다. 세션 CSRF 토큰이 없으면 쓰기는 사유만 표시하고 전송하지 않는다.
+
+이 연결은 코드 배선에 더해 실제 브라우저에서 확인했다. 아래 실행 확인 절의 항목은 실행해서 관찰한
+결과이고, 확인하지 않은 항목은 미확인으로 남긴다.
+
+### 실행 확인 (합성 모델 client + 메모리 저장소)
+
+실제 모델이나 실제 고객 자료를 쓰지 않았다. 합성 `ModelClient`와 `TaskStore(':memory:')`로 띄운
+서버에 Chromium을 붙여 아래를 실행하고 화면 문구, 서버 응답, 내려받은 파일을 함께 확인했다.
+
+| 흐름 | 관찰 결과 |
+| --- | --- |
+| 세션 열기/복원/로그아웃 | 열기/복원 성공. 로그아웃 확인 단계에서 초점이 확인 버튼으로 이동하고, 닫은 뒤 `/api/v1/tasks`는 401 `AUTH_REQUIRED` |
+| 세션 만료 | 서버 시계를 9시간 앞으로 옮긴 뒤 재확인하면 세션을 닫고 새 시작 토큰이 필요하다고 안내 |
+| 작업 등록 | catalog intake(프로젝트/목적/수신처/공개 범위) + CSV 등록 -> 판본 2, 원자료 1개 |
+| 분석 | 동의 체크 뒤 시작 -> 후보 생성. 취소 요청 -> `cancel_requested` -> `cancelled` |
+| 원자료 해제 | 해제 뒤 판본 상승, 분석 동의 자동 해제 |
+| 수동 후보 | 직접 메모 방식으로 추가 -> 판본 상승, 후보 2개 |
+| C 필드 | 필드 목록(`count`) -> 미리보기(서버 반환 표 20/30/40, `projection_sha256`) -> 전체 적용 -> 결정 저장 |
+| B 추이 | 한 CSV 한 열, 서로 다른 행 근거에서 미리보기(1 기준, 2 증가, 3 증가) |
+| 결정 철회 | `철회됨` 표시, 이후 같은 export는 409 `EXPORT_INVALIDATED` |
+| 초안/검토 | 작성 job 성공, 파일 3개, 자동 검토 통과, 이슈 0개 |
+| 사람 의미 검토 | 검토를 `MODEL_UNAVAILABLE`로 실패시킨 뒤 체크 3개+사유로 기록 -> 확정 성공 |
+| 확정/다운로드 | 확정 뒤 ZIP 655 B 저장, `sha256`이 화면 표시 ZIP SHA-256과 일치. `unzip -l` 3개 파일, CSV CRLF와 표 참조 문장 유지. 개별 파일도 표시 해시와 일치 |
+| 규칙 저장/판본 | 결정에서 규칙 저장 -> 목록 표시. 새 판본(기준 100 지수) -> 판본 2가 최신 |
+| 규칙 적용 | 다른 작업에 명시 적용 -> 결정 자동 생성, 적용된 표현이 최신 판본(지수) |
+| 규칙 철회 | 철회된 규칙을 쓰던 결정도 함께 철회되고 초안 생성 조건이 미충족으로 바뀜 |
+| 작업 삭제 | 삭제 뒤 목록/작업/이력/공개 결정이 모두 비고, 재조회는 404 |
+
+미확인으로 남긴 것: 실제 모델 provider로 같은 흐름을 돌린 기록, 8시간 세션 만료의 실시간 경과,
+확정 뒤 새로고침한 화면에서 export 패널 복원(아래 간격 참조).
 
 ### 남은 UI 접속점과 연결 간격
 
 서버 경로 존재와 화면 연결을 구분해 적는다. 아래는 화면이 아직 호출하지 않거나 일부만 쓰는 지점이다.
 
-- 세션: `useSession`이 mount에서 `restoreSession`(`GET /api/v1/session`)으로 복원하고 `connect`가
-  `openSession`(`POST /api/v1/session`)으로 토큰을 교환한다(`packages/client/src/session-client.ts`).
-  토큰은 메모리에만 두고 저장하지 않는다. 남은 간격은 만료와 로그아웃 뒤 재확인 경로(화면은
-  `DELETE /api/v1/session`을 호출하지 않는다)와, 서버가 세션을 열지 못하는 환경(503
-  `WORKFLOW_API_DISABLED` 등)에서 토큰이 비어 쓰기가 계속 차단되는 경우의 안내다.
-- 초안 작성/검토: `DraftSection.tsx`의 `#generate-document`/`#finalize-document`/
-  `#register-skill`은 `disabled`와 사유 문구만 있고, `kind=compose|review` job,
-  `artifacts/{id}/edit`, `human-review`를 호출하는 코드가 클라이언트에 없다.
-- 재사용 규칙: `CandidateReusable.tsx`의 체크박스는 `useDisclosures`의 `setReusable`로 화면 상태를
-  바꾸고 배치 본문 `save_reusable_rule`로 전달된다. 정확한 값, 승인 발췌, 선택 필드 표현은
-  `REUSABLE_FORBIDDEN`으로 막는다. 규칙 목록과 적용, 철회 화면은 없다.
-- 작업 생성: `useTaskFlow`는 `POST /api/v1/tasks`에 `context`(목적, 수신처)만 보낸다
-  (`task-client.ts`). catalog 기반 `intake` 폼과 `GET /api/v1/catalog` 선택지가 화면에 없어서
-  프로젝트, 수신자, 양식을 목록에서 고르지 못한다.
-- 이력/목록: `tasks/{id}/events`와 작업 목록을 그리는 화면이 없다. 지금의 `저장된 내부 문서` 목록은
-  `ArchiveSection.tsx`의 `useDocuments`가 부르는 `/api/documents`이고 작업 목록이 아니다.
+- 세션: 복원/열기/로그아웃/만료 재확인까지 연결했다. 서버가 세션을 열지 못하는 환경(503
+  `WORKFLOW_API_DISABLED` 등)에서는 토큰이 비어 쓰기가 계속 차단되므로 안내 문구만 확인했다.
+- 초안 작성/검토: `compose`/`review` job, DocAST 편집 저장, 사람 의미 검토, 확정, ZIP/개별 파일
+  다운로드까지 연결했다. 확정 정보는 메모리에만 있어 새로고침하면 내보내기 패널이 사라진다. 같은
+  파일 집합을 다시 확정하면 서버가 같은 bytes로 새 export를 만들므로 다운로드는 복구되지만, 버튼
+  문구는 여전히 `이 파일들로 확정`이다.
+- 재사용 규칙: 저장/목록/새 판본/철회/명시 적용까지 연결했다. 규칙 저장은 결정 배치의
+  `save_reusable_rule`과 규칙 화면의 `선택한 결정에서 규칙 저장` 두 경로 모두 서버가 검증한다.
+  B(추이)의 선택 조건은 후보 종류가 아니라 근거 모양(한 CSV, 같은 열, 서로 다른 행)으로 서버 계열
+  변환과 맞췄다.
 - 실행 환경: `ExecutionSection.tsx`의 `#execution-environment`가 `/api/core`의 세 값과 세션 응답의
   `analysis_environment` 안내로 라벨을 만든다. `useRuntimeInfo`는 `/api/core`만 보고
-  `/api/v1/runtime`은 화면이 호출하지 않는다.
+  `/api/v1/runtime`과 `/api/sharing`은 화면이 호출하지 않는다.
+- 작업 상태 문구: `#task-status`는 고른 작업이 없을 때와 아직 명령을 실행하지 않은 작업에서 각각 다른
+  안내를 보여 준다. 다만 마지막 실행 결과 문구는 작업을 바꿔도 남으므로, 다른 작업을 고른 직후에는
+  이전 작업의 결과 문구가 한 번 더 보일 수 있다.
 
 아래는 실제 화면과 결과로 확인할 수용 기준이다. 문서에 적혀 있다는 이유로 통과나 구현 완료로 표시하지 않는다.
 
