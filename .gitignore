@@ -13,3 +13,6 @@ __pycache__/
 
 # 실행 중 생성되는 평가 결과. 이미 추적한 과거 기록은 그대로 보존한다.
 /evaluation/results/
+
+# 상세 transcript는 공개 전 검토가 필요한 로컬 기록입니다.
+transcript-*.jsonl

@@ -8,12 +8,12 @@ import { RealCore, builtinArgumentsHash, createBuiltinTools } from '../packages/
 import { composeFactPack, judgeReproduction } from '../packages/core-interface/dist/index.js';
 import { DockerReproRunner, reproductionRequest } from '../packages/sandbox-runner/dist/index.js';
 import { OpenAICompatibleModelClient } from '../packages/model-adapter/dist/index.js';
-import { loadConfig } from '../packages/app/dist/config.js';
+import { loadConfig, configuredTranscripts } from '../packages/app/dist/config.js';
 const root = fileURLToPath(new URL('../', import.meta.url));
 const hash = value => createHash('sha256').update(value).digest('hex');
 const sourceNames = ['app-log.txt', 'incident-notes.md', 'observations.csv', 'sample-input.json'];
 
-export async function runOssReproSmoke({ image, runnerFactory, model, config, seed = 42 }) {
+export async function runOssReproSmoke({ image, runnerFactory, model, config, seed = 42, transcripts = undefined }) {
   const sources = await Promise.all(sourceNames.map(async name => readFile(resolve(root, 'fixtures/reference-pack/author/oss-encoding', name), 'utf8')));
   assert(sources[0].includes('stage=encode code=E_ENCODE_SHORT_BUFFER'));
   assert(sources[2].includes('observed_ascii,ascii,6,6,passed,ok,true'));
@@ -68,10 +68,14 @@ export async function runOssReproSmoke({ image, runnerFactory, model, config, se
     const started = Date.now(); const response = await model.complete(request, options);
     calls.push({ role: request.role, elapsed_ms: Date.now() - started, usage: response.usage }); return response;
   } };
-  const reviewed = await new RealCore(recordingModel, config).writeReviewed(pack, { grounding: { input: compositionInput, scope, source_set_hash: sourceSetHash, candidate_selectors: {}, rule_goals: [], approved_tool_results: pack.public_tool_results } });
+  const transcriptRunIds = [];
+  const sink = transcripts ? { start(operation) {
+    const run = transcripts.start(operation); transcriptRunIds.push(run.run_id); return run;
+  } } : undefined;
+  const reviewed = await new RealCore(recordingModel, config, undefined, Date.now, sink).writeReviewed(pack, { grounding: { input: compositionInput, scope, source_set_hash: sourceSetHash, candidate_selectors: {}, rule_goals: [], approved_tool_results: pack.public_tool_results } });
   const document = reviewed.review.result === 'pass' ? reviewed.draft : null;
   if (document) assert(forbidden.every(value => !JSON.stringify(document).includes(value)), 'RAW_FIXTURE_DISCLOSURE');
-  return { ...baseReport, execution_summary: executionSummary, completed: Boolean(document), review: reviewed.review, document, calls };
+  return { ...baseReport, execution_summary: executionSummary, completed: Boolean(document), review: reviewed.review, document, calls, transcript_run_ids: transcriptRunIds };
 }
 function fixtureModel() {
   return { info: { provider: 'fake', model: 'fixture', ready: true }, async complete(request) {
@@ -92,7 +96,7 @@ async function main() {
   assert(/^sha256:[a-f0-9]{64}$/.test(installed.image), 'SMOKE_IMAGE_REGISTRATION_REQUIRED');
   const config = loadConfig(root, process.env);
   const model = args.includes('--live-model') ? new OpenAICompatibleModelClient(config.provider) : fixtureModel();
-  const report = await runOssReproSmoke({ image: installed.image, model, config });
+  const report = await runOssReproSmoke({ image: installed.image, model, config, transcripts: configuredTranscripts(root) });
   const out = args.indexOf('--output');
   const output = resolve(root, out < 0 ? '.local/oss-repro-smoke.json' : args[out + 1]);
   await mkdir(dirname(output), { recursive: true });

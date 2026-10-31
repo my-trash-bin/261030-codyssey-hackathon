@@ -8,6 +8,7 @@ export interface TranscriptEvent {
   content?: unknown;
 }
 export interface TranscriptRun {
+  readonly run_id: string;
   emit(event: string, data?: Record<string, unknown>, content?: unknown): void;
   close(): void;
 }
@@ -35,6 +36,7 @@ export class FileTranscriptSink implements TranscriptSink {
     const fd = openSync(join(this.directory, `transcript-${id}.jsonl`), 'wx', 0o600);
     let sequence = 0, closed = false;
     return {
+      run_id: id,
       emit: (event, data = {}, content) => {
         if (closed) throw new Error('TRANSCRIPT_CLOSED');
         const record: TranscriptEvent = { schema_version: 'transcript.v1', run_id: id, sequence: sequence++,

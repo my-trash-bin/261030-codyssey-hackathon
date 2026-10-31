@@ -5,7 +5,7 @@ import { join } from 'node:path';
 import test from 'node:test';
 import type { TestContext } from 'node:test';
 import { ModelError } from '@safehandoff/core-interface';
-import type { EngineConfig, ModelClient } from '@safehandoff/core-interface';
+import type { EngineConfig, FactPack, ModelClient } from '@safehandoff/core-interface';
 import { FileTranscriptSink, RealCore } from './index.ts';
 import type { TranscriptEvent } from './index.ts';
 
@@ -46,7 +46,7 @@ test('content opt-in records validated draft and denial needs no model call', as
   const path = directory(t), core = new RealCore(model(), config, undefined, Date.now, new FileTranscriptSink(path, true));
   await core.generate(input);
   assert.ok(records(path)[0]!.some(event => event.event === 'model_completed' && event.content !== undefined));
-  const pack = { schema_version: 'fact_pack.v1' as const, task_revision: 1, template_id: 'x', audience_type: 'x', output_language: 'ko', approved_brief: '', facts: [], required_fact_ids: [], tables: [], excerpt_slots: [], asset_slots: [], public_tool_results: [] };
+  const pack: FactPack = { schema_version: 'fact_pack.v1' as const, task_revision: 1, template_id: 'x', audience_type: 'x', output_language: 'ko', approved_brief: '', facts: [], required_fact_ids: [], tables: [], excerpt_slots: [], asset_slots: [], public_tool_results: [] };
   await core.writeReviewed(pack);
   const denied = records(path).find(run => run.some(event => event.data.grounding === 'denied'))!;
   assert.deepEqual(denied.map(event => event.event), ['run_started', 'review_completed', 'run_completed']);
@@ -67,4 +67,31 @@ test('retention removes only old trace filenames and clock supports deterministi
   assert.equal(readdirSync(path).includes('keep.txt'), true);
   assert.equal(readdirSync(path).includes(old.split('/').at(-1)!), false);
   assert.equal(records(path)[0]![0]!.elapsed_ms, 25);
+});
+test('retry and repair remain one ordered run and reviewer private explanation is omitted', async t => {
+  const path = directory(t), client = model(), original = client.complete;
+  let call = 0;
+  client.complete = async (request, options) => {
+    call++;
+    if (call === 1) throw new ModelError('MODEL_TIMEOUT');
+    if (call === 3) return { model: 'private', usage: { inputTokens: 1, outputTokens: 1 }, text: JSON.stringify({
+      schema_version: 'review.v1', result: 'needs_changes', issues: [{ target: { kind: 'document' },
+        reason_code: 'UNCERTAINTY_REMOVED', action: 'PRIVATE_REVIEWER_SENTINEL', approved_fact_ids: ['f_1'],
+        candidate_ids: [], internal_explanation: 'PRIVATE_REVIEWER_SENTINEL' }],
+    }) };
+    return original(request, options);
+  };
+  const settings = { ...config, provider: { ...config.provider, max_attempts_per_step: 2 },
+    workflow: { max_review_repairs: 1, max_model_calls_per_run: 6 } };
+  const core = new RealCore(client, settings, undefined, Date.now, new FileTranscriptSink(path, true));
+  const pack: FactPack = { schema_version: 'fact_pack.v1' as const, task_revision: 1, template_id: 'x', audience_type: 'x', output_language: 'ko', approved_brief: '',
+    facts: [{ id: 'f_1', kind: 'observation', statement: 'CONTENT_SENTINEL', uncertainty: 'observed' }],
+    required_fact_ids: ['f_1'], tables: [], excerpt_slots: [], asset_slots: [], public_tool_results: [] };
+  const { reviewGroundingFixture } = await import('./test-fixtures.ts');
+  assert.equal((await core.writeReviewed(pack, { grounding: reviewGroundingFixture(pack) })).review.result, 'pass');
+  const run = records(path)[0]!;
+  assert.deepEqual(run.filter(event => event.event === 'model_started').map(event => [event.data.call, event.data.attempt]),
+    [[1, 1], [2, 2], [3, 1], [4, 1], [5, 1]]);
+  assert.equal(run.filter(event => event.event === 'repair_started').length, 1);
+  assert.equal(JSON.stringify(run).includes('PRIVATE_REVIEWER_SENTINEL'), false);
 });

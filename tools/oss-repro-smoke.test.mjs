@@ -15,7 +15,14 @@ const fakeRunner = status => () => ({ info: { implementation: 'fake', ready: tru
     })) };
 } });
 test('offline smoke connects actual builtin composition and writer/review without claiming a Docker run', async () => {
-  const result = await runOssReproSmoke({ image: `sha256:${'a'.repeat(64)}`, runnerFactory: fakeRunner('reproduced'), model: fixtureModel(), config });
+  const events = [];
+  const transcripts = { start(operation) {
+    assert.equal(operation, 'writeReviewed');
+    return { run_id: 'fixture-run', emit(event) { events.push(event); }, close() {} };
+  } };
+  const result = await runOssReproSmoke({ image: `sha256:${'a'.repeat(64)}`, runnerFactory: fakeRunner('reproduced'), model: fixtureModel(), config, transcripts });
+  assert.deepEqual(result.transcript_run_ids, ['fixture-run']);
+  assert.equal(events.at(-1), 'run_completed');
   assert.equal(result.completed, true); assert.equal(result.model_mode, 'fixture'); assert.equal(result.runner, 'fake');
   assert.equal(result.review.result, 'pass'); assert.equal(result.source_hashes.length, 4);
   assert.deepEqual(result.execution_summary, { targets: 2, inputs: 2, total_runs: 4, runs_per_combination: 1 });

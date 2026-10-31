@@ -56,3 +56,9 @@ HTTP 필드와 환경 변수는 추가하지 않았다. Engine.review의 세 번
 Core.generate는 기존 호출자가 제공한 승인 facts만 명시적 fresh context로 연결하고 검토 통과 후 응답한다. 원자료 purpose를 공개 brief로 자동 복사하지 않는다. 범용 review가 metadata 누락을 fresh로 추정하지는 않는다. TaskStore의 현재 내부 레코드를 이 경로에 자동 이식하지 않았으며 Rule 매칭·저장·UI와 runtime revision/CAS 채택은 후속이다.
 
 OSS 스모크의 로컬 보고서는 execution_summary의 구조화된 실행 수치를 포함한다. completed는 파이프라인 완료이며 문서 최종화가 아니다. document_status=reviewed_draft_not_finalized, manual_review_required=true를 함께 기록한다. 문장 의미 판정은 자동 회귀 시험에 넣지 않는다.
+
+## 로컬 실행 transcript
+
+SAFEHANDOFF_TRANSCRIPT_DIR를 설정하면 실제 app과 OSS 스모크의 Engine 작성·검토 실행을 실행별 JSONL로 기록한다. 상대 경로는 저장소 루트 기준이며 생략하면 꺼진다. SAFEHANDOFF_TRANSCRIPT_CONTENT=1은 모델 입력·검증된 작성 초안을 추가하는 명시적 opt-in이며 DIR 없이 설정하면 시작 오류다. 기본 메타데이터에는 본문이 없다. API 키·endpoint·모델 이름·reviewer 내부 설명은 자동 기록하지 않는다. 본문 속 비밀 자동 제거 기능은 없다.
+
+기존 HTTP 요청·응답 필드는 그대로이며 transcript 조회 API는 없다. 파일은 로컬 내부 기록이고 녹화 재생은 실제 호출 표시와 구분해야 한다. [이벤트 계약과 보존 제한](transcript.md)을 따른다. 작업 삭제 연동·상시 24시간 만료는 후속 구현이다.
