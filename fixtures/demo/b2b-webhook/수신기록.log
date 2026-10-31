@@ -1,0 +1,9 @@
+DEMO ONLY: all timestamps, identifiers and observations are synthetic.
+2026-10-28T09:02:00.000Z app event_id=evt_demo_310 delivery_id=dlv_demo_901 status=IN_TRANSIT signature=valid queue=accepted
+2026-10-28T09:02:05.000Z proxy delivery_id=dlv_demo_901 upstream_timeout=true downstream_status=504
+2026-10-28T09:02:05.100Z app delivery_id=dlv_demo_901 response_status=204
+2026-10-28T09:03:00.000Z app event_id=evt_demo_310 delivery_id=dlv_demo_902 status=IN_TRANSIT signature=valid queue=accepted response_status=204
+2026-10-28T09:03:00.100Z business event_id=evt_demo_310 notification_records=2 order_id=ORDER-DEMO-8841 customer=DEMO_CUSTOMER_H
+2026-10-28T09:04:00.000Z app event_id=evt_demo_312 delivery_id=dlv_demo_904 occurred_at=2026-10-28T09:03:50Z status=DELIVERED response_status=204
+2026-10-28T09:04:20.000Z app event_id=evt_demo_311 delivery_id=dlv_demo_903 occurred_at=2026-10-28T09:03:20Z status=IN_TRANSIT response_status=204
+2026-10-28T09:04:20.100Z business state_before=DELIVERED state_after=IN_TRANSIT

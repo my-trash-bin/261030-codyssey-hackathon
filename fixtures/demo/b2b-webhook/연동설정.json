@@ -1,0 +1,16 @@
+{
+  "demo_only": true,
+  "provider": "ParcelRelay-Demo",
+  "api_version": "v3",
+  "tenant": "tenant_demo_42",
+  "region": "demo-apne2",
+  "receiver_version": "2026.10.27",
+  "runtime": "Python 3.12",
+  "proxy_read_timeout_seconds": 5,
+  "ack_after_queue_write": true,
+  "event_deduplication_enabled": false,
+  "state_update_policy": "arrival_order",
+  "endpoint": "https://orders.example.invalid/private/hooks/parcel",
+  "internal_upstream": "10.23.8.14",
+  "credential_marker": "DEMO_ONLY_SECRET_H"
+}

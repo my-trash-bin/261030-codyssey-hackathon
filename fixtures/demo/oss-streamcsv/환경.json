@@ -1,0 +1,11 @@
+{
+  "demo_only": true,
+  "package": "streamcsv-demo",
+  "version": "2.4.1",
+  "runtime": "Node.js 22.14.0",
+  "os": "Linux x86_64",
+  "parser": {"delimiter": ",", "quote": "\"", "newline": "CRLF", "headers": true},
+  "input_encoding": "UTF-8",
+  "streaming_required": true,
+  "new_minimal_example_executed": false
+}

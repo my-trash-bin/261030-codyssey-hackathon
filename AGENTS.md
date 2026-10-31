@@ -42,7 +42,7 @@
 | `docs/features/*.md` | 맡은 기능 하나를 어떤 계약과 완료 기준으로 만드는가? | 위 공통 문서와 연결 기능 | 구현 PR·기능 검증 |
 | `docs/plan.md` | 누가 무엇을 언제 연결하는가? | PRD·기능 의존성 | 작업 분담·문서 PR·통합 순서 |
 | `docs/qa.md` | 어떤 관찰 결과를 통과/실패로 판정하는가? | PRD/spec/기능 AC | 실제 시험 실행 |
-| `docs/test-data.md`, `fixtures/reference-pack/` | 어떤 입력과 변형으로 확인하는가? | 시나리오·공개 target 계약 | fixture·runtime·live 평가 |
+| `docs/test-data.md`, `fixtures/reference-pack/`, `fixtures/demo/` | 어떤 입력과 변형으로 확인하는가? | 시나리오·공개 target 계약 | fixture·runtime·live 평가 |
 | `evaluation/expected/` | 평가자가 무엇을 정답 조건으로 보는가? | 사전에 정한 평가 기준 | 앱 밖 평가. 앱 입력 금지 |
 | `docs/traceability.csv`, `docs/acceptance-map.csv` | PRD/F/INV/AC/T가 어디에 연결되는가? | 실제 문서에 존재하는 ID | 누락·영향 검토 |
 | `evaluation/results/` | 실제로 무엇을 실행했고 어떤 결과였는가? | 실행 증거 | PoC 완료/가치 보고 |
