@@ -19,6 +19,7 @@ test('series transformations preserve approved information boundaries and exact 
   const id = 'derive_series_v1';
   assert.deepEqual(output(id, { counts: [820,1160,1740], transform: 'index_base100' }).rows, [['100'],['141'],['212']]);
   assert.deepEqual(output(id, { counts: [8,9], transform: 'index_base100' }).rows, [['100'],['113']]);
+  assert.deepEqual(output(id, { counts: [1,Number.MAX_SAFE_INTEGER], transform: 'index_base100' }).rows, [['100'],['900719925474099100']]);
   assert.deepEqual(output(id, { counts: [8,9], transform: 'index_base100', decimal_places: 2 }).rows, [['100.00'],['112.50']]);
   assert.deepEqual(output(id, { counts: [820,780,1740], transform: 'direction_only' }).rows, [['1','기준'],['2','감소'],['3','증가']]);
   const summary = output(id, { counts: [820,1160,1740], transform: 'fact_summary' });
@@ -26,8 +27,7 @@ test('series transformations preserve approved information boundaries and exact 
   assert(!/820|1160|1740|141|212/.test(JSON.stringify(summary)));
   assert(!output(id, { counts: [820,780,1740], transform: 'fact_summary' }).statement.includes('증가했습니다'));
   assert.deepEqual(output(id, { counts: [0,3], transform: 'selected_values' }).rows, [['0'],['3']]);
-  for (const counts of [[], [-1,1], [1,NaN], [1,1.5]]) {
-    if (counts.some(Number.isNaN)) continue;
+  for (const counts of [[], [-1,1], [1,1.5]]) {
     error(id, { counts, transform: 'direction_only' });
   }
   error(id, { counts: [0,1], transform: 'index_base100' }, 'INDEX_BASELINE_ZERO');
@@ -84,5 +84,6 @@ test('tool envelope and argument digest bind a trusted grant without authorizing
     assert.equal(tools[id].run({ ...request, ...patch }).status, 'denied');
   }
   assert.equal(tools[id].run({ ...request, extra: true } as never).status, 'error');
+  assert.equal(tools[id].run({ ...request, arguments: { seed: NaN, codepoint_count: 6 } }).status, 'error');
   assert.equal(builtinArgumentsHash({ seed: 1, codepoint_count: 6 }), builtinArgumentsHash({ codepoint_count: 6, seed: 1 }));
 });

@@ -5,7 +5,7 @@ import { resolve, dirname } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { createHash } from 'node:crypto';
 import { RealCore, builtinArgumentsHash, createBuiltinTools } from '../packages/core/dist/index.js';
-import { composeFactPack } from '../packages/core-interface/dist/index.js';
+import { composeFactPack, judgeReproduction } from '../packages/core-interface/dist/index.js';
 import { DockerReproRunner, reproductionRequest } from '../packages/sandbox-runner/dist/index.js';
 import { OpenAICompatibleModelClient } from '../packages/model-adapter/dist/index.js';
 import { loadConfig } from '../packages/app/dist/config.js';
@@ -33,24 +33,33 @@ export async function runOssReproSmoke({ image, runnerFactory, model, config, se
     analysis: 'fixture assertions and manually constructed candidates; analyze() not implemented',
     decisions: 'fixture-only predefined approvals; no human approval UI',
     model_mode: model.info.provider === 'fake' ? 'fixture' : 'live', runner: runner.info.implementation,
+    document_status: 'reviewed_draft_not_finalized', manual_review_required: true,
     source_hashes: sources.map((bytes, i) => ({ file: sourceNames[i], sha256: hash(bytes) })),
     synthetic: generated, reproduction, goal_variant: 'reproduction_evidence' };
   if (reproduction.status !== 'reproduced') return { ...baseReport, completed: false, review: null, document: null, calls: [] };
+  assert.equal(reproduction.runs.length, 4, 'INVALID_REPRO_MATRIX');
+  assert.equal(judgeReproduction(reproduction.runs).status, 'reproduced', 'INVALID_REPRO_MATRIX');
+  const executionSummary = { targets: 2, inputs: 2, total_runs: reproduction.runs.length, runs_per_combination: 1 };
   const statements = [
     '가상 toyrecord 관찰에서 ASCII 저장은 성공했고 한글 입력은 encode 단계의 E_ENCODE_SHORT_BUFFER 오류로 실패했습니다.',
-    '의도적인 toy 결함의 buggy/fixed를 새 길이 6의 ASCII/한글 입력으로 실제 네 번 실행해 고정 관찰 조건의 재현을 확인했습니다.',
+    '의도적인 toy 결함의 buggy/fixed 두 버전과 새 길이 6의 ASCII/한글 두 입력의 네 조합을 각 한 번씩, 총 4회 실행했습니다. 고정 관찰 조건의 재현을 확인했습니다.',
     '이 결과는 고정 toy 대상과 새 입력에서 관찰한 조건이며 원래 사건과 같은 근본 원인임을 증명하지 않습니다.',
   ];
   const candidates = statements.map((statement, i) => ({ local_key: `c${i}`, kind: 'observation', uncertainty: 'observed',
     statement, evidence_ids: [], relevance: 'required', purpose_relevance: 'fictional OSS smoke' }));
-  const decisions = candidates.map((c, i) => ({ id: `f${i}`, candidate_id: c.local_key, disposition: 'allow', revoked: false, representation: { kind: 'fact_summary' } }));
   const previews = candidates.map(c => {
     const projection = { statement: c.statement, columns: [], rows: [] };
     return { schema_version: 'disclosure_preview.v1', preview_id: `p-${c.local_key}`, candidate_id: c.local_key,
       input_revision: 1, representation: { kind: 'fact_summary' }, projection, projection_sha256: hash(JSON.stringify(projection)) };
   });
-  const pack = composeFactPack({ task: { purpose: 'fictional OSS report', recipient: 'fictional public recipient' }, task_revision: 1,
-    template_id: 'oss_issue.v1', audience_type: 'public', candidates, decisions, previews });
+  const scope = { project_id: 'fictional-oss-smoke', purpose_id: 'oss_issue', recipient_id: 'public-issue', audience: 'public', skill_set_hash: hash('[]') };
+  const sourceSetHash = hash(JSON.stringify(sources.map(hash)));
+  const decisions = candidates.map((c, i) => ({ id: `f${i}`, candidate_id: c.local_key, disposition: 'allow', revoked: false,
+    representation: { kind: 'fact_summary' }, expires_at: null, applied_rule_id: '', applied_rule_version: 0,
+    scope, source_set_hash: sourceSetHash, projection_sha256: previews[i].projection_sha256 }));
+  const compositionInput = { task: { purpose: 'fictional OSS report', recipient: 'fictional public recipient', goal_variant: 'reproduction_evidence' }, task_revision: 1,
+    template_id: 'oss_issue.v1', audience_type: 'public', candidates, decisions, previews, rules: [] };
+  const pack = composeFactPack(compositionInput);
   // A fixture approval for this fixed output schema predates execution. No stderr/raw stdout projection.
   pack.public_tool_results = [{ status: reproduction.status, reason_code: reproduction.reason_code }];
   const calls = [];
@@ -59,10 +68,10 @@ export async function runOssReproSmoke({ image, runnerFactory, model, config, se
     const started = Date.now(); const response = await model.complete(request, options);
     calls.push({ role: request.role, elapsed_ms: Date.now() - started, usage: response.usage }); return response;
   } };
-  const reviewed = await new RealCore(recordingModel, config).writeReviewed(pack);
+  const reviewed = await new RealCore(recordingModel, config).writeReviewed(pack, { grounding: { input: compositionInput, scope, source_set_hash: sourceSetHash, candidate_selectors: {}, rule_goals: [], approved_tool_results: pack.public_tool_results } });
   const document = reviewed.review.result === 'pass' ? reviewed.draft : null;
   if (document) assert(forbidden.every(value => !JSON.stringify(document).includes(value)), 'RAW_FIXTURE_DISCLOSURE');
-  return { ...baseReport, completed: Boolean(document), review: reviewed.review, document, calls };
+  return { ...baseReport, execution_summary: executionSummary, completed: Boolean(document), review: reviewed.review, document, calls };
 }
 function fixtureModel() {
   return { info: { provider: 'fake', model: 'fixture', ready: true }, async complete(request) {
@@ -93,5 +102,8 @@ async function main() {
   if (!report.completed) process.exitCode = 1;
 }
 if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
-  main().catch(() => { console.error('OSS_SMOKE_FAILED'); process.exitCode = 1; });
+  main().catch(error => {
+    const known = new Set(['INVALID_REPRO_MATRIX', 'RAW_FIXTURE_DISCLOSURE', 'SMOKE_ARGUMENTS_REQUIRED', 'SMOKE_IMAGE_REGISTRATION_REQUIRED']);
+    console.error(known.has(error.message) ? error.message : 'OSS_SMOKE_FAILED'); process.exitCode = 1;
+  });
 }

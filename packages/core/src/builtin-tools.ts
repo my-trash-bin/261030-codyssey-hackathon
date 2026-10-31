@@ -40,8 +40,10 @@ export function createBuiltinTools(authority: BuiltinAuthority): Record<BuiltinT
       try {
         fields(request, ['tool_id', 'tool_version', 'task_id', 'revision', 'grant_ids', 'arguments']);
         requireInput(request.tool_id === id && request.tool_version === '1.0.0' && request.task_id === bound.task_id &&
-          request.revision === bound.revision && Number.isSafeInteger(request.revision) && request.revision > 0 &&
+          request.revision === bound.revision && typeof request.task_id === 'string' && Boolean(request.task_id.trim()) &&
+          Number.isSafeInteger(request.revision) && request.revision > 0 &&
           Array.isArray(request.grant_ids) && request.grant_ids.length > 0 && request.grant_ids.length <= 100 &&
+          request.grant_ids.every(id => typeof id === 'string' && Boolean(id.trim())) &&
           new Set(request.grant_ids).size === request.grant_ids.length, 'TOOL_ACCESS_DENIED');
         const digest = builtinArgumentsHash(request.arguments);
         requireInput(request.grant_ids.every(grantId => bound.grants.filter(grant => grant.id === grantId && grant.tool_id === id &&

@@ -1,17 +1,20 @@
-import { CoreError, ModelError, parseGenerateRequest } from '@safehandoff/core-interface';
+import { CoreError, ModelError, groundFacts, parseGenerateRequest } from '@safehandoff/core-interface';
 import type {
   AnalyzeRequest, AnalyzeResult, Candidate, CoreInfo, DisclosurePreview, DisclosureProposal, Draft, Engine, EngineConfig,
   FactPack, GenerateRequest, GenerateResult, ModelClient, ModelRequest, Representation, ReproduceRequest,
-  ReproduceResult, ReproRunner, Review, TaskContext,
+  ReproduceResult, ReproRunner, Review, ReviewGroundingContext, TaskContext,
 } from '@safehandoff/core-interface';
 import { parseDraft, parseReview, validateDraft } from './validation.ts';
+import { approvedRequestGrounding, validateProjectionHashes } from './fresh-grounding.ts';
 
-type Run = { calls: number; signal?: AbortSignal };
+type Run = { calls: number; signal?: AbortSignal; grounding?: ReviewGroundingContext };
 export class RealCore implements Engine {
   private readonly model?: ModelClient;
   private readonly config?: EngineConfig;
   private readonly runner?: ReproRunner;
-  constructor(model?: ModelClient, config?: EngineConfig, runner?: ReproRunner) {
+  private readonly clock: () => number;
+  constructor(model?: ModelClient, config?: EngineConfig, runner?: ReproRunner, clock: () => number = Date.now) {
+    this.clock = clock;
     this.model = model;
     this.config = config;
     this.runner = runner;
@@ -50,30 +53,50 @@ export class RealCore implements Engine {
       input: JSON.stringify({ fact_pack: pack, ...(feedback ? { feedback } : {}) }),
     }, text => parseDraft(text, pack), run);
   }
-  private check(draft: Draft, pack: FactPack, run: Run): Promise<Review> {
+  private groundingReview(pack: FactPack, context?: ReviewGroundingContext): Review | null {
+    try { if (!context) throw new Error(); validateProjectionHashes(context); groundFacts(context, pack, this.clock()); return null; }
+    catch { return { schema_version: 'review.v1', result: 'needs_decision', issues: [{ target: { kind: 'document' },
+      reason_code: 'NEEDS_DISCLOSURE_DECISION', action: null, approved_fact_ids: pack.facts.map(fact => fact.id),
+      candidate_ids: [], internal_explanation: 'Current decision or reusable-rule grounding is missing or invalid.' }] }; }
+  }
+  private async check(draft: Draft, pack: FactPack, run: Run): Promise<Review> {
     validateDraft(draft, pack);
-    return this.call({ role: 'reviewer', responseFormat: 'json',
+    const denied = this.groundingReview(pack, run.grounding);
+    if (denied) return denied;
+    const grounding = groundFacts(run.grounding!, pack, this.clock());
+    const review = await this.call({ role: 'reviewer', responseFormat: 'json',
       systemPrompt: 'Return JSON only with exactly these root keys: schema_version, result, issues. ' +
         'schema_version must be the literal string review.v1. A passing response is ' +
         '{"schema_version":"review.v1","result":"pass","issues":[]}. ' +
         'Other result values are needs_changes/needs_decision/error. Always include schema_version. ' +
+        'Every fact must have grounding: fresh_decision or reused_rule with rule id/version. ' +
+        'If a statement depends on previous permission or an ungrounded prior approval, return needs_decision with ' +
+        'NEEDS_DISCLOSURE_DECISION. Never create or infer disclosure permission. ' +
         'Each issue requires target {kind:document or block,block_id?}, reason_code, action (string or null), ' +
         'approved_fact_ids, candidate_ids, internal_explanation. Check disclosure, uncertainty, required facts and references. ' +
         'Reason codes: UNAPPROVED_DISCLOSURE, UNSUPPORTED_CAUSAL_CLAIM, MISSING_REQUIRED_FACT, SOURCE_CONFLICT, ' +
         'UNCERTAINTY_REMOVED, INCORRECT_PROJECTION, UNAPPROVED_REFERENCE, NEEDS_DISCLOSURE_DECISION. Pass has no issues.',
-      input: JSON.stringify({ draft, fact_pack: pack }),
+      input: JSON.stringify({ draft, fact_pack: pack, grounding }),
     }, text => parseReview(text, draft, pack), run);
+    return this.groundingReview(pack, run.grounding) ?? review;
   }
   write(pack: FactPack): Promise<Draft> { return this.draft(pack, { calls: 0 }); }
-  review(draft: Draft, pack: FactPack): Promise<Review> { return this.check(draft, pack, { calls: 0 }); }
+  review(draft: Draft, pack: FactPack, grounding?: ReviewGroundingContext): Promise<Review> {
+    return this.check(structuredClone(draft), structuredClone(pack), { calls: 0, grounding: grounding ? structuredClone(grounding) : undefined });
+  }
 
   // Full bounded repair workflow for Engine consumers; generate deliberately uses zero repairs.
-  async writeReviewed(pack: FactPack, options?: { signal?: AbortSignal; maxRepairs?: number }): Promise<{ draft: Draft; review: Review }> {
-    const run: Run = { calls: 0, signal: options?.signal };
+  async writeReviewed(pack: FactPack, options?: { signal?: AbortSignal; maxRepairs?: number; grounding?: ReviewGroundingContext }): Promise<{ draft: Draft; review: Review }> {
+    pack = structuredClone(pack);
+    const run: Run = { calls: 0, signal: options?.signal, grounding: options?.grounding ? structuredClone(options.grounding) : undefined };
     const limit = options?.maxRepairs ?? this.config?.workflow.max_review_repairs ?? 0;
     if (!Number.isInteger(limit) || limit < 0 || limit > (this.config?.workflow.max_review_repairs ?? 0)) {
       throw new CoreError('INVALID_CORE_INPUT');
     }
+    if (run.signal?.aborted) throw new CoreError('CORE_CANCELLED');
+    if (!this.model || !this.config) throw new CoreError('CORE_NOT_IMPLEMENTED');
+    const denied = this.groundingReview(pack, run.grounding);
+    if (denied) return { draft: { schema_version: 'draft.v1', blocks: [] }, review: denied };
     let draft = await this.draft(pack, run);
     for (let repairs = 0; ; repairs++) {
       const review = await this.check(draft, pack, run);
@@ -82,6 +105,8 @@ export class RealCore implements Engine {
       const feedback = review.issues.map(issue => ({ reason_code: issue.reason_code,
         ...(issue.target.kind === 'block' ? { block_id: issue.target.block_id } : {}),
         approved_fact_ids: issue.approved_fact_ids }));
+      const expired = this.groundingReview(pack, run.grounding);
+      if (expired) return { draft, review: expired };
       draft = await this.draft(pack, run, feedback);
     }
   }
@@ -89,11 +114,11 @@ export class RealCore implements Engine {
     if (options?.signal?.aborted) throw new CoreError('CORE_CANCELLED');
     const approved = parseGenerateRequest(input);
     const pack: FactPack = { schema_version: 'fact_pack.v1', task_revision: 0, template_id: 'document',
-      audience_type: approved.recipient, output_language: 'ko', approved_brief: approved.purpose,
-      facts: approved.facts.map(fact => ({ id: fact.id, kind: 'observation', statement: fact.text })),
+      audience_type: approved.recipient, output_language: 'ko', approved_brief: '',
+      facts: approved.facts.map(fact => ({ id: fact.id, kind: 'observation', statement: fact.text, uncertainty: 'reported' })),
       required_fact_ids: approved.facts.map(fact => fact.id), tables: [], excerpt_slots: [], asset_slots: [], public_tool_results: [] };
     try {
-      const { draft, review } = await this.writeReviewed(pack, { signal: options?.signal, maxRepairs: 0 });
+      const { draft, review } = await this.writeReviewed(pack, { signal: options?.signal, maxRepairs: 0, grounding: approvedRequestGrounding(approved, pack) });
       if (review.result !== 'pass') throw new CoreError('CORE_UNAVAILABLE');
       const body = draft.blocks.map(block => block.type === 'list' ? block.items!.map(item => `- ${item.text}`).join('\n') :
         block.text ?? '').filter(Boolean).join('\n\n');

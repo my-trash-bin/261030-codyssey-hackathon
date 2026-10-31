@@ -1,8 +1,8 @@
 // Engine-side workflow types layered on top of the narrow Core contract in index.ts.
 // Field names mirror contracts/candidate_proposals.v1, fact_pack.v1, draft.v1, review.v1,
-// disclosure_proposal.v1 and disclosure_preview.v1. Server-only audit fields from task.v1
-// (raw_grants, scope, applied_rule_*, supersedes_id) are intentionally omitted here: core
-// only needs the fields it actually consumes, not the full persisted task aggregate.
+// disclosure_proposal.v1 and disclosure_preview.v1. Server-only raw_grants/supersedes_id
+// stay outside this projection. Scope and applied_rule_* are included for independent
+// grounding checks; this is not the full persisted task aggregate.
 import type { Core } from './index.ts';
 import type { ReproduceRequest, ReproduceResult } from './reproduction.ts';
 
@@ -84,7 +84,7 @@ export interface DisclosurePreview {
   projection_sha256: string;
 }
 // Reduced projection of task.v1's decision ledger: server owns raw_grants/scope/
-// source_set_hash/applied_rule_* for audit; core only needs enough to compose a fact pack.
+// optional binding fields stay internal; review requires them rather than trusting a model to infer approval.
 export interface Decision {
   id: string;
   candidate_id: string;
@@ -92,6 +92,33 @@ export interface Decision {
   representation: Representation;
   expires_at?: string | null;
   revoked: boolean;
+  applied_rule_id: string;
+  applied_rule_version: number;
+  scope?: Scope;
+  source_set_hash?: string;
+  projection_sha256?: string;
+}
+export interface Scope {
+  project_id: string; purpose_id: string; recipient_id: string;
+  audience: 'public' | 'named_external'; skill_set_hash: string;
+}
+export interface Rule {
+  id: string; version: number; scope: Scope; selector: string;
+  representation: Representation; expires_at: string | null; revoked: boolean;
+}
+export interface FactGrounding {
+  fact_id: string; decision_id: string; source: 'fresh_decision' | 'reused_rule';
+  rule_id?: string; rule_version?: number;
+}
+// Internal effective snapshot. Wire Scope lacks goal_variant, so reusable rule goals
+// require a separate server-owned binding rather than interpreting its absence as a wildcard.
+export interface ReviewGroundingContext {
+  input: ComposeFactPackInput;
+  scope: Scope;
+  source_set_hash: string;
+  candidate_selectors: Record<string, string>;
+  rule_goals: { rule_id: string; rule_version: number; goal_variant: NonNullable<TaskContext['goal_variant']> }[];
+  approved_tool_results: PublicToolResult[];
 }
 
 // -- approved fact pack (fact_pack.v1): a deterministic, non-LLM transform of decisions --
@@ -128,8 +155,10 @@ export interface ComposeFactPackInput {
   candidates: Candidate[];
   decisions: Decision[];
   previews: DisclosurePreview[];
+  rules: Rule[];
 }
 export { composeFactPack } from './compose.ts';
+export { groundFacts } from './grounding.ts';
 
 // -- writer (draft.v1): receives only the approved fact pack, never raw sources --
 export type DocBlockType = 'heading' | 'paragraph' | 'list' | 'table_ref' | 'excerpt_ref' | 'asset_ref';
@@ -182,6 +211,6 @@ export interface Engine extends Core {
   proposeDisclosure(candidate: Candidate, task: TaskContext): Promise<DisclosureProposal>;
   preview(candidate: Candidate, representation: Representation, inputRevision: number): Promise<DisclosurePreview>;
   write(factPack: FactPack): Promise<Draft>;
-  review(draft: Draft, factPack: FactPack): Promise<Review>;
+  review(draft: Draft, factPack: FactPack, grounding?: ReviewGroundingContext): Promise<Review>;
   reproduce(request: ReproduceRequest, options?: { signal?: AbortSignal }): Promise<ReproduceResult>;
 }

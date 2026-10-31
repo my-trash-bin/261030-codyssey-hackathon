@@ -21,6 +21,9 @@ export function composeFactPack(input: ComposeFactPackInput, now?: number): Fact
     const candidate = candidates.get(decision.candidate_id);
     if (!candidate) invalid();
     if (decision.disposition !== 'allow' || decision.revoked) continue;
+    if (typeof decision.applied_rule_id !== 'string' || !Number.isSafeInteger(decision.applied_rule_version) ||
+      (decision.applied_rule_id === '' ? decision.applied_rule_version !== 0 : decision.applied_rule_version < 1)) invalid();
+    if (decision.applied_rule_id && !['fact_summary', 'derived_table'].includes(decision.representation.kind)) invalid();
     if (decision.expires_at != null) {
       const expiry = Date.parse(decision.expires_at);
       if (!Number.isFinite(expiry) || now === undefined || !Number.isFinite(now)) invalid();

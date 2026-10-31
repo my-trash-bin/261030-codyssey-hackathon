@@ -85,3 +85,21 @@ intent.md·제품 설계·contracts·fixtures/demo·과거 evaluation 기록은 
 내부 `TaskStore`는 기존 SQLite 파일에 별도 workflow 테이블을 추가합니다. 현재는 앱 HTTP 경로와 연결하지 않았으며 자동으로 문서나 원자료를 작업으로 옮기지 않습니다. Docker 설치·등록·검증 절차는 [실행기 안내](packages/sandbox-runner/image/README.md)를 따릅니다.
 
 F07 1번의 파일시스템 로더는 [사용법과 제한](packages/skill-loader/README.md)을 따릅니다. 등록 CLI·역할별 프롬프트 연결·팩 활성화는 후속 범위이며 앱 시작 시 팩을 자동으로 읽거나 실행하지 않습니다.
+
+## builtin과 근거 검토
+
+core의 `createBuiltinTools`는 현재 task/revision과 서버가 검증한 grant·인수 SHA-256을 받아 builtin 5개를 만든다. 순수 변환은 승인이나 도구 권한을 새로 만들지 않는다. 시간·입력 길이·원문 인용·정확값 공개는 승인된 인수에 묶는다.
+
+`review(draft, pack, grounding)`와 `writeReviewed(pack, { grounding })`에는 현재 결정·미리보기·scope·원자료 집합·규칙 판본의 effective snapshot이 필요하다. 없거나 유효하지 않으면 모델 호출 전에 needs_decision이다. 기존 `/api/sharing`의 승인 facts 입력은 그 요청의 새 승인으로만 연결하며, F06 Rule 저장·자동 매칭·승인 UI는 구현하지 않았다. 상세 계약은 [grounding 계획과 구현 상태](docs/review-grounding-plan.md)를 따른다.
+
+OSS 가상 재현은 빌드 후 아래 명령으로 실행한다. 등록 파일에는 설치자가 확인한 현재 `/repro` supervisor 이미지의 전체 image ID가 있어야 한다. legacy 이미지 tag/digest가 존재하는 것만으로 호환된다고 가정하지 않는다.
+
+```bash
+node --env-file-if-exists=.env tools/oss-repro-smoke.mjs \
+  --registration .local/oss-smoke-registration.json --live-model \
+  --output .local/oss-repro-smoke-new.json
+```
+
+--live-model을 생략하면 모델은 fixture이고 Docker는 실제 실행한다. 자동 테스트에서는 fake runner 주입을 명시적으로 표시한다. 실행 중 pull/build는 하지 않는다. 새 결과 파일만 쓰며 기존 결과를 덮어쓰지 않는다. 원자료 분석·승인은 fixture 가정이고 실제 구현한 분석·승인 제품 흐름으로 표시하지 않는다. 전체 호스트의 인터넷 차단이나 실제 OSS 결함 발견을 검증한 시험도 아니다.
+
+OSS 스모크의 자동 회귀 검사는 실행 행·고정 oracle·수치·hash·참조·정책 상태만 판정합니다. 생성 문장 의미를 정규식으로 통과시키지 않습니다. 보고서의 execution_summary가 실제 실행 수치이며, 문서는 reviewed_draft_not_finalized와 manual_review_required=true로 표시합니다. 모델 pass는 사람의 최종 확인을 대신하지 않습니다.

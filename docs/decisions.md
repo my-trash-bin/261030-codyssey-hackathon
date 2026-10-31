@@ -182,3 +182,12 @@ OverlayFS 대신 읽기전용 bind mount + tmpfs를 쓰기로 했다(`DockerRepr
   리뷰어까지 전달해 검증하며, 근거가 없으면 기본적으로 거부한다. `decision.v1`에 이미 필수 필드로 있는
   `applied_rule_id`/`applied_rule_version`을 core-interface에 복원하는 것이 핵심이며, 거부 판정은
   프롬프트가 아니라 코드 레벨 검증을 1차로 둔다.
+
+## 2026-10-31 · builtin·OSS 스모크와 기본 거부 grounding
+
+- builtin 5개는 순수 변환으로 구현하고 현재 task/revision·검증된 grant와 인수 hash에 묶었다. 정확한 지수 반올림, 시간 공개 수준, 문서용 주소와 route, seed 입력, UTF-8 인용과 렌더 hash를 검사한다. 도구 결과가 공개 결정을 만들지는 않는다.
+- composeFactPack 반환형과 fact_pack.v1은 유지했다. applied_rule_*를 복원하고 별도 groundFacts로 현재 결정/preview/scope/source/Rule/goal 바인딩을 대조한다. 근거 누락과 모순은 모델 전 needs_decision이며 모델 pass로 덮어쓰지 않는다. 만료는 응답 채택 때도 검사한다.
+- rule wire scope에 없는 goal_variant는 서버 소유의 내부 rule_goals 바인딩으로 보완하고 누락을 wildcard로 해석하지 않는다. 원문·정확값·실제값 selected_fields와 자유 문장의 자동 재사용은 거부한다. Rule 저장/매칭·UI·실행 후 DB revision/CAS 채택은 구현하지 않았다.
+- 기존 Core.generate의 승인 facts 요청만 명시적인 fresh context로 연결한다. 일반 review의 metadata 누락을 fresh로 추정하는 fallback은 없다. writer에는 Rule·scope·source 바인딩이나 리뷰 자유 설명을 전달하지 않는다.
+- 사용자 요청에 따라 회귀 시험은 결정적 수치/바이트/hash/참조/정책 상태만 판정한다. 생성 문장 의미의 정규식 검사와 해당 테스트는 제거했다. 모델 검토는 보조이며 문서 최종화와 구분한다.
+- 실제 Docker 네 실행 및 기존 모델 작성·검토의 결과와 앞선 자연어 횟수 오류는 [3차 실행 기록](live-smoke-2026-10-31c.md)에 남겼다. 원자료 분석과 사람 승인은 fixture 가정이며 실제 운영 기능 완료의 근거로 사용하지 않는다.
