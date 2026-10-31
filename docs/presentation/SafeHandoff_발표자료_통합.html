@@ -1,0 +1,5600 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#163172">
+<meta name="description" content="SafeHandoff 코디세이 해커톤 발표자료 통합본 (표지 ~ 08. 기대효과)">
+<title>SafeHandoff · 발표자료 통합본 (표지 ~ 08. 기대효과)</title>
+<link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#163172;
+  --blue:#1e5eff;
+  --ink:#111827;
+  --muted:#64748b;
+  --line:#dce4f0;
+}
+*{box-sizing:border-box}
+html{
+  scroll-behavior:smooth;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+}
+body{
+  margin:0;
+  background:#e8edf5;
+  color:var(--ink);
+  font-family:"Pretendard Variable",Pretendard,"Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+  word-break:keep-all;
+  overflow-wrap:break-word;
+}
+h1,h2,h3,h4,p,figure,blockquote,ul{margin:0}
+a{color:inherit;text-decoration:none}
+button{font:inherit;cursor:pointer}
+
+.master-toolbar{
+  height:64px;
+  position:sticky;
+  top:0;
+  z-index:100;
+  background:#fffffff7;
+  border-bottom:1px solid var(--line);
+  backdrop-filter:blur(12px);
+}
+.master-toolbar-inner{
+  height:100%;
+  width:min(1280px,calc(100% - 32px));
+  margin:auto;
+  display:flex;
+  justify-content:space-between;
+  gap:12px;
+  align-items:center;
+}
+.master-brand{
+  font-size:18px;
+  font-weight:900;
+  color:var(--navy);
+  white-space:nowrap;
+  letter-spacing:-.03em;
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+.master-badge{
+  display:inline-grid;
+  place-items:center;
+  width:25px;
+  height:25px;
+  border-radius:7px;
+  background:#0f9f90;
+  color:#fff;
+  font-size:13.5px;
+  font-weight:900;
+}
+.master-brand small{
+  font-size:11px;
+  letter-spacing:.06em;
+  font-weight:700;
+  color:var(--muted);
+}
+.master-tools{
+  display:flex;
+  gap:5px;
+  align-items:center;
+  flex-wrap:wrap;
+  justify-content:flex-end;
+}
+.master-tools .tool-button{
+  font-size:11.5px;
+  font-weight:700;
+  color:var(--navy);
+  background:#fff;
+  border:1.5px solid var(--line);
+  border-radius:7px;
+  padding:5px 10px;
+  line-height:1.4;
+}
+.master-tools .tool-button:hover{background:#f0f5ff}
+.master-tools .tool-button.primary{
+  background:var(--navy);
+  color:#fff;
+  border-color:var(--navy);
+}
+
+.master-reader{
+  padding:28px 0 48px;
+}
+.slide-scope .page-shell{
+  position:relative;
+  margin:0 auto 28px;
+  width:1280px;
+  height:720px;
+}
+
+/* === SafeHandoff_표지.html === */
+#slide-cover {
+
+&{
+  --blue:#1263fe;
+  --navy:#163172;
+  --ink:#0f172a;
+  --body:#334155;
+  --muted:#64748b;
+  --line:#dce4f0;
+  --bg:#f6f7f9;
+}
+*{box-sizing:border-box}
+html{
+  scroll-behavior:smooth;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+}
+body{
+  margin:0;
+  background:#e8edf5;
+  color:var(--ink);
+  font-family:"Pretendard Variable",Pretendard,"Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+  font-size:15px;
+  font-weight:600;
+  line-height:1.5;
+  word-break:keep-all;
+  overflow-wrap:break-word;
+}
+h1,h2,h3,h4,p,figure{margin:0}
+a{color:inherit;text-decoration:none}
+button{font:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
+
+.toolbar{
+  height:64px;
+  position:sticky;
+  top:0;
+  z-index:30;
+  background:#fffffff7;
+  border-bottom:1px solid var(--line);
+  backdrop-filter:blur(12px);
+}
+.toolbar-inner{
+  height:100%;
+  width:min(1280px,calc(100% - 40px));
+  margin:auto;
+  display:flex;
+  justify-content:space-between;
+  gap:20px;
+  align-items:center;
+}
+.brand{
+  font-size:19px;
+  font-weight:900;
+  color:var(--navy);
+  white-space:nowrap;
+  letter-spacing:-.03em;
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+.brand-badge{
+  display:inline-grid;
+  place-items:center;
+  width:26px;
+  height:26px;
+  border-radius:7px;
+  background:#0f9f90;
+  color:#fff;
+  font-size:14px;
+  font-weight:900;
+}
+.brand small{
+  font-size:11px;
+  letter-spacing:.08em;
+  font-weight:700;
+  margin-left:4px;
+  color:var(--muted);
+}
+.tools{display:flex;gap:8px;align-items:center}
+.tool-button{
+  font-size:12px;
+  font-weight:700;
+  color:var(--navy);
+  background:#fff;
+  border:1.5px solid var(--line);
+  border-radius:8px;
+  padding:7px 13px;
+  line-height:1.5;
+}
+.tool-button:hover{background:#f0f5ff}
+
+.reader{padding:28px 0 42px}
+.page-shell{
+  position:relative;
+  margin:0 auto 28px;
+  width:1280px;
+  height:720px;
+}
+.page{
+  position:relative;
+  width:1280px;
+  height:720px;
+  padding:48px 64px 48px;
+  background:var(--bg);
+  box-shadow:0 6px 28px #16317212;
+  transform-origin:top left;
+  overflow:hidden;
+  display:flex;
+  flex-direction:column;
+  justify-content:space-between;
+}
+
+/* 상단 코디세이 로고 + 아이디어톤 타이틀 */
+.cover-top{
+  position:relative;
+  z-index:3;
+  display:flex;
+  align-items:center;
+  gap:16px;
+}
+.codyssey-logo{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:2px;
+}
+.codyssey-logo svg{
+  width:38px;
+  height:28px;
+  display:block;
+}
+.codyssey-logo span{
+  font-size:10px;
+  font-weight:900;
+  color:#1e3a8a;
+  letter-spacing:-.02em;
+  font-style:italic;
+}
+.project-kicker{
+  font-size:18.5px;
+  font-weight:900;
+  color:var(--blue);
+  letter-spacing:.02em;
+}
+
+/* 좌측 메인 카피 영역 */
+.cover-main{
+  position:relative;
+  z-index:3;
+  max-width:650px;
+  margin-top:16px;
+}
+.service-tag{
+  display:inline-flex;
+  align-items:center;
+  gap:12px;
+  font-size:21px;
+  font-weight:900;
+  color:var(--blue);
+  letter-spacing:.01em;
+  margin-bottom:22px;
+}
+.service-tag::before{
+  content:"";
+  display:inline-block;
+  width:34px;
+  height:3px;
+  background:var(--blue);
+  border-radius:2px;
+}
+.hero-title{
+  font-size:50px;
+  font-weight:900;
+  line-height:1.24;
+  letter-spacing:-.04em;
+  color:#0f172a;
+  margin-bottom:28px;
+}
+.hero-title .accent{
+  color:var(--blue);
+  display:block;
+}
+.hero-sub{
+  font-size:19.5px;
+  font-weight:600;
+  color:#334155;
+  line-height:1.58;
+  letter-spacing:-.025em;
+}
+
+/* 하단 조·팀원 영역 (클릭해 직접 수정 가능) */
+.cover-bottom{
+  position:relative;
+  z-index:3;
+  display:flex;
+  align-items:baseline;
+  gap:14px;
+}
+.team-num{
+  font-size:21px;
+  font-weight:900;
+  color:var(--blue);
+  letter-spacing:-.02em;
+}
+.team-members{
+  font-size:18px;
+  font-weight:700;
+  color:#1e293b;
+  letter-spacing:.02em;
+}
+
+/* 우측 배경 및 리스크 감지 · 안전 공유 그래픽 (레퍼런스 감성 완벽 재현) */
+.hero-graphic{
+  position:absolute;
+  top:46px;
+  right:24px;
+  width:680px;
+  height:628px;
+  z-index:1;
+  pointer-events:none;
+}
+.hero-graphic svg{
+  width:100%;
+  height:100%;
+  display:block;
+}
+.hero-graphic svg text{
+  font-family:"Pretendard Variable",Pretendard,"Noto Sans KR","Malgun Gothic",sans-serif;
+}
+
+
+
+
+
+}
+/* === SafeHandoff_목차.html === */
+#slide-index {
+
+&{
+  --blue:#1e5eff;
+  --navy:#163172;
+  --num-blue:#7da6ff;
+  --ink:#111827;
+  --body:#334155;
+  --muted:#64748b;
+  --line:#e2e8f0;
+  --row-line:#eef2f7;
+  --paper:#ffffff;
+}
+*{box-sizing:border-box}
+html{
+  scroll-behavior:smooth;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+}
+body{
+  margin:0;
+  background:#e8edf5;
+  color:var(--ink);
+  font-family:"Pretendard Variable",Pretendard,"Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+  font-size:15px;
+  font-weight:600;
+  line-height:1.55;
+  word-break:keep-all;
+  overflow-wrap:break-word;
+}
+h1,h2,h3,h4,p,figure,blockquote,ul{margin:0}
+a{color:inherit;text-decoration:none}
+button{font:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
+
+.toolbar{
+  height:64px;
+  position:sticky;
+  top:0;
+  z-index:30;
+  background:#fffffff7;
+  border-bottom:1px solid var(--line);
+  backdrop-filter:blur(12px);
+}
+.toolbar-inner{
+  height:100%;
+  width:min(1280px,calc(100% - 40px));
+  margin:auto;
+  display:flex;
+  justify-content:space-between;
+  gap:20px;
+  align-items:center;
+}
+.brand{
+  font-size:19px;
+  font-weight:900;
+  color:var(--navy);
+  text-decoration:none;
+  white-space:nowrap;
+  letter-spacing:-.03em;
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+.brand-badge{
+  display:inline-grid;
+  place-items:center;
+  width:26px;
+  height:26px;
+  border-radius:7px;
+  background:#0f9f90;
+  color:#fff;
+  font-size:14px;
+  font-weight:900;
+}
+.brand small{
+  font-size:11px;
+  letter-spacing:.08em;
+  font-weight:700;
+  margin-left:4px;
+  color:var(--muted);
+}
+.tools{display:flex;gap:9px;align-items:center}
+.tool-button{
+  font-size:12px;
+  font-weight:700;
+  color:var(--navy);
+  background:#fff;
+  border:1.5px solid var(--line);
+  border-radius:8px;
+  padding:7px 14px;
+  line-height:1.5;
+  text-decoration:none;
+}
+.tool-button:hover{background:#f0f5ff}
+
+.reader{padding:28px 0 42px}
+.page-shell{
+  position:relative;
+  margin:0 auto 28px;
+  width:1280px;
+  height:720px;
+}
+.page{
+  position:relative;
+  width:1280px;
+  height:720px;
+  padding:56px 76px 48px;
+  background:var(--paper);
+  box-shadow:0 6px 28px #16317212;
+  transform-origin:top left;
+  overflow:hidden;
+  display:flex;
+  flex-direction:column;
+}
+
+/* 상단 CONTENTS / INDEX 헤더 영역 */
+.index-header{
+  border-bottom:2.5px solid var(--navy);
+  padding-bottom:22px;
+  flex-shrink:0;
+}
+.index-kicker{
+  font-size:15px;
+  font-weight:800;
+  color:var(--blue);
+  letter-spacing:.26em;
+  margin-bottom:8px;
+}
+.index-title-row{
+  display:flex;
+  justify-content:space-between;
+  align-items:baseline;
+  gap:24px;
+}
+.index-title-row h1{
+  font-size:84px;
+  font-weight:900;
+  color:var(--navy);
+  letter-spacing:-.035em;
+  line-height:1;
+}
+.index-subtitle{
+  font-size:15.5px;
+  font-weight:700;
+  color:var(--muted);
+  letter-spacing:-.02em;
+}
+
+/* 4단 WHY / WHO / HOW / NEXT 레이아웃 */
+.index-grid{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  flex:1;
+  min-height:0;
+}
+.index-col{
+  padding:36px 28px 16px;
+  border-right:1.5px solid var(--line);
+  display:flex;
+  flex-direction:column;
+}
+.index-col:first-child{
+  padding-left:4px;
+}
+.index-col:last-child{
+  border-right:0;
+  padding-right:4px;
+}
+.col-en{
+  font-size:38px;
+  font-weight:900;
+  color:var(--blue);
+  letter-spacing:-.02em;
+  line-height:1.1;
+  margin-bottom:8px;
+}
+.col-ko{
+  font-size:17px;
+  font-weight:700;
+  color:var(--muted);
+  letter-spacing:-.025em;
+  margin-bottom:26px;
+}
+
+.index-list{
+  list-style:none;
+  padding:0;
+  margin:0;
+  display:flex;
+  flex-direction:column;
+}
+.index-list li{
+  border-bottom:1.5px solid var(--row-line);
+}
+.index-link{
+  display:flex;
+  align-items:center;
+  gap:18px;
+  padding:15px 2px;
+  transition:transform .15s ease, color .15s ease;
+}
+.index-link:hover{
+  transform:translateX(4px);
+}
+.index-link:hover .item-title{
+  color:var(--blue);
+}
+.item-num{
+  font-size:17px;
+  font-weight:800;
+  color:var(--num-blue);
+  width:26px;
+  flex-shrink:0;
+}
+.item-title{
+  font-size:19px;
+  font-weight:800;
+  color:var(--body);
+  letter-spacing:-.03em;
+}
+
+
+
+
+
+}
+/* === SafeHandoff_프로젝트_배경.html === */
+#slide-bg {
+
+&{
+  --blue:#2563eb;
+  --navy:#163172;
+  --teal:#0f766e;
+  --ink:#111827;
+  --body:#334155;
+  --muted:#64748b;
+  --line:#dbe3ef;
+  --card-bg:#f4f6fa;
+  --paper:#ffffff;
+}
+*{box-sizing:border-box}
+html{
+  scroll-behavior:smooth;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+}
+body{
+  margin:0;
+  background:#e8edf5;
+  color:var(--ink);
+  font-family:"Pretendard Variable",Pretendard,"Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+  font-size:15px;
+  font-weight:600;
+  line-height:1.65;
+  word-break:keep-all;
+  overflow-wrap:break-word;
+}
+h1,h2,h3,h4,p,figure,blockquote,ul{margin:0}
+h1,h2,h3,h4{line-height:1.35;letter-spacing:-.035em}
+a{color:inherit}
+button{font:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
+
+.toolbar{
+  height:64px;
+  position:sticky;
+  top:0;
+  z-index:30;
+  background:#fffffff7;
+  border-bottom:1px solid var(--line);
+  backdrop-filter:blur(12px);
+}
+.toolbar-inner{
+  height:100%;
+  width:min(1280px,calc(100% - 40px));
+  margin:auto;
+  display:flex;
+  justify-content:space-between;
+  gap:20px;
+  align-items:center;
+}
+.brand{
+  font-size:19px;
+  font-weight:900;
+  color:var(--navy);
+  text-decoration:none;
+  white-space:nowrap;
+  letter-spacing:-.03em;
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+.brand-badge{
+  display:inline-grid;
+  place-items:center;
+  width:26px;
+  height:26px;
+  border-radius:7px;
+  background:#0f9f90;
+  color:#fff;
+  font-size:14px;
+  font-weight:900;
+}
+.brand small{
+  font-size:11px;
+  letter-spacing:.08em;
+  font-weight:700;
+  margin-left:4px;
+  color:var(--muted);
+}
+.tools{display:flex;gap:9px;align-items:center}
+.tool-button{
+  font-size:12px;
+  font-weight:700;
+  color:var(--navy);
+  background:#fff;
+  border:1.5px solid var(--line);
+  border-radius:8px;
+  padding:7px 14px;
+  line-height:1.5;
+  text-decoration:none;
+}
+.tool-button:hover{background:#f0f5ff}
+
+.reader{padding:28px 0 42px}
+.page-shell{
+  position:relative;
+  margin:0 auto 28px;
+  width:1280px;
+  height:720px;
+}
+.page{
+  position:relative;
+  width:1280px;
+  height:720px;
+  padding:34px 54px 30px;
+  background:var(--paper);
+  box-shadow:0 6px 28px #16317212;
+  transform-origin:top left;
+  overflow:hidden;
+  display:flex;
+  flex-direction:column;
+}
+
+/* 상단 타이틀 & 구분선 */
+.page-header{
+  border-bottom:2.5px solid var(--navy);
+  padding-bottom:14px;
+  margin-bottom:20px;
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-end;
+  gap:20px;
+}
+.page-header h2{
+  font-size:33px;
+  color:var(--ink);
+  font-weight:900;
+  letter-spacing:-.04em;
+}
+.page-header .eyebrow{
+  font-size:12px;
+  font-weight:800;
+  color:var(--muted);
+  letter-spacing:.08em;
+  white-space:nowrap;
+  padding-bottom:3px;
+}
+
+.section-subhead{
+  font-size:19px;
+  font-weight:800;
+  color:var(--blue);
+  letter-spacing:-.03em;
+  margin-bottom:18px;
+}
+
+/* 3단 카드 레이아웃 */
+.three{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:22px;
+  flex:1;
+}
+.discovery-card{
+  background:var(--card-bg);
+  border-radius:14px;
+  padding:26px 26px 24px;
+  display:flex;
+  flex-direction:column;
+}
+.discovery-top{
+  text-align:center;
+  display:flex;
+  flex-direction:column;
+}
+.discovery-kicker{
+  font-size:13.5px;
+  font-weight:800;
+  color:var(--blue);
+  letter-spacing:-.01em;
+  margin-bottom:8px;
+}
+.discovery-card h3{
+  font-size:21.5px;
+  font-weight:900;
+  color:var(--ink);
+  letter-spacing:-.035em;
+  line-height:1.35;
+  min-height:58px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+.visual-slot{
+  height:190px;
+  margin:14px 0 12px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+.news-capture{
+  width:100%;
+  height:100%;
+  background:#fff;
+  border:1.5px solid #d5dfef;
+  border-radius:10px;
+  padding:8px 10px;
+  box-shadow:0 3px 12px rgba(15,23,42,0.05);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  overflow:hidden;
+}
+.news-capture img{
+  width:100%;
+  height:100%;
+  object-fit:contain;
+  display:block;
+}
+.big-stat{
+  font-size:48px;
+  font-weight:900;
+  color:var(--navy);
+  letter-spacing:-.04em;
+  line-height:1.15;
+}
+.stat-caption{
+  font-size:14px;
+  font-weight:700;
+  color:var(--muted);
+  line-height:1.5;
+  min-height:42px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+.card-divider{
+  border:0;
+  border-top:1.5px solid var(--line);
+  margin:16px 0;
+}
+.pain-list{
+  padding-left:18px;
+  display:grid;
+  gap:10px;
+  color:var(--body);
+  font-size:14.5px;
+  font-weight:600;
+  line-height:1.68;
+  letter-spacing:-.02em;
+}
+.pain-list li::marker{
+  color:#334155;
+}
+.pain-list strong{
+  font-weight:800;
+  color:var(--ink);
+}
+
+
+
+
+
+}
+/* === SafeHandoff_타겟_페르소나.html === */
+#slide-persona {
+
+&{
+  --blue:#1d4ed8;
+  --navy:#163172;
+  --teal:#0f766e;
+  --dark-badge:#0f172a;
+  --green:#157347;
+  --ink:#111827;
+  --body:#334155;
+  --muted:#64748b;
+  --line:#dce4f0;
+  --soft:#f1f5f9;
+  --paper:#ffffff;
+}
+*{box-sizing:border-box}
+html{
+  scroll-behavior:smooth;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+}
+body{
+  margin:0;
+  background:#e8edf5;
+  color:var(--ink);
+  font-family:"Pretendard Variable",Pretendard,"Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+  font-size:15px;
+  font-weight:600;
+  line-height:1.65;
+  word-break:keep-all;
+  overflow-wrap:break-word;
+}
+h1,h2,h3,h4,p,figure,blockquote,ul{margin:0}
+h1,h2,h3,h4{line-height:1.35;letter-spacing:-.035em}
+a{color:inherit}
+button{font:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
+
+.toolbar{
+  height:64px;
+  position:sticky;
+  top:0;
+  z-index:30;
+  background:#fffffff7;
+  border-bottom:1px solid var(--line);
+  backdrop-filter:blur(12px);
+}
+.toolbar-inner{
+  height:100%;
+  width:min(1280px,calc(100% - 40px));
+  margin:auto;
+  display:flex;
+  justify-content:space-between;
+  gap:20px;
+  align-items:center;
+}
+.brand{
+  font-size:19px;
+  font-weight:900;
+  color:var(--navy);
+  text-decoration:none;
+  white-space:nowrap;
+  letter-spacing:-.03em;
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+.brand-badge{
+  display:inline-grid;
+  place-items:center;
+  width:26px;
+  height:26px;
+  border-radius:7px;
+  background:#0f9f90;
+  color:#fff;
+  font-size:14px;
+  font-weight:900;
+}
+.brand small{
+  font-size:11px;
+  letter-spacing:.08em;
+  font-weight:700;
+  margin-left:4px;
+  color:var(--muted);
+}
+.tools{display:flex;gap:9px;align-items:center}
+.tool-button{
+  font-size:12px;
+  font-weight:700;
+  color:var(--navy);
+  background:#fff;
+  border:1.5px solid var(--line);
+  border-radius:8px;
+  padding:7px 14px;
+  line-height:1.5;
+  text-decoration:none;
+}
+.tool-button:hover{background:#f0f5ff}
+
+.reader{padding:28px 0 42px}
+.page-shell{
+  position:relative;
+  margin:0 auto 28px;
+  width:1280px;
+  height:720px;
+}
+.page{
+  position:relative;
+  width:1280px;
+  height:720px;
+  padding:28px 48px 24px;
+  background:var(--paper);
+  box-shadow:0 6px 28px #16317212;
+  transform-origin:top left;
+  overflow:hidden;
+  display:flex;
+  flex-direction:column;
+}
+.page-header{
+  border-bottom:2.5px solid var(--navy);
+  padding-bottom:11px;
+  margin-bottom:16px;
+  display:flex;
+  align-items:flex-end;
+  justify-content:space-between;
+  gap:24px;
+  flex-shrink:0;
+}
+.page-header h2{
+  font-size:26.5px;
+  color:#0f172a;
+  font-weight:900;
+  letter-spacing:-.04em;
+  white-space:nowrap;
+}
+.page-header .eyebrow{
+  font-size:11.5px;
+  font-weight:800;
+  color:var(--muted);
+  letter-spacing:.09em;
+  white-space:nowrap;
+  padding-bottom:3px;
+}
+
+/* 좌우 분할 페르소나 카드 */
+.persona-card{
+  border:1.5px solid var(--line);
+  border-radius:16px;
+  background:#fff;
+  display:grid;
+  grid-template-columns:336px 1fr;
+  flex:1;
+  min-height:0;
+  box-shadow:0 4px 18px rgba(15,23,42,0.03);
+  overflow:hidden;
+}
+
+/* 좌측 프로필 영역 */
+.persona-left{
+  padding:22px 22px 20px;
+  border-right:1.5px solid var(--line);
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  text-align:center;
+  background:#fcfdff;
+}
+.avatar-wrap{
+  position:relative;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  margin-bottom:8px;
+}
+.avatar-circle{
+  width:132px;
+  height:132px;
+  border-radius:50%;
+  background:#e2e8f0;
+  border:3.5px solid #fff;
+  box-shadow:0 4px 16px rgba(15,23,42,0.14);
+  overflow:hidden;
+}
+.avatar-circle img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  object-position:35% 24%;
+  display:block;
+}
+.role-badge{
+  margin-top:-13px;
+  background:var(--dark-badge);
+  color:#fff;
+  padding:6px 16px;
+  border-radius:999px;
+  font-size:12px;
+  font-weight:800;
+  line-height:1.35;
+  letter-spacing:-.02em;
+  box-shadow:0 4px 12px rgba(15,23,42,0.18);
+}
+.persona-name{
+  font-size:26px;
+  font-weight:900;
+  color:var(--ink);
+  letter-spacing:-.04em;
+  margin-top:4px;
+}
+.persona-name span{
+  font-size:17.5px;
+  font-weight:700;
+  color:var(--muted);
+  margin-left:4px;
+}
+.persona-meta{
+  margin-top:9px;
+  display:grid;
+  gap:4px;
+  font-size:13px;
+  font-weight:600;
+  color:var(--muted);
+  line-height:1.5;
+}
+.persona-meta strong{
+  color:#334155;
+  font-weight:800;
+}
+.meta-pills{
+  display:flex;
+  flex-wrap:wrap;
+  justify-content:center;
+  gap:6px;
+  margin-top:10px;
+}
+.meta-pill{
+  font-size:11px;
+  font-weight:800;
+  padding:3px 9px;
+  border-radius:6px;
+  background:#eef3fc;
+  color:var(--navy);
+  border:1px solid #d5e2f9;
+}
+.persona-quote{
+  margin-top:auto;
+  width:100%;
+  background:#f8fafc;
+  border:1.5px solid #e2e8f0;
+  border-radius:11px;
+  padding:12px 14px;
+  font-size:13px;
+  font-weight:700;
+  color:#334155;
+  line-height:1.56;
+  letter-spacing:-.02em;
+}
+
+/* 우측 페인 포인트 & 니즈 영역 */
+.persona-right{
+  padding:22px 32px 20px;
+  display:flex;
+  flex-direction:column;
+  justify-content:space-between;
+  gap:12px;
+}
+.section-block h3{
+  font-size:19.5px;
+  font-weight:900;
+  letter-spacing:-.035em;
+  margin-bottom:10px;
+}
+.section-block.pain h3{
+  color:var(--navy);
+}
+.section-block.needs h3{
+  color:var(--green);
+}
+.item-list{
+  padding-left:20px;
+  display:grid;
+  gap:10px;
+}
+.item-list li{
+  font-size:14.2px;
+  font-weight:600;
+  color:var(--body);
+  line-height:1.58;
+  letter-spacing:-.02em;
+}
+.item-list li::marker{
+  color:#475569;
+}
+.tag-pain{
+  color:var(--blue);
+  font-weight:800;
+  margin-right:4px;
+}
+.tag-need{
+  color:var(--green);
+  font-weight:800;
+  margin-right:4px;
+}
+.item-list b{
+  color:var(--ink);
+  font-weight:800;
+}
+
+.right-divider{
+  border:0;
+  border-top:1.5px dashed var(--line);
+  margin:0;
+}
+
+
+
+
+
+}
+/* === SafeHandoff_서비스_플로우.html === */
+#slide-flow {
+
+&{
+  --blue:#1d4ed8;
+  --navy:#163172;
+  --teal:#0f766e;
+  --ink:#111827;
+  --body:#334155;
+  --muted:#64748b;
+  --line:#dce4f0;
+  --canvas:#eef1f6;
+  --paper:#ffffff;
+}
+*{box-sizing:border-box}
+html{
+  scroll-behavior:smooth;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+}
+body{
+  margin:0;
+  background:#e8edf5;
+  color:var(--ink);
+  font-family:"Pretendard Variable",Pretendard,"Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+  font-size:14px;
+  font-weight:600;
+  line-height:1.5;
+  word-break:keep-all;
+  overflow-wrap:break-word;
+}
+h1,h2,h3,h4,p,figure{margin:0}
+h1,h2,h3,h4{line-height:1.32;letter-spacing:-.035em}
+a{color:inherit;text-decoration:none}
+button{font:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
+
+.toolbar{
+  height:64px;
+  position:sticky;
+  top:0;
+  z-index:30;
+  background:#fffffff7;
+  border-bottom:1px solid var(--line);
+  backdrop-filter:blur(12px);
+}
+.toolbar-inner{
+  height:100%;
+  width:min(1280px,calc(100% - 40px));
+  margin:auto;
+  display:flex;
+  justify-content:space-between;
+  gap:20px;
+  align-items:center;
+}
+.brand{
+  font-size:19px;
+  font-weight:900;
+  color:var(--navy);
+  text-decoration:none;
+  white-space:nowrap;
+  letter-spacing:-.03em;
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+.brand-badge{
+  display:inline-grid;
+  place-items:center;
+  width:26px;
+  height:26px;
+  border-radius:7px;
+  background:#0f9f90;
+  color:#fff;
+  font-size:14px;
+  font-weight:900;
+}
+.brand small{
+  font-size:11px;
+  letter-spacing:.08em;
+  font-weight:700;
+  margin-left:4px;
+  color:var(--muted);
+}
+.tools{display:flex;gap:9px;align-items:center}
+.tool-button{
+  font-size:12px;
+  font-weight:700;
+  color:var(--navy);
+  background:#fff;
+  border:1.5px solid var(--line);
+  border-radius:8px;
+  padding:7px 14px;
+  line-height:1.5;
+  text-decoration:none;
+}
+.tool-button:hover{background:#f0f5ff}
+
+.reader{padding:28px 0 42px}
+.page-shell{
+  position:relative;
+  margin:0 auto 28px;
+  width:1280px;
+  height:720px;
+}
+.page{
+  position:relative;
+  width:1280px;
+  height:720px;
+  padding:24px 44px 20px;
+  background:var(--paper);
+  box-shadow:0 6px 28px #16317212;
+  transform-origin:top left;
+  overflow:hidden;
+  display:flex;
+  flex-direction:column;
+}
+
+.page-header{
+  border-bottom:2.5px solid var(--navy);
+  padding-bottom:10px;
+  margin-bottom:12px;
+  display:flex;
+  align-items:flex-end;
+  justify-content:space-between;
+  gap:20px;
+  flex-shrink:0;
+}
+.page-header h2{
+  font-size:30px;
+  color:var(--ink);
+  font-weight:900;
+  letter-spacing:-.04em;
+  white-space:nowrap;
+}
+.header-sub{
+  font-size:12.5px;
+  font-weight:700;
+  color:var(--muted);
+  padding-bottom:2px;
+  white-space:nowrap;
+}
+
+.wireflow-canvas{
+  flex:1;
+  min-height:0;
+  background:var(--canvas);
+  border:1.5px solid #d5deec;
+  border-radius:14px;
+  overflow:hidden;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+.wireflow-canvas svg{
+  width:100%;
+  height:100%;
+  display:block;
+}
+.wireflow-canvas svg text{
+  font-family:"Pretendard Variable",Pretendard,"Noto Sans KR","Malgun Gothic",sans-serif;
+}
+
+
+
+
+
+}
+/* === SafeHandoff_기술_스택.html === */
+#slide-tech {
+
+&{
+  --page-width:1280px;
+  --page-height:720px;
+  --Slide-Bg:#ffffff;
+  --Text-Ink:#0f172a;
+  --Text-Body:#334155;
+  --Text-Muted:#64748b;
+  --Brand-Blue:#2563eb;
+  --Brand-Navy:#1e3a8a;
+  --Header-Band:#e0f2fe;
+  --Header-Text:#0369a1;
+  --Card-Border:#e2e8f0;
+  --Sans:"Pretendard",-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+}
+
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{
+  background:#eef2f6;
+  color:var(--Text-Ink);
+  font-family:var(--Sans);
+  -webkit-font-smoothing:antialiased;
+}
+
+.toolbar{
+  position:sticky;
+  top:0;
+  z-index:30;
+  background:rgba(255,255,255,.92);
+  backdrop-filter:blur(10px);
+  border-bottom:1px solid #cbd5e1;
+}
+.toolbar-inner{
+  max-width:var(--page-width);
+  margin:0 auto;
+  padding:10px 18px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+}
+.brand{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  font-weight:800;
+  color:var(--Text-Ink);
+  text-decoration:none;
+  font-size:.92rem;
+}
+.brand-badge{
+  width:26px;height:26px;border-radius:6px;
+  background:var(--Brand-Blue);color:#fff;
+  display:grid;place-items:center;font-weight:900;font-size:.85rem;
+}
+.brand small{color:var(--Text-Muted);font-weight:600}
+.tools{display:flex;gap:8px;flex-wrap:wrap}
+.tool-button{
+  border:1px solid #cbd5e1;
+  background:#fff;
+  color:var(--Text-Ink);
+  padding:6px 11px;
+  border-radius:6px;
+  font:700 .78rem/1 var(--Sans);
+  cursor:pointer;
+  text-decoration:none;
+}
+.tool-button:hover{border-color:var(--Brand-Blue);color:var(--Brand-Blue)}
+
+.reader{padding:24px 0 36px}
+.page-shell{
+  width:var(--page-width);
+  height:var(--page-height);
+  margin:0 auto;
+  position:relative;
+}
+.page{
+  width:var(--page-width);
+  height:var(--page-height);
+  background:var(--Slide-Bg);
+  border-radius:6px;
+  box-shadow:0 16px 40px rgba(15,23,42,.10);
+  padding:32px 48px 26px;
+  display:flex;
+  flex-direction:column;
+  justify-content:space-between;
+  overflow:hidden;
+  transform-origin:top left;
+}
+
+/* 상단 헤더 */
+.page-header{
+  display:flex;
+  align-items:baseline;
+  justify-content:space-between;
+  padding-bottom:11px;
+  border-bottom:2px solid #3b63a8;
+  flex-shrink:0;
+}
+.page-header h2{
+  font-size:29px;
+  line-height:1.15;
+  font-weight:900;
+  letter-spacing:-0.03em;
+  color:#0f172a;
+}
+.page-header h2 .num-accent{
+  color:#0284c7;
+  margin-right:6px;
+}
+.page-header .header-sub{
+  font-size:13.5px;
+  font-weight:700;
+  color:#64748b;
+  letter-spacing:-0.01em;
+}
+
+/* 3열 기술 스택 그리드 (레퍼런스 스타일) */
+.stack-columns{
+  display:grid;
+  grid-template-columns:repeat(3, 1fr);
+  gap:20px;
+  flex:1;
+  margin-top:14px;
+  min-height:0;
+}
+
+.stack-col{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  min-width:0;
+}
+
+/* 상단 하늘색 카테고리 바 (레퍼런스 프론트엔드 바 스타일) */
+.col-banner{
+  background:#e6f3f8;
+  border-left:4px solid #0284c7;
+  padding:7px 14px;
+  border-radius:4px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  flex-shrink:0;
+}
+.col-banner h3{
+  font-size:15.5px;
+  font-weight:900;
+  color:#0369a1;
+  letter-spacing:-0.02em;
+}
+.col-banner span{
+  font-size:11px;
+  font-weight:800;
+  color:#0284c7;
+  opacity:.85;
+}
+
+/* 개별 스택 카드 (레퍼런스 라운드 카드 스타일) */
+.tech-card{
+  background:#ffffff;
+  border:1.5px solid #e2e8f0;
+  border-radius:14px;
+  padding:12px 15px;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  gap:6px;
+  flex:1;
+  min-height:0;
+  box-shadow:0 2px 6px rgba(15,23,42,.02);
+}
+
+.tech-card-head{
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+
+.tech-icon{
+  width:26px;
+  height:26px;
+  border-radius:6px;
+  display:grid;
+  place-items:center;
+  flex-shrink:0;
+}
+.tech-icon svg{
+  width:24px;
+  height:24px;
+  display:block;
+}
+
+.tech-title{
+  font-size:14.5px;
+  font-weight:900;
+  color:#0f172a;
+  letter-spacing:-0.02em;
+  white-space:nowrap;
+}
+
+.tech-desc{
+  font-size:11.8px;
+  line-height:1.45;
+  font-weight:500;
+  color:#475569;
+  letter-spacing:-0.015em;
+  word-break:keep-all;
+}
+.tech-desc strong{
+  color:#0f172a;
+  font-weight:800;
+}
+
+/* 하단 요약 바 */
+.page-footer{
+  margin-top:10px;
+  padding-top:9px;
+  border-top:1px dashed #cbd5e1;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  font-size:11.5px;
+  font-weight:700;
+  color:#64748b;
+  flex-shrink:0;
+}
+.page-footer .footer-Right{
+  color:#1d4ed8;
+  font-weight:800;
+}
+
+
+
+
+
+}
+/* === SafeHandoff_AI기술_개발범위.html === */
+#slide-ai {
+
+&{
+  --bg:#eef2f7;
+  --paper:#ffffff;
+  --ink:#0f172a;
+  --body:#334155;
+  --muted:#64748b;
+  --navy:#163172;
+  --blue:#2563eb;
+  --line:#dce4f0;
+  --shadow:0 18px 42px rgba(15,23,42,0.08);
+}
+*{box-sizing:border-box}
+html{
+  scroll-behavior:smooth;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+  text-rendering:optimizeLegibility;
+}
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--ink);
+  font-family:"Pretendard Variable",Pretendard,"Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+  line-height:1.4;
+  letter-spacing:-.02em;
+  word-break:keep-all;
+  overflow-wrap:break-word;
+}
+h1,h2,h3,h4,p,figure,ul{margin:0}
+a{color:inherit;text-decoration:none}
+button{font:inherit;cursor:pointer}
+
+.toolbar{
+  height:64px;
+  position:sticky;
+  top:0;
+  z-index:30;
+  background:#ffffffeb;
+  border-bottom:1px solid var(--line);
+  backdrop-filter:blur(10px);
+}
+.toolbar-inner{
+  height:100%;
+  width:min(1280px,calc(100% - 40px));
+  margin:auto;
+  display:flex;
+  justify-content:space-between;
+  gap:16px;
+  align-items:center;
+}
+.brand{
+  font-size:19px;
+  font-weight:900;
+  color:var(--navy);
+  white-space:nowrap;
+  letter-spacing:-.03em;
+  display:flex;
+  align-items:center;
+  gap:9px;
+}
+.brand-badge{
+  display:inline-grid;
+  place-items:center;
+  width:26px;
+  height:26px;
+  border-radius:7px;
+  background:#0f9f90;
+  color:#fff;
+  font-size:14px;
+  font-weight:900;
+}
+.brand small{
+  font-size:11.5px;
+  letter-spacing:.08em;
+  font-weight:700;
+  color:var(--muted);
+}
+.tools{
+  display:flex;
+  gap:8px;
+  align-items:center;
+  flex-wrap:wrap;
+  justify-content:flex-end;
+}
+.tool-button{
+  font-size:12px;
+  font-weight:700;
+  color:var(--navy);
+  background:#fff;
+  border:1.5px solid var(--line);
+  border-radius:8px;
+  padding:6px 12px;
+  line-height:1.4;
+}
+.tool-button:hover{
+  background:#f4f8ff;
+}
+
+.reader{
+  padding:24px 0 36px;
+}
+.page-shell{
+  position:relative;
+  margin:0 auto;
+  width:1280px;
+  height:720px;
+}
+.page{
+  width:1280px;
+  height:720px;
+  background:var(--paper);
+  box-shadow:var(--shadow);
+  position:relative;
+  overflow:hidden;
+  transform-origin:top left;
+  padding:28px 44px 22px;
+  display:flex;
+  flex-direction:column;
+}
+
+/* ==================== 상단 헤더 ==================== */
+.page-header{
+  display:flex;
+  align-items:baseline;
+  justify-content:space-between;
+  gap:16px;
+  padding-bottom:11px;
+  border-bottom:2px solid #2b4c8c;
+  margin-bottom:16px;
+  flex-shrink:0;
+}
+.page-header h2{
+  font-size:30px;
+  font-weight:900;
+  letter-spacing:-.035em;
+  color:#0f172a;
+  line-height:1.15;
+}
+.header-sub{
+  font-size:14px;
+  font-weight:700;
+  color:#64748b;
+  letter-spacing:-.02em;
+}
+
+/* ==================== 2x2 카드 그리드 ==================== */
+.pipeline-grid{
+  flex:1;
+  min-height:0;
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  grid-template-rows:1fr 1fr;
+  gap:16px 22px;
+}
+
+.pipe-card{
+  background:#ffffff;
+  border:1.5px solid #e2e8f0;
+  border-top:4px solid var(--blue);
+  border-radius:14px;
+  padding:14px 18px 12px;
+  display:flex;
+  flex-direction:column;
+  justify-content:space-between;
+  box-shadow:0 4px 14px rgba(15,23,42,0.03);
+  min-width:0;
+}
+
+/* 카드 상단 메타 + 공식 SVG 기술 스택 & 직접개발 뱃지 (2줄 분리로 충돌 원천 방지) */
+.card-head{
+  display:flex;
+  flex-direction:column;
+  gap:5px;
+  margin-bottom:8px;
+}
+.card-top-row{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:8px;
+  min-width:0;
+}
+.en-kicker{
+  font-size:10.5px;
+  font-weight:800;
+  color:var(--blue);
+  letter-spacing:.04em;
+  text-transform:uppercase;
+  white-space:nowrap;
+}
+.card-head h3{
+  font-size:18px;
+  font-weight:900;
+  color:#0f172a;
+  letter-spacing:-.035em;
+  white-space:nowrap;
+}
+
+.tech-pills{
+  display:flex;
+  align-items:center;
+  gap:5px;
+  flex-wrap:nowrap;
+  justify-content:flex-end;
+  flex-shrink:0;
+}
+.tech-pill{
+  display:inline-flex;
+  align-items:center;
+  gap:4px;
+  background:#f8fafc;
+  border:1px solid #cbd5e1;
+  border-radius:999px;
+  padding:3px 8px;
+  font-size:10.2px;
+  font-weight:800;
+  color:#0f172a;
+  white-space:nowrap;
+}
+.tech-pill svg{
+  width:13px;
+  height:13px;
+  flex-shrink:0;
+  display:block;
+}
+.tech-pill.direct{
+  background:#eff6ff;
+  border-color:#93c5fd;
+  color:#1d4ed8;
+}
+.pill-check{
+  width:13px;
+  height:13px;
+  border-radius:50%;
+  background:#2563eb;
+  color:#fff;
+  display:inline-grid;
+  place-items:center;
+  font-size:8.5px;
+  font-weight:900;
+  flex-shrink:0;
+}
+
+/* 카드 내부 점선 플로우 박스 */
+.flow-well{
+  flex:1;
+  background:#f8fafc;
+  border:1.5px dashed #cbd5e1;
+  border-radius:11px;
+  padding:10px 10px;
+  display:grid;
+  grid-template-columns:1fr 20px 1fr 20px 1fr;
+  align-items:center;
+  min-width:0;
+}
+
+.flow-step{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  text-align:center;
+}
+.step-icon{
+  width:44px;
+  height:44px;
+  border-radius:12px;
+  background:#ffffff;
+  border:1px solid #e2e8f0;
+  box-shadow:0 3px 8px rgba(15,23,42,0.05);
+  display:grid;
+  place-items:center;
+  margin-bottom:7px;
+  color:#1e3a8a;
+}
+.step-icon svg{
+  width:22px;
+  height:22px;
+}
+.step-icon.active-blue{
+  background:var(--blue);
+  border-color:var(--blue);
+  color:#ffffff;
+  box-shadow:0 5px 12px rgba(37,99,235,0.24);
+}
+.step-icon.accent-red{
+  color:#ef4444;
+}
+.step-icon.accent-green{
+  color:#10b981;
+}
+
+.step-title{
+  font-size:13px;
+  font-weight:900;
+  color:#0f172a;
+  letter-spacing:-.03em;
+  margin-bottom:2px;
+  white-space:nowrap;
+}
+.step-sub{
+  font-size:10.8px;
+  font-weight:600;
+  color:#64748b;
+  letter-spacing:-.025em;
+  white-space:nowrap;
+}
+
+.flow-arrow{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:#94a3b8;
+  padding-bottom:16px;
+}
+.flow-arrow svg{
+  width:16px;
+  height:16px;
+}
+
+/* 카드 하단: 아키텍처·기술스택 연계 및 [API 활용 vs 직접 개발] 구분 바 */
+.scope-strip{
+  margin-top:8px;
+  padding-top:7px;
+  border-top:1px solid #eef2f6;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:6px;
+  font-size:10.3px;
+  white-space:nowrap;
+}
+.scope-api{
+  color:#475569;
+  font-weight:700;
+}
+.scope-api strong{
+  color:#0f172a;
+  font-weight:800;
+}
+.scope-dev{
+  color:#1d4ed8;
+  font-weight:800;
+  background:#f0f7ff;
+  padding:2px 7px;
+  border-radius:5px;
+}
+
+/* 슬라이드 하단 요약 바 */
+.page-footer{
+  margin-top:11px;
+  padding-top:8px;
+  border-top:1px dashed #cbd5e1;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  font-size:10.8px;
+  font-weight:700;
+  color:#64748b;
+  flex-shrink:0;
+  white-space:nowrap;
+}
+.page-footer strong{
+  color:#0f172a;
+  font-weight:800;
+}
+.page-footer .footer-right{
+  color:#1d4ed8;
+  font-weight:800;
+}
+
+
+
+
+
+}
+/* === SafeHandoff_서비스_아키텍처.html === */
+#slide-arch {
+
+&{
+  --bg:#eef2f7;
+  --paper:#ffffff;
+  --ink:#0f172a;
+  --body:#334155;
+  --muted:#64748b;
+  --navy:#163172;
+  --blue:#2563eb;
+  --line:#dce4f0;
+  --shadow:0 18px 42px rgba(15,23,42,0.08);
+}
+*{box-sizing:border-box}
+html{
+  scroll-behavior:smooth;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+  text-rendering:optimizeLegibility;
+}
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--ink);
+  font-family:"Pretendard Variable",Pretendard,"Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+  line-height:1.4;
+  letter-spacing:-.02em;
+  word-break:keep-all;
+  overflow-wrap:break-word;
+}
+h1,h2,h3,h4,p,figure,ul{margin:0}
+a{color:inherit;text-decoration:none}
+button{font:inherit;cursor:pointer}
+
+.toolbar{
+  height:64px;
+  position:sticky;
+  top:0;
+  z-index:30;
+  background:#ffffffeb;
+  border-bottom:1px solid var(--line);
+  backdrop-filter:blur(10px);
+}
+.toolbar-inner{
+  height:100%;
+  width:min(1280px,calc(100% - 40px));
+  margin:auto;
+  display:flex;
+  justify-content:space-between;
+  gap:16px;
+  align-items:center;
+}
+.brand{
+  font-size:19px;
+  font-weight:900;
+  color:var(--navy);
+  white-space:nowrap;
+  letter-spacing:-.03em;
+  display:flex;
+  align-items:center;
+  gap:9px;
+}
+.brand-badge{
+  display:inline-grid;
+  place-items:center;
+  width:26px;
+  height:26px;
+  border-radius:7px;
+  background:#0f9f90;
+  color:#fff;
+  font-size:14px;
+  font-weight:900;
+}
+.brand small{
+  font-size:11.5px;
+  letter-spacing:.08em;
+  font-weight:700;
+  color:var(--muted);
+}
+.tools{
+  display:flex;
+  gap:8px;
+  align-items:center;
+  flex-wrap:wrap;
+  justify-content:flex-end;
+}
+.tool-button{
+  font-size:12px;
+  font-weight:700;
+  color:var(--navy);
+  background:#fff;
+  border:1.5px solid var(--line);
+  border-radius:8px;
+  padding:6px 12px;
+  line-height:1.4;
+}
+.tool-button:hover{
+  background:#f4f8ff;
+}
+
+.reader{
+  padding:24px 0 36px;
+}
+.page-shell{
+  position:relative;
+  margin:0 auto;
+  width:1280px;
+  height:720px;
+}
+.page{
+  width:1280px;
+  height:720px;
+  background:var(--paper);
+  box-shadow:var(--shadow);
+  position:relative;
+  overflow:hidden;
+  transform-origin:top left;
+  padding:26px 40px 20px;
+  display:flex;
+  flex-direction:column;
+}
+
+/* ==================== 상단 헤더 ==================== */
+.page-header{
+  display:flex;
+  align-items:baseline;
+  justify-content:space-between;
+  gap:16px;
+  padding-bottom:11px;
+  border-bottom:2px solid #2b4c8c;
+  margin-bottom:10px;
+  flex-shrink:0;
+}
+.page-header h2{
+  font-size:30px;
+  font-weight:900;
+  letter-spacing:-.035em;
+  color:#0f172a;
+  line-height:1.15;
+}
+.header-sub{
+  font-size:13.5px;
+  font-weight:700;
+  color:#64748b;
+}
+
+.arch-canvas{
+  flex:1;
+  min-height:0;
+  width:100%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+.arch-canvas svg{
+  width:100%;
+  height:100%;
+  display:block;
+  font-family:"Pretendard Variable",Pretendard,"Noto Sans KR",sans-serif;
+}
+
+
+
+
+
+}
+/* === SafeHandoff_서비스_차별점.html === */
+#slide-diff {
+
+&{
+  --blue:#2563eb;
+  --navy:#163172;
+  --dark-pill:#223042;
+  --ink:#111827;
+  --body:#334155;
+  --muted:#64748b;
+  --line:#dce4f0;
+  --paper:#ffffff;
+}
+*{box-sizing:border-box}
+html{
+  scroll-behavior:smooth;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+}
+body{
+  margin:0;
+  background:#e8edf5;
+  color:var(--ink);
+  font-family:"Pretendard Variable",Pretendard,"Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+  font-size:14px;
+  font-weight:600;
+  line-height:1.4;
+  word-break:keep-all;
+  overflow-wrap:break-word;
+}
+h1,h2,h3,h4,p,figure{margin:0}
+h1,h2,h3,h4{line-height:1.25;letter-spacing:-.035em}
+a{color:inherit;text-decoration:none}
+button{font:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
+
+.toolbar{
+  height:64px;
+  position:sticky;
+  top:0;
+  z-index:30;
+  background:#fffffff7;
+  border-bottom:1px solid var(--line);
+  backdrop-filter:blur(12px);
+}
+.toolbar-inner{
+  height:100%;
+  width:min(1280px,calc(100% - 40px));
+  margin:auto;
+  display:flex;
+  justify-content:space-between;
+  gap:20px;
+  align-items:center;
+}
+.brand{
+  font-size:19px;
+  font-weight:900;
+  color:var(--navy);
+  white-space:nowrap;
+  letter-spacing:-.03em;
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+.brand-badge{
+  display:inline-grid;
+  place-items:center;
+  width:26px;
+  height:26px;
+  border-radius:7px;
+  background:#0f9f90;
+  color:#fff;
+  font-size:14px;
+  font-weight:900;
+}
+.brand small{
+  font-size:11px;
+  letter-spacing:.08em;
+  font-weight:700;
+  margin-left:4px;
+  color:var(--muted);
+}
+.tools{display:flex;gap:8px;align-items:center}
+.tool-button{
+  font-size:12px;
+  font-weight:700;
+  color:var(--navy);
+  background:#fff;
+  border:1.5px solid var(--line);
+  border-radius:8px;
+  padding:7px 13px;
+  line-height:1.5;
+}
+.tool-button:hover{background:#f0f5ff}
+
+.reader{padding:28px 0 42px}
+.page-shell{
+  position:relative;
+  margin:0 auto 28px;
+  width:1280px;
+  height:720px;
+}
+.page{
+  position:relative;
+  width:1280px;
+  height:720px;
+  padding:26px 46px 24px;
+  background:var(--paper);
+  box-shadow:0 6px 28px #16317212;
+  transform-origin:top left;
+  overflow:hidden;
+  display:flex;
+  flex-direction:column;
+}
+
+.page-header{
+  border-bottom:2px solid var(--navy);
+  padding-bottom:11px;
+  margin-bottom:14px;
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-end;
+  gap:16px;
+  flex-shrink:0;
+}
+.page-header h2{
+  font-size:32px;
+  color:var(--ink);
+  font-weight:900;
+  letter-spacing:-.04em;
+}
+.header-sub{
+  font-size:13px;
+  font-weight:700;
+  color:var(--muted);
+  padding-bottom:2px;
+}
+
+/* 레퍼런스 이미지 완벽 대응: 5열 대분류 비교 그리드 */
+.matrix-wrap{
+  flex:1;
+  min-height:0;
+  display:grid;
+  grid-template-columns:168px 1fr 1fr 1fr 1.24fr;
+  column-gap:12px;
+  align-items:stretch;
+}
+
+.matrix-col{
+  display:grid;
+  grid-template-rows:68px repeat(7, minmax(0, 1fr));
+  min-height:0;
+}
+
+/* 상단 컬럼 헤더 박스 */
+.col-head{
+  background:var(--dark-pill);
+  color:#ffffff;
+  border-radius:10px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  padding:8px 10px;
+}
+.col-head strong{
+  font-size:15.5px;
+  font-weight:800;
+  letter-spacing:-.025em;
+  line-height:1.25;
+}
+.col-head span{
+  font-size:11px;
+  font-weight:600;
+  color:#cbd5e1;
+  margin-top:3px;
+  letter-spacing:-.01em;
+}
+
+/* 우측 우리 서비스(SafeHandoff) 강조 컬럼 */
+.matrix-col.ours .col-head{
+  background:var(--blue);
+  border-radius:10px 10px 4px 4px;
+  box-shadow:0 4px 14px rgba(37,99,235,0.22);
+}
+.matrix-col.ours .col-head strong{
+  font-size:19px;
+  font-weight:900;
+}
+.matrix-col.ours .col-head span{
+  color:#dbeafe;
+  font-size:11.5px;
+  font-weight:700;
+}
+
+/* 각 셀 공통 */
+.m-cell{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  padding:6px 10px;
+  border-bottom:1px solid #e2e8f0;
+  font-size:13.2px;
+  font-weight:600;
+  color:#64748b;
+  line-height:1.38;
+}
+.matrix-col .m-cell:last-child{
+  border-bottom:0;
+}
+
+/* 1열(구분) 스타일 */
+.matrix-col.label-col .m-cell{
+  align-items:flex-start;
+  text-align:left;
+  padding-left:6px;
+  font-size:14.5px;
+  font-weight:800;
+  color:#334155;
+  flex-direction:row;
+  justify-content:flex-start;
+  gap:7px;
+}
+.star-icon{
+  width:17px;
+  height:17px;
+  flex-shrink:0;
+  fill:#f59e0b;
+}
+
+/* 5열(SafeHandoff) 본문 박스 스타일 */
+.matrix-col.ours .m-cell{
+  background:#f2f7ff;
+  border-left:2.2px solid var(--blue);
+  border-right:2.2px solid var(--blue);
+  border-bottom:1px solid #dbeafe;
+  color:#111827;
+  font-size:13.8px;
+  font-weight:800;
+  padding:6px 14px;
+}
+.matrix-col.ours .m-cell:nth-child(2){
+  padding-top:8px;
+}
+.matrix-col.ours .m-cell:last-child{
+  border-bottom:2.2px solid var(--blue);
+  border-radius:0 0 10px 10px;
+}
+.matrix-col.ours .m-cell.highlight{
+  color:var(--blue);
+  font-weight:900;
+}
+
+
+
+
+
+}
+/* === SafeHandoff_기대효과.html === */
+#slide-effect {
+
+&{
+  --blue:#2563eb;
+  --navy:#163172;
+  --dark-bar:#223042;
+  --ink:#111827;
+  --body:#334155;
+  --muted:#64748b;
+  --line:#dce4f0;
+  --paper:#ffffff;
+}
+*{box-sizing:border-box}
+html{
+  scroll-behavior:smooth;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+}
+body{
+  margin:0;
+  background:#e8edf5;
+  color:var(--ink);
+  font-family:"Pretendard Variable",Pretendard,"Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+  font-size:14px;
+  font-weight:600;
+  line-height:1.45;
+  word-break:keep-all;
+  overflow-wrap:break-word;
+}
+h1,h2,h3,h4,p,figure{margin:0}
+h1,h2,h3,h4{line-height:1.25;letter-spacing:-.035em}
+a{color:inherit;text-decoration:none}
+button{font:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
+
+.toolbar{
+  height:64px;
+  position:sticky;
+  top:0;
+  z-index:30;
+  background:#fffffff7;
+  border-bottom:1px solid var(--line);
+  backdrop-filter:blur(12px);
+}
+.toolbar-inner{
+  height:100%;
+  width:min(1280px,calc(100% - 40px));
+  margin:auto;
+  display:flex;
+  justify-content:space-between;
+  gap:20px;
+  align-items:center;
+}
+.brand{
+  font-size:19px;
+  font-weight:900;
+  color:var(--navy);
+  white-space:nowrap;
+  letter-spacing:-.03em;
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+.brand-badge{
+  display:inline-grid;
+  place-items:center;
+  width:26px;
+  height:26px;
+  border-radius:7px;
+  background:#0f9f90;
+  color:#fff;
+  font-size:14px;
+  font-weight:900;
+}
+.brand small{
+  font-size:11px;
+  letter-spacing:.08em;
+  font-weight:700;
+  margin-left:4px;
+  color:var(--muted);
+}
+.tools{display:flex;gap:8px;align-items:center}
+.tool-button{
+  font-size:12px;
+  font-weight:700;
+  color:var(--navy);
+  background:#fff;
+  border:1.5px solid var(--line);
+  border-radius:8px;
+  padding:7px 13px;
+  line-height:1.5;
+}
+.tool-button:hover{background:#f0f5ff}
+
+.reader{padding:28px 0 42px}
+.page-shell{
+  position:relative;
+  margin:0 auto 28px;
+  width:1280px;
+  height:720px;
+}
+.page{
+  position:relative;
+  width:1280px;
+  height:720px;
+  padding:28px 46px 24px;
+  background:var(--paper);
+  box-shadow:0 6px 28px #16317212;
+  transform-origin:top left;
+  overflow:hidden;
+  display:flex;
+  flex-direction:column;
+}
+
+.page-header{
+  border-bottom:2px solid var(--navy);
+  padding-bottom:12px;
+  margin-bottom:20px;
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-end;
+  gap:16px;
+  flex-shrink:0;
+}
+.page-header h2{
+  font-size:32px;
+  color:var(--ink);
+  font-weight:900;
+  letter-spacing:-.04em;
+}
+.header-sub{
+  font-size:13px;
+  font-weight:700;
+  color:var(--muted);
+  padding-bottom:2px;
+}
+
+/* 3단 기대효과 컬럼 그리드 (레퍼런스 이미지 완벽 대응) */
+.effect-grid{
+  display:grid;
+  grid-template-columns:repeat(3, minmax(0, 1fr));
+  gap:22px;
+  flex:1;
+  min-height:0;
+}
+.effect-col{
+  display:flex;
+  flex-direction:column;
+  min-height:0;
+}
+
+/* 상단 남색 타이틀 바 */
+.col-banner{
+  background:var(--dark-bar);
+  color:#ffffff;
+  border-radius:8px;
+  height:42px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:15px;
+  font-weight:800;
+  letter-spacing:-.02em;
+  margin-bottom:14px;
+  flex-shrink:0;
+}
+
+/* 상단 [지금] 카드 */
+.now-card{
+  background:#f5f7fa;
+  border:1.5px solid #e2e8f0;
+  border-radius:14px;
+  padding:16px 22px 18px;
+  height:220px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  text-align:center;
+  flex-shrink:0;
+}
+.card-tag{
+  align-self:flex-start;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  padding:4px 14px;
+  border-radius:999px;
+  font-size:11.5px;
+  font-weight:800;
+  line-height:1.2;
+  margin-bottom:8px;
+}
+.card-tag.now{
+  background:#64748b;
+  color:#ffffff;
+}
+.card-tag.after{
+  background:var(--blue);
+  color:#ffffff;
+}
+
+.now-title{
+  font-size:28px;
+  font-weight:900;
+  color:#334155;
+  letter-spacing:-.035em;
+  margin-bottom:4px;
+}
+.now-sub{
+  font-size:12.5px;
+  font-weight:700;
+  color:#64748b;
+  margin-bottom:14px;
+}
+
+/* [지금] 카드 내부 시각 요소 */
+.gray-bar-wrap{
+  width:100%;
+  margin-top:auto;
+  margin-bottom:6px;
+}
+.gray-track{
+  width:100%;
+  height:14px;
+  background:#cbd5e1;
+  border-radius:999px;
+  margin-bottom:14px;
+}
+.gray-caption{
+  font-size:12px;
+  font-weight:700;
+  color:#94a3b8;
+}
+
+.now-issue-box{
+  width:100%;
+  margin-top:auto;
+  background:#ffffff;
+  border:1.5px solid #e2e8f0;
+  border-radius:10px;
+  padding:12px 16px;
+  text-align:left;
+}
+.issue-head{
+  display:flex;
+  align-items:center;
+  gap:7px;
+  font-size:12.5px;
+  font-weight:800;
+  color:#475569;
+  margin-bottom:9px;
+}
+.issue-head i{
+  width:8px;
+  height:8px;
+  border-radius:50%;
+  background:#64748b;
+  display:inline-block;
+}
+.skeleton-line{
+  height:7px;
+  background:#e2e8f0;
+  border-radius:999px;
+  margin-bottom:6px;
+}
+.skeleton-line.w65{width:64%}
+.skeleton-line.w85{width:86%;margin-bottom:4px}
+.issue-note{
+  font-size:10.5px;
+  font-weight:700;
+  color:#94a3b8;
+  margin-top:4px;
+}
+
+/* 중앙 화살표 */
+.flow-arrow{
+  height:34px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  flex-shrink:0;
+}
+.flow-arrow svg{
+  width:22px;
+  height:22px;
+}
+
+/* 하단 [SafeHandoff] 카드 */
+.after-card{
+  background:#f2f7ff;
+  border:2px solid var(--blue);
+  border-radius:14px;
+  padding:16px 22px 18px;
+  flex:1;
+  min-height:0;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  text-align:center;
+  box-shadow:0 8px 22px rgba(37,99,235,0.08);
+}
+.after-title{
+  font-size:32px;
+  font-weight:900;
+  color:var(--blue);
+  letter-spacing:-.04em;
+  margin-bottom:3px;
+}
+.after-sub{
+  font-size:12.5px;
+  font-weight:700;
+  color:#64748b;
+  margin-bottom:12px;
+}
+
+/* [SafeHandoff] 1열: 단축 프로그레스 바 */
+.blue-bar-wrap{
+  width:100%;
+  margin-top:auto;
+}
+.blue-track{
+  width:100%;
+  height:14px;
+  background:#dbeafe;
+  border-radius:999px;
+  position:relative;
+  display:flex;
+  align-items:center;
+  padding:0 3px;
+  margin-bottom:18px;
+}
+.blue-dot{
+  width:11px;
+  height:11px;
+  border-radius:50%;
+  background:var(--blue);
+  box-shadow:0 0 0 3px rgba(37,99,235,0.2);
+}
+.after-highlight{
+  font-size:14.5px;
+  font-weight:900;
+  color:#1e293b;
+  margin-bottom:3px;
+}
+.after-desc{
+  font-size:11.5px;
+  font-weight:700;
+  color:#64748b;
+}
+
+/* [SafeHandoff] 2열: 네트워크 노드 그래픽 */
+.network-svg{
+  width:100%;
+  height:105px;
+  margin-top:auto;
+}
+
+/* [SafeHandoff] 3열: Zero 방어 카드 */
+.zero-box{
+  width:100%;
+  margin-top:auto;
+  background:#ffffff;
+  border:1.5px solid #dbeafe;
+  border-radius:11px;
+  padding:11px 15px 10px;
+  text-align:left;
+}
+.zero-top{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:8px;
+}
+.prevent-pill{
+  background:#fee2e2;
+  color:#dc2626;
+  font-size:11px;
+  font-weight:800;
+  padding:3px 9px;
+  border-radius:6px;
+}
+.zero-stat{
+  font-size:22px;
+  font-weight:900;
+  color:#dc2626;
+  letter-spacing:-.02em;
+  line-height:1;
+}
+.metric-bars{
+  display:grid;
+  gap:6px;
+  margin-bottom:8px;
+}
+.metric-row{
+  display:grid;
+  grid-template-columns:34px 1fr;
+  align-items:center;
+  gap:8px;
+  font-size:10.5px;
+  font-weight:700;
+  color:#64748b;
+}
+.m-track{
+  height:6px;
+  background:#f1f5f9;
+  border-radius:999px;
+  overflow:hidden;
+}
+.m-fill{
+  height:100%;
+  border-radius:999px;
+}
+.m-fill.red{width:92%;background:#ef4444}
+.m-fill.orange{width:82%;background:#f59e0b}
+.m-fill.yellow{width:74%;background:#eab308}
+
+.zero-foot{
+  text-align:center;
+  font-size:11px;
+  font-weight:800;
+  color:#1e3a8a;
+  padding-top:2px;
+}
+
+
+
+
+
+}
+/* === SafeHandoff_확장_가능성.html === */
+#slide-scale {
+
+&{
+  --bg:#eef2f7;
+  --paper:#ffffff;
+  --ink:#111827;
+  --body:#334155;
+  --muted:#64748b;
+  --navy:#1e3a8a;
+  --blue:#2563eb;
+  --line:#dce4f0;
+  --shadow:0 18px 42px rgba(15,23,42,0.08);
+}
+*{box-sizing:border-box}
+html{
+  scroll-behavior:smooth;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+  text-rendering:optimizeLegibility;
+}
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--ink);
+  font-family:"Pretendard Variable",Pretendard,"Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+  line-height:1.45;
+  letter-spacing:-.02em;
+  word-break:keep-all;
+  overflow-wrap:break-word;
+}
+h1,h2,h3,h4,p,figure,ul{margin:0}
+a{color:inherit;text-decoration:none}
+button{font:inherit;cursor:pointer}
+
+.toolbar{
+  height:64px;
+  position:sticky;
+  top:0;
+  z-index:30;
+  background:#ffffffeb;
+  border-bottom:1px solid var(--line);
+  backdrop-filter:blur(10px);
+}
+.toolbar-inner{
+  height:100%;
+  width:min(1280px,calc(100% - 40px));
+  margin:auto;
+  display:flex;
+  justify-content:space-between;
+  gap:16px;
+  align-items:center;
+}
+.brand{
+  font-size:19px;
+  font-weight:900;
+  color:var(--navy);
+  white-space:nowrap;
+  letter-spacing:-.03em;
+  display:flex;
+  align-items:center;
+  gap:9px;
+}
+.brand-badge{
+  display:inline-grid;
+  place-items:center;
+  width:26px;
+  height:26px;
+  border-radius:7px;
+  background:#0f9f90;
+  color:#fff;
+  font-size:14px;
+  font-weight:900;
+}
+.brand small{
+  font-size:11.5px;
+  letter-spacing:.08em;
+  font-weight:700;
+  color:var(--muted);
+}
+.tools{
+  display:flex;
+  gap:8px;
+  align-items:center;
+  flex-wrap:wrap;
+  justify-content:flex-end;
+}
+.tool-button{
+  font-size:12px;
+  font-weight:700;
+  color:var(--navy);
+  background:#fff;
+  border:1.5px solid var(--line);
+  border-radius:8px;
+  padding:6px 12px;
+  line-height:1.4;
+}
+.tool-button:hover{
+  background:#f4f8ff;
+}
+
+.reader{
+  padding:24px 0 36px;
+}
+.page-shell{
+  position:relative;
+  margin:0 auto;
+  width:1280px;
+  height:720px;
+}
+.page{
+  width:1280px;
+  height:720px;
+  background:var(--paper);
+  box-shadow:var(--shadow);
+  position:relative;
+  overflow:hidden;
+  transform-origin:top left;
+  padding:32px 46px 24px;
+  display:flex;
+  flex-direction:column;
+}
+
+/* ==================== 상단 헤더 ==================== */
+.page-header{
+  display:flex;
+  align-items:flex-end;
+  justify-content:space-between;
+  gap:16px;
+  padding-bottom:13px;
+  border-bottom:2px solid #2b4c8c;
+  margin-bottom:22px;
+  flex-shrink:0;
+}
+.page-header h2{
+  font-size:31px;
+  font-weight:900;
+  letter-spacing:-.035em;
+  color:#0f172a;
+  line-height:1.15;
+}
+.header-sub{
+  font-size:12.8px;
+  font-weight:700;
+  color:var(--muted);
+  padding-bottom:2px;
+}
+
+/* ==================== 메인 레이아웃 (좌: 동심원 / 우: 3단계 카드) ==================== */
+.roadmap-body{
+  flex:1;
+  min-height:0;
+  display:grid;
+  grid-template-columns:480px 1fr;
+  gap:36px;
+  align-items:center;
+}
+
+/* 좌측 TAM-SAM-SOM 동심원 영역 */
+.circle-stage{
+  width:100%;
+  height:100%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+.circle-stage svg{
+  width:468px;
+  height:468px;
+  display:block;
+  overflow:visible;
+}
+
+/* 우측 Phase 1 ~ 3 카드 스택 */
+.phase-stack{
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  gap:14px;
+}
+.phase-card{
+  position:relative;
+  background:#ffffff;
+  border:1px solid #e2e8f0;
+  border-radius:4px;
+  padding:15px 22px 14px 24px;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  box-shadow:0 2px 8px rgba(15,23,42,0.02);
+}
+.phase-card::before{
+  content:"";
+  position:absolute;
+  left:0;
+  top:0;
+  bottom:0;
+  width:5px;
+  border-radius:4px 0 0 4px;
+}
+.phase-card.phase-1::before{
+  background:#1e3a8a;
+}
+.phase-card.phase-2::before{
+  background:#3b82f6;
+}
+.phase-card.phase-3::before{
+  background:#94a3b8;
+}
+
+.phase-title-row{
+  display:flex;
+  align-items:center;
+  gap:11px;
+  margin-bottom:6px;
+}
+.phase-pill{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  padding:4px 11px;
+  border-radius:6px;
+  font-size:12px;
+  font-weight:800;
+  letter-spacing:-.01em;
+  white-space:nowrap;
+  flex-shrink:0;
+}
+.phase-1 .phase-pill{
+  background:#eef2f9;
+  color:#1e3a8a;
+}
+.phase-2 .phase-pill{
+  background:#edf4ff;
+  color:#1d4ed8;
+}
+.phase-3 .phase-pill{
+  background:#eff2f6;
+  color:#334155;
+}
+.phase-title-row h3{
+  font-size:19px;
+  font-weight:900;
+  color:#0f172a;
+  letter-spacing:-.03em;
+  white-space:nowrap;
+}
+
+.phase-size{
+  font-size:15px;
+  font-weight:800;
+  margin-bottom:7px;
+  letter-spacing:-.02em;
+}
+.phase-1 .phase-size{
+  color:#1e3a8a;
+}
+.phase-2 .phase-size{
+  color:#2563eb;
+}
+.phase-3 .phase-size{
+  color:#334155;
+}
+
+.phase-list{
+  list-style:none;
+  padding:0;
+  display:grid;
+  gap:3px;
+}
+.phase-list li{
+  font-size:12.8px;
+  font-weight:600;
+  color:#475569;
+  line-height:1.4;
+  padding-left:10px;
+  position:relative;
+  white-space:nowrap;
+}
+.phase-list li::before{
+  content:"·";
+  position:absolute;
+  left:0;
+  top:0;
+  font-weight:900;
+  color:#64748b;
+}
+.phase-list li b{
+  color:#1e293b;
+  font-weight:800;
+}
+
+/* ==================== 하단 점선 및 주석 ==================== */
+.page-footnote{
+  margin-top:12px;
+  padding-top:12px;
+  border-top:1.5px dashed #cbd5e1;
+  font-size:11.6px;
+  font-weight:600;
+  color:#64748b;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  flex-shrink:0;
+  white-space:nowrap;
+}
+.footnote-right{
+  font-weight:700;
+  color:#1e3a8a;
+}
+
+
+
+
+
+}
+/* === SafeHandoff_팀원_소개.html === */
+#slide-team {
+
+&{
+  --bg:#eef2f7;
+  --paper:#ffffff;
+  --ink:#0f172a;
+  --body:#334155;
+  --muted:#64748b;
+  --navy:#163172;
+  --blue:#2563eb;
+  --teal:#0d9488;
+  --line:#dce4f0;
+  --shadow:0 18px 42px rgba(15,23,42,0.08);
+}
+*{box-sizing:border-box}
+html{
+  scroll-behavior:smooth;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+  text-rendering:optimizeLegibility;
+}
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--ink);
+  font-family:"Pretendard Variable",Pretendard,"Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+  line-height:1.45;
+  letter-spacing:-.02em;
+  word-break:keep-all;
+  overflow-wrap:break-word;
+}
+h1,h2,h3,h4,p,figure,ul{margin:0}
+a{color:inherit;text-decoration:none}
+button{font:inherit;cursor:pointer}
+
+.toolbar{
+  height:64px;
+  position:sticky;
+  top:0;
+  z-index:30;
+  background:#ffffffeb;
+  border-bottom:1px solid var(--line);
+  backdrop-filter:blur(10px);
+}
+.toolbar-inner{
+  height:100%;
+  width:min(1280px,calc(100% - 40px));
+  margin:auto;
+  display:flex;
+  justify-content:space-between;
+  gap:16px;
+  align-items:center;
+}
+.brand{
+  font-size:19px;
+  font-weight:900;
+  color:var(--navy);
+  white-space:nowrap;
+  letter-spacing:-.03em;
+  display:flex;
+  align-items:center;
+  gap:9px;
+}
+.brand-badge{
+  display:inline-grid;
+  place-items:center;
+  width:26px;
+  height:26px;
+  border-radius:7px;
+  background:#0f9f90;
+  color:#fff;
+  font-size:14px;
+  font-weight:900;
+}
+.brand small{
+  font-size:11.5px;
+  letter-spacing:.08em;
+  font-weight:700;
+  color:var(--muted);
+}
+.tools{
+  display:flex;
+  gap:8px;
+  align-items:center;
+  flex-wrap:wrap;
+  justify-content:flex-end;
+}
+.tool-button{
+  font-size:12px;
+  font-weight:700;
+  color:var(--navy);
+  background:#fff;
+  border:1.5px solid var(--line);
+  border-radius:8px;
+  padding:6px 12px;
+  line-height:1.4;
+}
+.tool-button:hover{
+  background:#f4f8ff;
+}
+
+.reader{
+  padding:24px 0 36px;
+}
+.page-shell{
+  position:relative;
+  margin:0 auto;
+  width:1280px;
+  height:720px;
+}
+.page{
+  width:1280px;
+  height:720px;
+  background:var(--paper);
+  box-shadow:var(--shadow);
+  position:relative;
+  overflow:hidden;
+  transform-origin:top left;
+  padding:30px 44px 26px;
+  display:flex;
+  flex-direction:column;
+}
+
+/* ==================== 상단 헤더 ==================== */
+.page-header{
+  display:flex;
+  align-items:baseline;
+  justify-content:space-between;
+  gap:16px;
+  padding-bottom:13px;
+  border-bottom:2px solid #2b4c8c;
+  margin-bottom:20px;
+  flex-shrink:0;
+}
+.header-left{
+  display:flex;
+  align-items:baseline;
+  gap:16px;
+}
+.page-header h2{
+  font-size:32px;
+  font-weight:900;
+  letter-spacing:-.035em;
+  color:#0f172a;
+  line-height:1.15;
+}
+.header-sub{
+  font-size:15px;
+  font-weight:700;
+  color:#64748b;
+}
+.team-badge{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  background:#eff6ff;
+  border:1.5px solid #bfdbfe;
+  border-radius:999px;
+  padding:6px 16px;
+  font-size:13.5px;
+  font-weight:900;
+  color:var(--blue);
+}
+
+/* ==================== 5인 팀원 역할 분담 카드 그리드 ==================== */
+.team-grid{
+  display:grid;
+  grid-template-columns:repeat(5,minmax(0,1fr));
+  gap:14px;
+  flex:1;
+  min-height:0;
+}
+
+.member-card{
+  background:#ffffff;
+  border:1.5px solid #e2e8f0;
+  border-top:4px solid var(--blue);
+  border-radius:14px;
+  padding:18px 16px 16px;
+  display:flex;
+  flex-direction:column;
+  box-shadow:0 4px 14px rgba(15,23,42,0.03);
+}
+.member-card:nth-child(2n){
+  border-top-color:#1e3a8a;
+}
+
+.avatar-wrap{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  margin-bottom:12px;
+}
+.avatar-squircle{
+  width:54px;
+  height:54px;
+  flex-shrink:0;
+  display:block;
+}
+.role-tag{
+  font-size:11.5px;
+  font-weight:800;
+  color:var(--blue);
+  background:#eff6ff;
+  border:1px solid #bfdbfe;
+  padding:4px 10px;
+  border-radius:999px;
+  white-space:nowrap;
+}
+.member-card:nth-child(2n) .role-tag{
+  color:#1e3a8a;
+  background:#eef2f9;
+  border-color:#cbd5e1;
+}
+
+.member-name{
+  font-size:22px;
+  font-weight:900;
+  color:#0f172a;
+  letter-spacing:-.03em;
+  margin-bottom:3px;
+}
+.member-title{
+  font-size:13.2px;
+  font-weight:800;
+  color:var(--blue);
+  margin-bottom:12px;
+  padding-bottom:11px;
+  border-bottom:1.5px dashed #e2e8f0;
+  white-space:nowrap;
+}
+.member-card:nth-child(2n) .member-title{
+  color:#1e3a8a;
+}
+
+.contrib-label{
+  font-size:11px;
+  font-weight:800;
+  color:#64748b;
+  letter-spacing:.04em;
+  margin-bottom:8px;
+}
+.contrib-list{
+  list-style:none;
+  padding:0;
+  display:grid;
+  gap:8px;
+  margin-bottom:12px;
+}
+.contrib-list li{
+  font-size:12px;
+  font-weight:600;
+  color:#334155;
+  line-height:1.42;
+  padding-left:10px;
+  position:relative;
+}
+.contrib-list li::before{
+  content:"·";
+  position:absolute;
+  left:0;
+  top:0;
+  font-weight:900;
+  color:var(--blue);
+}
+.contrib-list li b{
+  color:#0f172a;
+  font-weight:800;
+}
+
+.stack-box{
+  margin-top:auto;
+  background:#f8fafc;
+  border:1px solid #e2e8f0;
+  border-radius:9px;
+  padding:8px 10px;
+  display:flex;
+  flex-wrap:wrap;
+  gap:5px;
+}
+.stack-chip{
+  font-size:10.5px;
+  font-weight:800;
+  color:#475569;
+  background:#ffffff;
+  border:1px solid #cbd5e1;
+  padding:2.5px 7px;
+  border-radius:5px;
+}
+
+/* ==================== 하단 협업 방식 요약 바 ==================== */
+.collab-bar{
+  margin-top:16px;
+  background:#f8fafc;
+  border:1.5px solid #dbe4f0;
+  border-radius:11px;
+  padding:11px 20px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:16px;
+  flex-shrink:0;
+}
+.collab-left{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  font-size:13px;
+  font-weight:800;
+  color:#0f172a;
+}
+.collab-pill{
+  background:var(--navy);
+  color:#ffffff;
+  font-size:11.5px;
+  font-weight:800;
+  padding:4px 11px;
+  border-radius:6px;
+}
+.collab-right{
+  font-size:12px;
+  font-weight:700;
+  color:#64748b;
+}
+
+
+
+
+
+}
+
+
+@media print{
+  @page{size:1280px 720px;margin:0}
+  html,body{background:#fff;margin:0;padding:0;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .master-toolbar{display:none!important}
+  .master-reader{padding:0!important;margin:0!important}
+  .slide-scope{page-break-after:always;break-after:page;margin:0!important;padding:0!important}
+  .slide-scope:last-child{page-break-after:auto;break-after:auto}
+  .slide-scope .page-shell{width:1280px!important;height:720px!important;margin:0!important}
+  .slide-scope .page{width:1280px!important;height:720px!important;transform:none!important;box-shadow:none!important;overflow:hidden!important}
+}
+</style>
+</head>
+<body>
+<header class="master-toolbar">
+  <div class="master-toolbar-inner">
+    <a class="master-brand" href="#slide-cover"><span class="master-badge">S</span>SafeHandoff <small>ALL SLIDES</small></a>
+    <div class="master-tools">
+      <a class="tool-button" href="#slide-cover">표지</a>
+      <a class="tool-button" href="#slide-index">00. 목차</a>
+      <a class="tool-button" href="#slide-bg">01. 배경</a>
+      <a class="tool-button" href="#slide-persona">02. 페르소나</a>
+      <a class="tool-button" href="#slide-flow">03. 서비스 플로우</a>
+      <a class="tool-button" href="#slide-tech">04. 기술 스택</a>
+      <a class="tool-button" href="#slide-ai">05. AI 기술·개발범위</a>
+      <a class="tool-button" href="#slide-arch">06. 아키텍처</a>
+      <a class="tool-button" href="#slide-diff">07. 차별점</a>
+      <a class="tool-button" href="#slide-effect">08. 기대효과</a>
+      <a class="tool-button" href="#slide-scale">09. 확장 가능성</a>
+      <a class="tool-button" href="#slide-team">10. 팀원 소개</a>
+      <button class="tool-button primary" id="print-all" type="button">전체 PDF 인쇄</button>
+    </div>
+  </div>
+</header>
+
+<main class="master-reader" aria-label="SafeHandoff 전체 발표 슬라이드">
+  <div class="slide-scope" id="slide-cover">
+    <div class="page-shell" id="sheet-cover">
+    <section class="page" id="cover" aria-labelledby="cover-title">
+
+      <!-- 상단: Codyssey 로고 + 프로젝트 헤더 -->
+      <header class="cover-top">
+        <div class="codyssey-logo" aria-hidden="true">
+          <svg viewBox="0 0 48 34" fill="none">
+            <!-- 주황 돛 -->
+            <path d="M22 4 L10 22 H22 V4 Z" fill="#f59e0b"/>
+            <!-- 파란 파도/배 -->
+            <path d="M25 9 L37 22 H25 V9 Z" fill="#38bdf8"/>
+            <path d="M7 25 C15 29, 31 29, 41 23 C34 31, 16 32, 7 25 Z" fill="#1d4ed8"/>
+          </svg>
+          <span>Codyssey</span>
+        </div>
+        <div class="project-kicker">CODYSSEY HACKATHON TEAM PROJECT</div>
+      </header>
+
+      <!-- 중앙 좌측: 메인 타이틀 & 서브카피 -->
+      <div class="cover-main">
+        <div class="service-tag">SafeHandoff</div>
+        <h1 class="hero-title" id="cover-title">
+          외부에 공유할 사내 자료,<br>
+          민감 정보는 안전하게 가리고
+          <span class="accent">필요한 단서만 전달하세요</span>
+        </h1>
+        <p class="hero-sub">
+          공개 수준(A~D) 맞춤 선택부터 작성·검토 AI 이중 검증·스킬 자동화까지,<br>
+          원본 유출 걱정 없이 외부 문의·자문 자료를 완성하는 사내 AI 솔루션
+        </p>
+      </div>
+
+      <!-- 하단: 팀 정보 (클릭하여 팀명/이름 바로 편집 가능) -->
+      <footer class="cover-bottom">
+        <span class="team-num" contenteditable="true" spellcheck="false" title="클릭하여 팀명을 수정할 수 있습니다">지피한테물어봐</span>
+        <span class="team-members" contenteditable="true" spellcheck="false" title="클릭하여 팀원 이름을 수정할 수 있습니다">김병철 이상혁 맹주영 김민성 임재홍</span>
+      </footer>
+
+      <!-- 우측: 사내 문서·로그 속 민감 정보 노출 경보(Red Glow) & SafeHandoff 방어 그래픽 -->
+      <figure class="hero-graphic" aria-hidden="true">
+        <svg viewBox="0 0 680 628">
+          <defs>
+            <!-- 레퍼런스 특유의 붉은 경고 광원 필터 -->
+            <radialGradient id="red-glow-lg" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stop-color="#ef4444" stop-opacity="0.58"/>
+              <stop offset="45%" stop-color="#f87171" stop-opacity="0.26"/>
+              <stop offset="100%" stop-color="#ef4444" stop-opacity="0"/>
+            </radialGradient>
+            <radialGradient id="red-glow-sm" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stop-color="#ef4444" stop-opacity="0.48"/>
+              <stop offset="55%" stop-color="#f87171" stop-opacity="0.18"/>
+              <stop offset="100%" stop-color="#ef4444" stop-opacity="0"/>
+            </radialGradient>
+            <radialGradient id="blue-glow" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stop-color="#2563eb" stop-opacity="0.22"/>
+              <stop offset="70%" stop-color="#3b82f6" stop-opacity="0.06"/>
+              <stop offset="100%" stop-color="#2563eb" stop-opacity="0"/>
+            </radialGradient>
+            <filter id="pill-shadow" x="-12%" y="-15%" width="124%" height="140%">
+              <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#0f172a" flood-opacity="0.08"/>
+            </filter>
+            <filter id="card-drop" x="-8%" y="-8%" width="116%" height="120%">
+              <feDropShadow dx="0" dy="8" stdDeviation="14" flood-color="#1e3a8a" flood-opacity="0.10"/>
+            </filter>
+          </defs>
+
+          <!-- 배경 실루엣: 사내 문서 · 로그 · 데이터 흐름 레이어 (연한 그레이 톤) -->
+          <g opacity="0.65">
+            <!-- 좌상단 배경 문서 실루엣 -->
+            <rect x="64" y="88" width="240" height="300" rx="16" fill="#eaedf2" stroke="#dde3ec" stroke-width="1.5"/>
+            <rect x="88" y="118" width="110" height="12" rx="6" fill="#d8dfe9"/>
+            <rect x="88" y="144" width="184" height="9" rx="4.5" fill="#dfe5ee"/>
+            <rect x="88" y="164" width="160" height="9" rx="4.5" fill="#dfe5ee"/>
+            <rect x="88" y="198" width="192" height="58" rx="8" fill="#e2e7f0"/>
+            <rect x="88" y="274" width="174" height="9" rx="4.5" fill="#dfe5ee"/>
+            <rect x="88" y="294" width="140" height="9" rx="4.5" fill="#dfe5ee"/>
+            <rect x="88" y="314" width="166" height="9" rx="4.5" fill="#dfe5ee"/>
+
+            <!-- 중앙·우측 대형 문서·로그 실루엣 -->
+            <rect x="256" y="48" width="388" height="450" rx="20" fill="#e9ecf2" stroke="#dce2ec" stroke-width="1.5"/>
+            <rect x="288" y="84" width="150" height="14" rx="7" fill="#d5dce8"/>
+            <rect x="288" y="114" width="320" height="10" rx="5" fill="#dde3ee"/>
+            <rect x="288" y="136" width="290" height="10" rx="5" fill="#dde3ee"/>
+            <rect x="288" y="172" width="324" height="110" rx="12" fill="#e1e6f0"/>
+            <rect x="288" y="302" width="300" height="10" rx="5" fill="#dde3ee"/>
+            <rect x="288" y="324" width="260" height="10" rx="5" fill="#dde3ee"/>
+            <rect x="288" y="360" width="324" height="98" rx="12" fill="#e1e6f0"/>
+
+            <!-- 하단 보조 문서 실루엣 -->
+            <rect x="136" y="356" width="230" height="210" rx="16" fill="#eaedf2" stroke="#dde3ec" stroke-width="1.5"/>
+            <rect x="162" y="386" width="120" height="11" rx="5.5" fill="#d8dfe9"/>
+            <rect x="162" y="412" width="176" height="9" rx="4.5" fill="#dfe5ee"/>
+            <rect x="162" y="432" width="152" height="9" rx="4.5" fill="#dfe5ee"/>
+            <rect x="162" y="464" width="176" height="68" rx="8" fill="#e2e7f0"/>
+          </g>
+
+          <!-- ==================== 레드 글로우 리스크 핫스팟 (외부 공유 시 사내 정보 유출 지점) ==================== -->
+
+          <!-- [핫스팟 1: 우측 메인 고위험 클러스터 - 외부 AI 원본 전송 및 핵심 영업비밀 노출] -->
+          <circle cx="516" cy="232" r="115" fill="url(#red-glow-lg)"/>
+          <circle cx="476" cy="258" r="68" fill="url(#red-glow-sm)"/>
+          <circle cx="548" cy="216" r="62" fill="url(#red-glow-sm)"/>
+          <!-- 빛나는 코어 점들 -->
+          <circle cx="468" cy="264" r="7" fill="#ffffff" stroke="#ef4444" stroke-width="3"/>
+          <circle cx="536" cy="272" r="5.5" fill="#ffffff" stroke="#ef4444" stroke-width="2.5"/>
+          <circle cx="566" cy="236" r="5.5" fill="#ffffff" stroke="#ef4444" stroke-width="2.5"/>
+          <circle cx="442" cy="222" r="4" fill="#ffffff" stroke="#ef4444" stroke-width="2"/>
+          <!-- 경고 삼각형 아이콘 1 -->
+          <g transform="translate(508, 198)">
+            <path d="M0 -15 L15 11 H-15 Z" fill="#dc2626" stroke="#ffffff" stroke-width="1.8" stroke-linejoin="round"/>
+            <text x="0" y="8" text-anchor="middle" fill="#ffffff" font-size="13" font-weight="900">!</text>
+          </g>
+          <!-- 말풍선 라벨 1 -->
+          <g transform="translate(432, 118)" filter="url(#pill-shadow)">
+            <rect x="0" y="0" width="168" height="32" rx="9" fill="#ffffff" stroke="#fecaca" stroke-width="1.2"/>
+            <path d="M76 32 L84 40 L92 32 Z" fill="#ffffff"/>
+            <text x="84" y="20.5" text-anchor="middle" fill="#b91c1c" font-size="12.5" font-weight="800">외부 AI 원본 직접 전송 위험</text>
+          </g>
+
+          <!-- [핫스팟 2: 중상단 - 오류 로그 속 사내 함수명·로직 노출] -->
+          <circle cx="316" cy="162" r="56" fill="url(#red-glow-sm)"/>
+          <circle cx="290" cy="196" r="4" fill="#ffffff" stroke="#ef4444" stroke-width="2"/>
+          <g transform="translate(316, 158)">
+            <path d="M0 -14 L14 10 H-14 Z" fill="#dc2626" stroke="#ffffff" stroke-width="1.5" stroke-linejoin="round"/>
+            <text x="0" y="7.5" text-anchor="middle" fill="#ffffff" font-size="12" font-weight="900">!</text>
+          </g>
+          <g transform="translate(230, 82)" filter="url(#pill-shadow)">
+            <rect x="0" y="0" width="172" height="32" rx="9" fill="#ffffff" stroke="#fecaca" stroke-width="1.2"/>
+            <path d="M78 32 L86 40 L94 32 Z" fill="#ffffff"/>
+            <text x="86" y="20.5" text-anchor="middle" fill="#b91c1c" font-size="12.5" font-weight="800">오류 로그 속 사내 코드 노출</text>
+          </g>
+
+          <!-- [핫스팟 3: 좌중단 - 거래처 단가 · 실제 건수(1,740건) 노출] -->
+          <circle cx="118" cy="212" r="54" fill="url(#red-glow-sm)"/>
+          <circle cx="152" cy="236" r="4" fill="#ffffff" stroke="#ef4444" stroke-width="2"/>
+          <g transform="translate(118, 206)">
+            <path d="M0 -14 L14 10 H-14 Z" fill="#dc2626" stroke="#ffffff" stroke-width="1.5" stroke-linejoin="round"/>
+            <text x="0" y="7.5" text-anchor="middle" fill="#ffffff" font-size="12" font-weight="900">!</text>
+          </g>
+          <g transform="translate(36, 238)" filter="url(#pill-shadow)">
+            <rect x="0" y="0" width="164" height="32" rx="9" fill="#ffffff" stroke="#fecaca" stroke-width="1.2"/>
+            <path d="M74 0 L82 -8 L90 0 Z" fill="#ffffff"/>
+            <text x="82" y="20.5" text-anchor="middle" fill="#b91c1c" font-size="12.5" font-weight="800">실제 거래 단가 · 건수 노출</text>
+          </g>
+
+          <!-- [핫스팟 4: 중하단 - 이름 가린 뒤에도 남는 익명 연락 관계 추론] -->
+          <circle cx="204" cy="442" r="56" fill="url(#red-glow-sm)"/>
+          <g transform="translate(204, 438)">
+            <path d="M0 -14 L14 10 H-14 Z" fill="#dc2626" stroke="#ffffff" stroke-width="1.5" stroke-linejoin="round"/>
+            <text x="0" y="7.5" text-anchor="middle" fill="#ffffff" font-size="12" font-weight="900">!</text>
+          </g>
+          <g transform="translate(232, 458)" filter="url(#pill-shadow)">
+            <rect x="0" y="0" width="152" height="32" rx="9" fill="#ffffff" stroke="#fecaca" stroke-width="1.2"/>
+            <path d="M0 10 L-8 16 L0 22 Z" fill="#ffffff"/>
+            <text x="76" y="20.5" text-anchor="middle" fill="#b91c1c" font-size="12.5" font-weight="800">익명 기록 간 관계 추론</text>
+          </g>
+
+          <!-- [핫스팟 5: 우하단 - 과도한 삭제로 필수 업무 제약·오류 단서 누락] -->
+          <circle cx="564" cy="462" r="54" fill="url(#red-glow-sm)"/>
+          <g transform="translate(564, 458)">
+            <path d="M0 -14 L14 10 H-14 Z" fill="#dc2626" stroke="#ffffff" stroke-width="1.5" stroke-linejoin="round"/>
+            <text x="0" y="7.5" text-anchor="middle" fill="#ffffff" font-size="12" font-weight="900">!</text>
+          </g>
+          <g transform="translate(414, 488)" filter="url(#pill-shadow)">
+            <rect x="0" y="0" width="156" height="32" rx="9" fill="#ffffff" stroke="#fecaca" stroke-width="1.2"/>
+            <text x="78" y="20.5" text-anchor="middle" fill="#b91c1c" font-size="12.5" font-weight="800">필수 제약 · 오류 단서 누락</text>
+          </g>
+
+          <!-- ==================== 중앙 전면: SafeHandoff 보호·변환 완료 카드 ==================== -->
+          <circle cx="388" cy="348" r="110" fill="url(#blue-glow)"/>
+          <g transform="translate(262, 292)" filter="url(#card-drop)">
+            <rect x="0" y="0" width="256" height="122" rx="14" fill="#ffffff" stroke="#1263fe" stroke-width="2.2"/>
+            <rect x="14" y="14" width="96" height="22" rx="6" fill="#1263fe"/>
+            <text x="62" y="29" text-anchor="middle" fill="#ffffff" font-size="11" font-weight="900">SafeHandoff 보호</text>
+            <text x="120" y="29" fill="#0f766e" font-size="11" font-weight="800">✓ 사내 작업 공간 격리</text>
+
+            <rect x="14" y="46" width="228" height="28" rx="6" fill="#f0f6ff" stroke="#bfdbfe"/>
+            <text x="24" y="64" fill="#1e3a8a" font-size="11.5" font-weight="800">공개 수준(A~D): 사실 · 추이 · 마스킹 · 비율 변환</text>
+
+            <rect x="14" y="80" width="228" height="28" rx="6" fill="#f0fdf4" stroke="#bbf7d0"/>
+            <text x="24" y="98" fill="#15803d" font-size="11.5" font-weight="800">검토 AI: 빠진 제약 복원 · 스킬 자동화 등록</text>
+          </g>
+        </svg>
+      </figure>
+
+    </section>
+  </div>
+  </div>
+  <div class="slide-scope" id="slide-index">
+    <div class="page-shell" id="sheet-index">
+    <section class="page" id="index" aria-labelledby="index-heading">
+      <header class="index-header">
+        <div class="index-kicker">CONTENTS</div>
+        <div class="index-title-row">
+          <h1 id="index-heading">INDEX</h1>
+          <p class="index-subtitle">SafeHandoff · 오류는 보여주고 내부 정보는 덜 보이게, 사내 AI 기반 공유 자료 준비 도구</p>
+        </div>
+      </header>
+
+      <nav class="index-grid" aria-label="전체 목차">
+        <!-- WHY: 왜 이 문제인가 -->
+        <div class="index-col">
+          <h2 class="col-en">WHY</h2>
+          <p class="col-ko">왜 이 문제인가</p>
+          <ul class="index-list">
+            <li>
+              <a class="index-link" href="#slide-bg">
+                <span class="item-num">01</span>
+                <span class="item-title">프로젝트 배경</span>
+              </a>
+            </li>
+          </ul>
+        </div>
+
+        <!-- WHO: 누구를 위해 -->
+        <div class="index-col">
+          <h2 class="col-en">WHO</h2>
+          <p class="col-ko">누구를 위해</p>
+          <ul class="index-list">
+            <li>
+              <a class="index-link" href="#slide-persona">
+                <span class="item-num">02</span>
+                <span class="item-title">타겟 페르소나</span>
+              </a>
+            </li>
+            <li>
+              <a class="index-link" href="#slide-flow">
+                <span class="item-num">03</span>
+                <span class="item-title">서비스 플로우</span>
+              </a>
+            </li>
+          </ul>
+        </div>
+
+        <!-- HOW: 어떻게 작동하나 -->
+        <div class="index-col">
+          <h2 class="col-en">HOW</h2>
+          <p class="col-ko">어떻게 작동하나</p>
+          <ul class="index-list">
+            <li>
+              <a class="index-link" href="#slide-tech">
+                <span class="item-num">04</span>
+                <span class="item-title">기술 스택</span>
+              </a>
+            </li>
+            <li>
+              <a class="index-link" href="#slide-ai">
+                <span class="item-num">05</span>
+                <span class="item-title">AI 기술 및 개발 범위</span>
+              </a>
+            </li>
+            <li>
+              <a class="index-link" href="#slide-arch">
+                <span class="item-num">06</span>
+                <span class="item-title">서비스 아키텍처</span>
+              </a>
+            </li>
+            <li>
+              <a class="index-link" href="#slide-diff">
+                <span class="item-num">07</span>
+                <span class="item-title">서비스 차별점</span>
+              </a>
+            </li>
+          </ul>
+        </div>
+
+        <!-- NEXT: 앞으로의 가치와 팀 -->
+        <div class="index-col">
+          <h2 class="col-en">NEXT</h2>
+          <p class="col-ko">기대 가치와 확장</p>
+          <ul class="index-list">
+            <li>
+              <a class="index-link" href="#slide-effect">
+                <span class="item-num">08</span>
+                <span class="item-title">기대효과</span>
+              </a>
+            </li>
+            <li>
+              <a class="index-link" href="#slide-scale">
+                <span class="item-num">09</span>
+                <span class="item-title">확장 가능성</span>
+              </a>
+            </li>
+            <li>
+              <a class="index-link" href="#slide-team">
+                <span class="item-num">10</span>
+                <span class="item-title">팀원 소개</span>
+              </a>
+            </li>
+          </ul>
+        </div>
+      </nav>
+    </section>
+  </div>
+  </div>
+  <div class="slide-scope" id="slide-bg">
+    <div class="page-shell" id="sheet-background">
+    <section class="page background" id="background" aria-labelledby="background-title">
+      <header class="page-header">
+        <h2 id="background-title">프로젝트 배경: 외부에 물어야 일은 풀리는데, 그대로 보내면 유출이 된다</h2>
+        <span class="eyebrow">01 / PROJECT BACKGROUND</span>
+      </header>
+
+      <p class="section-subhead">실제 보안 사고 뉴스와 기업 데이터 반출 조사에서 확인한 세 가지 배경</p>
+
+      <div class="three">
+        <!-- 배경 1: 실제 기밀 유출 사고 (삼성전자 뉴스 캡처) -->
+        <article class="discovery-card">
+          <div class="discovery-top">
+            <div class="discovery-kicker">배경 1 · 현실의 기밀 유출 사고</div>
+            <h3>급한 오류·회의록을 외부에 묻다<br>회사 기밀이 유출된다</h3>
+            <div class="visual-slot">
+              <figure class="news-capture">
+                <img src="news_samsung_chatgpt.png" alt="[단독] 우려가 현실로…삼성전자, 챗GPT 빗장 풀자마자 ‘오남용’ 속출">
+              </figure>
+            </div>
+            <p class="stat-caption">회사 데이터 외부 AI 입력 1년 새 485% 폭증<br>삼성전자 반도체 부문 코드·회의록 유출 3건 발생</p>
+          </div>
+          <hr class="card-divider">
+          <ul class="pain-list">
+            <li>당장 급한 오류를 고치려 <strong>소스코드 전체를 복붙</strong>하고, <strong>비공개 회의록</strong>을 통째로 넣어 요약을 맡겼다가 핵심 기밀이 외부 서버로 유출됨</li>
+          </ul>
+        </article>
+
+        <!-- 배경 2: 차단 vs 우회 (이스트시큐리티 설문 이미지) -->
+        <article class="discovery-card">
+          <div class="discovery-top">
+            <div class="discovery-kicker">배경 2 · 막아도 쓰게 되는 현실</div>
+            <h3>유출이 두려워 회사에서 막아도,<br>당장 급한 직원은 몰래 복붙한다</h3>
+            <div class="visual-slot">
+              <figure class="news-capture">
+                <img src="news_estsecurity_ai.png" alt="이스트시큐리티, 보안 담당자 200명 설문... AI 민감 정보 유출 우려 커">
+              </figure>
+            </div>
+            <p class="stat-caption">기업 보안 우려 1위 ‘민감 정보 유출’(64.5%)<br>하지만 개인 계정으로 몰래 쓰는 비율은 73.8%</p>
+          </div>
+          <hr class="card-divider">
+          <ul class="pain-list">
+            <li>외부에 가장 많이 복붙하는 자료는 <strong>① 고객지원 문의(16.3%) ② 소스코드(12.7%) ③ 내부 문서(10.8%)</strong> 순으로, 회사에서 막아도 일을 해결하려 몰래 보내게 됨</li>
+          </ul>
+        </article>
+
+        <!-- 배경 3: 단순 마스킹의 한계 (서울대 AI 비식별화 보도자료 캡처) -->
+        <article class="discovery-card">
+          <div class="discovery-top">
+            <div class="discovery-kicker">배경 3 · 이름만 가리는 방식의 한계</div>
+            <h3>이름·번호만 지워선 비밀이 새고,<br>너무 많이 지우면 대화가 안 된다</h3>
+            <div class="visual-slot">
+              <figure class="news-capture">
+                <img src="news_snu_deid.png" alt="문맥은 살리고 개인정보만 가린다 — 서울대 이재진 교수팀, AI 비식별화 개발">
+              </figure>
+            </div>
+            <p class="stat-caption">덜 가리면 주변 내용으로 회사 정보가 드러나고<br>너무 많이 가리면 앞뒤 맥락이 깨져 이해 불가</p>
+          </div>
+          <hr class="card-divider">
+          <ul class="pain-list">
+            <li>이름·연락처만 가리면 <strong>주변 내용과 합쳐져 회사 정보가 드러나고</strong>, 반대로 너무 많이 지우면 <strong>앞뒤 맥락이 끊기며 사람이 일일이 찾아 고치는 데 큰 시간</strong>이 듦</li>
+          </ul>
+        </article>
+      </div>
+    </section>
+  </div>
+  </div>
+  <div class="slide-scope" id="slide-persona">
+    <div class="page-shell" id="sheet-persona">
+    <section class="page" id="personas" aria-labelledby="personas-title">
+      <header class="page-header">
+        <h2 id="personas-title">타겟 페르소나: 외부에 도움을 청할 때마다, 회사 자료를 일일이 가리고 다시 쓰느라 지친 실무자</h2>
+        <span class="eyebrow">02 / TARGET PERSONA</span>
+      </header>
+
+      <article class="persona-card" aria-label="핵심 타겟 페르소나 상세">
+        <!-- 좌측: 인물 프로필 및 한마디 -->
+        <div class="persona-left">
+          <div class="avatar-wrap">
+            <div class="avatar-circle">
+              <img src="persona_jihun.jpg" alt="모니터의 코드·스프레드시트와 수작업 마스킹 문서를 보며 고민하는 실무 담당자 박지훈">
+            </div>
+            <div class="role-badge">서비스 운영·기술지원 담당 · 핵심 사용자</div>
+          </div>
+
+          <h3 class="persona-name">박지훈 <span>31세 · 남</span></h3>
+
+          <div class="persona-meta">
+            <p><strong>IT 서비스 기업 운영·기술지원 담당 (4년 차)</strong></p>
+            <p>회사 보안 때문에 <strong>외부 AI·고객센터에 원본 첨부 금지</strong></p>
+            <p>매달 <strong>외부 업체에 오류 문의·업무 자문</strong>을 요청함</p>
+            <p>보내야 할 자료: <strong>업무 현황표 · 회의 메모 · 오류 화면</strong></p>
+            <p>가려야 할 정보: <strong>거래처 이름 · 단가 · 건수 · 회사 코드</strong></p>
+          </div>
+
+          <div class="meta-pills" aria-label="페르소나 핵심 조건">
+            <span class="meta-pill">원본 첨부 금지</span>
+            <span class="meta-pill">일일이 손으로 가림</span>
+            <span class="meta-pill">매달 외부 문의</span>
+          </div>
+
+          <blockquote class="persona-quote">
+            “외부에 물어봐야 당장 막힌 일이 풀리는데, 원본을 그대로 보내면 보안 사고고 하나하나 지우다 보면 설명이 빠져서 두세 번씩 다시 써야 해요.”
+          </blockquote>
+        </div>
+
+        <!-- 우측: 페인 포인트 & 니즈 및 목표 -->
+        <div class="persona-right">
+          <section class="section-block pain" aria-labelledby="pain-heading">
+            <h3 id="pain-heading">페인 포인트 (Pain Points)</h3>
+            <ul class="item-list">
+              <li>
+                <span class="tag-pain">[손으로 가리는 시간 낭비]</span>
+                회사 파일을 외부 AI나 고객센터에 그대로 보낼 수 없어, <b>사람이 일일이 거래처·숫자·주소를 찾아 지우고 문장을 새로 쓰느라 시간을 다 쓴다</b>
+              </li>
+              <li>
+                <span class="tag-pain">[이름만 지워도 티 나는 회사 비밀]</span>
+                이름·전화번호만 가려도 <b>오류 기록의 작업 이름이나 단가 비율에서 우리 회사의 영업 방식과 규모가 드러날까 봐</b> 어디까지 보여줄지 매번 고민한다
+              </li>
+              <li>
+                <span class="tag-pain">[너무 많이 지우면 대화가 안 됨]</span>
+                겁이 나서 숫자와 설명을 다 지워버리면, <b>정작 상대방이 오류를 확인하지 못하거나 중요한 조건(“기존 접수 채널 유지”)을 놓쳐서</b> 두세 번 다시 설명해야 한다
+              </li>
+              <li>
+                <span class="tag-pain">[고칠 때마다 반복되는 수작업]</span>
+                로그를 고칠 때마다 <b>관련된 설명 내용도 일일이 맞춰서 다시 수정해야 하고</b>, 다음번에 비슷한 로그를 보낼 때도 처음부터 똑같은 작업을 반복한다
+              </li>
+            </ul>
+          </section>
+
+          <hr class="right-divider">
+
+          <section class="section-block needs" aria-labelledby="needs-heading">
+            <h3 id="needs-heading">니즈 및 목표 (Needs &amp; Goals)</h3>
+            <ul class="item-list">
+              <li>
+                <span class="tag-need">[수준만 고르면 알아서 가림]</span>
+                원본은 회사 안에서만 읽고, <b>어디까지 보여줄지 공개 수준(A~D)만 고르면 AI가 알아서 일정 부분을 가려주면 좋겠다</b>
+              </li>
+              <li>
+                <span class="tag-need">[AI 수정 로그를 사람이 확인]</span>
+                AI가 가려야 할 부분을 가린 <b>‘수정 로그’를 만들어 보여주면, 제대로 가려졌는지 사람이 한눈에 확인하고 싶다</b>
+              </li>
+              <li>
+                <span class="tag-need">[규칙 보완 및 로그·설명 수정]</span>
+                부정확하면 <b>사람이 규칙을 수정·추가해 다시 돌리고, 정확하면 로그 파일과 그에 관한 설명 내용까지 한꺼번에 수정</b>되면 좋겠다
+              </li>
+              <li>
+                <span class="tag-need">[스킬 등록으로 다음 작업 자동화]</span>
+                확인이 끝난 처리 기준(어떤 경우에 어느 정도로 가릴지)을 <b>‘스킬(Skill)’에 등록해 두고, 다음번에는 자동으로 처리하고 싶다</b>
+              </li>
+            </ul>
+          </section>
+        </div>
+      </article>
+    </section>
+  </div>
+  </div>
+  <div class="slide-scope" id="slide-flow">
+    <div class="page-shell" id="sheet-userflow">
+    <section class="page" id="userflow" aria-labelledby="uf-title">
+      <header class="page-header">
+        <h2 id="uf-title">외부 공유 자료 준비 User Flow</h2>
+        <span class="header-sub">자료 입력 → 공개 수준(A~D) 선택 → 결과 확인 후 맞으면 다음 단계(저장·스킬 등록), 아니면 규칙 설정으로 복귀</span>
+      </header>
+
+      <figure class="wireflow-canvas">
+        <svg viewBox="0 0 1192 604" role="img" aria-labelledby="wf-svg-title wf-svg-desc">
+          <title id="wf-svg-title">SafeHandoff 화면 기반 User Flow 다이어그램</title>
+          <desc id="wf-svg-desc">01 외부 문의 자료 만들기, 02 공개 수준(A~D) 및 규칙 설정, 03-1 A·B·C 선택 결과, 03-2 D 직접 입력 적용 화면을 거쳐 04 최종 결과를 확인하고, 결과가 맞으면 05 복사·다운로드 및 스킬 등록 단계로 가고 아니면 02 규칙 설정으로 돌아가는 유저 플로우입니다.</desc>
+
+          <defs>
+            <marker id="wf-arrow" markerWidth="9" markerHeight="9" refX="7.5" refY="4.5" orient="auto">
+              <path d="M1 1 L8 4.5 L1 8 Z" fill="#1e293b"/>
+            </marker>
+            <marker id="wf-arrow-teal" markerWidth="9" markerHeight="9" refX="7.5" refY="4.5" orient="auto">
+              <path d="M1 1 L8 4.5 L1 8 Z" fill="#0f766e"/>
+            </marker>
+            <marker id="wf-arrow-blue" markerWidth="9" markerHeight="9" refX="7.5" refY="4.5" orient="auto">
+              <path d="M1 1 L8 4.5 L1 8 Z" fill="#1d4ed8"/>
+            </marker>
+            <filter id="card-shadow" x="-4%" y="-4%" width="108%" height="112%">
+              <feDropShadow dx="0" dy="3" stdDeviation="5" flood-color="#0f172a" flood-opacity="0.10"/>
+            </filter>
+          </defs>
+
+          <!-- ==================== TOP ROW: 상단 캡션(y:38) + 화면 카드(y:46..194, h:148) ==================== -->
+
+          <!-- [화면 1] 외부 문의 자료 만들기 (Col 1: x:28..356, w:328) -->
+          <text x="30" y="38" fill="#111827" font-size="12.5" font-weight="900">01. 외부 문의 자료 만들기 <tspan fill="#64748b" font-size="11" font-weight="700">(목적 · 수신처 · 내부 자료 입력)</tspan></text>
+          <g transform="translate(28, 46)">
+            <rect x="0" y="0" width="328" height="148" rx="8" fill="#fff" stroke="#cbd5e1" stroke-width="1.5" filter="url(#card-shadow)"/>
+            <image href="flow_step1.png" x="2" y="2" width="324" height="144" preserveAspectRatio="none"/>
+            <!-- 클릭 영역 하이라이트 박스: [공유용 초안 만들기] 버튼 -->
+            <rect x="52" y="126" width="149" height="16" rx="2" fill="#0f766e" fill-opacity="0.08" stroke="#111827" stroke-width="1.8"/>
+          </g>
+
+          <!-- [화면 2] 공개 수준(A~D) 질문 및 규칙 설정 (Col 2: x:432..760, w:328) -->
+          <text x="434" y="38" fill="#111827" font-size="12.5" font-weight="900">02. 공개 수준(A~D) · 규칙 설정 <tspan fill="#64748b" font-size="11" font-weight="700">(“어느 수준으로 유지할까요?”)</tspan></text>
+          <g transform="translate(432, 46)">
+            <rect x="0" y="0" width="328" height="148" rx="8" fill="#fff" stroke="#cbd5e1" stroke-width="1.5" filter="url(#card-shadow)"/>
+            <image href="flow_step2.png" x="2" y="2" width="324" height="144" preserveAspectRatio="none"/>
+            <!-- 클릭 영역 하이라이트 박스 1: A·B·C 기본 선택지 -->
+            <rect x="190" y="55" width="126" height="53" rx="3" fill="#1d4ed8" fill-opacity="0.05" stroke="#111827" stroke-width="1.7"/>
+            <!-- 클릭 영역 하이라이트 박스 2: D 기타(직접 입력) -->
+            <rect x="190" y="110" width="126" height="16" rx="2" fill="#0f766e" fill-opacity="0.08" stroke="#0f766e" stroke-width="1.8"/>
+            <!-- 클릭 영역 하이라이트 박스 3: [이 방식으로 계속 작성] -->
+            <rect x="190" y="128" width="126" height="14" rx="2" fill="none" stroke="#111827" stroke-width="1.6"/>
+          </g>
+
+          <!-- [화면 3] A·B·C 선택 결과 비교 (Col 3: x:836..1164, w:328) -->
+          <text x="838" y="38" fill="#111827" font-size="12.5" font-weight="900">03-1. A · B · C 선택 결과 <tspan fill="#64748b" font-size="11" font-weight="700">(A 사실만 · B 추이만 · C 요청 정보 마스킹)</tspan></text>
+          <g transform="translate(836, 46)">
+            <rect x="0" y="0" width="328" height="148" rx="8" fill="#fff" stroke="#cbd5e1" stroke-width="1.5" filter="url(#card-shadow)"/>
+            <image href="flow_step3_abc.png" x="4" y="6" width="320" height="136" preserveAspectRatio="none"/>
+            <!-- 하이라이트 박스: B 추이만 보이게 나머지 마스킹 카드 -->
+            <rect x="112" y="7" width="104" height="134" rx="5" fill="#0f766e" fill-opacity="0.05" stroke="#0f766e" stroke-width="1.8"/>
+          </g>
+
+
+          <!-- ==================== MIDDLE CORRIDOR (y:194..358): 다이아몬드 분기 & 직각 화살표 ==================== -->
+
+          <!-- 다이아몬드 분기 노드 (중심 x:596, y:278) -->
+          <g transform="translate(596, 278)">
+            <polygon points="0,-38 66,0 0,38 -66,0" fill="#ffffff" stroke="#111827" stroke-width="2" filter="url(#card-shadow)"/>
+            <text x="0" y="-4" text-anchor="middle" fill="#111827" font-size="11.5" font-weight="900">공개 수준</text>
+            <text x="0" y="12" text-anchor="middle" fill="#0f766e" font-size="11" font-weight="800">선택 방식 (A~D)</text>
+          </g>
+
+
+          <!-- ==================== BOTTOM ROW: 화면 카드(y:358..536, h:178) + 하단 캡션(y:554) ==================== -->
+
+          <!-- [05] 맞다면 다음 단계: 최종 공유본 저장 및 스킬(자동화) 등록 (Col 1: x:28..356, y:358..536) -->
+          <g transform="translate(28, 358)">
+            <rect x="0" y="0" width="328" height="178" rx="8" fill="#ffffff" stroke="#0f766e" stroke-width="1.8" filter="url(#card-shadow)"/>
+            <rect x="0" y="0" width="328" height="30" rx="8" fill="#0f766e"/>
+            <rect x="0" y="15" width="328" height="15" fill="#0f766e"/>
+            <text x="14" y="20" fill="#ffffff" font-size="12" font-weight="900">05. [결과가 맞다면] 공유본 전달 및 스킬(자동화) 등록</text>
+
+            <rect x="12" y="38" width="304" height="41" rx="6" fill="#f0fdf4" stroke="#bbf7d0"/>
+            <text x="22" y="54" fill="#15803d" font-size="11.2" font-weight="900">① 수정된 로그 · 본문 · 표 최종 확정 및 저장</text>
+            <text x="22" y="70" fill="#334155" font-size="10.5" font-weight="600">가려진 결과와 관련 설명 내용을 함께 반영해 [복사 / 다운로드]</text>
+
+            <rect x="12" y="86" width="304" height="41" rx="6" fill="#eff6ff" stroke="#bfdbfe"/>
+            <text x="22" y="102" fill="#1d4ed8" font-size="11.2" font-weight="900">② 스킬(Skill) 등록으로 다음 작업 자동화</text>
+            <text x="22" y="118" fill="#334155" font-size="10.5" font-weight="600">‘어떤 경우에 어느 정도로 가릴지’ 처리 기준을 스킬에 기록·저장</text>
+
+            <rect x="12" y="134" width="304" height="34" rx="6" fill="#f8fafc" stroke="#e2e8f0"/>
+            <text x="22" y="149" fill="#1e3a8a" font-size="11" font-weight="900">③ 다음 작업 시 목적 · 상대 · 조건 확인 후 재사용</text>
+            <text x="22" y="163" fill="#64748b" font-size="10.2" font-weight="600">같은 조건이면 자동 적용 · 목적이 달라지면 다시 질문</text>
+          </g>
+          <text x="30" y="554" fill="#111827" font-size="12.5" font-weight="900">05. 최종 저장 및 스킬 등록 <tspan fill="#0f766e" font-size="11" font-weight="800">(04번 확인 결과가 맞을 때 진행)</tspan></text>
+
+          <!-- [화면 4] D 기타(직접 입력) 적용 화면 (Col 2: x:432..760, y:358..536) -->
+          <g transform="translate(432, 358)">
+            <rect x="0" y="0" width="328" height="178" rx="8" fill="#fff" stroke="#cbd5e1" stroke-width="1.5" filter="url(#card-shadow)"/>
+            <image href="flow_step4_d.png" x="2" y="2" width="324" height="174" preserveAspectRatio="none"/>
+            <!-- 하이라이트 박스 1: 직접 입력한 조건 영역 -->
+            <rect x="215" y="41" width="102" height="108" rx="4" fill="#0f766e" fill-opacity="0.06" stroke="#0f766e" stroke-width="1.8"/>
+            <!-- 하이라이트 박스 2: [이 조건으로 작성] 버튼 -->
+            <rect x="215" y="154" width="102" height="17" rx="2" fill="none" stroke="#111827" stroke-width="1.8"/>
+          </g>
+          <text x="434" y="554" fill="#111827" font-size="12.5" font-weight="900">03-2. D 기타(직접 입력) <tspan fill="#64748b" font-size="11" font-weight="700">(조건 입력 → 실제 비율 확인 → 이 조건으로 작성)</tspan></text>
+
+          <!-- [화면 5] 선택한 공개 수준에 따른 최종 결과 (Col 3: x:836..1164, y:358..536) -->
+          <g transform="translate(836, 358)">
+            <rect x="0" y="0" width="328" height="178" rx="8" fill="#fff" stroke="#cbd5e1" stroke-width="1.5" filter="url(#card-shadow)"/>
+            <image href="flow_step5_final.png" x="2" y="2" width="324" height="174" preserveAspectRatio="none"/>
+            <!-- 하이라이트 박스 1: 검토 AI가 복원한 필수 제약 문장 -->
+            <rect x="57" y="90" width="150" height="14" rx="2" fill="#0f766e" fill-opacity="0.08" stroke="#0f766e" stroke-width="1.6"/>
+            <!-- 하이라이트 박스 2: 우측 [규모 공개 여부 다시 선택 · 문장 수정] -->
+            <rect x="217" y="131" width="98" height="17" rx="2" fill="#eff6ff" fill-opacity="0.45" stroke="#1d4ed8" stroke-width="1.6"/>
+            <!-- 하이라이트 박스 3: 우하단 [복사] / [다운로드] 버튼 -->
+            <rect x="217" y="157" width="99" height="15" rx="2" fill="#0f766e" fill-opacity="0.08" stroke="#111827" stroke-width="1.8"/>
+          </g>
+          <text x="838" y="554" fill="#111827" font-size="12.5" font-weight="900">04. 선택한 공개 수준에 따른 최종 결과 <tspan fill="#0f766e" font-size="11" font-weight="800">(B 선택 예시 · 사람 최종 확인)</tspan></text>
+
+
+          <!-- ==================== 정방향 6개 기본 화살표 + 04번 확인 후 2갈래 경로 (교차·글자 겹침 0%) ==================== -->
+
+          <!-- 1) 화면 1 하단 [공유용 초안 만들기] 버튼(x:154, y:194) -> 아래 빈 공간(y:226) -> 우측 통로(x:394) -> 화면 2 좌측(x:429, y:120) -->
+          <path d="M 154 194 L 154 226 L 394 226 L 394 120 L 429 120" fill="none" stroke="#1e293b" stroke-width="1.8" marker-end="url(#wf-arrow)"/>
+          <text x="274" y="218" text-anchor="middle" fill="#111827" font-size="11.2" font-weight="800">[공유용 초안 만들기] 버튼을 누른다</text>
+
+          <!-- 2) 화면 2 하단(x:596, y:194) -> 다이아몬드 분기 상단(x:596, y:237) -->
+          <path d="M 596 194 L 596 237" fill="none" stroke="#1e293b" stroke-width="1.8" marker-end="url(#wf-arrow)"/>
+          <text x="606" y="220" fill="#111827" font-size="11" font-weight="800">공개 수준 선택 후 진행</text>
+
+          <!-- 3) 다이아몬드 분기 우측(x:662, y:278) -> 통로(x:798) -> 화면 3 좌측(x:833, y:120) -->
+          <path d="M 662 278 L 798 278 L 798 120 L 833 120" fill="none" stroke="#1e293b" stroke-width="1.8" marker-end="url(#wf-arrow)"/>
+          <text x="730" y="262" text-anchor="middle" fill="#111827" font-size="11" font-weight="800">A · B · C 기본 보기 선택</text>
+          <text x="730" y="294" text-anchor="middle" fill="#64748b" font-size="10.2" font-weight="700">(사실만 / 추이만 / 마스킹)</text>
+
+          <!-- 4) 다이아몬드 분기 하단(x:596, y:316) -> 화면 4 상단(x:596, y:355) -->
+          <path d="M 596 316 L 596 355" fill="none" stroke="#0f766e" stroke-width="1.9" marker-end="url(#wf-arrow-teal)"/>
+          <text x="606" y="335" fill="#0f766e" font-size="11" font-weight="900">D 기타(직접 입력) 선택</text>
+          <text x="606" y="349" fill="#475569" font-size="10.2" font-weight="700">“첫 관찰=100 비율만 보여줘”</text>
+
+          <!-- 5) 화면 3 하단(x:1000, y:194) -> 화면 5 상단(x:1000, y:355) -->
+          <path d="M 1000 194 L 1000 355" fill="none" stroke="#1e293b" stroke-width="1.8" marker-end="url(#wf-arrow)"/>
+          <rect x="1010" y="252" width="154" height="44" rx="5" fill="#ffffff" stroke="#cbd5e1"/>
+          <text x="1018" y="270" fill="#111827" font-size="10.8" font-weight="800">작성·검토 AI 초안 완성</text>
+          <text x="1018" y="285" fill="#0f766e" font-size="10.2" font-weight="800">+ 빠진 제약(“채널 유지”) 복원</text>
+
+          <!-- 6) 화면 4 우하단 [이 조건으로 작성](x:749, y:522) -> 통로(x:798) -> 화면 5 좌측(x:833, y:452) -->
+          <path d="M 749 522 L 798 522 L 798 452 L 833 452" fill="none" stroke="#0f766e" stroke-width="1.9" marker-end="url(#wf-arrow-teal)"/>
+          <text x="798" y="424" text-anchor="middle" fill="#0f766e" font-size="10.5" font-weight="900">[이 조건으로</text>
+          <text x="798" y="438" text-anchor="middle" fill="#0f766e" font-size="10.5" font-weight="900">작성] 클릭</text>
+
+          <!-- ==================== 04번 확인 후 2갈래 경로 (캡션 텍스트와 겹침 0%) ==================== -->
+
+          <!-- [경로 A: 결과가 맞다면 → 05 다음 단계] 04번 캡션 아래(y:562)에서 출발해 하단 레인(y:586)을 따라 05번 캡션 아래(y:562)로 연결 -->
+          <path d="M 1000 562 L 1000 586 L 192 586 L 192 562" fill="none" stroke="#0f766e" stroke-width="2" marker-end="url(#wf-arrow-teal)"/>
+          <rect x="406" y="575" width="380" height="20" rx="10" fill="#ecfdf5" stroke="#34d399" stroke-width="1.4"/>
+          <text x="596" y="589" text-anchor="middle" fill="#065f46" font-size="10.8" font-weight="900">✓ [결과가 맞다면 → 다음 단계(05)] 복사·다운로드 후 가림 규칙을 스킬(Skill)에 등록</text>
+
+          <!-- [경로 B: 정확하지 않다면 → 02 규칙 설정으로 돌아가기] 상단 빈 공간(y:14)에서 02·03-1 사이 빈 통로(x:780)로 내려와 02번 우측(y:74)으로 진입 -->
+          <path d="M 1164 498 L 1180 498 L 1180 14 L 780 14 L 780 74 L 763 74" fill="none" stroke="#1d4ed8" stroke-width="1.8" stroke-dasharray="5 3" marker-end="url(#wf-arrow-blue)"/>
+          <rect x="786" y="4" width="384" height="20" rx="10" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.4"/>
+          <text x="978" y="17.5" text-anchor="middle" fill="#1d4ed8" font-size="10.8" font-weight="900">↺ [정확하지 않다면 → 02번 복귀] 규칙을 수정·추가하거나 공개 수준을 다시 설정</text>
+
+        </svg>
+      </figure>
+    </section>
+  </div>
+  </div>
+  <div class="slide-scope" id="slide-tech">
+    <div class="page-shell" id="sheet-tech">
+    <section class="page" id="tech-stack" aria-labelledby="tech-title">
+      <header class="page-header">
+        <h2 id="tech-title"><span class="num-accent">핵심 기술</span>Core Technology &amp; Stack</h2>
+        <span class="header-sub">프론트엔드 워크스페이스 · 백엔드 &amp; AI 서빙 엔진 · 데이터베이스 및 보안 격리 인프라</span>
+      </header>
+
+      <div class="stack-columns">
+        <!-- ==================== 열 1: 프론트엔드 ==================== -->
+        <div class="stack-col">
+          <div class="col-banner">
+            <h3>프론트엔드</h3>
+            <span>Client · View</span>
+          </div>
+
+          <!-- 카드 1: React / Vite / TypeScript -->
+          <article class="tech-card">
+            <div class="tech-card-head">
+              <div class="tech-icon" style="background:#1e293b">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <circle cx="12" cy="12" r="2.1" fill="#00d8ff"/>
+                  <ellipse cx="12" cy="12" rx="9" ry="3.6" fill="none" stroke="#00d8ff" stroke-width="1.3"/>
+                  <ellipse cx="12" cy="12" rx="9" ry="3.6" fill="none" stroke="#00d8ff" stroke-width="1.3" transform="rotate(60 12 12)"/>
+                  <ellipse cx="12" cy="12" rx="9" ry="3.6" fill="none" stroke="#00d8ff" stroke-width="1.3" transform="rotate(120 12 12)"/>
+                </svg>
+              </div>
+              <h4 class="tech-title">React / Vite / TypeScript</h4>
+            </div>
+            <p class="tech-desc">
+              5단계 공유 자료 준비 워크스페이스 구현에 <strong>빠른 번들링(Vite) + 정적 타입 검사(TypeScript)</strong> 조합을 활용해 개발 생산성과 코드 안정성을 동시에 확보했습니다.
+            </p>
+          </article>
+
+          <!-- 카드 2: TailwindCSS / Design System -->
+          <article class="tech-card">
+            <div class="tech-card-head">
+              <div class="tech-icon">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path fill="#06B6D4" d="M12.001 4.8c-3.2 0-5.2 1.6-6 4.8 1.2-1.6 2.6-2.2 4.2-1.8.913.228 1.565.89 2.288 1.624C13.666 10.618 15.027 12 18.001 12c3.2 0 5.2-1.6 6-4.8-1.2 1.6-2.6 2.2-4.2 1.8-.913-.228-1.565-.89-2.288-1.624C16.337 6.182 14.976 4.8 12.001 4.8zm-6 7.2c-3.2 0-5.2 1.6-6 4.8 1.2-1.6 2.6-2.2 4.2-1.8.913.228 1.565.89 2.288 1.624C7.666 17.818 9.027 19.2 12.001 19.2c3.2 0 5.2-1.6 6-4.8-1.2 1.6-2.6 2.2-4.2 1.8-.913-.228-1.565-.89-2.288-1.624C10.337 13.382 8.976 12 6.001 12z"/>
+                </svg>
+              </div>
+              <h4 class="tech-title">TailwindCSS / UI 컴포넌트</h4>
+            </div>
+            <p class="tech-desc">
+              유틸리티 클래스 스타일링과 디자인 토큰을 적극 활용해 <strong>공개 수준(A~D) 비교 카드와 실시간 미리보기 화면</strong>을 일관되고 신속하게 구축했습니다.
+            </p>
+          </article>
+
+          <!-- 카드 3: 실시간 동기화 상태 관리 -->
+          <article class="tech-card">
+            <div class="tech-card-head">
+              <div class="tech-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <circle cx="6" cy="6" r="3"/><circle cx="18" cy="6" r="3"/><circle cx="12" cy="18" r="3"/>
+                  <path d="M8.7 7.5 10.8 15.3M15.3 7.5 13.2 15.3M9 6h6"/>
+                </svg>
+              </div>
+              <h4 class="tech-title">단일 상태 트리 · 동시 갱신</h4>
+            </div>
+            <p class="tech-desc">
+              공개 수준(A~D)이나 직접 입력(D) 조건을 바꿀 때 <strong>연결된 본문·표·설명의 수치가 어긋나지 않도록</strong> 직관적인 전역 상태 접근 및 즉시 동기화를 구현했습니다.
+            </p>
+          </article>
+
+          <!-- 카드 4: 사내 근거 매핑 & Diff Viewer -->
+          <article class="tech-card">
+            <div class="tech-card-head">
+              <div class="tech-icon" style="background:#eff6ff">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#1d4ed8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                  <polyline points="14 2 14 8 20 8"/>
+                  <line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="13" y2="17"/>
+                </svg>
+              </div>
+              <h4 class="tech-title">근거 하이라이트 &amp; 반출 뷰어</h4>
+            </div>
+            <p class="tech-desc">
+              외부에 보낼 공유 초안 문장과 <strong>사내 원본 문서(운영메모.md)의 근거 위치를 시각적으로 분리 표시</strong>해 실무자가 유출 여부를 한눈에 검증하도록 완성했습니다.
+            </p>
+          </article>
+        </div>
+
+        <!-- ==================== 열 2: 백엔드 & AI 엔진 ==================== -->
+        <div class="stack-col">
+          <div class="col-banner">
+            <h3>백엔드 &amp; AI 엔진</h3>
+            <span>Controller · AI Engine</span>
+          </div>
+
+          <!-- 카드 1: TypeScript / FastAPI -->
+          <article class="tech-card">
+            <div class="tech-card-head">
+              <div class="tech-icon">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <rect x="0" y="0" width="24" height="24" rx="4" fill="#3178C6"/>
+                  <path fill="#ffffff" d="M13.758 18.234v1.72c.281.144.619.254 1.015.331.396.077.819.115 1.268.115.432 0 .845-.041 1.239-.124.394-.083.743-.217 1.046-.403.304-.186.544-.432.721-.738.177-.306.265-.685.265-1.137 0-.331-.049-.616-.147-.856a1.83 1.83 0 0 0-.428-.629 3.06 3.06 0 0 0-.695-.474 8.35 8.35 0 0 0-.949-.396c-.26-.102-.487-.197-.681-.284a2.26 2.26 0 0 1-.481-.278.997.997 0 0 1-.279-.318.88.88 0 0 1-.09-.409c0-.165.039-.31.116-.434.077-.124.187-.228.33-.312.143-.084.318-.148.524-.192.206-.044.439-.066.698-.066.212 0 .431.016.657.049.226.033.449.082.669.147.22.065.43.146.63.243.2.097.376.208.528.332v-1.637a4.78 4.78 0 0 0-.968-.298 6.45 6.45 0 0 0-1.262-.11c-.436 0-.847.046-1.233.139-.386.093-.726.235-1.019.427-.293.192-.525.436-.696.732-.171.296-.256.647-.256 1.053 0 .52.15.959.451 1.317.301.358.774.669 1.418.932.253.102.487.199.702.291.215.092.401.189.558.291.157.102.28.215.369.338.089.123.134.269.134.438 0 .16-.036.304-.109.431a.937.937 0 0 1-.325.325c-.144.088-.326.155-.546.201-.22.046-.477.069-.771.069-.342 0-.683-.051-1.023-.153a4.12 4.12 0 0 1-.965-.454zm-4.63-5.691h2.762V10.95H4.632v1.593H7.38v7.697h1.748v-7.697z"/>
+                </svg>
+              </div>
+              <h4 class="tech-title">TypeScript API / FastAPI 서빙</h4>
+            </div>
+            <p class="tech-desc">
+              MVC 구조의 백엔드 컨트롤러(Route·Service·Repository)와 <strong>비동기 AI 추론 서빙(FastAPI)</strong>을 결합해 로그 분석·비식별화·스킬 매칭 응답 지연을 최소화했습니다.
+            </p>
+          </article>
+
+          <!-- 카드 2: LLM API · Gemini / 사내 sLLM -->
+          <article class="tech-card">
+            <div class="tech-card-head">
+              <div class="tech-icon">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path fill="#0f172a" d="M22.2819 9.8211a5.9847 5.9847 0 0 0-.5157-4.9108 6.0462 6.0462 0 0 0-6.5098-2.9A6.0651 6.0651 0 0 0 4.9807 4.1818a5.9847 5.9847 0 0 0-3.9977 2.9 6.0462 6.0462 0 0 0 .7427 7.0966 5.98 5.98 0 0 0 .511 4.9107 6.051 6.051 0 0 0 6.5146 2.9001A5.9847 5.9847 0 0 0 13.2599 24a6.0557 6.0557 0 0 0 5.7718-4.2058 5.9894 5.9894 0 0 0 3.9977-2.9001 6.0557 6.0557 0 0 0-.7475-7.0729zm-9.022 12.6081a4.4755 4.4755 0 0 1-2.8764-1.0408l.1419-.0804 4.7783-2.7582a.7948.7948 0 0 0 .3927-.6813v-6.7369l2.02 1.1686a.071.071 0 0 1 .038.052v5.5826a4.504 4.504 0 0 1-4.4945 4.4944zm-9.6607-4.1254a4.4708 4.4708 0 0 1-.5346-3.0137l.142.0852 4.783 2.7582a.7712.7712 0 0 0 .7806 0l5.8428-3.3685v2.3324a.0804.0804 0 0 1-.0332.0615L9.74 19.9502a4.4992 4.4992 0 0 1-6.1408-1.6464zM2.3408 7.8956a4.485 4.485 0 0 1 2.3655-1.9728V11.6a.7664.7664 0 0 0 .3879.6765l5.8144 3.3543-2.0201 1.1685a.0757.0757 0 0 1-.071 0l-4.8303-2.7865A4.504 4.504 0 0 1 2.3408 7.872zm16.5963 3.8558L13.1038 8.364 15.1192 7.2a.0757.0757 0 0 1 .071 0l4.8303 2.7913a4.4944 4.4944 0 0 1-.6765 8.1042v-5.6772a.79.79 0 0 0-.407-.667zm2.0107-3.0231l-.142-.0852-4.7735-2.7818a.7759.7759 0 0 0-.7854 0L9.409 9.2297V6.8974a.0662.0662 0 0 1 .0284-.0615l4.8303-2.7866a4.4992 4.4992 0 0 1 6.6802 4.66zM8.3065 12.863l-2.02-1.1638a.0804.0804 0 0 1-.038-.0567V6.0742a4.4992 4.4992 0 0 1 7.3757-3.4537l-.142.0805L8.704 5.459a.7948.7948 0 0 0-.3927.6813zm1.0976-2.3654l2.602-1.4998 2.6069 1.4998v2.9994l-2.5974 1.4997-2.6067-1.4997Z"/>
+                </svg>
+              </div>
+              <h4 class="tech-title">LLM API · Gemini / 사내 sLLM</h4>
+            </div>
+            <p class="tech-desc">
+              <strong>모델 교체형 추론 인터페이스</strong>를 적용해 상용 LLM API(Gemini·OpenAI)뿐 아니라 망분리 환경의 사내 경량 모델(sLLM)도 코드 수정 없이 즉시 연결합니다.
+            </p>
+          </article>
+
+          <!-- 카드 3: CaMeL 원문 격리 & 비식별 변환 엔진 -->
+          <article class="tech-card">
+            <div class="tech-card-head">
+              <div class="tech-icon" style="background:#eef2ff">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#4f46e5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                  <path d="m9 12 2 2 4-4"/>
+                </svg>
+              </div>
+              <h4 class="tech-title">CaMeL 원문 격리 &amp; 비식별 변환 엔진</h4>
+            </div>
+            <p class="tech-desc">
+              원문 접근을 차단하고 승인된 사실만 주입하는 <strong>CaMeL 권한 분리 구조</strong>와 <strong>공개 수준(사실·추이·비율·마스킹) 변환 엔진</strong>을 직접 개발해 원본 숫자 노출을 원천 방지합니다.
+            </p>
+          </article>
+
+          <!-- 카드 4: PyTorch / 3-Way 대조 검증 -->
+          <article class="tech-card">
+            <div class="tech-card-head">
+              <div class="tech-icon">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path fill="#EE4C2C" d="M12.005 0L4.952 7.053a9.865 9.865 0 000 14.022 9.866 9.866 0 0014.022 0c3.984-3.9 3.986-10.205.085-14.023l-1.744 1.743c2.904 2.905 2.904 7.634 0 10.538s-7.634 2.904-10.538 0-2.904-7.634 0-10.538l4.647-4.646.582-.665zm3.568 3.899a1.327 1.327 0 00-1.327 1.327 1.327 1.327 0 001.327 1.328A1.327 1.327 0 0016.9 5.226 1.327 1.327 0 0015.573 3.9z"/>
+                </svg>
+              </div>
+              <h4 class="tech-title">PyTorch / 3-Way 의미 대조</h4>
+            </div>
+            <p class="tech-desc">
+              유사 문제 분류와 <strong>원문·선택 기준·초안 3자 의미 대조 검증</strong>을 수행하여, 비식별화 과정에서 빠진 필수 업무 제약(“기존 접수 채널 유지”)을 자동 복원합니다.
+            </p>
+          </article>
+        </div>
+
+        <!-- ==================== 열 3: 데이터베이스 & 인프라 ==================== -->
+        <div class="stack-col">
+          <div class="col-banner">
+            <h3>데이터베이스 &amp; 인프라</h3>
+            <span>Model · DevOps</span>
+          </div>
+
+          <!-- 카드 1: PostgreSQL / Prisma ORM -->
+          <article class="tech-card">
+            <div class="tech-card-head">
+              <div class="tech-icon">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M9.6 4.4 C4.6 3.3 2.2 5.8 2.6 10.8 C3.0 15.2 5.4 18.2 8.2 17.6 C9.4 17.3 10.1 16.0 10.3 14.2" fill="#dbeafe" stroke="#336791" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round"/>
+                  <path d="M15.4 4.6 C19.0 3.6 21.4 6.0 20.8 10.4 C20.2 14.2 18.2 16.2 16.0 15.8" fill="#dbeafe" stroke="#336791" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round"/>
+                  <path d="M8.8 6.8 C8.8 3.6 16.4 3.6 16.4 6.8 C16.4 9.6 15.6 12.8 15.4 17.6 C15.3 20.0 13.9 21.4 12.3 21.4 C10.7 21.4 10.3 20.0 10.3 17.4 C10.3 14.2 9.8 11.4 8.8 9.4 Z" fill="#eff6ff" stroke="#336791" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round"/>
+                  <path d="M15.5 15.6 C17.3 16.4 19.3 16.1 20.5 15.0" fill="none" stroke="#336791" stroke-width="1.65" stroke-linecap="round"/>
+                  <ellipse cx="10.9" cy="8.9" rx="0.95" ry="1.25" fill="#336791"/>
+                  <ellipse cx="14.5" cy="8.9" rx="0.95" ry="1.25" fill="#336791"/>
+                </svg>
+              </div>
+              <h4 class="tech-title">PostgreSQL / Prisma ORM</h4>
+            </div>
+            <p class="tech-desc">
+              로그 분석 이력, 공개 수준(A~D) 승인 내역, 문장별 사내 근거 매핑 메타데이터를 <strong>정형 관계형 스키마와 타입 안전 ORM</strong>으로 일관되게 관리합니다.
+            </p>
+          </article>
+
+          <!-- 카드 2: Skill Repository -->
+          <article class="tech-card">
+            <div class="tech-card-head">
+              <div class="tech-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M14 2v4a2 2 0 0 0 2 2h4" fill="#d1fae5"/>
+                  <path d="M4.677 21.5a2 2 0 0 0 1.313.5H18a2 2 0 0 0 2-2V7l-5-5H6a2 2 0 0 0-2 2v2.5"/>
+                  <circle cx="6" cy="14" r="3" fill="#ecfdf5"/>
+                  <path d="m4.5 10.5-.4.9M7.5 10.5l.4.9M9.5 12.5l-.9.4M9.5 15.5l-.9-.4M7.5 17.5l.4-.9M4.5 17.5l-.4-.9M2.5 15.5l.9-.4M2.5 12.5l.9.4"/>
+                </svg>
+              </div>
+              <h4 class="tech-title">Skill Repository (스킬 저장소)</h4>
+            </div>
+            <p class="tech-desc">
+              사용자가 확인·승인한 가림 기준(<strong>목적·수신처·조건 → A~D 규칙</strong>)을 스킬로 저장소화하여, 반복 작업이나 타 기업 유사 문제 해결 시 즉시 재사용합니다.
+            </p>
+          </article>
+
+          <!-- 카드 3: Auth & Tenant / RLS 격리 -->
+          <article class="tech-card">
+            <div class="tech-card-head">
+              <div class="tech-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#b45309" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <circle cx="7.5" cy="15.5" r="5.5"/>
+                  <path d="m21 2-9.6 9.6"/>
+                  <path d="m15.5 7.5 3 3L22 7l-3-3"/>
+                </svg>
+              </div>
+              <h4 class="tech-title">Auth &amp; Tenant / RLS 원문 격리</h4>
+            </div>
+            <p class="tech-desc">
+              기업 A·기업 B 간 <strong>테넌트 권한 분리와 Row-Level Security(RLS)</strong>를 적용해 사내 원본 로그는 격리하고 승인된 스킬만 안전하게 공유합니다.
+            </p>
+          </article>
+
+          <!-- 카드 4: GitHub Actions / On-Prem & Cloud -->
+          <article class="tech-card">
+            <div class="tech-card-head">
+              <div class="tech-icon">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path fill="#0f172a" d="M12 .5C5.65.5.5 5.65.5 12c0 5.09 3.29 9.4 7.86 10.92.58.1.79-.25.79-.56v-2c-3.2.7-3.88-1.54-3.88-1.54-.52-1.33-1.28-1.68-1.28-1.68-1.05-.71.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.76 2.7 1.25 3.36.96.1-.75.4-1.25.73-1.54-2.55-.29-5.24-1.28-5.24-5.69 0-1.26.45-2.29 1.19-3.1-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.18 1.18a11.1 11.1 0 0 1 5.8 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.84 1.19 3.1 0 4.42-2.7 5.39-5.26 5.68.41.36.78 1.06.78 2.14v3.17c0 .31.21.67.8.56A11.51 11.51 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5z"/>
+                </svg>
+              </div>
+              <h4 class="tech-title">GitHub CI/CD · On-Prem / Cloud</h4>
+            </div>
+            <p class="tech-desc">
+              PR 단위 Preview 검증과 main 브랜치 자동 빌드·배포 파이프라인을 구축했으며, 기업 보안 정책에 따라 <strong>사내 구축형(On-Prem)과 클라우드</strong>를 모두 지원합니다.
+            </p>
+          </article>
+        </div>
+      </div>
+
+      <footer class="page-footer">
+        <span>* 개발 환경 요약: TypeScript · React 18 · Vite · TailwindCSS · FastAPI · PostgreSQL · Prisma ORM · Gemini / 사내 sLLM</span>
+        <span class="footer-Right">설계 원칙: 사내 원본 격리(CaMeL) + 모델 교체형 AI 서빙 + 본문·표 실시간 동기화 결합</span>
+      </footer>
+    </section>
+  </div>
+  </div>
+  <div class="slide-scope" id="slide-ai">
+    <div class="page-shell" id="sheet-ai-pipeline">
+    <section class="page" id="ai-pipeline" aria-labelledby="ai-pipe-title">
+      <header class="page-header">
+        <h2 id="ai-pipe-title">핵심 AI 파이프라인 및 직접 개발 범위</h2>
+        <span class="header-sub">AI Engine(TypeScript · FastAPI · LLM/sLLM · PyTorch)과 자체 개발 보안·동기화·스킬 엔진 구조</span>
+      </header>
+
+      <div class="pipeline-grid">
+        <!-- ==================== 카드 1: 로그 비식별화 · 문맥 단서 분리 및 A~D 묶음 질문 ==================== -->
+        <article class="pipe-card">
+          <div class="card-head">
+            <div class="card-top-row">
+              <span class="en-kicker">LOG DE-IDENTIFICATION AGENT</span>
+              <div class="tech-pills">
+                <!-- OpenAI / LLM API 공식 SVG -->
+                <span class="tech-pill">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#0f172a" d="M22.2819 9.8211a5.9847 5.9847 0 0 0-.5157-4.9108 6.0462 6.0462 0 0 0-6.5098-2.9A6.0651 6.0651 0 0 0 4.9807 4.1818a5.9847 5.9847 0 0 0-3.9977 2.9 6.0462 6.0462 0 0 0 .7427 7.0966 5.98 5.98 0 0 0 .511 4.9107 6.051 6.051 0 0 0 6.5146 2.9001A5.9847 5.9847 0 0 0 13.2599 24a6.0557 6.0557 0 0 0 5.7718-4.2058 5.9894 5.9894 0 0 0 3.9977-2.9001 6.0557 6.0557 0 0 0-.7475-7.0729zm-9.022 12.6081a4.4755 4.4755 0 0 1-2.8764-1.0408l.1419-.0804 4.7783-2.7582a.7948.7948 0 0 0 .3927-.6813v-6.7369l2.02 1.1686a.071.071 0 0 1 .038.052v5.5826a4.504 4.504 0 0 1-4.4945 4.4944zm-9.6607-4.1254a4.4708 4.4708 0 0 1-.5346-3.0137l.142.0852 4.783 2.7582a.7712.7712 0 0 0 .7806 0l5.8428-3.3685v2.3324a.0804.0804 0 0 1-.0332.0615L9.74 19.9502a4.4992 4.4992 0 0 1-6.1408-1.6464zM2.3408 7.8956a4.485 4.485 0 0 1 2.3655-1.9728V11.6a.7664.7664 0 0 0 .3879.6765l5.8144 3.3543-2.0201 1.1685a.0757.0757 0 0 1-.071 0l-4.8303-2.7865A4.504 4.504 0 0 1 2.3408 7.872zm16.5963 3.8558L13.1038 8.364 15.1192 7.2a.0757.0757 0 0 1 .071 0l4.8303 2.7913a4.4944 4.4944 0 0 1-.6765 8.1042v-5.6772a.79.79 0 0 0-.407-.667zm2.0107-3.0231l-.142-.0852-4.7735-2.7818a.7759.7759 0 0 0-.7854 0L9.409 9.2297V6.8974a.0662.0662 0 0 1 .0284-.0615l4.8303-2.7866a4.4992 4.4992 0 0 1 6.6802 4.66zM8.3065 12.863l-2.02-1.1638a.0804.0804 0 0 1-.038-.0567V6.0742a4.4992 4.4992 0 0 1 7.3757-3.4537l-.142.0805L8.704 5.459a.7948.7948 0 0 0-.3927.6813zm1.0976-2.3654l2.602-1.4998 2.6069 1.4998v2.9994l-2.5974 1.4997-2.6067-1.4997Z"/></svg>
+                  LLM API
+                </span>
+                <!-- FastAPI 공식 SVG -->
+                <span class="tech-pill">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="11" fill="#05998b"/><polygon points="13,5 7,13 12,13 10,20 17,11 12,11" fill="#ffffff"/></svg>
+                  FastAPI
+                </span>
+                <span class="tech-pill direct"><span class="pill-check">✓</span>직접 개발 · 묶음 질문기</span>
+              </div>
+            </div>
+            <h3>로그 비식별화 · 공개 수준(A~D) 질문 생성</h3>
+          </div>
+
+          <div class="flow-well">
+            <div class="flow-step">
+              <div class="step-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                  <polyline points="14 2 14 8 20 8"/>
+                  <line x1="9" y1="13" x2="15" y2="13"/>
+                  <line x1="9" y1="17" x2="13" y2="17"/>
+                </svg>
+              </div>
+              <div class="step-title">기업 A 사내 원본 로그</div>
+              <div class="step-sub">오류 로그 · 현황표 · 운영 메모</div>
+            </div>
+
+            <div class="flow-arrow" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="5" y1="12" x2="19" y2="12"/><polyline points="13 6 19 12 13 18"/>
+              </svg>
+            </div>
+
+            <div class="flow-step">
+              <div class="step-icon active-blue" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="3" y="4" width="6" height="6" rx="1"/>
+                  <rect x="15" y="4" width="6" height="6" rx="1"/>
+                  <rect x="9" y="14" width="6" height="6" rx="1"/>
+                  <path d="M6 10v2a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2v-2"/>
+                </svg>
+              </div>
+              <div class="step-title">문맥 단서 · 민감도 분리</div>
+              <div class="step-sub">함수명·단가·건수 클러스터링</div>
+            </div>
+
+            <div class="flow-arrow" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="5" y1="12" x2="19" y2="12"/><polyline points="13 6 19 12 13 18"/>
+              </svg>
+            </div>
+
+            <div class="flow-step">
+              <div class="step-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="9"/>
+                  <line x1="3.6" y1="9" x2="20.4" y2="9"/>
+                  <line x1="3.6" y1="15" x2="20.4" y2="15"/>
+                  <path d="M11.5 3a17 17 0 0 0 0 18"/>
+                  <path d="M12.5 3a17 17 0 0 1 0 18"/>
+                </svg>
+              </div>
+              <div class="step-title">공개 수준(A~D) 질문 UI</div>
+              <div class="step-sub">사실만·추이만·마스킹·비율</div>
+            </div>
+          </div>
+
+          <div class="scope-strip">
+            <span class="scope-api"><strong>AI 활용:</strong> LLM API · FastAPI 비동기 추론</span>
+            <span class="scope-dev">직접 개발: JSON Schema 유사 단서 묶음 질문기</span>
+          </div>
+        </article>
+
+        <!-- ==================== 카드 2: CaMeL 원문 격리 초안 작성 및 본문·표 동시 갱신 ==================== -->
+        <article class="pipe-card">
+          <div class="card-head">
+            <div class="card-top-row">
+              <span class="en-kicker">CAMEL ISOLATED DRAFTING AGENT</span>
+              <div class="tech-pills">
+                <!-- Gemini / sLLM 공식 SVG -->
+                <span class="tech-pill">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2 C13.8 9, 15.8 11, 22 12 C15.8 13, 13.8 15, 12 22 C10.2 15, 8.2 13, 2 12 C8.2 11, 10.2 9, 12 2 Z" fill="#6366f1"/></svg>
+                  Gemini / sLLM
+                </span>
+                <!-- TypeScript 공식 SVG -->
+                <span class="tech-pill">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><rect width="24" height="24" rx="4" fill="#3178C6"/><text x="12" y="17" text-anchor="middle" fill="#fff" font-size="12" font-weight="900">TS</text></svg>
+                  TypeScript
+                </span>
+                <span class="tech-pill direct"><span class="pill-check">✓</span>직접 개발 · 동시 갱신 엔진</span>
+              </div>
+            </div>
+            <h3>원문 격리 초안 작성 · 본문·표 동시 갱신</h3>
+          </div>
+
+          <div class="flow-well">
+            <div class="flow-step">
+              <div class="step-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="3" y="4" width="18" height="16" rx="2"/>
+                  <line x1="7" y1="8" x2="13" y2="8"/>
+                  <line x1="7" y1="12" x2="17" y2="12"/>
+                  <line x1="7" y1="16" x2="15" y2="16"/>
+                </svg>
+              </div>
+              <div class="step-title">CaMeL 원문 격리 주입</div>
+              <div class="step-sub">승인된 A~D 허용 사실만 전달</div>
+            </div>
+
+            <div class="flow-arrow" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="5" y1="12" x2="19" y2="12"/><polyline points="13 6 19 12 13 18"/>
+              </svg>
+            </div>
+
+            <div class="flow-step">
+              <div class="step-icon active-blue" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 4.44-2.04Z"/>
+                  <path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-4.44-2.04Z"/>
+                </svg>
+              </div>
+              <div class="step-title">선택 기준 맞춤 초안 생성</div>
+              <div class="step-sub">실제 수치 가림 · 추이·비율 변환</div>
+            </div>
+
+            <div class="flow-arrow" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="5" y1="12" x2="19" y2="12"/><polyline points="13 6 19 12 13 18"/>
+              </svg>
+            </div>
+
+            <div class="flow-step">
+              <div class="step-icon accent-red" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+                  <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+                </svg>
+              </div>
+              <div class="step-title">본문·표·설명 동시 갱신</div>
+              <div class="step-sub">React 단일 상태 트리 동기화</div>
+            </div>
+          </div>
+
+          <div class="scope-strip">
+            <span class="scope-api"><strong>AI 활용:</strong> Gemini / 사내 sLLM 교체형 초안 생성</span>
+            <span class="scope-dev">직접 개발: CaMeL 원문 격리 &amp; 본문·표 동시 갱신 엔진</span>
+          </div>
+        </article>
+
+        <!-- ==================== 카드 3: 해결 스킬 추천 · 3자 대조 검증 및 사내 근거 매핑 ==================== -->
+        <article class="pipe-card">
+          <div class="card-head">
+            <div class="card-top-row">
+              <span class="en-kicker">3-WAY CROSS-CHECK &amp; SKILL AGENT</span>
+              <div class="tech-pills">
+                <!-- PyTorch 공식 SVG -->
+                <span class="tech-pill">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#EE4C2C" d="M12.005 0L4.952 7.053a9.865 9.865 0 000 14.022 9.866 9.866 0 0014.022 0c3.984-3.9 3.986-10.205.085-14.023l-1.744 1.743c2.904 2.905 2.904 7.634 0 10.538s-7.634 2.904-10.538 0-2.904-7.634 0-10.538l4.647-4.646.582-.665zm3.568 3.899a1.327 1.327 0 00-1.327 1.327 1.327 1.327 0 001.327 1.328A1.327 1.327 0 0016.9 5.226 1.327 1.327 0 0015.573 3.9z"/></svg>
+                  PyTorch
+                </span>
+                <!-- RLS Shield 아이콘 -->
+                <span class="tech-pill">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="#0f172a" stroke-width="2.2" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                  RLS 격리
+                </span>
+                <span class="tech-pill direct"><span class="pill-check">✓</span>직접 개발 · 사내 근거 매핑</span>
+              </div>
+            </div>
+            <h3>해결 스킬 추천 · 3자 대조 및 필수 제약 복원</h3>
+          </div>
+
+          <div class="flow-well">
+            <div class="flow-step">
+              <div class="step-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                  <line x1="12" y1="9" x2="12" y2="13"/>
+                  <line x1="12" y1="17" x2="12.01" y2="17"/>
+                </svg>
+              </div>
+              <div class="step-title">누락 · 과다 노출 위험</div>
+              <div class="step-sub">원문 · 선택 기준 · 초안 입력</div>
+            </div>
+
+            <div class="flow-arrow" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="5" y1="12" x2="19" y2="12"/><polyline points="13 6 19 12 13 18"/>
+              </svg>
+            </div>
+
+            <div class="flow-step">
+              <div class="step-icon active-blue" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="18" cy="5" r="3"/>
+                  <circle cx="6" cy="12" r="3"/>
+                  <circle cx="18" cy="19" r="3"/>
+                  <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
+                  <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+                </svg>
+              </div>
+              <div class="step-title">3-Way 대조 · 스킬 추천</div>
+              <div class="step-sub">유사 문제 분류 · 사내 근거 연결</div>
+            </div>
+
+            <div class="flow-arrow" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="5" y1="12" x2="19" y2="12"/><polyline points="13 6 19 12 13 18"/>
+              </svg>
+            </div>
+
+            <div class="flow-step">
+              <div class="step-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="9 11 12 14 22 4"/>
+                  <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+                </svg>
+              </div>
+              <div class="step-title">빠진 필수 제약 복원</div>
+              <div class="step-sub">“기존 접수 채널 유지” 반영</div>
+            </div>
+          </div>
+
+          <div class="scope-strip">
+            <span class="scope-api"><strong>AI 활용:</strong> PyTorch 유사 문제 분류 &amp; 3자 대조</span>
+            <span class="scope-dev">직접 개발: 사내 문서 근거 매핑 &amp; 누락 제약 복원기</span>
+          </div>
+        </article>
+
+        <!-- ==================== 카드 4: Skill Repository 등록 및 기업 간 재사용 자동화 ==================== -->
+        <article class="pipe-card">
+          <div class="card-head">
+            <div class="card-top-row">
+              <span class="en-kicker">SKILL REPOSITORY &amp; REUSE ENGINE</span>
+              <div class="tech-pills">
+                <!-- PostgreSQL Slonik 공식 SVG -->
+                <span class="tech-pill">
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M9.6 4.4 C4.6 3.3 2.2 5.8 2.6 10.8 C3.0 15.2 5.4 18.2 8.2 17.6" fill="#dbeafe" stroke="#336791" stroke-width="1.8" stroke-linecap="round"/>
+                    <path d="M15.4 4.6 C19.0 3.6 21.4 6.0 20.8 10.4 C20.2 14.2 18.2 16.2 16.0 15.8" fill="#dbeafe" stroke="#336791" stroke-width="1.8" stroke-linecap="round"/>
+                    <path d="M8.8 6.8 C8.8 3.6 16.4 3.6 16.4 6.8 C16.4 9.6 15.6 12.8 15.4 17.6 C15.3 20.0 13.9 21.4 12.3 21.4 C10.7 21.4 10.3 20.0 10.3 17.4 Z" fill="#eff6ff" stroke="#336791" stroke-width="1.8"/>
+                  </svg>
+                  PostgreSQL
+                </span>
+                <!-- Prisma 공식 SVG -->
+                <span class="tech-pill">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#0f172a" d="M21.807 18.285L13.553.757a1.32 1.32 0 0 0-1.129-.755a1.31 1.31 0 0 0-1.206.626l-8.952 14.5a1.36 1.36 0 0 0 .016 1.455l4.376 6.778a1.41 1.41 0 0 0 1.58.581l12.703-3.757c.389-.115.707-.39.873-.755s.164-.783-.007-1.145m-1.848.752L9.18 22.224a.452.452 0 0 1-.575-.52l3.85-18.438c.072-.345.549-.4.699-.08l7.129 15.138a.515.515 0 0 1-.325.713"/></svg>
+                  Prisma
+                </span>
+                <span class="tech-pill direct"><span class="pill-check">✓</span>직접 개발 · 스킬 매칭 엔진</span>
+              </div>
+            </div>
+            <h3>스킬 저장소(Skill Repo) 등록 · 기업 간 재사용</h3>
+          </div>
+
+          <div class="flow-well">
+            <div class="flow-step">
+              <div class="step-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <ellipse cx="12" cy="5" rx="9" ry="3"/>
+                  <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/>
+                  <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/>
+                </svg>
+              </div>
+              <div class="step-title">Skill Repository 등록</div>
+              <div class="step-sub">기업 A 승인 완료 스킬 저장</div>
+            </div>
+
+            <div class="flow-arrow" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="5" y1="12" x2="19" y2="12"/><polyline points="13 6 19 12 13 18"/>
+              </svg>
+            </div>
+
+            <div class="flow-step">
+              <div class="step-icon active-blue" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+                  <polyline points="3 3 3 8 8 8"/>
+                  <polyline points="12 7 12 12 15 15"/>
+                </svg>
+              </div>
+              <div class="step-title">3대 조건 · 테넌트 판별</div>
+              <div class="step-sub">목적 · 수신처 · Auth 권한 검증</div>
+            </div>
+
+            <div class="flow-arrow" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="5" y1="12" x2="19" y2="12"/><polyline points="13 6 19 12 13 18"/>
+              </svg>
+            </div>
+
+            <div class="flow-step">
+              <div class="step-icon accent-green" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="8" y="3" width="8" height="8" rx="1.5"/>
+                  <rect x="3" y="13" width="8" height="8" rx="1.5"/>
+                  <rect x="13" y="13" width="8" height="8" rx="1.5"/>
+                </svg>
+              </div>
+              <div class="step-title">기업 B 유사 문제 재사용</div>
+              <div class="step-sub">일치 시 즉시 적용 · 변경 시 재질문</div>
+            </div>
+          </div>
+
+          <div class="scope-strip">
+            <span class="scope-api"><strong>인프라 활용:</strong> PostgreSQL · Prisma ORM · Auth</span>
+            <span class="scope-dev">직접 개발: Skill Repository &amp; 조건부 스킬 매칭 엔진</span>
+          </div>
+        </article>
+      </div>
+
+      <footer class="page-footer">
+        <span>* <strong>외부 AI·인프라 연동:</strong> LLM API(OpenAI) · Gemini / 사내 sLLM · PyTorch 분류 · FastAPI 서빙 · PostgreSQL / Prisma</span>
+        <span class="footer-right">✓ 우리 팀 직접 개발: TypeScript AI Engine · CaMeL 원문 격리 · 본문·표 동시 갱신 · 3자 대조 근거 매핑 · Skill Repository</span>
+      </footer>
+    </section>
+  </div>
+  </div>
+  <div class="slide-scope" id="slide-arch">
+    <div class="page-shell" id="sheet-arch">
+    <section class="page" id="architecture" aria-labelledby="arch-title">
+      <header class="page-header">
+        <h2 id="arch-title">AI 기반 로그 비식별화 및 스킬 공유 서비스 아키텍처</h2>
+        <span class="header-sub">MVC 아키텍처 및 기술 스택 · 로그 분석 → 비식별화(A~D) → 승인 → 스킬 등록 / 기업 간 재사용</span>
+      </header>
+
+      <figure class="arch-canvas">
+        <svg viewBox="0 0 1200 610" role="img" aria-labelledby="arch-svg-title arch-svg-desc">
+          <title id="arch-svg-title">SafeHandoff MVC 서비스 아키텍처 및 기술 스택 다이어그램</title>
+          <desc id="arch-svg-desc">Client(View), Server(Controller), Database &amp; Skill Repository(Model), 그리고 AI Engine(Python/LLM API)으로 구성된 MVC 아키텍처 다이어그램입니다.</desc>
+
+          <defs>
+            <marker id="arr-slate" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+              <path d="M1 1 L7 4 L1 7 Z" fill="#64748b"/>
+            </marker>
+            <marker id="arr-blue" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+              <path d="M1 1 L7 4 L1 7 Z" fill="#2563eb"/>
+            </marker>
+            <marker id="arr-green" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+              <path d="M1 1 L7 4 L1 7 Z" fill="#10b981"/>
+            </marker>
+            <filter id="soft-shadow" x="-4%" y="-4%" width="108%" height="112%">
+              <feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="#0f172a" flood-opacity="0.07"/>
+            </filter>
+          </defs>
+
+          <!-- ==================== 0. 외곽 호스팅 컨테이너 (Front + Server 호스팅) ==================== -->
+          <rect x="8" y="20" width="854" height="374" rx="14" fill="none" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="6 4"/>
+          <rect x="26" y="6" width="276" height="26" rx="6" fill="#ffffff"/>
+          <!-- Vercel / Cloud 삼각형 심볼 -->
+          <polygon points="40,11 49,26 31,26" fill="#0f172a"/>
+          <text x="56" y="24" fill="#0f172a" font-size="15.5" font-weight="900">On-Prem / Cloud</text>
+          <text x="196" y="23" fill="#64748b" font-size="11.5" font-weight="700">Front + Server 호스팅</text>
+
+          <!-- ==================== 1. 좌측: Client (View) — Frontend 웹 대시보드 ==================== -->
+          <rect x="24" y="48" width="262" height="334" rx="12" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5" stroke-dasharray="5 4"/>
+          <rect x="38" y="36" width="136" height="22" rx="4" fill="#ffffff"/>
+          <!-- 모니터 아이콘 -->
+          <rect x="44" y="40" width="15" height="11" rx="2" fill="none" stroke="#2563eb" stroke-width="1.8"/>
+          <line x1="48" y1="54" x2="55" y2="54" stroke="#2563eb" stroke-width="1.8"/>
+          <text x="65" y="52" fill="#2563eb" font-size="14.5" font-weight="900">Client (View)</text>
+
+          <!-- 상단 파란 카드 1: 기업 A (로그 입력 · 결과 확인 · 승인) -->
+          <g transform="translate(38, 66)">
+            <rect x="0" y="0" width="110" height="92" rx="10" fill="#2563eb" filter="url(#soft-shadow)"/>
+            <!-- 빌딩 + 문서 아이콘 -->
+            <rect x="39" y="16" width="18" height="26" rx="2" fill="none" stroke="#ffffff" stroke-width="1.8"/>
+            <line x1="44" y1="22" x2="52" y2="22" stroke="#ffffff" stroke-width="1.8"/>
+            <line x1="44" y1="27" x2="52" y2="27" stroke="#ffffff" stroke-width="1.8"/>
+            <line x1="44" y1="32" x2="49" y2="32" stroke="#ffffff" stroke-width="1.8"/>
+            <rect x="57" y="24" width="12" height="18" rx="1.5" fill="none" stroke="#93c5fd" stroke-width="1.6"/>
+            <text x="55" y="64" text-anchor="middle" fill="#ffffff" font-size="13.5" font-weight="900">기업 A 대시보드</text>
+            <text x="55" y="80" text-anchor="middle" fill="#dbeafe" font-size="10.5" font-weight="700">로그 업로드 · 승인</text>
+          </g>
+          <text x="93" y="175" text-anchor="middle" fill="#64748b" font-size="11" font-weight="700">로그 등록 · 결과 확인</text>
+
+          <!-- 상단 파란 카드 2: 기업 B (유사 문제 해결 스킬 재사용) -->
+          <g transform="translate(160, 66)">
+            <rect x="0" y="0" width="110" height="92" rx="10" fill="#2563eb" filter="url(#soft-shadow)"/>
+            <!-- 모니터 + 차트/스킬 아이콘 -->
+            <rect x="38" y="16" width="34" height="24" rx="3" fill="none" stroke="#ffffff" stroke-width="1.8"/>
+            <line x1="46" y1="32" x2="46" y2="26" stroke="#93c5fd" stroke-width="2.2"/>
+            <line x1="53" y1="32" x2="53" y2="22" stroke="#ffffff" stroke-width="2.2"/>
+            <line x1="60" y1="32" x2="60" y2="28" stroke="#93c5fd" stroke-width="2.2"/>
+            <line x1="49" y1="44" x2="61" y2="44" stroke="#ffffff" stroke-width="1.8"/>
+            <text x="55" y="64" text-anchor="middle" fill="#ffffff" font-size="13.5" font-weight="900">기업 B 대시보드</text>
+            <text x="55" y="80" text-anchor="middle" fill="#dbeafe" font-size="10.5" font-weight="700">해결 스킬 조회·재사용</text>
+          </g>
+          <text x="215" y="175" text-anchor="middle" fill="#64748b" font-size="11" font-weight="700">유사 문제 스킬 재사용</text>
+
+          <!-- 중단 기술 스택 카드 3개 (React / TypeScript / Tailwind SVG) -->
+          <!-- React -->
+          <g transform="translate(38, 192)">
+            <rect x="0" y="0" width="72" height="74" rx="8" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.2"/>
+            <g transform="translate(36, 28)">
+              <circle cx="0" cy="0" r="3.2" fill="#00d8ff"/>
+              <ellipse cx="0" cy="0" rx="14" ry="5.5" fill="none" stroke="#00d8ff" stroke-width="1.5"/>
+              <ellipse cx="0" cy="0" rx="14" ry="5.5" fill="none" stroke="#00d8ff" stroke-width="1.5" transform="rotate(60)"/>
+              <ellipse cx="0" cy="0" rx="14" ry="5.5" fill="none" stroke="#00d8ff" stroke-width="1.5" transform="rotate(120)"/>
+            </g>
+            <text x="36" y="61" text-anchor="middle" fill="#0f172a" font-size="11.5" font-weight="800">React</text>
+          </g>
+
+          <!-- TypeScript -->
+          <g transform="translate(119, 192)">
+            <rect x="0" y="0" width="72" height="74" rx="8" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.2"/>
+            <rect x="22" y="13" width="28" height="28" rx="4" fill="#3178c6"/>
+            <text x="36" y="33" text-anchor="middle" fill="#ffffff" font-size="13.5" font-weight="900">TS</text>
+            <text x="36" y="61" text-anchor="middle" fill="#0f172a" font-size="11.5" font-weight="800">TypeScript</text>
+          </g>
+
+          <!-- Tailwind (Official Simple Icons SVG) -->
+          <g transform="translate(200, 192)">
+            <rect x="0" y="0" width="70" height="74" rx="8" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.2"/>
+            <svg x="21" y="13" width="28" height="28" viewBox="0 0 24 24" aria-hidden="true">
+              <path fill="#06B6D4" d="M12.001 4.8c-3.2 0-5.2 1.6-6 4.8 1.2-1.6 2.6-2.2 4.2-1.8.913.228 1.565.89 2.288 1.624C13.666 10.618 15.027 12 18.001 12c3.2 0 5.2-1.6 6-4.8-1.2 1.6-2.6 2.2-4.2 1.8-.913-.228-1.565-.89-2.288-1.624C16.337 6.182 14.976 4.8 12.001 4.8zm-6 7.2c-3.2 0-5.2 1.6-6 4.8 1.2-1.6 2.6-2.2 4.2-1.8.913.228 1.565.89 2.288 1.624C7.666 17.818 9.027 19.2 12.001 19.2c3.2 0 5.2-1.6 6-4.8-1.2 1.6-2.6 2.2-4.2 1.8-.913-.228-1.565-.89-2.288-1.624C10.337 13.382 8.976 12 6.001 12z"/>
+            </svg>
+            <text x="35" y="61" text-anchor="middle" fill="#0f172a" font-size="11.5" font-weight="800">Tailwind</text>
+          </g>
+
+          <!-- Client 하단 설명 -->
+          <rect x="38" y="280" width="46" height="18" rx="4" fill="#eff6ff" stroke="#bfdbfe"/>
+          <text x="61" y="292.5" text-anchor="middle" fill="#1d4ed8" font-size="9.5" font-weight="900">WEB UI</text>
+          <text x="92" y="293" fill="#0f172a" font-size="12.5" font-weight="900">Frontend (웹 대시보드)</text>
+          <text x="38" y="315" fill="#64748b" font-size="11" font-weight="600">· 기업 A: 로그 업로드 · 추천 결과 UI · 최종 승인</text>
+          <text x="38" y="333" fill="#64748b" font-size="11" font-weight="600">· 기업 B: 승인된 스킬 조회 · 유사 문제 즉시 적용</text>
+          <text x="38" y="351" fill="#0f766e" font-size="11" font-weight="800">· 공개 수준(A~D) 선택 시 본문·표 실시간 미리보기</text>
+
+          <!-- Client <-> Server 요청/응답 화살표 -->
+          <text x="312" y="102" text-anchor="middle" fill="#334155" font-size="11" font-weight="800">request</text>
+          <line x1="286" y1="110" x2="336" y2="110" stroke="#64748b" stroke-width="1.6" marker-end="url(#arr-slate)"/>
+          <line x1="338" y1="132" x2="288" y2="132" stroke="#64748b" stroke-width="1.6" marker-end="url(#arr-slate)"/>
+          <text x="312" y="148" text-anchor="middle" fill="#334155" font-size="11" font-weight="800">response</text>
+          <text x="312" y="164" text-anchor="middle" fill="#2563eb" font-size="9.8" font-weight="800">HTTP / API</text>
+
+          <!-- ==================== 2. 중앙: Server (Controller) — Backend API 서버 ==================== -->
+          <rect x="340" y="48" width="506" height="334" rx="12" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5" stroke-dasharray="5 4"/>
+          <rect x="356" y="36" width="166" height="22" rx="4" fill="#ffffff"/>
+          <!-- 서버 리스트 아이콘 -->
+          <line x1="362" y1="42" x2="374" y2="42" stroke="#2563eb" stroke-width="2"/>
+          <line x1="362" y1="47" x2="374" y2="47" stroke="#2563eb" stroke-width="2"/>
+          <line x1="362" y1="52" x2="374" y2="52" stroke="#2563eb" stroke-width="2"/>
+          <text x="381" y="52" fill="#2563eb" font-size="14.5" font-weight="900">Server (Controller)</text>
+
+          <!-- Controller 3단 박스 1: Route Handler -->
+          <g transform="translate(362, 66)">
+            <rect x="0" y="0" width="128" height="92" rx="10" fill="#2563eb" filter="url(#soft-shadow)"/>
+            <!-- 분기 화살표 아이콘 -->
+            <path d="M64 42 L64 26 M64 26 L52 18 M64 26 L76 18" fill="none" stroke="#ffffff" stroke-width="2.2" stroke-linecap="round"/>
+            <polyline points="52 24 52 18 58 18" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round"/>
+            <polyline points="70 18 76 18 76 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round"/>
+            <text x="64" y="66" text-anchor="middle" fill="#ffffff" font-size="13.5" font-weight="900">Route Handler</text>
+            <text x="64" y="81" text-anchor="middle" fill="#dbeafe" font-size="10.2" font-weight="700">API Gateway · Router</text>
+          </g>
+          <text x="426" y="175" text-anchor="middle" fill="#64748b" font-size="11" font-weight="700">로그 입력 · 스킬 조회</text>
+
+          <line x1="490" y1="112" x2="526" y2="112" stroke="#64748b" stroke-width="1.6" marker-end="url(#arr-slate)"/>
+
+          <!-- Controller 3단 박스 2: Service -->
+          <g transform="translate(528, 66)">
+            <rect x="0" y="0" width="128" height="92" rx="10" fill="#2563eb" filter="url(#soft-shadow)"/>
+            <!-- CPU / 코어 아이콘 -->
+            <rect x="52" y="16" width="24" height="24" rx="3" fill="none" stroke="#ffffff" stroke-width="2"/>
+            <rect x="58" y="22" width="12" height="12" rx="1" fill="none" stroke="#93c5fd" stroke-width="1.6"/>
+            <line x1="58" y1="12" x2="58" y2="16" stroke="#ffffff" stroke-width="1.8"/>
+            <line x1="70" y1="12" x2="70" y2="16" stroke="#ffffff" stroke-width="1.8"/>
+            <line x1="58" y1="40" x2="58" y2="44" stroke="#ffffff" stroke-width="1.8"/>
+            <line x1="70" y1="40" x2="70" y2="44" stroke="#ffffff" stroke-width="1.8"/>
+            <text x="64" y="66" text-anchor="middle" fill="#ffffff" font-size="13.5" font-weight="900">Service</text>
+            <text x="64" y="81" text-anchor="middle" fill="#dbeafe" font-size="10.2" font-weight="700">흐름 제어 · 승인 · 동기화</text>
+          </g>
+          <text x="592" y="175" text-anchor="middle" fill="#64748b" font-size="11" font-weight="700">분석 · 비식별화 · 승인 · 스킬</text>
+
+          <line x1="656" y1="112" x2="692" y2="112" stroke="#64748b" stroke-width="1.6" marker-end="url(#arr-slate)"/>
+
+          <!-- Controller 3단 박스 3: Repository -->
+          <g transform="translate(694, 66)">
+            <rect x="0" y="0" width="128" height="92" rx="10" fill="#2563eb" filter="url(#soft-shadow)"/>
+            <!-- DB 실린더 아이콘 -->
+            <ellipse cx="64" cy="20" rx="13" ry="5" fill="none" stroke="#ffffff" stroke-width="2"/>
+            <path d="M51 20v16c0 2.8 5.8 5 13 5s13-2.2 13-5V20" fill="none" stroke="#ffffff" stroke-width="2"/>
+            <path d="M51 28c0 2.8 5.8 5 13 5s13-2.2 13-5" fill="none" stroke="#93c5fd" stroke-width="1.6"/>
+            <text x="64" y="66" text-anchor="middle" fill="#ffffff" font-size="13.5" font-weight="900">Repository</text>
+            <text x="64" y="81" text-anchor="middle" fill="#dbeafe" font-size="10.2" font-weight="700">Data · Skill Access</text>
+          </g>
+          <text x="758" y="175" text-anchor="middle" fill="#64748b" font-size="11" font-weight="700">ORM · 저장소 연동</text>
+
+          <!-- Server 내부 기술 스택 & 자체 개발 규칙 엔진 (SVG 아이콘 + 텍스트) -->
+          <!-- Row 1: FastAPI/Backend, ORM -->
+          <g transform="translate(362, 202)">
+            <circle cx="12" cy="12" r="12" fill="#0f172a"/>
+            <text x="12" y="16.5" text-anchor="middle" fill="#ffffff" font-size="11.5" font-weight="900">B</text>
+            <text x="32" y="16.5" fill="#0f172a" font-size="13.5" font-weight="900">Backend API</text>
+            <text x="122" y="16.5" fill="#64748b" font-size="11.5" font-weight="600">요청 처리 · 세션 관리</text>
+          </g>
+
+          <g transform="translate(604, 202)">
+            <!-- Prisma Official Simple Icons SVG -->
+            <svg x="1" y="1" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true">
+              <path fill="#0f172a" d="M21.807 18.285L13.553.757a1.32 1.32 0 0 0-1.129-.755a1.31 1.31 0 0 0-1.206.626l-8.952 14.5a1.36 1.36 0 0 0 .016 1.455l4.376 6.778a1.41 1.41 0 0 0 1.58.581l12.703-3.757c.389-.115.707-.39.873-.755s.164-.783-.007-1.145m-1.848.752L9.18 22.224a.452.452 0 0 1-.575-.52l3.85-18.438c.072-.345.549-.4.699-.08l7.129 15.138a.515.515 0 0 1-.325.713"/>
+            </svg>
+            <text x="30" y="16.5" fill="#0f172a" font-size="13.5" font-weight="900">ORM Layer</text>
+            <text x="110" y="16.5" fill="#64748b" font-size="11.5" font-weight="600">스키마 · 이력 관리</text>
+          </g>
+
+          <g transform="translate(362, 244)">
+            <!-- 문서·표 동시 갱신 아이콘 -->
+            <rect x="3" y="2" width="18" height="20" rx="3" fill="none" stroke="#0f172a" stroke-width="2"/>
+            <line x1="8" y1="8" x2="16" y2="8" stroke="#2563eb" stroke-width="2"/>
+            <line x1="8" y1="13" x2="16" y2="13" stroke="#2563eb" stroke-width="2"/>
+            <line x1="8" y1="18" x2="13" y2="18" stroke="#2563eb" stroke-width="2"/>
+            <text x="30" y="16.5" fill="#0f172a" font-size="13.5" font-weight="900">문서 · 표 동시 갱신 엔진</text>
+            <text x="184" y="16.5" fill="#64748b" font-size="11.5" font-weight="600">공개 수준(A~D) 변경 시 본문·표 즉시 동기화</text>
+          </g>
+
+          <g transform="translate(362, 284)">
+            <!-- 스킬 규칙 엔진 아이콘 -->
+            <circle cx="12" cy="12" r="10" fill="none" stroke="#0f172a" stroke-width="2"/>
+            <polyline points="8 12 11 15 17 9" fill="none" stroke="#10b981" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+            <text x="30" y="16.5" fill="#0f172a" font-size="13.5" font-weight="900">스킬(Skill) 매칭 규칙 엔진</text>
+            <text x="198" y="16.5" fill="#64748b" font-size="11.5" font-weight="600">목적 · 수신처 · 조건 일치 시 기업 B 재사용</text>
+          </g>
+
+          <!-- Server 하단 5단계 핵심 프로세스 요약 배지 바 -->
+          <rect x="356" y="324" width="474" height="44" rx="8" fill="#f8fafc" stroke="#dbe4f0" stroke-width="1.2"/>
+          <circle cx="373" cy="346" r="8.5" fill="#0284c7"/><text x="373" y="349.5" text-anchor="middle" fill="#fff" font-size="9.5" font-weight="900">1</text>
+          <text x="385" y="350" fill="#0f172a" font-size="10.4" font-weight="800">기업 A 로그 등록</text>
+          <text x="466" y="350" fill="#94a3b8" font-size="10.5" font-weight="900">→</text>
+          <circle cx="486" cy="346" r="8.5" fill="#ea580c"/><text x="486" y="349.5" text-anchor="middle" fill="#fff" font-size="9.5" font-weight="900">2</text>
+          <text x="498" y="350" fill="#0f172a" font-size="10.4" font-weight="800">LLM 비식별·추천</text>
+          <text x="581" y="350" fill="#94a3b8" font-size="10.5" font-weight="900">→</text>
+          <circle cx="601" cy="346" r="8.5" fill="#7c3aed"/><text x="601" y="349.5" text-anchor="middle" fill="#fff" font-size="9.5" font-weight="900">3</text>
+          <text x="613" y="350" fill="#0f172a" font-size="10.4" font-weight="800">확인·승인</text>
+          <text x="664" y="350" fill="#94a3b8" font-size="10.5" font-weight="900">→</text>
+          <circle cx="684" cy="346" r="8.5" fill="#16a34a"/><text x="684" y="349.5" text-anchor="middle" fill="#fff" font-size="9.5" font-weight="900">4</text>
+          <text x="696" y="350" fill="#0f172a" font-size="10.4" font-weight="800">스킬 등록</text>
+          <text x="745" y="350" fill="#94a3b8" font-size="10.5" font-weight="900">→</text>
+          <circle cx="764" cy="346" r="8.5" fill="#2563eb"/><text x="764" y="349.5" text-anchor="middle" fill="#fff" font-size="9.5" font-weight="900">5</text>
+          <text x="776" y="350" fill="#1d4ed8" font-size="10.4" font-weight="900">기업 B 재사용</text>
+
+          <!-- Server <-> Database SQL/Result 화살표 -->
+          <text x="879" y="102" text-anchor="middle" fill="#334155" font-size="11" font-weight="800">SQL · 등록</text>
+          <line x1="822" y1="110" x2="908" y2="110" stroke="#64748b" stroke-width="1.6" marker-end="url(#arr-slate)"/>
+          <line x1="910" y1="132" x2="824" y2="132" stroke="#64748b" stroke-width="1.6" marker-end="url(#arr-slate)"/>
+          <text x="879" y="148" text-anchor="middle" fill="#334155" font-size="11" font-weight="800">result · 조회</text>
+
+          <!-- ==================== 3. 우측: Database & Skill Repository (Model) ==================== -->
+          <rect x="912" y="48" width="276" height="334" rx="12" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5" stroke-dasharray="5 4"/>
+          <rect x="928" y="36" width="160" height="22" rx="4" fill="#ffffff"/>
+          <ellipse cx="939" cy="43" rx="7" ry="3" fill="none" stroke="#2563eb" stroke-width="1.8"/>
+          <path d="M932 43v8c0 1.7 3.1 3 7 3s7-1.3 7-3v-8" fill="none" stroke="#2563eb" stroke-width="1.8"/>
+          <text x="953" y="52" fill="#2563eb" font-size="14.5" font-weight="900">Database (Model)</text>
+
+          <!-- 3D 그린 실린더 (레퍼런스 스타일) -->
+          <g transform="translate(1002, 66)">
+            <path d="M0 16v22c0 8.8 21.5 16 48 16s48-7.2 48-16V16z" fill="#34d399"/>
+            <ellipse cx="48" cy="16" rx="48" ry="14" fill="#10b981"/>
+            <path d="M0 44v22c0 8.8 21.5 16 48 16s48-7.2 48-16V44z" fill="#34d399"/>
+            <ellipse cx="48" cy="44" rx="48" ry="14" fill="#6ee7b7"/>
+            <path d="M0 38c0 8.8 21.5 16 48 16s48-7.2 48-16" fill="none" stroke="#ffffff" stroke-width="3.5"/>
+          </g>
+
+          <!-- Storage 타이틀 로고 (번개 + Storage & Skill Repo) -->
+          <g transform="translate(970, 158)">
+            <polygon points="14,0 4,14 12,14 10,24 22,10 14,10" fill="#10b981"/>
+            <text x="30" y="18" fill="#0f172a" font-size="17" font-weight="900">Data &amp; Skill Store</text>
+          </g>
+
+          <!-- Model 내부 4대 저장 영역 (공식 SVG 아이콘 적용) -->
+          <!-- 1) PostgreSQL Database (Slonik 코끼리 공식 벡터 아이콘) -->
+          <g transform="translate(930, 204)">
+            <svg x="0" y="0" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true">
+              <!-- 왼쪽 큰 귀 -->
+              <path d="M9.6 4.4 C4.6 3.3 2.2 5.8 2.6 10.8 C3.0 15.2 5.4 18.2 8.2 17.6 C9.4 17.3 10.1 16.0 10.3 14.2" fill="#dbeafe" stroke="#336791" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round"/>
+              <!-- 오른쪽 귀 -->
+              <path d="M15.4 4.6 C19.0 3.6 21.4 6.0 20.8 10.4 C20.2 14.2 18.2 16.2 16.0 15.8" fill="#dbeafe" stroke="#336791" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round"/>
+              <!-- 코끼리 머리 및 코(Trunk) -->
+              <path d="M8.8 6.8 C8.8 3.6 16.4 3.6 16.4 6.8 C16.4 9.6 15.6 12.8 15.4 17.6 C15.3 20.0 13.9 21.4 12.3 21.4 C10.7 21.4 10.3 20.0 10.3 17.4 C10.3 14.2 9.8 11.4 8.8 9.4 Z" fill="#eff6ff" stroke="#336791" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round"/>
+              <!-- 오른쪽 상아(Tusk) 곡선 -->
+              <path d="M15.5 15.6 C17.3 16.4 19.3 16.1 20.5 15.0" fill="none" stroke="#336791" stroke-width="1.65" stroke-linecap="round"/>
+              <!-- 눈 -->
+              <ellipse cx="10.9" cy="8.9" rx="0.95" ry="1.25" fill="#336791"/>
+              <ellipse cx="14.5" cy="8.9" rx="0.95" ry="1.25" fill="#336791"/>
+            </svg>
+            <text x="30" y="16.5" fill="#0f172a" font-size="13.5" font-weight="900">PostgreSQL</text>
+            <text x="116" y="16.5" fill="#64748b" font-size="11" font-weight="600">로그 · 승인 내역 · 메타데이터</text>
+          </g>
+
+          <!-- 2) Skill Repository (Lucide FileCog 공식 벡터 아이콘) -->
+          <g transform="translate(930, 248)">
+            <svg x="0" y="0" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M14 2v4a2 2 0 0 0 2 2h4" fill="#d1fae5"/>
+              <path d="M4.677 21.5a2 2 0 0 0 1.313.5H18a2 2 0 0 0 2-2V7l-5-5H6a2 2 0 0 0-2 2v2.5"/>
+              <circle cx="6" cy="14" r="3" fill="#ecfdf5"/>
+              <path d="m4.5 10.5-.4.9M7.5 10.5l.4.9M9.5 12.5l-.9.4M9.5 15.5l-.9-.4M7.5 17.5l.4-.9M4.5 17.5l-.4-.9M2.5 15.5l.9-.4M2.5 12.5l.9.4"/>
+            </svg>
+            <text x="30" y="16.5" fill="#0f172a" font-size="13.5" font-weight="900">Skill Repository</text>
+            <text x="150" y="16.5" fill="#0f766e" font-size="10.5" font-weight="800">승인 스킬 저장 · 재사용</text>
+          </g>
+
+          <!-- 3) Auth & Tenant (Lucide Key 공식 벡터 아이콘) -->
+          <g transform="translate(930, 292)">
+            <svg x="0" y="0" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#b45309" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="7.5" cy="15.5" r="5.5"/>
+              <path d="m21 2-9.6 9.6"/>
+              <path d="m15.5 7.5 3 3L22 7l-3-3"/>
+            </svg>
+            <text x="30" y="16.5" fill="#0f172a" font-size="13.5" font-weight="900">Auth &amp; Tenant</text>
+            <text x="140" y="16.5" fill="#64748b" font-size="11" font-weight="600">기업 A · 기업 B 권한 분리</text>
+          </g>
+
+          <!-- 4) RLS & 원문 근거 격리 (Lucide ShieldCheck 공식 벡터 아이콘) -->
+          <g transform="translate(930, 336)">
+            <svg x="0" y="0" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0f172a" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/>
+              <path d="m9 12 2 2 4-4"/>
+            </svg>
+            <text x="30" y="16.5" fill="#0f172a" font-size="13.5" font-weight="900">RLS · 원문 격리</text>
+            <text x="138" y="16.5" fill="#64748b" font-size="11" font-weight="600">사내 문서 근거 위치 매핑</text>
+          </g>
+
+          <!-- ==================== 4. 좌하단: GitHub CI/CD ==================== -->
+          <!-- GitHub -> Client 점선 화살표 -->
+          <line x1="82" y1="454" x2="82" y2="388" stroke="#64748b" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#arr-slate)"/>
+
+          <g transform="translate(46, 462)">
+            <!-- GitHub Octocat SVG -->
+            <circle cx="36" cy="34" r="32" fill="#0f172a"/>
+            <path d="M36 12c-12.7 0-23 10.3-23 23 0 10.2 6.6 18.8 15.7 21.8 1.1.2 1.6-.5 1.6-1.1v-4c-6.4 1.4-7.7-3.1-7.7-3.1-1-2.6-2.5-3.3-2.5-3.3-2.1-1.4.2-1.4.2-1.4 2.3.2 3.5 2.4 3.5 2.4 2 3.5 5.4 2.5 6.7 1.9.2-1.5.8-2.5 1.5-3.1-5.1-.6-10.5-2.6-10.5-11.4 0-2.5.9-4.6 2.4-6.2-.2-.6-1-2.9.2-6.1 0 0 1.9-.6 6.3 2.4 1.8-.5 3.8-.8 5.8-.8s4 .3 5.8.8c4.4-3 6.3-2.4 6.3-2.4 1.2 3.2.4 5.5.2 6.1 1.5 1.6 2.4 3.7 2.4 6.2 0 8.8-5.4 10.8-10.5 11.4.8.7 1.6 2.1 1.6 4.3v6.3c0 .6.4 1.3 1.6 1.1C52.4 53.8 59 45.2 59 35c0-12.7-10.3-23-23-23z" fill="#ffffff"/>
+            <text x="36" y="84" text-anchor="middle" fill="#0f172a" font-size="14" font-weight="900">GitHub</text>
+            <text x="36" y="101" text-anchor="middle" fill="#64748b" font-size="11.5" font-weight="700">팀 저장소</text>
+          </g>
+
+          <g transform="translate(132, 476)">
+            <text x="0" y="14" fill="#0f172a" font-size="13.5" font-weight="900">push → 자동 빌드 · 배포</text>
+            <text x="0" y="34" fill="#64748b" font-size="12" font-weight="600">PR → Preview 검증</text>
+            <text x="0" y="52" fill="#64748b" font-size="12" font-weight="600">main → Production 배포</text>
+          </g>
+
+          <!-- ==================== 5. 중앙·우하단: AI Engine (TypeScript · LLM API) ==================== -->
+          <!-- Server(외곽 점선 하단 y=394) -> AI Engine(상단 y=444) 화살표 -->
+          <line x1="592" y1="394" x2="592" y2="440" stroke="#64748b" stroke-width="1.6" marker-end="url(#arr-slate)"/>
+          <text x="604" y="422" fill="#334155" font-size="11.5" font-weight="800">로그 분석 · 스킬 추천 요청</text>
+
+          <!-- AI Engine -> Database (Model) 결과/스킬 저장 화살표 -->
+          <path d="M 920 524 L 1050 524 L 1050 388" fill="none" stroke="#64748b" stroke-width="1.6" marker-end="url(#arr-slate)"/>
+          <text x="1060" y="458" fill="#334155" font-size="11.5" font-weight="800">승인 스킬 · 결과 저장</text>
+
+          <!-- AI Engine 메인 박스 (충분한 우측 여백 확보: width="584") -->
+          <rect x="336" y="444" width="584" height="154" rx="12" fill="#f8fafc" stroke="#2563eb" stroke-width="1.8"/>
+          <rect x="352" y="430" width="222" height="26" rx="5" fill="#ffffff"/>
+          <!-- TypeScript 공식 벡터 로고 SVG (viewBox="0 0 24 24") -->
+          <svg x="358" y="432" width="21" height="21" viewBox="0 0 24 24" aria-hidden="true">
+            <rect x="0" y="0" width="24" height="24" rx="3.2" fill="#3178C6"/>
+            <path fill="#ffffff" d="M13.758 18.234v1.72c.281.144.619.254 1.015.331.396.077.819.115 1.268.115.432 0 .845-.041 1.239-.124.394-.083.743-.217 1.046-.403.304-.186.544-.432.721-.738.177-.306.265-.685.265-1.137 0-.331-.049-.616-.147-.856a1.83 1.83 0 0 0-.428-.629 3.06 3.06 0 0 0-.695-.474 8.35 8.35 0 0 0-.949-.396c-.26-.102-.487-.197-.681-.284a2.26 2.26 0 0 1-.481-.278.997.997 0 0 1-.279-.318.88.88 0 0 1-.09-.409c0-.165.039-.31.116-.434.077-.124.187-.228.33-.312.143-.084.318-.148.524-.192.206-.044.439-.066.698-.066.212 0 .431.016.657.049.226.033.449.082.669.147.22.065.43.146.63.243.2.097.376.208.528.332v-1.637a4.78 4.78 0 0 0-.968-.298 6.45 6.45 0 0 0-1.262-.11c-.436 0-.847.046-1.233.139-.386.093-.726.235-1.019.427-.293.192-.525.436-.696.732-.171.296-.256.647-.256 1.053 0 .52.15.959.451 1.317.301.358.774.669 1.418.932.253.102.487.199.702.291.215.092.401.189.558.291.157.102.28.215.369.338.089.123.134.269.134.438 0 .16-.036.304-.109.431a.937.937 0 0 1-.325.325c-.144.088-.326.155-.546.201-.22.046-.477.069-.771.069-.342 0-.683-.051-1.023-.153a4.12 4.12 0 0 1-.965-.454zm-4.63-5.691h2.762V10.95H4.632v1.593H7.38v7.697h1.748v-7.697z"/>
+          </svg>
+          <text x="386" y="448" fill="#2563eb" font-size="14.5" font-weight="900">AI Engine (TypeScript)</text>
+
+          <!-- AI Engine 좌측 파란 기능 카드 1: 로그 비식별화 -->
+          <g transform="translate(352, 462)">
+            <rect x="0" y="0" width="102" height="104" rx="10" fill="#2563eb" filter="url(#soft-shadow)"/>
+            <!-- 브레인/방패 아이콘 -->
+            <path d="M51 18L37 24v10c0 9 6 16.5 14 19 8-2.5 14-10 14-19V24L51 18z" fill="none" stroke="#ffffff" stroke-width="2"/>
+            <polyline points="45 34 49 38 57 30" fill="none" stroke="#93c5fd" stroke-width="2.2" stroke-linecap="round"/>
+            <text x="51" y="76" text-anchor="middle" fill="#ffffff" font-size="13" font-weight="900">로그 비식별화</text>
+            <text x="51" y="92" text-anchor="middle" fill="#dbeafe" font-size="10" font-weight="700">민감정보 가림 (A~D)</text>
+          </g>
+
+          <!-- AI Engine 좌측 파란 기능 카드 2: 해결 스킬 추천 -->
+          <g transform="translate(464, 462)">
+            <rect x="0" y="0" width="102" height="104" rx="10" fill="#2563eb" filter="url(#soft-shadow)"/>
+            <!-- 오픈 북 / 스킬 추천 아이콘 -->
+            <path d="M35 22h13a4 4 0 0 1 4 4v20a3 3 0 0 0-3-3H35z" fill="none" stroke="#ffffff" stroke-width="2"/>
+            <path d="M69 22H56a4 4 0 0 0-4 4v20a3 3 0 0 1 3-3h14z" fill="none" stroke="#ffffff" stroke-width="2"/>
+            <text x="51" y="76" text-anchor="middle" fill="#ffffff" font-size="13" font-weight="900">해결 스킬 추천</text>
+            <text x="51" y="92" text-anchor="middle" fill="#dbeafe" font-size="10" font-weight="700">3자 대조 · 제약 복원</text>
+          </g>
+
+          <!-- AI Engine 우측 2x2 AI 모델/서빙 기술 스택 -->
+          <!-- 1) LLM API (Official OpenAI Simple Icons SVG) -->
+          <g transform="translate(580, 462)">
+            <svg x="1" y="2" width="23" height="23" viewBox="0 0 24 24" aria-hidden="true">
+              <path fill="#0f172a" d="M22.2819 9.8211a5.9847 5.9847 0 0 0-.5157-4.9108 6.0462 6.0462 0 0 0-6.5098-2.9A6.0651 6.0651 0 0 0 4.9807 4.1818a5.9847 5.9847 0 0 0-3.9977 2.9 6.0462 6.0462 0 0 0 .7427 7.0966 5.98 5.98 0 0 0 .511 4.9107 6.051 6.051 0 0 0 6.5146 2.9001A5.9847 5.9847 0 0 0 13.2599 24a6.0557 6.0557 0 0 0 5.7718-4.2058 5.9894 5.9894 0 0 0 3.9977-2.9001 6.0557 6.0557 0 0 0-.7475-7.0729zm-9.022 12.6081a4.4755 4.4755 0 0 1-2.8764-1.0408l.1419-.0804 4.7783-2.7582a.7948.7948 0 0 0 .3927-.6813v-6.7369l2.02 1.1686a.071.071 0 0 1 .038.052v5.5826a4.504 4.504 0 0 1-4.4945 4.4944zm-9.6607-4.1254a4.4708 4.4708 0 0 1-.5346-3.0137l.142.0852 4.783 2.7582a.7712.7712 0 0 0 .7806 0l5.8428-3.3685v2.3324a.0804.0804 0 0 1-.0332.0615L9.74 19.9502a4.4992 4.4992 0 0 1-6.1408-1.6464zM2.3408 7.8956a4.485 4.485 0 0 1 2.3655-1.9728V11.6a.7664.7664 0 0 0 .3879.6765l5.8144 3.3543-2.0201 1.1685a.0757.0757 0 0 1-.071 0l-4.8303-2.7865A4.504 4.504 0 0 1 2.3408 7.872zm16.5963 3.8558L13.1038 8.364 15.1192 7.2a.0757.0757 0 0 1 .071 0l4.8303 2.7913a4.4944 4.4944 0 0 1-.6765 8.1042v-5.6772a.79.79 0 0 0-.407-.667zm2.0107-3.0231l-.142-.0852-4.7735-2.7818a.7759.7759 0 0 0-.7854 0L9.409 9.2297V6.8974a.0662.0662 0 0 1 .0284-.0615l4.8303-2.7866a4.4992 4.4992 0 0 1 6.6802 4.66zM8.3065 12.863l-2.02-1.1638a.0804.0804 0 0 1-.038-.0567V6.0742a4.4992 4.4992 0 0 1 7.3757-3.4537l-.142.0805L8.704 5.459a.7948.7948 0 0 0-.3927.6813zm1.0976-2.3654l2.602-1.4998 2.6069 1.4998v2.9994l-2.5974 1.4997-2.6067-1.4997Z"/>
+            </svg>
+            <text x="32" y="15" fill="#0f172a" font-size="13.5" font-weight="900">LLM API</text>
+            <text x="32" y="32" fill="#64748b" font-size="10.8" font-weight="600">문맥 분석 · 민감정보 가림</text>
+          </g>
+
+          <!-- 2) FastAPI -->
+          <g transform="translate(744, 462)">
+            <circle cx="13" cy="14" r="11" fill="#05998b"/>
+            <polygon points="14,6 8,15 13,15 11,22 18,13 13,13" fill="#ffffff"/>
+            <text x="32" y="15" fill="#0f172a" font-size="13.5" font-weight="900">FastAPI</text>
+            <text x="32" y="32" fill="#64748b" font-size="10.8" font-weight="600">AI 모델 추론 서빙</text>
+          </g>
+
+          <!-- 3) Gemini / 사내 sLLM -->
+          <g transform="translate(580, 510)">
+            <path d="M13 3 C14.5 9.5, 16.5 11.5, 23 13 C16.5 14.5, 14.5 16.5, 13 23 C11.5 16.5, 9.5 14.5, 3 13 C9.5 11.5, 11.5 9.5, 13 3 Z" fill="#6366f1"/>
+            <text x="32" y="15" fill="#0f172a" font-size="13.5" font-weight="900">Gemini / sLLM</text>
+            <text x="32" y="32" fill="#64748b" font-size="10.8" font-weight="600">초안 작성 · 해결 스킬 추천</text>
+          </g>
+
+          <!-- 4) PyTorch (Official Simple Icons SVG) -->
+          <g transform="translate(744, 510)">
+            <svg x="1" y="2" width="23" height="23" viewBox="0 0 24 24" aria-hidden="true">
+              <path fill="#EE4C2C" d="M12.005 0L4.952 7.053a9.865 9.865 0 000 14.022 9.866 9.866 0 0014.022 0c3.984-3.9 3.986-10.205.085-14.023l-1.744 1.743c2.904 2.905 2.904 7.634 0 10.538s-7.634 2.904-10.538 0-2.904-7.634 0-10.538l4.647-4.646.582-.665zm3.568 3.899a1.327 1.327 0 00-1.327 1.327 1.327 1.327 0 001.327 1.328A1.327 1.327 0 0016.9 5.226 1.327 1.327 0 0015.573 3.9z"/>
+            </svg>
+            <text x="32" y="15" fill="#0f172a" font-size="13.5" font-weight="900">PyTorch</text>
+            <text x="32" y="32" fill="#64748b" font-size="10.8" font-weight="600">유사 문제 분류 · 3자 대조</text>
+          </g>
+
+          <!-- AI Engine 하단 보안 문구 (박스 우측 경계 x=920 내부에 여유 있게 배치) -->
+          <text x="580" y="582" fill="#64748b" font-size="10.2" font-weight="700">입력: 사내 격리 공간 원본 로그 · 승인 범위만 반출 (원본 외부 미저장)</text>
+        </svg>
+      </figure>
+    </section>
+  </div>
+  </div>
+  <div class="slide-scope" id="slide-diff">
+    <div class="page-shell" id="sheet-diff">
+    <section class="page" id="diff" aria-labelledby="diff-title">
+      <header class="page-header">
+        <h2 id="diff-title">서비스 차별점</h2>
+        <span class="header-sub">공개할 내용 판단 · 재작성 · 예제 확인 · 검토를 하나의 과정으로 연결해 준비 부담을 줄입니다</span>
+      </header>
+
+      <div class="matrix-wrap" role="table" aria-label="기존 대분류 솔루션 대비 SafeHandoff 차별점 비교">
+
+        <!-- 1열: 구분 -->
+        <div class="matrix-col label-col" role="rowgroup">
+          <div class="col-head" role="columnheader">
+            <strong>구분</strong>
+          </div>
+          <div class="m-cell" role="rowheader">주 대상 자료</div>
+          <div class="m-cell" role="rowheader">공개 범위 설정</div>
+          <div class="m-cell" role="rowheader">원본 처리 방식</div>
+          <div class="m-cell" role="rowheader">
+            <svg class="star-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+            조건 변경 시
+          </div>
+          <div class="m-cell" role="rowheader">
+            <svg class="star-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+            단서 · 제약 보존
+          </div>
+          <div class="m-cell" role="rowheader">
+            <svg class="star-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+            판단 근거 확인
+          </div>
+          <div class="m-cell" role="rowheader">반복 작업 부담</div>
+        </div>
+
+        <!-- 2열: 대분류 1 (개인정보 마스킹 · 보안 통제) -->
+        <div class="matrix-col" role="rowgroup">
+          <div class="col-head" role="columnheader">
+            <strong>개인정보 마스킹 · 보안 통제</strong>
+            <span>Limina · Private AI · MS Purview</span>
+          </div>
+          <div class="m-cell">개인정보 항목 · 보안 라벨 문서</div>
+          <div class="m-cell">고정 항목 마스킹<br>또는 외부 접근 차단</div>
+          <div class="m-cell">원문 속 단어만 치환<br>(업무 맥락·함수명 잔존)</div>
+          <div class="m-cell">단어 치환만 수행<br>(문장·표 연동 없음)</div>
+          <div class="m-cell">일괄 삭제로<br>문제 해결 단서 손실</div>
+          <div class="m-cell">탐지된 항목만 표시<br>(블랙박스 필터링)</div>
+          <div class="m-cell">고정 탐지 규칙만 적용<br>(목적별 조정은 수작업)</div>
+        </div>
+
+        <!-- 3열: 대분류 2 (합성 데이터 · 버그 리포팅) -->
+        <div class="matrix-col" role="rowgroup">
+          <div class="col-head" role="columnheader">
+            <strong>합성 데이터 · 기술지원 도구</strong>
+            <span>Tonic · Jam · StepStitch · Cloudflare</span>
+          </div>
+          <div class="m-cell">DB 테이블 · 브라우저 버그 기록</div>
+          <div class="m-cell">합성 데이터 생성<br>또는 로그 표식 정리</div>
+          <div class="m-cell">데이터·화면만 별도 추출<br>(문의 본문과 분리됨)</div>
+          <div class="m-cell">예제·로그만 따로 재생성</div>
+          <div class="m-cell">버그 기록 위주<br>(일반 자문·업무 제약 미지원)</div>
+          <div class="m-cell">실행 로그 · 증거 묶음만 제공</div>
+          <div class="m-cell">수정 사례 참고만 가능</div>
+        </div>
+
+        <!-- 4열: 대분류 3 (일반 AI + 실무자 수작업) -->
+        <div class="matrix-col" role="rowgroup">
+          <div class="col-head" role="columnheader">
+            <strong>일반 AI + 실무자 수작업</strong>
+            <span>프롬프트 지시 + 직접 가림 · 대조</span>
+          </div>
+          <div class="m-cell">사내 로그 · 운영 표 · 문의 초안</div>
+          <div class="m-cell">매번 지시문 작성<br>+ 사람이 직접 삭제</div>
+          <div class="m-cell">외부 AI에 원본 먼저 전송<br>(유출 위험 발생)</div>
+          <div class="m-cell">본문·표의 숫자를<br>사람이 일일이 다시 수정</div>
+          <div class="m-cell">빠진 조건과 오류 여부를<br>담당자가 눈으로 대조</div>
+          <div class="m-cell">담당자 기억과 수동 비교</div>
+          <div class="m-cell">문의 때마다 처음부터 반복</div>
+        </div>
+
+        <!-- 5열: 우리 서비스 (SafeHandoff) -->
+        <div class="matrix-col ours" role="rowgroup">
+          <div class="col-head" role="columnheader">
+            <strong>SafeHandoff</strong>
+            <span>우리 서비스</span>
+          </div>
+          <div class="m-cell">기술 문의(오류·정산)부터<br>일반 내부 자료(자문·운영)까지</div>
+          <div class="m-cell">공개 수준(A~D) 4단계 선택<br>(사실만 · 추이만 · 마스킹 · 비율)</div>
+          <div class="m-cell">인터넷 차단 사내 공간 +<br>허용 범위로만 새 초안 작성</div>
+          <div class="m-cell highlight">선택 변경 시 관련된<br>본문 · 표 · 설명 동시 자동 갱신</div>
+          <div class="m-cell highlight">검토 AI가 빠진 제약 복원 +<br>새 예제 오류 재현까지 확인</div>
+          <div class="m-cell highlight">문장별 원문 근거 위치 연결<br>+ 공개 이유 문장 제시</div>
+          <div class="m-cell">검증된 기준을 스킬(Skill)로 등록<br>조건 일치 시 자동 재사용</div>
+        </div>
+
+      </div>
+    </section>
+  </div>
+  </div>
+  <div class="slide-scope" id="slide-effect">
+    <div class="page-shell" id="sheet-effect">
+    <section class="page" id="effect" aria-labelledby="effect-title">
+      <header class="page-header">
+        <h2 id="effect-title">기대효과</h2>
+        <span class="header-sub">공유 자료 준비는 쉽게, 공개 범위는 목적에 맞게 — 수작업 시간·정보 노출·재질문 손실을 함께 줄입니다</span>
+      </header>
+
+      <div class="effect-grid">
+
+        <!-- ==================== ① 소요 시간 / 반복 부담 ==================== -->
+        <article class="effect-col">
+          <div class="col-banner">① 자료 준비 시간 / 부담</div>
+
+          <div class="now-card">
+            <span class="card-tag now">지금</span>
+            <h3 class="now-title">수작업 의존</h3>
+            <p class="now-sub">직접 가리고 본문·표 숫자를 일일이 대조</p>
+            <div class="gray-bar-wrap">
+              <div class="gray-track"></div>
+              <p class="gray-caption">문의 때마다 처음부터 반복 · 대응 지연</p>
+            </div>
+          </div>
+
+          <div class="flow-arrow" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="12" y1="4" x2="12" y2="19"/>
+              <polyline points="6 13 12 19 18 13"/>
+            </svg>
+          </div>
+
+          <div class="after-card">
+            <span class="card-tag after">SafeHandoff</span>
+            <h3 class="after-title">원클릭 갱신</h3>
+            <p class="after-sub">공개 수준(A~D) 선택 시 본문·표 동시 반영</p>
+            <div class="blue-bar-wrap">
+              <div class="blue-track">
+                <span class="blue-dot"></span>
+              </div>
+              <p class="after-highlight">스킬(Skill) 자동화로 반복 감축</p>
+              <p class="after-desc">같은 목적·상대·조건이면 저장한 기준 즉시 적용</p>
+            </div>
+          </div>
+        </article>
+
+        <!-- ==================== ② 내부 정보 노출 / 맥락 보호 ==================== -->
+        <article class="effect-col">
+          <div class="col-banner">② 민감 정보 및 맥락 보호</div>
+
+          <div class="now-card">
+            <span class="card-tag now">지금</span>
+            <h3 class="now-title">민감 단서 잔존</h3>
+            <p class="now-sub">이름만 가려도 함수명·관계·단가로 노출</p>
+            <!-- 이름만 가려지고 실제 수치·업무명이 노출된 문서 도식 -->
+            <svg class="network-svg" viewBox="0 0 280 90" aria-label="이름만 마스킹된 문서에서 함수명과 실제 건수가 그대로 노출되는 모습">
+              <!-- 문서 본체 -->
+              <rect x="46" y="4" width="188" height="80" rx="8" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5"/>
+              <!-- 1행: 이름 마스킹 -->
+              <text x="58" y="24" fill="#64748b" font-size="10" font-weight="700">담당자</text>
+              <rect x="94" y="14" width="52" height="13" rx="3" fill="#334155"/>
+              <text x="120" y="23.5" text-anchor="middle" fill="#ffffff" font-size="8.5" font-weight="800">[가림]</text>
+              <rect x="152" y="16" width="68" height="9" rx="4" fill="#e2e8f0"/>
+
+              <!-- 2행: 업무 코드·함수명 노출 (경고) -->
+              <rect x="55" y="34" width="170" height="19" rx="4" fill="#fef2f2" stroke="#fecaca" stroke-width="1"/>
+              <text x="63" y="47" fill="#dc2626" font-size="10" font-weight="800">retention.js · 할인율</text>
+              <rect x="172" y="37" width="47" height="13" rx="3" fill="#fee2e2"/>
+              <text x="195.5" y="46.5" text-anchor="middle" fill="#dc2626" font-size="8.5" font-weight="900">! 맥락 노출</text>
+
+              <!-- 3행: 실제 건수·단가 노출 (경고) -->
+              <rect x="55" y="58" width="170" height="19" rx="4" fill="#fef2f2" stroke="#fecaca" stroke-width="1"/>
+              <text x="63" y="71" fill="#dc2626" font-size="10" font-weight="800">실제 820 → 1,740건</text>
+              <rect x="172" y="61" width="47" height="13" rx="3" fill="#fee2e2"/>
+              <text x="195.5" y="70.5" text-anchor="middle" fill="#dc2626" font-size="8.5" font-weight="900">! 수치 노출</text>
+            </svg>
+          </div>
+
+          <div class="flow-arrow" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="12" y1="4" x2="12" y2="19"/>
+              <polyline points="6 13 12 19 18 13"/>
+            </svg>
+          </div>
+
+          <div class="after-card">
+            <span class="card-tag after">SafeHandoff</span>
+            <h3 class="after-title">필요 범위만 공개</h3>
+            <p class="after-sub">사실·추이·마스킹·비율로 새 문서 작성</p>
+            <!-- 사내 원본 격리 → 공유용 새 문서 변환 도식 -->
+            <svg class="network-svg" viewBox="0 0 296 108" aria-label="사내 원본은 내부에 잠그고 외부에는 허용된 추이·비율만 담긴 새 문서를 전달하는 도식">
+              <!-- 좌측: 사내 원본 문서 (격리) -->
+              <rect x="10" y="14" width="104" height="82" rx="8" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="4 2"/>
+              <rect x="18" y="22" width="58" height="14" rx="4" fill="#334155"/>
+              <text x="47" y="32" text-anchor="middle" fill="#ffffff" font-size="8.8" font-weight="800">사내 원본</text>
+              <!-- 자물쇠 아이콘 -->
+              <rect x="92" y="25" width="12" height="9" rx="2" fill="#475569"/>
+              <path d="M95 25 V22.5 a3 3 0 0 1 6 0 V25" fill="none" stroke="#475569" stroke-width="1.5"/>
+              <text x="20" y="51" fill="#64748b" font-size="9.5" font-weight="700">· 820 → 1,740건</text>
+              <text x="20" y="66" fill="#64748b" font-size="9.5" font-weight="700">· 실제 단가·코드명</text>
+              <text x="20" y="84" fill="#475569" font-size="9" font-weight="800">외부 전송 차단</text>
+
+              <!-- 중앙: 변환 화살표 -->
+              <path d="M 121 55 L 147 55" fill="none" stroke="#2563eb" stroke-width="2.2"/>
+              <polygon points="145,50 153,55 145,60" fill="#2563eb"/>
+              <text x="136" y="45" text-anchor="middle" fill="#2563eb" font-size="8.8" font-weight="900">A~D 선택</text>
+
+              <!-- 우측: 외부 공유용 새 문서 (필요 범위만 공개) -->
+              <rect x="156" y="8" width="132" height="92" rx="9" fill="#ffffff" stroke="#2563eb" stroke-width="2"/>
+              <rect x="166" y="17" width="76" height="15" rx="4" fill="#dbeafe"/>
+              <text x="204" y="27.5" text-anchor="middle" fill="#1d4ed8" font-size="9.2" font-weight="900">공유용 새 문서</text>
+              <circle cx="270" cy="24.5" r="7.5" fill="#2563eb"/>
+              <path d="M266.5 24.5 l2.3 2.3 l4.5 -4.5" fill="none" stroke="#ffffff" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+
+              <rect x="166" y="39" width="112" height="22" rx="4" fill="#eff6ff" stroke="#bfdbfe"/>
+              <text x="222" y="53.5" text-anchor="middle" fill="#1d4ed8" font-size="9.4" font-weight="900">추이: 기준 → 증가 → 증가</text>
+
+              <rect x="166" y="66" width="112" height="22" rx="4" fill="#f0fdf4" stroke="#bbf7d0"/>
+              <text x="222" y="80.5" text-anchor="middle" fill="#15803d" font-size="9.4" font-weight="900">비율: 기준 대비 1.4배 · 2.1배</text>
+            </svg>
+            <p class="after-desc">원문 공유 대비 불필요한 내부 정보 노출 축소</p>
+          </div>
+        </article>
+
+        <!-- ==================== ③ 파급 손실 / 재질문 방어 ==================== -->
+        <article class="effect-col">
+          <div class="col-banner">③ 파급 손실 및 누락 방어</div>
+
+          <div class="now-card">
+            <span class="card-tag now">지금</span>
+            <h3 class="now-title">사후 수습</h3>
+            <p class="now-sub">필수 조건·단서 누락 후 재질문 반복</p>
+            <div class="now-issue-box">
+              <div class="issue-head"><i></i>필수 제약 · 오류 단서 손실</div>
+              <div class="skeleton-line w65"></div>
+              <div class="skeleton-line w85"></div>
+              <div class="issue-note">“기존 접수 채널 유지” 누락 · 추가 자료 재요청</div>
+            </div>
+          </div>
+
+          <div class="flow-arrow" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="12" y1="4" x2="12" y2="19"/>
+              <polyline points="6 13 12 19 18 13"/>
+            </svg>
+          </div>
+
+          <div class="after-card">
+            <span class="card-tag after">SafeHandoff</span>
+            <h3 class="after-title">사전 차단 · 검증</h3>
+            <p class="after-sub">사내 공간 분리 및 작성·검토 AI 이중 확인</p>
+            <div class="zero-box">
+              <div class="zero-top">
+                <span class="prevent-pill">예방</span>
+                <span class="zero-stat">Zero</span>
+              </div>
+              <div class="metric-bars">
+                <div class="metric-row">
+                  <span>권한</span>
+                  <div class="m-track"><div class="m-fill red"></div></div>
+                </div>
+                <div class="metric-row">
+                  <span>검토</span>
+                  <div class="m-track"><div class="m-fill orange"></div></div>
+                </div>
+                <div class="metric-row">
+                  <span>재현</span>
+                  <div class="m-track"><div class="m-fill yellow"></div></div>
+                </div>
+              </div>
+              <div class="zero-foot">+ 빠진 조건 복원 · 새 예제 오류 재현까지 확인</div>
+            </div>
+          </div>
+        </article>
+
+      </div>
+    </section>
+  </div>
+  </div>
+  <div class="slide-scope" id="slide-scale">
+    <div class="page-shell" id="sheet-expansion">
+    <section class="page" id="expansion" aria-labelledby="exp-title">
+      <header class="page-header">
+        <h2 id="exp-title">서비스 확장 계획: 타겟 시장(TAM-SAM-SOM) 로드맵</h2>
+        <span class="header-sub">실제 적용 가능성(사내 AI 즉시 연동·전사 확산)과 3단계 추가 개발 방향</span>
+      </header>
+
+      <div class="roadmap-body">
+        <!-- 좌측: 하단 접점 동심원 (TAM - SAM - SOM) -->
+        <div class="circle-stage" aria-label="TAM SAM SOM 타겟 시장 규모 다이어그램">
+          <svg viewBox="0 0 500 500" role="img" aria-label="TAM 약 4.2조 원, SAM 약 3,600억 원, SOM 약 360억 원">
+            <!-- TAM (전체시장): 중심 (250, 250), 반지름 242 -> 하단 접점 y=492 -->
+            <circle cx="250" cy="250" r="242" fill="#ffffff" stroke="#1e3a8a" stroke-width="1.4"/>
+            <text x="250" y="72" text-anchor="middle" fill="#0f172a" font-size="27" font-weight="900">TAM</text>
+            <text x="250" y="96" text-anchor="middle" fill="#64748b" font-size="13">전체시장</text>
+            <text x="250" y="114" text-anchor="middle" fill="#64748b" font-size="12.5">(Total Addressable Market)</text>
+            <text x="250" y="148" text-anchor="middle" fill="#1e3a8a" font-size="22" font-weight="900">약 4.2조 원</text>
+
+            <!-- SAM (유효시장): 반지름 162, 하단 접점 y=492 -> 중심 cy = 492 - 162 = 330 -->
+            <circle cx="250" cy="330" r="162" fill="#ffffff" stroke="#1e3a8a" stroke-width="1.4"/>
+            <text x="250" y="218" text-anchor="middle" fill="#0f172a" font-size="26" font-weight="900">SAM</text>
+            <text x="250" y="241" text-anchor="middle" fill="#64748b" font-size="13">유효시장</text>
+            <text x="250" y="259" text-anchor="middle" fill="#64748b" font-size="12.5">(Service Available Market)</text>
+            <text x="250" y="291" text-anchor="middle" fill="#1e3a8a" font-size="22" font-weight="900">약 3,600억 원</text>
+
+            <!-- SOM (수익시장): 반지름 86, 하단 접점 y=492 -> 중심 cy = 492 - 86 = 406 -->
+            <circle cx="250" cy="406" r="86" fill="#ebeef5" stroke="#1e3a8a" stroke-width="1.4"/>
+            <text x="250" y="368" text-anchor="middle" fill="#0f172a" font-size="25" font-weight="900">SOM</text>
+            <text x="250" y="390" text-anchor="middle" fill="#64748b" font-size="12.5">수익시장</text>
+            <text x="250" y="407" text-anchor="middle" fill="#64748b" font-size="11">(Service Obtainable Market)</text>
+            <rect x="187" y="418" width="126" height="32" rx="6" fill="#ffffff"/>
+            <text x="250" y="441" text-anchor="middle" fill="#1e3a8a" font-size="20.5" font-weight="900">약 360억 원</text>
+          </svg>
+        </div>
+
+        <!-- 우측: Phase 1 ~ 3 단계별 시장 진입 및 추가 개발 방향 -->
+        <div class="phase-stack">
+          <!-- Phase 1 -->
+          <article class="phase-card phase-1">
+            <div class="phase-title-row">
+              <span class="phase-pill">Phase 1. 단기 (SOM)</span>
+              <h3>사내 AI·망분리 환경을 운영 중인 국내 IT·금융 기업</h3>
+            </div>
+            <div class="phase-size">규모: 360억 원</div>
+            <ul class="phase-list">
+              <li><b>타겟 및 적용:</b> 기존 사내 AI·경량 공개 모델(sLLM)에 추가 장비 없이 즉시 연결 (약 1.5만 개사)</li>
+              <li><b>근거 및 개발:</b> 15,000개사 × 연 240만 원 (월 20만 원 구독) · 공개 수준(A~D) 초안·검토·스킬 자동화</li>
+            </ul>
+          </article>
+
+          <!-- Phase 2 -->
+          <article class="phase-card phase-2">
+            <div class="phase-title-row">
+              <span class="phase-pill">Phase 2. 중기 (SAM)</span>
+              <h3>외부 기술 문의·자문이 빈번한 국내 전체 중소·중견기업</h3>
+            </div>
+            <div class="phase-size">규모: 3,600억 원</div>
+            <ul class="phase-list">
+              <li><b>타겟 및 확산:</b> 개발팀(오픈소스 제보)부터 운영·재무팀(정산·컨설팅 자문)까지 전사 확산 (약 15만 개사)</li>
+              <li><b>근거 및 개발:</b> 150,000개사 × 연 240만 원 · 제품별 제보 양식팩, 문맥 예외 판별, 대용량 고속 검색</li>
+            </ul>
+          </article>
+
+          <!-- Phase 3 -->
+          <article class="phase-card phase-3">
+            <div class="phase-title-row">
+              <span class="phase-pill">Phase 3. 장기 (TAM)</span>
+              <h3>글로벌 기업용 AI 데이터 보안 · 외부 협업 SaaS 시장</h3>
+            </div>
+            <div class="phase-size">규모: 약 4.2조 원</div>
+            <ul class="phase-list">
+              <li><b>타겟 및 확장:</b> 아시아 및 글로벌 B2B 기술지원 · 기업용 생성형 AI 반출 통제(DLP) 시장 확장</li>
+              <li><b>근거 및 개발:</b> 국내 유효 시장의 약 12배 규모 환산 · 합성 예제 자동 실행 검증 및 지원 티켓 원스톱 연동</li>
+            </ul>
+          </article>
+        </div>
+      </div>
+
+      <footer class="page-footnote">
+        <span>* 시장 규모 추정: 기업용 SaaS 구독료(월 20만 원) 기준 하향식(Bottom-up) 재산출 / 국내 ICT·정보보호 기업 통계 및 글로벌 AI 보안(DLP) 시장 기준</span>
+        <span class="footnote-right">확장 원칙: 공개 범위는 항상 사용자가 결정 · 준비된 업무부터 단계적 연결</span>
+      </footer>
+    </section>
+  </div>
+  </div>
+  <div class="slide-scope" id="slide-team">
+    <div class="page-shell" id="sheet-team">
+    <section class="page" id="team" aria-labelledby="team-title">
+      <header class="page-header">
+        <div class="header-left">
+          <h2 id="team-title">팀원 소개 및 역할 분담</h2>
+          <span class="header-sub">SafeHandoff를 직접 설계·구현한 팀 ‘지피한테물어봐’의 5인 역할 분담 및 기여 내역</span>
+        </div>
+        <span class="team-badge">TEAM · 지피한테물어봐</span>
+      </header>
+
+      <!-- 공통 아바타 심볼 (첨부 레퍼런스 이미지와 동일한 연보라-블루 스쿼클 + 인물 실루엣) -->
+      <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+        <defs>
+          <symbol id="member-avatar" viewBox="0 0 64 64">
+            <rect x="2" y="2" width="60" height="60" rx="22" ry="22" fill="#8ea4e8"/>
+            <circle cx="32" cy="24" r="9.5" fill="#dce5fb"/>
+            <path d="M18 48.5 C18 39.5 23.5 36.5 32 36.5 C40.5 36.5 46 39.5 46 48.5 Z" fill="#dce5fb"/>
+          </symbol>
+        </defs>
+      </svg>
+
+      <div class="team-grid" contenteditable="true" spellcheck="false" aria-label="5인 팀원별 담당 업무 및 기여 내용">
+        <!-- 1. 김병철 (팀장 · 백엔드) -->
+        <article class="member-card">
+          <div class="avatar-wrap">
+            <svg class="avatar-squircle" aria-hidden="true"><use href="#member-avatar"/></svg>
+            <span class="role-tag">팀장 · 백엔드</span>
+          </div>
+          <h3 class="member-name">김병철</h3>
+          <div class="member-title">팀 총괄 · 보안 격리 백엔드 설계</div>
+          <div class="contrib-label">담당 업무 및 주요 기여</div>
+          <ul class="contrib-list">
+            <li><b>프로젝트 총괄 및 아키텍처:</b> 사내 작업 공간 원문 격리(CaMeL) 구조 및 핵심 API 서버 설계·구현</li>
+            <li><b>사내 근거 매핑 엔진 개발:</b> 반출용 초안 문장과 사내 원본 문서(운영메모.md) 위치 연결 백엔드 구현</li>
+            <li><b>시스템 통합 및 품질 검증:</b> 멀티 에이전트 파이프라인과 백엔드 상태 동기화 총괄</li>
+          </ul>
+          <div class="stack-box">
+            <span class="stack-chip">Team Lead</span>
+            <span class="stack-chip">Backend Arch</span>
+          </div>
+        </article>
+
+        <!-- 2. 김민성 (AI 서빙) -->
+        <article class="member-card">
+          <div class="avatar-wrap">
+            <svg class="avatar-squircle" aria-hidden="true"><use href="#member-avatar"/></svg>
+            <span class="role-tag">AI 서빙</span>
+          </div>
+          <h3 class="member-name">김민성</h3>
+          <div class="member-title">멀티 에이전트 · AI 추론 서빙</div>
+          <div class="contrib-label">담당 업무 및 주요 기여</div>
+          <ul class="contrib-list">
+            <li><b>3단계 AI 서빙 파이프라인:</b> 분석·작성·검토 에이전트 추론 서빙 및 응답 지연 최적화 구현</li>
+            <li><b>모델 교체형 추론 인터페이스:</b> 사내 LLM 및 경량 공개 모델(sLLM) 즉시 연결·교체 서빙 구조 개발</li>
+            <li><b>JSON Schema 제어 및 검증:</b> 유사 항목 묶음 질문(A~D) 및 3-Way 의미 대조 추론 안정화</li>
+          </ul>
+          <div class="stack-box">
+            <span class="stack-chip">AI Serving</span>
+            <span class="stack-chip">LLM Agent</span>
+          </div>
+        </article>
+
+        <!-- 3. 임재홍 (백엔드) -->
+        <article class="member-card">
+          <div class="avatar-wrap">
+            <svg class="avatar-squircle" aria-hidden="true"><use href="#member-avatar"/></svg>
+            <span class="role-tag">백엔드</span>
+          </div>
+          <h3 class="member-name">임재홍</h3>
+          <div class="member-title">비식별 규칙 엔진 · 스킬 저장소 서버</div>
+          <div class="contrib-label">담당 업무 및 주요 기여</div>
+          <ul class="contrib-list">
+            <li><b>공개 수준(A~D) 변환 엔진 개발:</b> 실제 수치·단가를 선택한 공개 수준(추이·비율·마스킹)으로 안전하게 변환하는 백엔드 구현</li>
+            <li><b>조건부 스킬(Skill) 엔진 구현:</b> 검증된 가림 기준 저장 및 ‘목적·수신처·조건’ 일치 판별 백엔드 개발</li>
+            <li><b>누락 제약 복원 로직:</b> 필수 업무 제약(“기존 접수 채널 유지”) 자동 탐지 및 복원 처리</li>
+          </ul>
+          <div class="stack-box">
+            <span class="stack-chip">Backend Dev</span>
+            <span class="stack-chip">Rule &amp; Skill</span>
+          </div>
+        </article>
+
+        <!-- 4. 맹주영 (풀스택) -->
+        <article class="member-card">
+          <div class="avatar-wrap">
+            <svg class="avatar-squircle" aria-hidden="true"><use href="#member-avatar"/></svg>
+            <span class="role-tag">풀스택</span>
+          </div>
+          <h3 class="member-name">맹주영</h3>
+          <div class="member-title">워크스페이스 UI · 동시 갱신 연동</div>
+          <div class="contrib-label">담당 업무 및 주요 기여</div>
+          <ul class="contrib-list">
+            <li><b>5단계 워크스페이스 구현:</b> 자료 입력 → 공개 수준(A~D) 선택 → 직접 입력(D) → 최종 확인 풀스택 개발</li>
+            <li><b>본문·표·설명 동시 갱신:</b> A~D 선택 변경 시 연결된 문장·표·설명을 실시간 동기화하고 잔존 숫자를 제거</li>
+            <li><b>공유본 반출 인터페이스:</b> 내부 근거 분리 표시 및 최종 결과 복사·다운로드 기능 구현</li>
+          </ul>
+          <div class="stack-box">
+            <span class="stack-chip">Full-Stack</span>
+            <span class="stack-chip">Sync UI/API</span>
+          </div>
+        </article>
+
+        <!-- 5. 이상혁 (PM) -->
+        <article class="member-card">
+          <div class="avatar-wrap">
+            <svg class="avatar-squircle" aria-hidden="true"><use href="#member-avatar"/></svg>
+            <span class="role-tag">PM</span>
+          </div>
+          <h3 class="member-name">이상혁</h3>
+          <div class="member-title">서비스 기획 총괄 · UX 및 시장 전략</div>
+          <div class="contrib-label">담당 업무 및 주요 기여</div>
+          <ul class="contrib-list">
+            <li><b>문제 정의 및 도메인 기획:</b> 기업 보안 사고 사례 조사 및 타겟 페르소나·유즈케이스·요구사항 정의</li>
+            <li><b>공개 수준(A~D) UX 설계:</b> 실무자 친화적 4단계 공개 기준(사실만·추이만·마스킹·비율) 및 플로우 설계</li>
+            <li><b>확장 전략 및 스토리라인:</b> 타겟 시장(TAM-SAM-SOM) 로드맵, 서비스 차별점 및 발표 구성 총괄</li>
+          </ul>
+          <div class="stack-box">
+            <span class="stack-chip">Product PM</span>
+            <span class="stack-chip">UX &amp; Strategy</span>
+          </div>
+        </article>
+      </div>
+
+      <footer class="collab-bar">
+        <div class="collab-left">
+          <span class="collab-pill">협업 및 직접 개발 원칙</span>
+          <span>서비스 기획(PM)부터 AI 서빙, 보안·스킬 백엔드, 동시 갱신 풀스택 워크스페이스까지 전 과정을 팀원 5인이 직접 분담·구현</span>
+        </div>
+        <span class="collab-right">CODYSSEY HACKATHON · 지피한테물어봐</span>
+      </footer>
+    </section>
+  </div>
+  </div>
+</main>
+
+<script>
+(() => {
+  'use strict';
+  const shells = Array.from(document.querySelectorAll('.page-shell'));
+  function fitPages() {
+    const mobile = innerWidth <= 760;
+    const width = Math.min(1280, innerWidth - 40);
+    shells.forEach(shell => {
+      shell.style.width = mobile ? '' : width + 'px';
+      shell.style.height = mobile ? '' : 720 * width / 1280 + 'px';
+      const page = shell.querySelector('.page');
+      if (page) page.style.transform = mobile ? '' : 'scale(' + width / 1280 + ')';
+    });
+  }
+  document.getElementById('print-all').addEventListener('click', () => window.print());
+  window.addEventListener('resize', fitPages);
+  window.addEventListener('afterprint', fitPages);
+  fitPages();
+})();
+</script>
+</body>
+</html>

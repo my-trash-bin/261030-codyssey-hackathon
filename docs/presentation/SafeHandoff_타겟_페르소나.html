@@ -1,0 +1,476 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#163172">
+<meta name="description" content="SafeHandoff 타겟 페르소나 - 외부에 도움을 청할 때마다 회사 자료를 일일이 가리고 다시 쓰느라 지친 실무자">
+<title>SafeHandoff · 02. 타겟 페르소나</title>
+<link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --blue:#1d4ed8;
+  --navy:#163172;
+  --teal:#0f766e;
+  --dark-badge:#0f172a;
+  --green:#157347;
+  --ink:#111827;
+  --body:#334155;
+  --muted:#64748b;
+  --line:#dce4f0;
+  --soft:#f1f5f9;
+  --paper:#ffffff;
+}
+*{box-sizing:border-box}
+html{
+  scroll-behavior:smooth;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+}
+body{
+  margin:0;
+  background:#e8edf5;
+  color:var(--ink);
+  font-family:"Pretendard Variable",Pretendard,"Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+  font-size:15px;
+  font-weight:600;
+  line-height:1.65;
+  word-break:keep-all;
+  overflow-wrap:break-word;
+}
+h1,h2,h3,h4,p,figure,blockquote,ul{margin:0}
+h1,h2,h3,h4{line-height:1.35;letter-spacing:-.035em}
+a{color:inherit}
+button{font:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
+
+.toolbar{
+  height:64px;
+  position:sticky;
+  top:0;
+  z-index:30;
+  background:#fffffff7;
+  border-bottom:1px solid var(--line);
+  backdrop-filter:blur(12px);
+}
+.toolbar-inner{
+  height:100%;
+  width:min(1280px,calc(100% - 40px));
+  margin:auto;
+  display:flex;
+  justify-content:space-between;
+  gap:20px;
+  align-items:center;
+}
+.brand{
+  font-size:19px;
+  font-weight:900;
+  color:var(--navy);
+  text-decoration:none;
+  white-space:nowrap;
+  letter-spacing:-.03em;
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+.brand-badge{
+  display:inline-grid;
+  place-items:center;
+  width:26px;
+  height:26px;
+  border-radius:7px;
+  background:#0f9f90;
+  color:#fff;
+  font-size:14px;
+  font-weight:900;
+}
+.brand small{
+  font-size:11px;
+  letter-spacing:.08em;
+  font-weight:700;
+  margin-left:4px;
+  color:var(--muted);
+}
+.tools{display:flex;gap:9px;align-items:center}
+.tool-button{
+  font-size:12px;
+  font-weight:700;
+  color:var(--navy);
+  background:#fff;
+  border:1.5px solid var(--line);
+  border-radius:8px;
+  padding:7px 14px;
+  line-height:1.5;
+  text-decoration:none;
+}
+.tool-button:hover{background:#f0f5ff}
+
+.reader{padding:28px 0 42px}
+.page-shell{
+  position:relative;
+  margin:0 auto 28px;
+  width:1280px;
+  height:720px;
+}
+.page{
+  position:relative;
+  width:1280px;
+  height:720px;
+  padding:28px 48px 24px;
+  background:var(--paper);
+  box-shadow:0 6px 28px #16317212;
+  transform-origin:top left;
+  overflow:hidden;
+  display:flex;
+  flex-direction:column;
+}
+.page-header{
+  border-bottom:2.5px solid var(--navy);
+  padding-bottom:11px;
+  margin-bottom:16px;
+  display:flex;
+  align-items:flex-end;
+  justify-content:space-between;
+  gap:24px;
+  flex-shrink:0;
+}
+.page-header h2{
+  font-size:26.5px;
+  color:#0f172a;
+  font-weight:900;
+  letter-spacing:-.04em;
+  white-space:nowrap;
+}
+.page-header .eyebrow{
+  font-size:11.5px;
+  font-weight:800;
+  color:var(--muted);
+  letter-spacing:.09em;
+  white-space:nowrap;
+  padding-bottom:3px;
+}
+
+/* 좌우 분할 페르소나 카드 */
+.persona-card{
+  border:1.5px solid var(--line);
+  border-radius:16px;
+  background:#fff;
+  display:grid;
+  grid-template-columns:336px 1fr;
+  flex:1;
+  min-height:0;
+  box-shadow:0 4px 18px rgba(15,23,42,0.03);
+  overflow:hidden;
+}
+
+/* 좌측 프로필 영역 */
+.persona-left{
+  padding:22px 22px 20px;
+  border-right:1.5px solid var(--line);
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  text-align:center;
+  background:#fcfdff;
+}
+.avatar-wrap{
+  position:relative;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  margin-bottom:8px;
+}
+.avatar-circle{
+  width:132px;
+  height:132px;
+  border-radius:50%;
+  background:#e2e8f0;
+  border:3.5px solid #fff;
+  box-shadow:0 4px 16px rgba(15,23,42,0.14);
+  overflow:hidden;
+}
+.avatar-circle img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  object-position:35% 24%;
+  display:block;
+}
+.role-badge{
+  margin-top:-13px;
+  background:var(--dark-badge);
+  color:#fff;
+  padding:6px 16px;
+  border-radius:999px;
+  font-size:12px;
+  font-weight:800;
+  line-height:1.35;
+  letter-spacing:-.02em;
+  box-shadow:0 4px 12px rgba(15,23,42,0.18);
+}
+.persona-name{
+  font-size:26px;
+  font-weight:900;
+  color:var(--ink);
+  letter-spacing:-.04em;
+  margin-top:4px;
+}
+.persona-name span{
+  font-size:17.5px;
+  font-weight:700;
+  color:var(--muted);
+  margin-left:4px;
+}
+.persona-meta{
+  margin-top:9px;
+  display:grid;
+  gap:4px;
+  font-size:13px;
+  font-weight:600;
+  color:var(--muted);
+  line-height:1.5;
+}
+.persona-meta strong{
+  color:#334155;
+  font-weight:800;
+}
+.meta-pills{
+  display:flex;
+  flex-wrap:wrap;
+  justify-content:center;
+  gap:6px;
+  margin-top:10px;
+}
+.meta-pill{
+  font-size:11px;
+  font-weight:800;
+  padding:3px 9px;
+  border-radius:6px;
+  background:#eef3fc;
+  color:var(--navy);
+  border:1px solid #d5e2f9;
+}
+.persona-quote{
+  margin-top:auto;
+  width:100%;
+  background:#f8fafc;
+  border:1.5px solid #e2e8f0;
+  border-radius:11px;
+  padding:12px 14px;
+  font-size:13px;
+  font-weight:700;
+  color:#334155;
+  line-height:1.56;
+  letter-spacing:-.02em;
+}
+
+/* 우측 페인 포인트 & 니즈 영역 */
+.persona-right{
+  padding:22px 32px 20px;
+  display:flex;
+  flex-direction:column;
+  justify-content:space-between;
+  gap:12px;
+}
+.section-block h3{
+  font-size:19.5px;
+  font-weight:900;
+  letter-spacing:-.035em;
+  margin-bottom:10px;
+}
+.section-block.pain h3{
+  color:var(--navy);
+}
+.section-block.needs h3{
+  color:var(--green);
+}
+.item-list{
+  padding-left:20px;
+  display:grid;
+  gap:10px;
+}
+.item-list li{
+  font-size:14.2px;
+  font-weight:600;
+  color:var(--body);
+  line-height:1.58;
+  letter-spacing:-.02em;
+}
+.item-list li::marker{
+  color:#475569;
+}
+.tag-pain{
+  color:var(--blue);
+  font-weight:800;
+  margin-right:4px;
+}
+.tag-need{
+  color:var(--green);
+  font-weight:800;
+  margin-right:4px;
+}
+.item-list b{
+  color:var(--ink);
+  font-weight:800;
+}
+
+.right-divider{
+  border:0;
+  border-top:1.5px dashed var(--line);
+  margin:0;
+}
+
+@media(max-width:760px){
+  .toolbar-inner{width:calc(100% - 24px)}
+  .reader{padding:16px 0 25px}
+  .page-shell{width:calc(100% - 24px)!important;height:auto!important;margin-bottom:16px}
+  .page{width:100%;height:auto;padding:24px 18px 22px;transform:none!important;overflow:visible}
+  .page-header{align-items:flex-start;margin-bottom:16px;gap:10px}
+  .page-header h2{font-size:22px}
+  .page-header .eyebrow{display:none}
+  .persona-card{grid-template-columns:1fr;min-height:0}
+  .persona-left{border-right:0;border-bottom:1.5px solid var(--line);padding:24px 20px}
+  .persona-quote{margin-top:16px}
+  .persona-right{padding:22px 20px}
+  .item-list li{font-size:14px}
+}
+
+@media print{
+  @page{size:1280px 720px;margin:0}
+  body{background:#fff;margin:0;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .toolbar{display:none!important}
+  .reader{padding:0;margin:0}
+  .page-shell{width:1280px!important;height:720px!important;margin:0!important}
+  .page{width:1280px!important;height:720px!important;transform:none!important;box-shadow:none!important;overflow:hidden!important}
+}
+</style>
+</head>
+<body>
+<header class="toolbar">
+  <div class="toolbar-inner">
+    <a class="brand" href="#personas"><span class="brand-badge">S</span>SafeHandoff <small>02 · TARGET PERSONA</small></a>
+    <div class="tools">
+      <a class="tool-button" href="SafeHandoff_목차.html">00. 목차</a>
+      <a class="tool-button" href="SafeHandoff_프로젝트_배경.html">‹ 01. 프로젝트 배경</a>
+      <a class="tool-button" href="SafeHandoff_유즈케이스_다이어그램.html">03. 유즈케이스 ›</a>
+      <a class="tool-button" href="SafeHandoff_서비스_플로우.html">04. 유저 플로우</a>
+      <button class="tool-button" id="print-document" type="button">인쇄 / PDF 저장</button>
+    </div>
+  </div>
+</header>
+
+<main class="reader" aria-label="SafeHandoff 타겟 페르소나">
+  <div class="page-shell" id="sheet-persona">
+    <section class="page" id="personas" aria-labelledby="personas-title">
+      <header class="page-header">
+        <h2 id="personas-title">타겟 페르소나: 외부에 도움을 청할 때마다, 회사 자료를 일일이 가리고 다시 쓰느라 지친 실무자</h2>
+        <span class="eyebrow">02 / TARGET PERSONA</span>
+      </header>
+
+      <article class="persona-card" aria-label="핵심 타겟 페르소나 상세">
+        <!-- 좌측: 인물 프로필 및 한마디 -->
+        <div class="persona-left">
+          <div class="avatar-wrap">
+            <div class="avatar-circle">
+              <img src="persona_jihun.jpg" alt="모니터의 코드·스프레드시트와 수작업 마스킹 문서를 보며 고민하는 실무 담당자 박지훈">
+            </div>
+            <div class="role-badge">서비스 운영·기술지원 담당 · 핵심 사용자</div>
+          </div>
+
+          <h3 class="persona-name">박지훈 <span>31세 · 남</span></h3>
+
+          <div class="persona-meta">
+            <p><strong>IT 서비스 기업 운영·기술지원 담당 (4년 차)</strong></p>
+            <p>회사 보안 때문에 <strong>외부 AI·고객센터에 원본 첨부 금지</strong></p>
+            <p>매달 <strong>외부 업체에 오류 문의·업무 자문</strong>을 요청함</p>
+            <p>보내야 할 자료: <strong>업무 현황표 · 회의 메모 · 오류 화면</strong></p>
+            <p>가려야 할 정보: <strong>거래처 이름 · 단가 · 건수 · 회사 코드</strong></p>
+          </div>
+
+          <div class="meta-pills" aria-label="페르소나 핵심 조건">
+            <span class="meta-pill">원본 첨부 금지</span>
+            <span class="meta-pill">일일이 손으로 가림</span>
+            <span class="meta-pill">매달 외부 문의</span>
+          </div>
+
+          <blockquote class="persona-quote">
+            “외부에 물어봐야 당장 막힌 일이 풀리는데, 원본을 그대로 보내면 보안 사고고 하나하나 지우다 보면 설명이 빠져서 두세 번씩 다시 써야 해요.”
+          </blockquote>
+        </div>
+
+        <!-- 우측: 페인 포인트 & 니즈 및 목표 -->
+        <div class="persona-right">
+          <section class="section-block pain" aria-labelledby="pain-heading">
+            <h3 id="pain-heading">페인 포인트 (Pain Points)</h3>
+            <ul class="item-list">
+              <li>
+                <span class="tag-pain">[손으로 가리는 시간 낭비]</span>
+                회사 파일을 외부 AI나 고객센터에 그대로 보낼 수 없어, <b>사람이 일일이 거래처·숫자·주소를 찾아 지우고 문장을 새로 쓰느라 시간을 다 쓴다</b>
+              </li>
+              <li>
+                <span class="tag-pain">[이름만 지워도 티 나는 회사 비밀]</span>
+                이름·전화번호만 가려도 <b>오류 기록의 작업 이름이나 단가 비율에서 우리 회사의 영업 방식과 규모가 드러날까 봐</b> 어디까지 보여줄지 매번 고민한다
+              </li>
+              <li>
+                <span class="tag-pain">[너무 많이 지우면 대화가 안 됨]</span>
+                겁이 나서 숫자와 설명을 다 지워버리면, <b>정작 상대방이 오류를 확인하지 못하거나 중요한 조건(“기존 접수 채널 유지”)을 놓쳐서</b> 두세 번 다시 설명해야 한다
+              </li>
+              <li>
+                <span class="tag-pain">[고칠 때마다 반복되는 수작업]</span>
+                로그를 고칠 때마다 <b>관련된 설명 내용도 일일이 맞춰서 다시 수정해야 하고</b>, 다음번에 비슷한 로그를 보낼 때도 처음부터 똑같은 작업을 반복한다
+              </li>
+            </ul>
+          </section>
+
+          <hr class="right-divider">
+
+          <section class="section-block needs" aria-labelledby="needs-heading">
+            <h3 id="needs-heading">니즈 및 목표 (Needs &amp; Goals)</h3>
+            <ul class="item-list">
+              <li>
+                <span class="tag-need">[수준만 고르면 알아서 가림]</span>
+                원본은 회사 안에서만 읽고, <b>어디까지 보여줄지 공개 수준(A~D)만 고르면 AI가 알아서 일정 부분을 가려주면 좋겠다</b>
+              </li>
+              <li>
+                <span class="tag-need">[AI 수정 로그를 사람이 확인]</span>
+                AI가 가려야 할 부분을 가린 <b>‘수정 로그’를 만들어 보여주면, 제대로 가려졌는지 사람이 한눈에 확인하고 싶다</b>
+              </li>
+              <li>
+                <span class="tag-need">[규칙 보완 및 로그·설명 수정]</span>
+                부정확하면 <b>사람이 규칙을 수정·추가해 다시 돌리고, 정확하면 로그 파일과 그에 관한 설명 내용까지 한꺼번에 수정</b>되면 좋겠다
+              </li>
+              <li>
+                <span class="tag-need">[스킬 등록으로 다음 작업 자동화]</span>
+                확인이 끝난 처리 기준(어떤 경우에 어느 정도로 가릴지)을 <b>‘스킬(Skill)’에 등록해 두고, 다음번에는 자동으로 처리하고 싶다</b>
+              </li>
+            </ul>
+          </section>
+        </div>
+      </article>
+    </section>
+  </div>
+</main>
+
+<script>
+(() => {
+  'use strict';
+  const shells = Array.from(document.querySelectorAll('.page-shell'));
+  function fitPages() {
+    const mobile = innerWidth <= 760;
+    const width = Math.min(1280, innerWidth - 40);
+    shells.forEach(shell => {
+      shell.style.width = mobile ? '' : width + 'px';
+      shell.style.height = mobile ? '' : 720 * width / 1280 + 'px';
+      shell.querySelector('.page').style.transform = mobile ? '' : 'scale(' + width / 1280 + ')';
+    });
+  }
+  document.getElementById('print-document').addEventListener('click', () => window.print());
+  window.addEventListener('resize', fitPages);
+  window.addEventListener('afterprint', fitPages);
+  fitPages();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,8 @@
+# 발표자료 빌드 스크립트의 로컬 실행 부산물
+__pycache__/
+*.py[cod]
+.venv/
+
+# OS 파일 탐색기 메타데이터
+.DS_Store
+Thumbs.db

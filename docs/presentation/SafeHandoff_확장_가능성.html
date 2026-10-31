@@ -1,0 +1,463 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#163172">
+<meta name="description" content="SafeHandoff 09. 서비스 확장 계획: 타겟 시장(TAM-SAM-SOM) 로드맵 — 16:9 와이드스크린 발표 슬라이드">
+<title>SafeHandoff · 09 서비스 확장 계획 (TAM-SAM-SOM 로드맵)</title>
+<link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#eef2f7;
+  --paper:#ffffff;
+  --ink:#111827;
+  --body:#334155;
+  --muted:#64748b;
+  --navy:#1e3a8a;
+  --blue:#2563eb;
+  --line:#dce4f0;
+  --shadow:0 18px 42px rgba(15,23,42,0.08);
+}
+*{box-sizing:border-box}
+html{
+  scroll-behavior:smooth;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+  text-rendering:optimizeLegibility;
+}
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--ink);
+  font-family:"Pretendard Variable",Pretendard,"Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+  line-height:1.45;
+  letter-spacing:-.02em;
+  word-break:keep-all;
+  overflow-wrap:break-word;
+}
+h1,h2,h3,h4,p,figure,ul{margin:0}
+a{color:inherit;text-decoration:none}
+button{font:inherit;cursor:pointer}
+
+.toolbar{
+  height:64px;
+  position:sticky;
+  top:0;
+  z-index:30;
+  background:#ffffffeb;
+  border-bottom:1px solid var(--line);
+  backdrop-filter:blur(10px);
+}
+.toolbar-inner{
+  height:100%;
+  width:min(1280px,calc(100% - 40px));
+  margin:auto;
+  display:flex;
+  justify-content:space-between;
+  gap:16px;
+  align-items:center;
+}
+.brand{
+  font-size:19px;
+  font-weight:900;
+  color:var(--navy);
+  white-space:nowrap;
+  letter-spacing:-.03em;
+  display:flex;
+  align-items:center;
+  gap:9px;
+}
+.brand-badge{
+  display:inline-grid;
+  place-items:center;
+  width:26px;
+  height:26px;
+  border-radius:7px;
+  background:#0f9f90;
+  color:#fff;
+  font-size:14px;
+  font-weight:900;
+}
+.brand small{
+  font-size:11.5px;
+  letter-spacing:.08em;
+  font-weight:700;
+  color:var(--muted);
+}
+.tools{
+  display:flex;
+  gap:8px;
+  align-items:center;
+  flex-wrap:wrap;
+  justify-content:flex-end;
+}
+.tool-button{
+  font-size:12px;
+  font-weight:700;
+  color:var(--navy);
+  background:#fff;
+  border:1.5px solid var(--line);
+  border-radius:8px;
+  padding:6px 12px;
+  line-height:1.4;
+}
+.tool-button:hover{
+  background:#f4f8ff;
+}
+
+.reader{
+  padding:24px 0 36px;
+}
+.page-shell{
+  position:relative;
+  margin:0 auto;
+  width:1280px;
+  height:720px;
+}
+.page{
+  width:1280px;
+  height:720px;
+  background:var(--paper);
+  box-shadow:var(--shadow);
+  position:relative;
+  overflow:hidden;
+  transform-origin:top left;
+  padding:32px 46px 24px;
+  display:flex;
+  flex-direction:column;
+}
+
+/* ==================== 상단 헤더 ==================== */
+.page-header{
+  display:flex;
+  align-items:flex-end;
+  justify-content:space-between;
+  gap:16px;
+  padding-bottom:13px;
+  border-bottom:2px solid #2b4c8c;
+  margin-bottom:22px;
+  flex-shrink:0;
+}
+.page-header h2{
+  font-size:31px;
+  font-weight:900;
+  letter-spacing:-.035em;
+  color:#0f172a;
+  line-height:1.15;
+}
+.header-sub{
+  font-size:12.8px;
+  font-weight:700;
+  color:var(--muted);
+  padding-bottom:2px;
+}
+
+/* ==================== 메인 레이아웃 (좌: 동심원 / 우: 3단계 카드) ==================== */
+.roadmap-body{
+  flex:1;
+  min-height:0;
+  display:grid;
+  grid-template-columns:480px 1fr;
+  gap:36px;
+  align-items:center;
+}
+
+/* 좌측 TAM-SAM-SOM 동심원 영역 */
+.circle-stage{
+  width:100%;
+  height:100%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+.circle-stage svg{
+  width:468px;
+  height:468px;
+  display:block;
+  overflow:visible;
+}
+
+/* 우측 Phase 1 ~ 3 카드 스택 */
+.phase-stack{
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  gap:14px;
+}
+.phase-card{
+  position:relative;
+  background:#ffffff;
+  border:1px solid #e2e8f0;
+  border-radius:4px;
+  padding:15px 22px 14px 24px;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  box-shadow:0 2px 8px rgba(15,23,42,0.02);
+}
+.phase-card::before{
+  content:"";
+  position:absolute;
+  left:0;
+  top:0;
+  bottom:0;
+  width:5px;
+  border-radius:4px 0 0 4px;
+}
+.phase-card.phase-1::before{
+  background:#1e3a8a;
+}
+.phase-card.phase-2::before{
+  background:#3b82f6;
+}
+.phase-card.phase-3::before{
+  background:#94a3b8;
+}
+
+.phase-title-row{
+  display:flex;
+  align-items:center;
+  gap:11px;
+  margin-bottom:6px;
+}
+.phase-pill{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  padding:4px 11px;
+  border-radius:6px;
+  font-size:12px;
+  font-weight:800;
+  letter-spacing:-.01em;
+  white-space:nowrap;
+  flex-shrink:0;
+}
+.phase-1 .phase-pill{
+  background:#eef2f9;
+  color:#1e3a8a;
+}
+.phase-2 .phase-pill{
+  background:#edf4ff;
+  color:#1d4ed8;
+}
+.phase-3 .phase-pill{
+  background:#eff2f6;
+  color:#334155;
+}
+.phase-title-row h3{
+  font-size:19px;
+  font-weight:900;
+  color:#0f172a;
+  letter-spacing:-.03em;
+  white-space:nowrap;
+}
+
+.phase-size{
+  font-size:15px;
+  font-weight:800;
+  margin-bottom:7px;
+  letter-spacing:-.02em;
+}
+.phase-1 .phase-size{
+  color:#1e3a8a;
+}
+.phase-2 .phase-size{
+  color:#2563eb;
+}
+.phase-3 .phase-size{
+  color:#334155;
+}
+
+.phase-list{
+  list-style:none;
+  padding:0;
+  display:grid;
+  gap:3px;
+}
+.phase-list li{
+  font-size:12.8px;
+  font-weight:600;
+  color:#475569;
+  line-height:1.4;
+  padding-left:10px;
+  position:relative;
+  white-space:nowrap;
+}
+.phase-list li::before{
+  content:"·";
+  position:absolute;
+  left:0;
+  top:0;
+  font-weight:900;
+  color:#64748b;
+}
+.phase-list li b{
+  color:#1e293b;
+  font-weight:800;
+}
+
+/* ==================== 하단 점선 및 주석 ==================== */
+.page-footnote{
+  margin-top:12px;
+  padding-top:12px;
+  border-top:1.5px dashed #cbd5e1;
+  font-size:11.6px;
+  font-weight:600;
+  color:#64748b;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  flex-shrink:0;
+  white-space:nowrap;
+}
+.footnote-right{
+  font-weight:700;
+  color:#1e3a8a;
+}
+
+@media(max-width:760px){
+  .toolbar-inner{width:calc(100% - 24px)}
+  .reader{padding:16px 0 25px}
+  .page-shell{width:calc(100% - 24px)!important;height:auto!important;margin-bottom:16px}
+  .page{width:100%;height:auto;padding:22px 16px;transform:none!important;overflow:visible}
+  .page-header{flex-direction:column;align-items:flex-start;gap:6px}
+  .roadmap-body{grid-template-columns:1fr;gap:20px}
+  .phase-stack{height:auto}
+}
+
+@media print{
+  @page{size:1280px 720px;margin:0}
+  body{background:#fff;margin:0;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .toolbar{display:none!important}
+  .reader{padding:0;margin:0}
+  .page-shell{width:1280px!important;height:720px!important;margin:0!important}
+  .page{width:1280px!important;height:720px!important;transform:none!important;box-shadow:none!important;overflow:hidden!important}
+}
+</style>
+</head>
+<body>
+<header class="toolbar">
+  <div class="toolbar-inner">
+    <a class="brand" href="#expansion"><span class="brand-badge">S</span>SafeHandoff <small>09 · MARKET &amp; EXPANSION ROADMAP</small></a>
+    <div class="tools">
+      <a class="tool-button" href="SafeHandoff_목차.html">00. 목차</a>
+      <a class="tool-button" href="SafeHandoff_서비스_차별점.html">07. 서비스 차별점</a>
+      <a class="tool-button" href="SafeHandoff_기대효과.html">‹ 08. 기대효과</a>
+      <a class="tool-button" href="SafeHandoff_팀원_소개.html">10. 팀원 소개 ›</a>
+      <button class="tool-button" id="print-document" type="button">인쇄 / PDF 저장</button>
+    </div>
+  </div>
+</header>
+
+<main class="reader" aria-label="SafeHandoff 서비스 확장 계획 및 타겟 시장 로드맵">
+  <div class="page-shell" id="sheet-expansion">
+    <section class="page" id="expansion" aria-labelledby="exp-title">
+      <header class="page-header">
+        <h2 id="exp-title">서비스 확장 계획: 타겟 시장(TAM-SAM-SOM) 로드맵</h2>
+        <span class="header-sub">실제 적용 가능성(사내 AI 즉시 연동·전사 확산)과 3단계 추가 개발 방향</span>
+      </header>
+
+      <div class="roadmap-body">
+        <!-- 좌측: 하단 접점 동심원 (TAM - SAM - SOM) -->
+        <div class="circle-stage" aria-label="TAM SAM SOM 타겟 시장 규모 다이어그램">
+          <svg viewBox="0 0 500 500" role="img" aria-label="TAM 약 4.2조 원, SAM 약 3,600억 원, SOM 약 360억 원">
+            <!-- TAM (전체시장): 중심 (250, 250), 반지름 242 -> 하단 접점 y=492 -->
+            <circle cx="250" cy="250" r="242" fill="#ffffff" stroke="#1e3a8a" stroke-width="1.4"/>
+            <text x="250" y="72" text-anchor="middle" fill="#0f172a" font-size="27" font-weight="900">TAM</text>
+            <text x="250" y="96" text-anchor="middle" fill="#64748b" font-size="13">전체시장</text>
+            <text x="250" y="114" text-anchor="middle" fill="#64748b" font-size="12.5">(Total Addressable Market)</text>
+            <text x="250" y="148" text-anchor="middle" fill="#1e3a8a" font-size="22" font-weight="900">약 4.2조 원</text>
+
+            <!-- SAM (유효시장): 반지름 162, 하단 접점 y=492 -> 중심 cy = 492 - 162 = 330 -->
+            <circle cx="250" cy="330" r="162" fill="#ffffff" stroke="#1e3a8a" stroke-width="1.4"/>
+            <text x="250" y="218" text-anchor="middle" fill="#0f172a" font-size="26" font-weight="900">SAM</text>
+            <text x="250" y="241" text-anchor="middle" fill="#64748b" font-size="13">유효시장</text>
+            <text x="250" y="259" text-anchor="middle" fill="#64748b" font-size="12.5">(Service Available Market)</text>
+            <text x="250" y="291" text-anchor="middle" fill="#1e3a8a" font-size="22" font-weight="900">약 3,600억 원</text>
+
+            <!-- SOM (수익시장): 반지름 86, 하단 접점 y=492 -> 중심 cy = 492 - 86 = 406 -->
+            <circle cx="250" cy="406" r="86" fill="#ebeef5" stroke="#1e3a8a" stroke-width="1.4"/>
+            <text x="250" y="368" text-anchor="middle" fill="#0f172a" font-size="25" font-weight="900">SOM</text>
+            <text x="250" y="390" text-anchor="middle" fill="#64748b" font-size="12.5">수익시장</text>
+            <text x="250" y="407" text-anchor="middle" fill="#64748b" font-size="11">(Service Obtainable Market)</text>
+            <rect x="187" y="418" width="126" height="32" rx="6" fill="#ffffff"/>
+            <text x="250" y="441" text-anchor="middle" fill="#1e3a8a" font-size="20.5" font-weight="900">약 360억 원</text>
+          </svg>
+        </div>
+
+        <!-- 우측: Phase 1 ~ 3 단계별 시장 진입 및 추가 개발 방향 -->
+        <div class="phase-stack">
+          <!-- Phase 1 -->
+          <article class="phase-card phase-1">
+            <div class="phase-title-row">
+              <span class="phase-pill">Phase 1. 단기 (SOM)</span>
+              <h3>사내 AI·망분리 환경을 운영 중인 국내 IT·금융 기업</h3>
+            </div>
+            <div class="phase-size">규모: 360억 원</div>
+            <ul class="phase-list">
+              <li><b>타겟 및 적용:</b> 기존 사내 AI·경량 공개 모델(sLLM)에 추가 장비 없이 즉시 연결 (약 1.5만 개사)</li>
+              <li><b>근거 및 개발:</b> 15,000개사 × 연 240만 원 (월 20만 원 구독) · 공개 수준(A~D) 초안·검토·스킬 자동화</li>
+            </ul>
+          </article>
+
+          <!-- Phase 2 -->
+          <article class="phase-card phase-2">
+            <div class="phase-title-row">
+              <span class="phase-pill">Phase 2. 중기 (SAM)</span>
+              <h3>외부 기술 문의·자문이 빈번한 국내 전체 중소·중견기업</h3>
+            </div>
+            <div class="phase-size">규모: 3,600억 원</div>
+            <ul class="phase-list">
+              <li><b>타겟 및 확산:</b> 개발팀(오픈소스 제보)부터 운영·재무팀(정산·컨설팅 자문)까지 전사 확산 (약 15만 개사)</li>
+              <li><b>근거 및 개발:</b> 150,000개사 × 연 240만 원 · 제품별 제보 양식팩, 문맥 예외 판별, 대용량 고속 검색</li>
+            </ul>
+          </article>
+
+          <!-- Phase 3 -->
+          <article class="phase-card phase-3">
+            <div class="phase-title-row">
+              <span class="phase-pill">Phase 3. 장기 (TAM)</span>
+              <h3>글로벌 기업용 AI 데이터 보안 · 외부 협업 SaaS 시장</h3>
+            </div>
+            <div class="phase-size">규모: 약 4.2조 원</div>
+            <ul class="phase-list">
+              <li><b>타겟 및 확장:</b> 아시아 및 글로벌 B2B 기술지원 · 기업용 생성형 AI 반출 통제(DLP) 시장 확장</li>
+              <li><b>근거 및 개발:</b> 국내 유효 시장의 약 12배 규모 환산 · 합성 예제 자동 실행 검증 및 지원 티켓 원스톱 연동</li>
+            </ul>
+          </article>
+        </div>
+      </div>
+
+      <footer class="page-footnote">
+        <span>* 시장 규모 추정: 기업용 SaaS 구독료(월 20만 원) 기준 하향식(Bottom-up) 재산출 / 국내 ICT·정보보호 기업 통계 및 글로벌 AI 보안(DLP) 시장 기준</span>
+        <span class="footnote-right">확장 원칙: 공개 범위는 항상 사용자가 결정 · 준비된 업무부터 단계적 연결</span>
+      </footer>
+    </section>
+  </div>
+</main>
+
+<script>
+(() => {
+  'use strict';
+  const shells = Array.from(document.querySelectorAll('.page-shell'));
+  function fitPages() {
+    const mobile = innerWidth <= 760;
+    const width = Math.min(1280, innerWidth - 40);
+    shells.forEach(shell => {
+      shell.style.width = mobile ? '' : width + 'px';
+      shell.style.height = mobile ? '' : 720 * width / 1280 + 'px';
+      shell.querySelector('.page').style.transform = mobile ? '' : 'scale(' + width / 1280 + ')';
+    });
+  }
+  document.getElementById('print-document').addEventListener('click', () => window.print());
+  window.addEventListener('resize', fitPages);
+  window.addEventListener('afterprint', fitPages);
+  fitPages();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,240 @@
+import os
+import re
+import subprocess
+
+WORKSPACE = os.path.dirname(os.path.abspath(__file__))
+
+SLIDES = [
+    ("slide-cover", "표지", "SafeHandoff_표지.html"),
+    ("slide-index", "00. 목차", "SafeHandoff_목차.html"),
+    ("slide-bg", "01. 배경", "SafeHandoff_프로젝트_배경.html"),
+    ("slide-persona", "02. 페르소나", "SafeHandoff_타겟_페르소나.html"),
+    ("slide-flow", "03. 서비스 플로우", "SafeHandoff_서비스_플로우.html"),
+    ("slide-tech", "04. 기술 스택", "SafeHandoff_기술_스택.html"),
+    ("slide-ai", "05. AI 기술·개발범위", "SafeHandoff_AI기술_개발범위.html"),
+    ("slide-arch", "06. 아키텍처", "SafeHandoff_서비스_아키텍처.html"),
+    ("slide-diff", "07. 차별점", "SafeHandoff_서비스_차별점.html"),
+    ("slide-effect", "08. 기대효과", "SafeHandoff_기대효과.html"),
+    ("slide-scale", "09. 확장 가능성", "SafeHandoff_확장_가능성.html"),
+    ("slide-team", "10. 팀원 소개", "SafeHandoff_팀원_소개.html"),
+]
+
+def extract_style_and_page(filepath, scope_id):
+    with open(filepath, "r", encoding="utf-8") as f:
+        html = f.read()
+
+    # Extract <style>...</style>
+    style_match = re.search(r"<style>(.*?)</style>", html, re.DOTALL)
+    raw_css = style_match.group(1) if style_match else ""
+
+    # Remove @media print and @media(max-width:760px/720px) blocks from individual slide CSS
+    # so global print/responsive rules handle them cleanly
+    raw_css = re.sub(r"@media\s*\(\s*max-width\s*:\s*7\d0px\s*\)\s*\{.*?\n\}", "", raw_css, flags=re.DOTALL)
+    raw_css = re.sub(r"@media\s+print\s*\{.*?\n\}", "", raw_css, flags=re.DOTALL)
+
+    # Extract :root variables and convert :root to & (nesting parent selector)
+    raw_css = raw_css.replace(":root", "&")
+
+    # Remove global html, body, *, .toolbar, .reader, .page-shell rules that shouldn't be nested
+    # Instead, wrap the remaining rules inside #{scope_id} { ... } using CSS native nesting
+    scoped_css = f"#{scope_id} {{\n{raw_css}\n}}\n"
+
+    # Extract <div class="page-shell"...>...</div> inside <main>
+    main_match = re.search(r"<main[^>]*>(.*?)</main>", html, re.DOTALL)
+    main_inner = main_match.group(1).strip() if main_match else ""
+
+    # Replace internal file links with anchor links
+    link_map = {fname: f"#{sid}" for sid, _, fname in SLIDES}
+    for fname, anchor in link_map.items():
+        main_inner = main_inner.replace(f'href="{fname}"', f'href="{anchor}"')
+
+    return scoped_css, main_inner
+
+def main():
+    styles = []
+    sections = []
+    nav_buttons = []
+
+    for sid, label, fname in SLIDES:
+        fpath = os.path.join(WORKSPACE, fname)
+        css, page_html = extract_style_and_page(fpath, sid)
+        styles.append(f"/* === {fname} === */\n{css}")
+        sections.append(f'  <div class="slide-scope" id="{sid}">\n    {page_html}\n  </div>')
+        nav_buttons.append(f'      <a class="tool-button" href="#{sid}">{label}</a>')
+
+    combined_html = f"""<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#163172">
+<meta name="description" content="SafeHandoff 코디세이 해커톤 발표자료 통합본 (표지 ~ 08. 기대효과)">
+<title>SafeHandoff · 발표자료 통합본 (표지 ~ 08. 기대효과)</title>
+<link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{{
+  --navy:#163172;
+  --blue:#1e5eff;
+  --ink:#111827;
+  --muted:#64748b;
+  --line:#dce4f0;
+}}
+*{{box-sizing:border-box}}
+html{{
+  scroll-behavior:smooth;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+}}
+body{{
+  margin:0;
+  background:#e8edf5;
+  color:var(--ink);
+  font-family:"Pretendard Variable",Pretendard,"Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+  word-break:keep-all;
+  overflow-wrap:break-word;
+}}
+h1,h2,h3,h4,p,figure,blockquote,ul{{margin:0}}
+a{{color:inherit;text-decoration:none}}
+button{{font:inherit;cursor:pointer}}
+
+.master-toolbar{{
+  height:64px;
+  position:sticky;
+  top:0;
+  z-index:100;
+  background:#fffffff7;
+  border-bottom:1px solid var(--line);
+  backdrop-filter:blur(12px);
+}}
+.master-toolbar-inner{{
+  height:100%;
+  width:min(1280px,calc(100% - 32px));
+  margin:auto;
+  display:flex;
+  justify-content:space-between;
+  gap:12px;
+  align-items:center;
+}}
+.master-brand{{
+  font-size:18px;
+  font-weight:900;
+  color:var(--navy);
+  white-space:nowrap;
+  letter-spacing:-.03em;
+  display:flex;
+  align-items:center;
+  gap:8px;
+}}
+.master-badge{{
+  display:inline-grid;
+  place-items:center;
+  width:25px;
+  height:25px;
+  border-radius:7px;
+  background:#0f9f90;
+  color:#fff;
+  font-size:13.5px;
+  font-weight:900;
+}}
+.master-brand small{{
+  font-size:11px;
+  letter-spacing:.06em;
+  font-weight:700;
+  color:var(--muted);
+}}
+.master-tools{{
+  display:flex;
+  gap:5px;
+  align-items:center;
+  flex-wrap:wrap;
+  justify-content:flex-end;
+}}
+.master-tools .tool-button{{
+  font-size:11.5px;
+  font-weight:700;
+  color:var(--navy);
+  background:#fff;
+  border:1.5px solid var(--line);
+  border-radius:7px;
+  padding:5px 10px;
+  line-height:1.4;
+}}
+.master-tools .tool-button:hover{{background:#f0f5ff}}
+.master-tools .tool-button.primary{{
+  background:var(--navy);
+  color:#fff;
+  border-color:var(--navy);
+}}
+
+.master-reader{{
+  padding:28px 0 48px;
+}}
+.slide-scope .page-shell{{
+  position:relative;
+  margin:0 auto 28px;
+  width:1280px;
+  height:720px;
+}}
+
+{"".join(styles)}
+
+@media print{{
+  @page{{size:1280px 720px;margin:0}}
+  html,body{{background:#fff;margin:0;padding:0;-webkit-print-color-adjust:exact;print-color-adjust:exact}}
+  .master-toolbar{{display:none!important}}
+  .master-reader{{padding:0!important;margin:0!important}}
+  .slide-scope{{page-break-after:always;break-after:page;margin:0!important;padding:0!important}}
+  .slide-scope:last-child{{page-break-after:auto;break-after:auto}}
+  .slide-scope .page-shell{{width:1280px!important;height:720px!important;margin:0!important}}
+  .slide-scope .page{{width:1280px!important;height:720px!important;transform:none!important;box-shadow:none!important;overflow:hidden!important}}
+}}
+</style>
+</head>
+<body>
+<header class="master-toolbar">
+  <div class="master-toolbar-inner">
+    <a class="master-brand" href="#slide-cover"><span class="master-badge">S</span>SafeHandoff <small>ALL SLIDES</small></a>
+    <div class="master-tools">
+{chr(10).join(nav_buttons)}
+      <button class="tool-button primary" id="print-all" type="button">전체 PDF 인쇄</button>
+    </div>
+  </div>
+</header>
+
+<main class="master-reader" aria-label="SafeHandoff 전체 발표 슬라이드">
+{chr(10).join(sections)}
+</main>
+
+<script>
+(() => {{
+  'use strict';
+  const shells = Array.from(document.querySelectorAll('.page-shell'));
+  function fitPages() {{
+    const mobile = innerWidth <= 760;
+    const width = Math.min(1280, innerWidth - 40);
+    shells.forEach(shell => {{
+      shell.style.width = mobile ? '' : width + 'px';
+      shell.style.height = mobile ? '' : 720 * width / 1280 + 'px';
+      const page = shell.querySelector('.page');
+      if (page) page.style.transform = mobile ? '' : 'scale(' + width / 1280 + ')';
+    }});
+  }}
+  document.getElementById('print-all').addEventListener('click', () => window.print());
+  window.addEventListener('resize', fitPages);
+  window.addEventListener('afterprint', fitPages);
+  fitPages();
+}})();
+</script>
+</body>
+</html>
+"""
+    out_html = os.path.join(WORKSPACE, "SafeHandoff_발표자료_통합.html")
+    with open(out_html, "w", encoding="utf-8") as f:
+        f.write(combined_html)
+    print("Wrote combined HTML:", out_html)
+
+if __name__ == "__main__":
+    main()
