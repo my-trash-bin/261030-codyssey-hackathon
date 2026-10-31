@@ -120,6 +120,8 @@ OSS 스모크의 자동 회귀 검사는 실행 행/고정 oracle/수치/hash/�
 
 실행 transcript는 `SAFEHANDOFF_TRANSCRIPT_DIR=.local/transcripts`로 켠다. 기본은 단계 메타데이터이며 `SAFEHANDOFF_TRANSCRIPT_CONTENT=1`을 함께 설정하면 승인된 모델 입력과 작성 초안도 기록한다. HTTP 응답은 바뀌지 않는다. 데모 연결 형식/권한/보존 제한은 [transcript 문서](docs/transcript.md)를 참고한다.
 
+내용 기록(`SAFEHANDOFF_TRANSCRIPT_CONTENT=1`)을 켠 실행은 `node tools/transcript-view.mjs`로 모델 호출마다 System Prompt와 User Prompt(실제 입력)를 나눠 볼 수 있다. 기본은 가장 최근 실행이며 `--count N`, 실행 ID 앞부분, `--raw`(원본 JSON), `--watch`를 지원한다. 읽기 전용이며 분석 단계는 원자료 보호를 위해 코어가 내용을 기록하지 않는다. Windows에서는 POSIX 권한 비트가 없어 기록 폴더의 그룹·기타 권한 검사를 건너뛴다.
+
 ## CDP 화면 시연
 
 최신 fake-app의 전용 화면 `http://127.0.0.1:8081/__presentation`에서 가상 흐름을 연출합니다.
