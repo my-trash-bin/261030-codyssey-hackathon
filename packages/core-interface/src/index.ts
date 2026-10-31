@@ -1,5 +1,10 @@
 // This package is the only shared dependency of server, cores and connectors.
 // It contains no Node APIs, persistence, HTTP or implementation imports.
+//
+// Core below is the narrow, committed writer+reviewer contract: approved facts in, a
+// document out. The wider pipeline (evidence analysis, disclosure assistance, reproduction)
+// is Engine in workflow.ts, which extends Core — see workflow.ts for why decide() is not
+// part of either.
 export interface ApprovedFact { id: string; text: string }
 export interface GenerateRequest {
   purpose: string;
@@ -44,3 +49,6 @@ export function parseGenerateRequest(value: unknown): GenerateRequest {
   });
   return { purpose: fields.purpose, recipient: fields.recipient, facts };
 }
+export * from './workflow.ts';
+export * from './reproduction.ts';
+export * from './model.ts';

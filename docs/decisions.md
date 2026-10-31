@@ -107,3 +107,13 @@
 ## 실제 앱과 연출용 껍데기의 독립 개발
 
 사용자는 실제 서버 껍데기·가짜 코어·가짜 앱 연결부·진짜 코어·인터페이스의 분리를 요청했고 최종 조립 명칭은 app으로 확정했다. core-interface를 공통 계약으로 두며 server는 구현 대신 Core를 주입받는다. app은 server와 core, fake-app은 server와 fake-core를 조립한다. 지연·실패 연출은 fake-app 내부에서만 제공한다. 진짜 코어가 미구현이면 오류를 반환하며 가짜로 대체하지 않는다. 공식 QG js preset과 패키지 의존성 회귀 시험으로 경계를 검사한다. 개발 계획은 연출 트랙과 실제 코어 트랙을 독립 작업으로 반영한다.
+
+## 엔진 워크플로우 인터페이스 1라운드
+
+사용자는 docs/features의 보존된 과거 워크플로우(원자료 분석 → 공개 결정 → 승인 fact pack → 작성/검토 루프 → [선택] 재현 검증)를 되살리는 방향으로 가되, 이번 라운드는 TypeScript 인터페이스·패키지·책임 경계 정리까지만 하기로 결정했다("넓게, 일단 인터페이스/역할/책임 정리만").
+
+- D: `Core.generate()`(승인된 사실만 받는 writer 계약)는 그대로 두고, `analyze/proposeDisclosure/preview/write/review/reproduce`를 노출하는 `Engine extends Core`를 core-interface에 신설한다(`packages/core-interface/src/workflow.ts`). `decide()`는 두지 않는다 — 공개 결정은 사람이 하는 단계이므로 Engine은 제안·미리보기만 돕고, 실제 `Decision[]`은 server가 만들어 `composeFactPack` 입력으로 넣는다. Engine은 stateless를 유지한다.
+- D: 재현 러너(F08: 사전 등록된 digest 고정 target만 실행, 모델이 코드를 짜지 않음)는 `packages/sandbox-runner`로, 모델 전송(openai_compatible)은 `packages/model-adapter`로 core-interface에만 의존하는 별도 리프 패키지로 분리한다. core는 둘 다 직접 import하지 않고 core-interface의 포트 타입(`ReproRunner`, `ModelClient`)만 알며, 실제 구현체는 app(합성 루트)이 주입한다. `tools/architecture.test.mjs`의 `allowed` 맵에 두 패키지를 추가했다.
+- D: 신규 타입(`CandidateProposals`, `FactPack`, `Draft`, `Review`, `ReproduceRequest/Result`, `TargetRun`, `ModelClient`, `ProviderConfig` 등)의 필드명은 contracts/*.v1.schema.json과 config.json을 직접 읽어 1:1로 맞췄다. task.v1 전체(서버측 영속 집계, scope/jobs/artifacts/events 포함)는 core-interface에 들여오지 않고, core가 실제로 쓰는 필드만 축소판으로 뽑았다(예: `Decision`은 `raw_grants`/`scope`/`applied_rule_*` 같은 서버 감사 필드를 뺀 `candidate_id/disposition/representation/expires_at/revoked`만).
+- D: `DockerReproRunner`/`OpenAICompatibleModelClient`는 `RealCore`와 같은 "명시적 미구현 seam" 패턴(가짜로 대체하지 않고 `REPRO_UNAVAILABLE`/`MODEL_UNAVAILABLE`을 던짐)으로만 스캐폴드했다.
+- 다음 라운드로 미룬 범위: `composeFactPack`/`judgeReproduction`의 실제 로직, `RealCore`의 analyze/write/review 오케스트레이션과 `ModelClient`/`ReproRunner` 실제 주입, `DockerReproRunner`의 실제 dockerode 컨테이너 실행(네트워크 차단·digest 검증·리소스 제한), `OpenAICompatibleModelClient`의 실제 HTTP 호출, server의 task/decision 저장 스키마. F07 `context_check`는 부차적이라 이번 라운드와 다음 라운드 모두에서 제외했다.

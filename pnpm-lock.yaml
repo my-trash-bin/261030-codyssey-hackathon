@@ -58,6 +58,18 @@ importers:
         specifier: workspace:*
         version: link:../core-interface
 
+  packages/model-adapter:
+    dependencies:
+      '@safehandoff/core-interface':
+        specifier: workspace:*
+        version: link:../core-interface
+
+  packages/sandbox-runner:
+    dependencies:
+      '@safehandoff/core-interface':
+        specifier: workspace:*
+        version: link:../core-interface
+
   packages/server:
     dependencies:
       '@safehandoff/core-interface':

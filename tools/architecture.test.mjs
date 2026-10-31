@@ -13,7 +13,9 @@ const allowed = {
   core: ['core-interface'],
   'fake-core': ['core-interface'],
   server: ['core-interface'],
-  app: ['core', 'server'],
+  'sandbox-runner': ['core-interface'],
+  'model-adapter': ['core-interface'],
+  app: ['core', 'server', 'sandbox-runner', 'model-adapter'],
   'fake-app': ['core-interface', 'fake-core', 'server'],
   client: ['core-interface'],
 };
