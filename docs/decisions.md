@@ -212,3 +212,14 @@ OverlayFS 대신 읽기전용 bind mount + tmpfs를 쓰기로 했다(`DockerRepr
 
 `check_doc_ip_context_v1`(ProcessToolRunner 일반화)과 역할×도구 권한 교집합 연결은 이전과 같은
 이유(보안 판단, 실제 registry 부재)로 이번에도 범위에서 뺐다.
+
+## 2026-10-31 · 다음 라운드 계획 정리
+
+세 계획 문서에 흩어진 미완료 항목을 [다음 라운드 계획](next-round-plan.md)으로 모았다.
+우선 후보는 `toyrecord-repro` 팩의 catalog 선택과 OSS 스모크 연결이다. skill-loader와
+pack-register는 재사용하되, 현재 manifest/catalog에 image·target 필드가 없으므로 digest에
+포함되는 재현 명세 asset과 별도 운영자 image 등록의 연결 계약부터 정의한다. 실행 전에 pack
+pin을 재검증하고 pack/target/image 등록을 대조하며 tool_ids만으로 실행 권한을 부여하지 않는다.
+결정적 회귀 검사와 실제 실행 확인을 분리하고 보고서·transcript에 선택한 팩의 지문을 연결한다.
+그다음 큰 후보는 `analyze()`(F02)다. 역할별 프롬프트 연결·공개 결정·최종화·task 변경 무효화는
+별도 간극으로 남는다. 이번 변경은 계획 정리이며 해당 기능 구현은 아직 하지 않았다.
