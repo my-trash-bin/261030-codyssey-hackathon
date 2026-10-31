@@ -698,10 +698,6 @@ textarea[aria-invalid="true"]:focus-visible {
   min-width: 0;
 }
 
-.action .hint {
-  max-width: 40ch;
-}
-
 /* 공개 방식 선택 */
 
 .option {
@@ -726,7 +722,7 @@ textarea[aria-invalid="true"]:focus-visible {
   flex: 1 1 auto;
   min-width: 0;
   min-height: var(--button-height);
-  font-size: var(--type-body-size);
+  font-size: var(--type-body-sm-size);
   line-height: var(--line-height-normal);
   cursor: pointer;
   overflow-wrap: anywhere;

@@ -45,6 +45,7 @@
   --num-6: 0.625rem;
   --num-7: 0.75rem;
   --num-8: 1rem;
+  --num-8a: 1.125rem;
   --num-9: 1.25rem;
   --num-10: 1.5rem;
   --num-11: 1.75rem;
@@ -233,7 +234,7 @@
   --input-placeholder: var(--color-text-muted);
 
   /* 체크박스, 라디오 */
-  --control-mark-size: var(--num-9);
+  --control-mark-size: var(--num-8a);
   --control-mark-check-size: var(--num-6);
   --control-mark-dot-size: var(--num-5);
   --control-mark-background: var(--color-surface-raised);
