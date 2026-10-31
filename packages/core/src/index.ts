@@ -7,13 +7,17 @@ import type {
 import { parseDraft, parseReview, validateDraft } from './validation.ts';
 import { approvedRequestGrounding, validateProjectionHashes } from './fresh-grounding.ts';
 
-type Run = { calls: number; signal?: AbortSignal; grounding?: ReviewGroundingContext };
+import type { TranscriptRun, TranscriptSink } from './transcript.ts';
+
+type Run = { trace?: TranscriptRun; calls: number; signal?: AbortSignal; grounding?: ReviewGroundingContext };
 export class RealCore implements Engine {
   private readonly model?: ModelClient;
   private readonly config?: EngineConfig;
   private readonly runner?: ReproRunner;
   private readonly clock: () => number;
-  constructor(model?: ModelClient, config?: EngineConfig, runner?: ReproRunner, clock: () => number = Date.now) {
+  private readonly transcripts?: TranscriptSink;
+  constructor(model?: ModelClient, config?: EngineConfig, runner?: ReproRunner, clock: () => number = Date.now, transcripts?: TranscriptSink) {
+    this.transcripts = transcripts;
     this.clock = clock;
     this.model = model;
     this.config = config;
@@ -34,11 +38,17 @@ export class RealCore implements Engine {
       if (run.signal?.aborted) throw new CoreError('CORE_CANCELLED');
       if (run.calls >= this.config.workflow.max_model_calls_per_run) throw new ModelError('MODEL_BUDGET_EXCEEDED');
       run.calls++;
+      run.trace?.emit('model_started', { role: request.role, call: run.calls, attempt: attempt + 1 }, request);
       try {
         const response = await this.model.complete(request, { signal: run.signal });
         if (run.signal?.aborted) throw new CoreError('CORE_CANCELLED');
-        return parse(response.text);
+        const parsed = parse(response.text);
+        run.trace?.emit('model_completed', { role: request.role, call: run.calls, usage: response.usage },
+          request.role === 'writer' ? parsed : undefined);
+        return parsed;
       } catch (error) {
+        run.trace?.emit('model_failed', { role: request.role, call: run.calls,
+          code: error instanceof ModelError || error instanceof CoreError ? error.code : 'UNEXPECTED_ERROR' });
         if (!(error instanceof ModelError) || error.code === 'MODEL_CANCELLED' || error.code === 'MODEL_BUDGET_EXCEEDED' ||
           attempt + 1 === this.config.provider.max_attempts_per_step) throw error;
       }
@@ -62,7 +72,7 @@ export class RealCore implements Engine {
   private async check(draft: Draft, pack: FactPack, run: Run): Promise<Review> {
     validateDraft(draft, pack);
     const denied = this.groundingReview(pack, run.grounding);
-    if (denied) return denied;
+    if (denied) { run.trace?.emit('review_completed', { result: denied.result, grounding: 'denied' }); return denied; }
     const grounding = groundFacts(run.grounding!, pack, this.clock());
     const review = await this.call({ role: 'reviewer', responseFormat: 'json',
       systemPrompt: 'Return JSON only with exactly these root keys: schema_version, result, issues. ' +
@@ -78,17 +88,34 @@ export class RealCore implements Engine {
         'UNCERTAINTY_REMOVED, INCORRECT_PROJECTION, UNAPPROVED_REFERENCE, NEEDS_DISCLOSURE_DECISION. Pass has no issues.',
       input: JSON.stringify({ draft, fact_pack: pack, grounding }),
     }, text => parseReview(text, draft, pack), run);
-    return this.groundingReview(pack, run.grounding) ?? review;
+    const result = this.groundingReview(pack, run.grounding) ?? review;
+    run.trace?.emit('review_completed', { result: result.result, reasons: result.issues.map(issue => issue.reason_code) });
+    return result;
   }
-  write(pack: FactPack): Promise<Draft> { return this.draft(pack, { calls: 0 }); }
+  private async traced<T>(operation: string, work: (trace?: TranscriptRun) => Promise<T>): Promise<T> {
+    const trace = this.transcripts?.start(operation);
+    try {
+      trace?.emit('run_started', { model_mode: this.model?.info.provider === 'fake' ? 'fixture' : 'live', recording: true });
+      const result = await work(trace);
+      trace?.emit('run_completed');
+      return result;
+    } catch (error) {
+      trace?.emit('run_failed', { code: error instanceof CoreError || error instanceof ModelError ? error.code : 'UNEXPECTED_ERROR' });
+      throw error;
+    } finally { trace?.close(); }
+  }
+  write(pack: FactPack): Promise<Draft> { return this.traced('write', trace => this.draft(pack, { calls: 0, trace })); }
   review(draft: Draft, pack: FactPack, grounding?: ReviewGroundingContext): Promise<Review> {
-    return this.check(structuredClone(draft), structuredClone(pack), { calls: 0, grounding: grounding ? structuredClone(grounding) : undefined });
+    return this.traced('review', trace => this.check(structuredClone(draft), structuredClone(pack), { calls: 0, trace, grounding: grounding ? structuredClone(grounding) : undefined }));
   }
 
   // Full bounded repair workflow for Engine consumers; generate deliberately uses zero repairs.
   async writeReviewed(pack: FactPack, options?: { signal?: AbortSignal; maxRepairs?: number; grounding?: ReviewGroundingContext }): Promise<{ draft: Draft; review: Review }> {
+    return this.traced('writeReviewed', trace => this.writeReviewedRun(pack, options, trace));
+  }
+  private async writeReviewedRun(pack: FactPack, options?: { signal?: AbortSignal; maxRepairs?: number; grounding?: ReviewGroundingContext }, trace?: TranscriptRun): Promise<{ draft: Draft; review: Review }> {
     pack = structuredClone(pack);
-    const run: Run = { calls: 0, signal: options?.signal, grounding: options?.grounding ? structuredClone(options.grounding) : undefined };
+    const run: Run = { trace, calls: 0, signal: options?.signal, grounding: options?.grounding ? structuredClone(options.grounding) : undefined };
     const limit = options?.maxRepairs ?? this.config?.workflow.max_review_repairs ?? 0;
     if (!Number.isInteger(limit) || limit < 0 || limit > (this.config?.workflow.max_review_repairs ?? 0)) {
       throw new CoreError('INVALID_CORE_INPUT');
@@ -96,6 +123,7 @@ export class RealCore implements Engine {
     if (run.signal?.aborted) throw new CoreError('CORE_CANCELLED');
     if (!this.model || !this.config) throw new CoreError('CORE_NOT_IMPLEMENTED');
     const denied = this.groundingReview(pack, run.grounding);
+    if (denied) trace?.emit('review_completed', { result: denied.result, grounding: 'denied' });
     if (denied) return { draft: { schema_version: 'draft.v1', blocks: [] }, review: denied };
     let draft = await this.draft(pack, run);
     for (let repairs = 0; ; repairs++) {
@@ -107,6 +135,7 @@ export class RealCore implements Engine {
         approved_fact_ids: issue.approved_fact_ids }));
       const expired = this.groundingReview(pack, run.grounding);
       if (expired) return { draft, review: expired };
+      trace?.emit('repair_started', { repair: repairs + 1 });
       draft = await this.draft(pack, run, feedback);
     }
   }
@@ -142,9 +171,17 @@ export class RealCore implements Engine {
   async reproduce(request: ReproduceRequest, options?: { signal?: AbortSignal }): Promise<ReproduceResult> {
     if (options?.signal?.aborted) throw new CoreError('CORE_CANCELLED');
     if (!this.runner || !this.config?.reproduction.enabled) throw new CoreError('CORE_NOT_IMPLEMENTED');
-    return this.runner.reproduce(request, options);
+    return this.traced('reproduce', async trace => {
+      trace?.emit('reproduction_started');
+      const result = await this.runner!.reproduce(request, options);
+      trace?.emit('reproduction_completed', {}, result);
+      return result;
+    });
   }
 }
 
 export { createBuiltinTools, builtinArgumentsHash } from './builtin-tools.ts';
 export type { BuiltinAuthority, BuiltinToolId } from './builtin-tools.ts';
+
+export { FileTranscriptSink } from './transcript.ts';
+export type { TranscriptEvent, TranscriptRun, TranscriptSink } from './transcript.ts';
