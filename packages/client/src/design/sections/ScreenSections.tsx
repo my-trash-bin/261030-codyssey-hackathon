@@ -37,7 +37,7 @@ export function ShellSection(): JSX.Element {
         <header className="masthead">
           <div className="masthead__inner">
             <div className="masthead__brand">
-              <h1>SafeHandoff</h1>
+              <h1>덜어쓰기</h1>
               <p className="masthead__tagline">공개 전 확인 작업 공간</p>
             </div>
             <dl className="masthead__facts">

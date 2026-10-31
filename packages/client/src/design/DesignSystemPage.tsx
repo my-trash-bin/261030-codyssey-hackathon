@@ -108,7 +108,7 @@ export function DesignSystemPage(): JSX.Element {
   return (
     <div className="ds">
       <header className="ds-hero">
-        <p className="ds-eyebrow">SafeHandoff · 디자인 시스템</p>
+        <p className="ds-eyebrow">덜어쓰기 · 디자인 시스템</p>
         <h1>디자인 토큰과 컴포넌트 기준</h1>
         <p className="ds-lede">
           모든 값은 <code>tokens.css</code>에만 있다. 화면 CSS는 토큰을 참조하고 직접 값을 쓰지 않는다.
