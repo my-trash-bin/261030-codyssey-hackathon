@@ -26,6 +26,7 @@
 | 재사용 규칙 | 요청 4 | 규칙 검증(`groundFacts`)만, 저장·매칭 없음 | 없음 | 체크박스만 있고 저장 불가 |
 | 이력·취소·삭제 | 요청 5 | `TaskStore.delete`, `AnalysisStore.cancel`(부분) | 없음 | 화면 없음 |
 | 실행 환경 | 요청 6 | `CoreInfo` 3필드 | `/api/core`만 | 일부 표시 |
+| A·B·D 미리보기 엔진 | 관련 요청 | 변환 함수만(`transforms.ts`), `Engine.preview`·`interpret`는 미구현 | 없음 | 미리보기 비활성 |
 
 실제 라우트는 지금 `GET /api/core`, `POST /api/sharing`, `POST /api/analysis`, `GET /health`,
 `GET|POST /api/documents` 여섯 개뿐이고 나머지는 404다(`packages/server/src/app.ts:39`, `:75`).
@@ -57,6 +58,9 @@
 
 - 대상: 화면에서 새 작업을 만들고 원자료를 그 작업의 판본으로 저장하는 HTTP 접점. 이 접점이
   없으면 사용자는 공개 결정 화면에 입력할 task ID를 스스로 만들 수 없다.
+- 1편과의 관계: [1편](ui-api-requests.md) 요청 1도 "task 생성 HTTP가 없다"고 적었다. 작업
+  생성·원자료·catalog의 정본은 이 요청이고, 1편 요청 1은 분석 채택과 task 조회만 본다. 두 문서를
+  함께 구현할 때 생성 엔드포인트를 중복해서 만들지 않는다.
 - 이미 있는 내부 기능: `TaskStore.create(context, sourceSetHash, skillSetHash)`가 revision 1과
   `needs_analysis` phase, 스냅샷을 함께 만든다(`packages/server/src/task-store.ts:54-65`).
   `AnalysisStore.replaceSources`는 원자료를 전량 검증한 뒤 한 트랜잭션으로 교체한다
@@ -160,6 +164,11 @@
   - 적용은 조건이 맞는 변환만 새 자료에 다시 계산하고, 과거 문장·새 정확값·새 원문 구간을 자동
     허용하지 않는다(INV-10).
   - `selected_fields`·`exact_value`·원문 구간은 재사용 저장 대상이 아니다.
+  - 새 분석 결과를 채택할 때의 자동 적용은 후보 집합과 파생 결정을 같은 트랜잭션에 저장하고,
+    입력 revision이 현재와 일치해야 한다. 여러 규칙이 서로 다른 결과를 만들면 더 많이 공개하는
+    쪽을 고르지 않고 해당 항목을 결정 필요로 돌린다([재사용 규칙 계획](features/06-decision-reuse.md)
+    `:67`, `:69`).
+  - 최신 판본을 쓸 수 없다고 과거 판본으로 자동 fallback하지 않는다.
   - 철회·만료는 전 판본에 적용되고, 확정·다운로드 시점에 다시 검사한다.
 - UI 접속점: 공개 결정의 `재사용 기준으로 저장` 체크박스(`disclosure-view.ts:1106-1136`)와
   `스킬로 등록` 버튼(비활성, `index.html:94-95`).
@@ -203,6 +212,23 @@
   - 응답에 endpoint URL·자격 증명·토큰이 들어가지 않는다([실행 경계](features/10-runtime-boundary.md) `:65`).
   - fixture와 live가 화면에서 구분되고, 자동 전환은 일어나지 않는다.
 - UI 접속점: `실행 정보` 접이식 영역(`index.html:150-198`).
+
+## 관련 요청 — 미리보기 엔진(preview·interpret)
+
+[1편](ui-api-requests.md) 요청 2가 미리보기와 D 조건 해석 HTTP를 요청하지만, 그 값을 계산할 엔진
+함수는 아직 없다. `RealCore.preview`와 `proposeDisclosure`는 `CORE_NOT_IMPLEMENTED`를 던진다
+(`packages/core/src/index.ts:195-198`). 변환 함수 자체는 있다 — `deriveSeries`,
+`renderTimeline`, `makeConfigExample`, `makeSyntheticInputs`, `renderApprovedExcerpt`
+(`packages/core/src/transforms.ts:4`, `:36`, `:62`, `:77`, `:91`).
+
+- 영향: 미리보기 라우트를 열어도 연결할 구현이 없으면 `fact_summary`만 값이 나온다. 그러면
+  A(사실만)는 그 한 가지에 머물고 B(추이)·C(마스킹)·D(기타)는 빈 응답이나 오류가 된다. 발표
+  자료가 보여 주는 A~D 선택은 서버 라우트만으로 완성되지 않는다.
+- 결정 필요: preview·interpret를 누가 구현하는지(서버가 `transforms.ts`를 직접 호출할지,
+  `Engine`에 연결할지), D의 조건 해석을 모델 호출로 할지 등록 선택자 매칭으로 할지, 그 결과를
+  1편 요청 2의 미리보기 응답 DTO와 어떻게 맞출지.
+- 수용 기준(엔진 쪽): 표현별 변환이 결정적이고 입력 revision에 묶이며, 계산할 수 없는 표현은
+  거부하고 임의로 다른 표현으로 대체하지 않는다.
 
 ## 관련 요청 — 문서·계약 정리
 
