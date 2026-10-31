@@ -86,7 +86,7 @@ B는 관찰 개수와 순서까지 드러난다. A는 그 정보도 별도 승�
 6. 배치 전체를 검증한 뒤 불변 결정과 current_decisions를 한 번에 저장하고 revision을 한 번 올린다.
 7. 기존 결과를 stale로 만들고 F04가 현재 승인 정보로 전체 새 작성하도록 연결한다.
 
-allow 항목은 유효한 preview_id와 approved_projection_sha256가 필수다. exclude/defer는 projection이나 grant를 만들지 않으며 미리보기 참조를 요구하지 않는다. 재사용 저장은 현재 지원하는 allow 변환에만 가능하고 exact/raw/selected_fields 실제값은 제외한다.
+allow 항목은 유효한 `preview_id`와 `projection_sha256`가 필수다. exclude/defer는 projection이나 grant를 만들지 않으며 미리보기 참조를 요구하지 않는다. 재사용 저장은 현재 지원하는 allow 변환에만 가능하고 exact/raw/selected_fields 실제값은 제외한다.
 
 미리보기 이후 값 한 셀이라도 바뀌면 기존 미리보기 승인으로 통과시키지 않는다. 선택별 비공개 정보 설명은 내부 UI에만 사용하며 작성기로 넘기지 않는다.
 
@@ -107,13 +107,13 @@ allow 항목은 유효한 preview_id와 approved_projection_sha256가 필수다.
 
 ### 직접 입력
 
-`interpret_condition` job은 supported/ambiguous/unsupported를 반환한다. supported여도 등록 transform_id·허용 매개변수만 사용한다. 직접 입력은 해석 결과→실제 계산→미리보기→사용자 적용 단계를 거친다. 자연어·생성 코드·정규식·SQL을 그대로 권한 조건이나 실행 명령으로 저장하지 않는다.
+`interpret_disclosure` job은 supported/ambiguous/unsupported를 반환한다. supported여도 등록 transform_id·허용 매개변수만 사용한다. 직접 입력은 해석 결과→실제 계산→미리보기→사용자 적용 단계를 거친다. 자연어·생성 코드·정규식·SQL을 그대로 권한 조건이나 실행 명령으로 저장하지 않는다.
 
 기준값이 0인 상대지수는 `INDEX_BASELINE_ZERO`다. 음수·결측·잘못된 타입은 등록 스키마에 따라 거부하고 누락 행을 숨겨 성공 결과로 만들지 않는다. 방향은 실제 순서대로 다시 계산하며 820/780/1740은 감소/증가다. 실제 날짜·간격·단위·규모·증가율은 별도의 정보다.
 
 ### 철회·만료·재사용
 
-scope에는 project_id, purpose_id, goal_variant, recipient_id, audience, skill_set_hash가 포함된다.
+현행 wire scope에는 project_id, purpose_id, recipient_id, audience, skill_set_hash가 포함된다. `goal_variant`는 현재 scope 스키마에 없으므로 별도 목표 결합 규격이 확정되기 전까지 UI가 임의로 추가하거나 범위 전체 허용으로 해석하지 않는다.
 
 기본은 이번 작업만 적용한다. expires_at=null은 시간 제한 없음이며 원자료·범위·판본 검사는 계속한다. 정확값·원문·실제값 selected_fields는 reusable=false다. 저장 기준은 F06의 조건 일치 변환만 허용한다.
 
@@ -129,11 +129,11 @@ scope에는 project_id, purpose_id, goal_variant, recipient_id, audience, skill_
 | --- | --- | --- |
 | 후보 조회 / `GET /api/v1/tasks/{id}/candidates` | task 인증·소속 | 현재 후보·근거·결정·선택지, F02 결과 |
 | `DisclosureService.CreatePreview` / `POST /api/v1/tasks/{id}/disclosure-previews` | expected_revision, candidate_id, representation | preview 참조, 실제 projection, hash, 공개되는 의미, 재사용 가능 여부 |
-| 조건 해석 / `POST /api/v1/tasks/{id}/jobs` | kind=`interpret_condition`, expected_revision, 후보와 사용자 조건 | job; 지원 조건 제안. 공개 결정 아님 |
+| 조건 해석 / `POST /api/v1/tasks/{id}/jobs` | kind=`interpret_disclosure`, expected_revision, arguments의 candidate_id·text | job; 지원 조건 제안. 공개 결정 아님 |
 | `DisclosureService.ApplyDecisionBatch` / `POST /api/v1/tasks/{id}/decision-batches` | expected_revision, 후보별 disposition과 현재 미리보기/hash, expiry, 재사용 선택 | 새 결정 ID·revision·phase·무효화 내역 |
 | `DisclosureService.RevokeDecision` / `POST /api/v1/tasks/{id}/decisions/{decision_id}/revoke` | expected_revision | 현재 결정 무효, 새 revision |
 
-DTO의 정확한 필드명은 [api.md](../api.md)의 공통 계약에 맞춘다. F02의 후보/근거 → F03의 결정/투영 → F04의 승인팩으로 연결한다. F05는 현재 결정의 유효성과 보류 여부를 검사한다. F06은 재사용 기준만 만들고 새 자료의 정확값 허용을 만들지 않는다. F07의 예외 검사 결과가 F03 allow를 대신할 수 없다.
+이 선행 UI의 요청·응답 형태는 `contracts/openapi.json`과 해당 `*.v1.schema.json`을 참고한다. [참고 계약의 경계](../../contracts/README.md)처럼 이 자료들은 현재 서버의 동작 API가 아니며, 실제 HTTP 제공 범위는 [api.md](../api.md)에서 구분한다. `contracts/core/shared.schema.json`에는 `select_fields.v1`의 `parameters.fields`가 있지만 HTTP 참고 스키마에는 없으므로 기존 정의 정리와 필드 목록·서버 변환 구현이 필요하다. 세션 응답의 CSRF 토큰 필드와 후보 전용 조회 응답도 미정이다. UI가 임의 필드를 만들어 연결하지 않는다. F02의 후보/근거 → F03의 결정/투영 → F04의 승인팩으로 연결한다. F05는 현재 결정의 유효성과 보류 여부를 검사한다. F06은 재사용 기준만 만들고 새 자료의 정확값 허용을 만들지 않는다. F07의 예외 검사 결과가 F03 allow를 대신할 수 없다.
 
 ## 7. 하지 않을 것
 

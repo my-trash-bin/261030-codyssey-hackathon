@@ -1,9 +1,11 @@
 // SafeHandoff 작업 화면 동작.
-// 실제 연결된 API는 GET/POST /api/documents, GET /api/core 뿐이다.
-// A~D, 미리보기, 결정 저장, 분석, 확정, 스킬 등록은 서버 API가 없으므로 화면에서 성공을 만들지 않는다.
+// 실제 서버에 연결된 API는 GET/POST /api/documents, GET /api/core다.
+// 공개 결정 영역은 disclosure-view.ts에서 후보별로 렌더한다. GET /api/v1/tasks/{id}의
+// 요청 경로는 준비됐지만 서버 라우트는 미제공이며, 미리보기·결정 저장·철회·해석 성공을 만들지 않는다.
+
+import { mountDisclosures } from './disclosure-view.js';
 
 interface DocumentRecord { id: string; text: string; createdAt: string }
-type DisclosureLetter = 'A' | 'B' | 'C' | 'D';
 type LoadResult = 'ok' | 'failed';
 
 function required<T extends HTMLElement>(id: string): T {
@@ -23,69 +25,15 @@ const saveStatus = required<HTMLParagraphElement>('status');
 const refreshButton = required<HTMLButtonElement>('refresh');
 const documentsRegion = required<HTMLDivElement>('documents');
 const documentsStatus = required<HTMLParagraphElement>('documents-status');
-const selectionState = required<HTMLParagraphElement>('selection-state');
-const selectionDescription = required<HTMLParagraphElement>('selection-description');
-const selectionCaution = required<HTMLParagraphElement>('selection-caution');
-const customPanel = required<HTMLDivElement>('custom-condition-panel');
-const customCondition = required<HTMLTextAreaElement>('custom-condition');
-const disclosureRadios = Array.from(document.querySelectorAll<HTMLInputElement>('input[name="disclosure"]'));
-
-if (disclosureRadios.length !== 4 || disclosureRadios.some(radio => !['A', 'B', 'C', 'D'].includes(radio.value))) {
-  throw new Error('UI 계약 위반: 공개 방식 라디오 A~D 4개를 찾지 못했습니다.');
-}
-
-const disclosureDescriptions: Record<DisclosureLetter, string> = {
-  A: '구체적인 값 없이 사실만 문장으로 표현하는 방식입니다. 어떤 문장이 나갈지는 아직 만들어지지 않았습니다.',
-  B: '추이만 보이게 하고 나머지를 가리는 방식입니다. 관측 순서와 증가·감소 방향은 남고 정확한 값·비율·시각은 남기지 않는 설명입니다.',
-  C: '요청 정보에 마스킹을 적용하는 방식입니다. 어떤 열·단위·기간이 남는지는 이 화면에서 계산되지 않았습니다.',
-  D: '기타 직접 입력 방식입니다. 여기에 적은 조건은 아직 해석·검증되지 않았습니다.',
-};
-
-const disclosureCautions: Record<DisclosureLetter, string> = {
-  A: '남기는 사실만으로도 업무 맥락이 드러날 수 있습니다. 이 선택은 결정을 저장하지 않습니다.',
-  B: '관측 순서와 관측 개수 자체가 공개 단서가 될 수 있습니다. 완전 익명이나 유출 위험 제거를 보장하지 않습니다.',
-  C: '남긴 열과 단위 조합으로 원래 값이 추정될 수 있습니다. 정확한 값의 허용 범위는 아직 확정되지 않았습니다.',
-  D: '자유 입력은 공개 승인으로 취급되지 않습니다. 지원되지 않는 조건은 처리되지 않으며 입력만 유지됩니다.',
-};
-
-function selectedDisclosure(): DisclosureLetter | null {
-  for (const radio of disclosureRadios) {
-    if (radio.checked) return radio.value as DisclosureLetter;
-  }
-  return null;
-}
-
-function renderSelection(): void {
-  const letter = selectedDisclosure();
-  customPanel.hidden = letter !== 'D';
-  if (!letter) {
-    selectionState.textContent = '아직 선택하지 않음 — 기본 선택 없음, 결정 저장 안 됨';
-    selectionDescription.textContent = 'A~D 중 하나를 고르면 표현 방식 설명이 표시됩니다. 설명은 실제 공개 미리보기가 아닙니다.';
-    selectionCaution.textContent = '선택해도 서버에 결정이 저장되지 않습니다.';
-    return;
-  }
-  const conditionRemains = letter === 'D' && Boolean(customCondition.value.trim());
-  selectionState.textContent = conditionRemains
-    ? `${letter} 표현 설명 — 입력한 D 조건은 미해석, 결정 저장 안 됨`
-    : `${letter} 표현 설명 — 결정 저장 안 됨`;
-  selectionDescription.textContent = disclosureDescriptions[letter];
-  selectionCaution.textContent = disclosureCautions[letter];
-}
-
-// A~D 클릭은 설명 보기일 뿐이다. 미리보기·결정 저장·API 호출을 하지 않는다.
-for (const radio of disclosureRadios) {
-  radio.addEventListener('change', renderSelection);
-}
-customCondition.addEventListener('input', () => {
-  if (selectedDisclosure() !== 'D') return;
-  selectionState.textContent = 'D 표현 설명 — 입력한 D 조건은 미해석, 결정 저장 안 됨';
-});
+const disclosureMount = required<HTMLElement>('disclosure-mount');
 
 // 서버 API가 없는 동작은 어떤 경우에도 활성화하지 않는다.
 // 클릭 핸들러를 붙이지 않으므로 성공 토스트나 가짜 결과가 생기지 않는다.
-for (const id of ['check-condition', 'apply-disclosure', 'analyze', 'generate-document', 'finalize-document', 'register-skill']) {
+for (const id of ['analyze', 'generate-document', 'finalize-document', 'register-skill']) {
   required<HTMLButtonElement>(id).disabled = true;
 }
+
+mountDisclosures(disclosureMount);
 
 function setBusy(button: HTMLButtonElement, busy: boolean): void {
   button.disabled = busy;
@@ -291,6 +239,5 @@ async function checkRuntime(): Promise<void> {
 
 runtimeRefresh.addEventListener('click', () => { void checkRuntime(); });
 
-renderSelection();
 void checkRuntime();
 void loadDocuments();

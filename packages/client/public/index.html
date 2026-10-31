@@ -24,6 +24,7 @@
 
     <nav class="masthead__nav" aria-label="화면 구역">
       <a href="#workspace">작업 공간</a>
+      <a href="#disclosure-decisions">공개 결정</a>
       <a href="#saved-documents">저장 문서</a>
       <a href="#execution-environment">실행 정보</a>
     </nav>
@@ -55,53 +56,6 @@
             </div>
           </details>
         </section>
-
-        <fieldset class="block" aria-labelledby="disclosure-heading" aria-describedby="disclosure-hint">
-          <legend id="disclosure-heading">공개 방식</legend>
-          <p class="hint" id="disclosure-hint">방식을 고르면 설명을 볼 수 있습니다. 공개 결정은 저장되지 않습니다.</p>
-
-          <div class="options">
-            <div class="option">
-              <input id="disclosure-a" name="disclosure" type="radio" value="A">
-              <label for="disclosure-a">A. 구체적인 데이터 없이 사실만</label>
-            </div>
-            <div class="option">
-              <input id="disclosure-b" name="disclosure" type="radio" value="B">
-              <label for="disclosure-b">B. 추이만 보이게 나머지 마스킹</label>
-            </div>
-            <div class="option">
-              <input id="disclosure-c" name="disclosure" type="radio" value="C">
-              <label for="disclosure-c">C. 요청 정보 마스킹</label>
-            </div>
-            <div class="option">
-              <input id="disclosure-d" name="disclosure" type="radio" value="D">
-              <label for="disclosure-d">D. 기타 직접 입력</label>
-            </div>
-          </div>
-
-          <p class="status" id="selection-state" role="status" aria-live="polite">아직 선택하지 않음</p>
-          <p class="hint" id="selection-description">표현 방식을 고르면 이 화면에서의 의미 설명이 표시됩니다.</p>
-          <p class="hint" id="selection-caution">공개 범위 판단에는 서버 승인 절차가 필요하며, 이 화면은 어떤 결정도 저장하지 않습니다.</p>
-
-          <div class="custom" id="custom-condition-panel" hidden>
-            <div class="field">
-              <label for="custom-condition">직접 입력 조건</label>
-              <textarea id="custom-condition" name="custom-condition" rows="4" aria-describedby="custom-condition-help check-condition-reason"></textarea>
-            </div>
-            <p class="hint" id="custom-condition-help">입력한 조건은 서버가 해석하지 않습니다. 선택을 바꿔도 입력은 이 화면에 남습니다.</p>
-            <div class="action">
-              <button class="button" id="check-condition" type="button" disabled aria-describedby="check-condition-reason">조건 확인</button>
-              <p class="hint" id="check-condition-reason">조건 해석 기능이 아직 연결되지 않았습니다.</p>
-            </div>
-          </div>
-
-          <p class="hint" id="preview-status">공개 결과 계산 기능은 아직 연결되지 않았습니다.</p>
-
-          <div class="action">
-            <button class="button" id="apply-disclosure" type="button" disabled aria-describedby="apply-disclosure-reason">이 방식으로 적용</button>
-            <p class="hint" id="apply-disclosure-reason">공개 결정 저장 기능이 아직 연결되지 않았습니다.</p>
-          </div>
-        </fieldset>
       </div>
 
       <section class="draft" aria-labelledby="draft-heading">
@@ -132,7 +86,7 @@
           <p class="hint">내부 참고용입니다. 공유 파일에는 포함되지 않습니다.</p>
 
           <h3>근거</h3>
-          <p class="hint">근거 조회 API가 연결되지 않아 표시할 근거가 없습니다.</p>
+          <p class="hint">후보별 인용 근거는 공개 결정 영역의 각 후보에 표시됩니다. 후보를 조회하지 못했거나 task 응답에 근거가 없으면 여기에는 아무것도 표시하지 않습니다.</p>
 
           <h3>검토</h3>
           <p class="hint">검토 기록 API가 연결되지 않아 검토 기록이 없습니다.</p>
@@ -147,6 +101,10 @@
         </div>
       </details>
     </div>
+
+    <section class="decisions" id="disclosure-decisions" aria-label="공개 결정" tabindex="-1">
+      <div class="block" id="disclosure-mount"></div>
+    </section>
 
     <section class="primary" aria-labelledby="action-heading">
       <div class="primary__text">
@@ -213,17 +171,18 @@
               <li>GET /api/core — 실행 모드·연결 방식·준비 상태 설정 조회</li>
               <li>GET /api/documents — 저장된 내부 텍스트 조회</li>
               <li>POST /api/documents — 내부 텍스트 저장</li>
+              <li>GET /api/v1/tasks/{id} — 공개 결정 화면의 task 집계 조회(계약에 정의됨, 서버 라우트가 없으면 404 오류로 표시)</li>
             </ul>
           </div>
 
           <div class="env">
             <h3>연결되지 않은 기능</h3>
             <ul class="plain-list">
-              <li>공개 미리보기 계산, A~D 방식 적용, 직접 입력 조건 해석</li>
+              <li>공개 미리보기·결정 배치 저장·결정 철회·직접 입력 조건 해석 — 화면과 전송 경계만 있고 서버 라우트가 없어 요청이 오류로 끝납니다</li>
               <li>공유 초안 생성·확정·다운로드</li>
-              <li>내부 근거·검토·이력 조회, 스킬 등록</li>
+              <li>내부 검토·이력 조회, 스킬 등록</li>
               <li>원자료 파일 업로드와 자료 분석</li>
-              <li>POST /api/sharing 호출과 승인 결정 저장</li>
+              <li>POST /api/sharing 호출</li>
             </ul>
           </div>
         </div>

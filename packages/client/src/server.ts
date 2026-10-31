@@ -2,6 +2,42 @@ import { readFile } from 'node:fs/promises';
 import { stripTypeScriptTypes } from 'node:module';
 import type { IncomingMessage, ServerResponse } from 'node:http';
 
+// F03 쓰기 요청이 실제로 쓰는 헤더만 upstream으로 전달한다.
+// 이 화면은 authorization 계열 자격 증명을 만들지 않으므로 전달하지 않는다.
+const FORWARDED_REQUEST_HEADERS = [
+  'content-type',
+  'accept',
+  'idempotency-key',
+  'x-csrf-token',
+  'cookie',
+  'origin',
+] as const;
+
+// 브라우저에 내보내는 모듈은 정확한 이름만 허용한다.
+const MODULES: Record<string, string> = {
+  '/main.js': 'main',
+  '/disclosure-view.js': 'disclosure-view',
+  '/disclosure-state.js': 'disclosure-state',
+};
+
+function forwardedHeaders(request: IncomingMessage): Headers {
+  const headers = new Headers();
+  for (const name of FORWARDED_REQUEST_HEADERS) {
+    const value = request.headers[name];
+    if (typeof value === 'string') headers.set(name, value);
+    else if (Array.isArray(value)) for (const item of value) headers.append(name, item);
+  }
+  if (!headers.has('accept')) headers.set('accept', 'application/json');
+  return headers;
+}
+
+function setUpCookie(headers: Headers): string[] | null {
+  const source = headers as unknown as { getSetCookie?: () => string[] };
+  if (typeof source.getSetCookie !== 'function') return null;
+  const values = source.getSetCookie();
+  return values.length > 0 ? values : null;
+}
+
 export function createClientHandler(serverOrigin: string) {
   const target = new URL(serverOrigin);
   if (target.protocol !== 'http:' || target.username || target.password || target.pathname !== '/') {
@@ -11,15 +47,21 @@ export function createClientHandler(serverOrigin: string) {
     const path = new URL(request.url || '/', 'http://localhost').pathname;
     try {
       if (path.startsWith('/api/')) {
+        // upstream은 설정된 서버 origin 하나로 고정한다. 경로만 넘기므로 임의 대상 프록시가 아니다.
         const upstream = await fetch(new URL(path, target), {
           method: request.method,
-          headers: { 'Content-Type': request.headers['content-type'] || 'application/json' },
+          headers: forwardedHeaders(request),
           body: request.method === 'GET' || request.method === 'HEAD' ? undefined : request as unknown as ReadableStream,
           duplex: 'half', redirect: 'error', signal: AbortSignal.timeout(10000),
         } as RequestInit);
-        response.writeHead(upstream.status, {
-          'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store',
-        });
+        const headers: Record<string, string | string[]> = {
+          // upstream 응답 형식을 그대로 보존한다. 세션 쿠키가 오면 같은 브라우저로만 돌려준다.
+          'Content-Type': upstream.headers.get('content-type') ?? 'application/json; charset=utf-8',
+          'Cache-Control': 'no-store',
+        };
+        const cookies = setUpCookie(upstream.headers);
+        if (cookies) headers['Set-Cookie'] = cookies;
+        response.writeHead(upstream.status, headers);
         response.end(await upstream.text());
         return;
       }
@@ -31,9 +73,11 @@ export function createClientHandler(serverOrigin: string) {
         body = await readFile(new URL('../public/index.html', import.meta.url), 'utf8'); type = 'text/html';
       } else if (path === '/style.css') {
         body = await readFile(new URL('../public/style.css', import.meta.url), 'utf8'); type = 'text/css';
-      } else if (path === '/main.js') {
+      } else if (Object.hasOwn(MODULES, path)) {
+        // 소스 실행은 .ts를 타입 제거해 그대로, 빌드 실행은 컴파일된 .js를 서빙한다.
+        const name = MODULES[path] ?? '';
         const sourceMode = import.meta.url.endsWith('.ts');
-        body = await readFile(new URL(sourceMode ? './main.ts' : './main.js', import.meta.url), 'utf8');
+        body = await readFile(new URL(sourceMode ? `./${name}.ts` : `./${name}.js`, import.meta.url), 'utf8');
         if (sourceMode) body = stripTypeScriptTypes(body);
         type = 'text/javascript';
       } else { response.writeHead(404); response.end(); return; }
