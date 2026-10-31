@@ -15,7 +15,29 @@
 아래 "이미 있는 내부 기능"은 라이브러리·저장 함수로 존재한다는 뜻이고, 그것이 HTTP나 화면에
 연결됐다는 뜻이 아니다.
 
-## 현재 상태 요약
+> 이 문서를 쓴 뒤 원격 main의 `feat: expose authenticated task and disclosure workflow APIs`가
+> 병합됐다(로컬 `53afbf1`). 그 커밋이 1편 요청과 이 문서 요청 0·1·5의 일부를 구현했으므로, 각
+> 요청을 읽기 전에 아래 `병합 뒤 상태`를 먼저 본다.
+
+## 병합 뒤 상태
+
+| 영역 | 요청 | 병합 뒤 서버 | 남은 것 |
+| --- | --- | --- | --- |
+| 세션·CSRF | 요청 0 | 구현됨. `POST`·`GET /api/v1/session`, `Path=/api/v1` 쿠키(`docs/api.md` `:125-129`) | 화면이 토큰을 받지 않아 쓰기는 여전히 차단 |
+| 작업 생성·원자료 | 요청 1 | 생성·조회·`PUT /tasks/{id}/sources` 구현(`docs/api.md` `:150-152`) | catalog·자료 삭제·자료 한도 결정 |
+| 미리보기·결정(1편) | 1편 요청 2·3 | previews·fields·decision-batches·revoke·해석 job 구현(`docs/api.md` `:157-162`) | 실제 모델 입력으로 A~D 확인 |
+| 초안 작성·검토 | 요청 2 | 미구현 | job·artifact 저장·렌더·사람 검토 |
+| 최종 파일·확정·내보내기 | 요청 3 | 미구현 | 전부 |
+| 재사용 규칙 | 요청 4 | 미구현. `save_reusable_rule`은 422 `RULE_REUSE_NOT_IMPLEMENTED`(`packages/server/src/workflow-http.ts:196`) | 전부 |
+| 이력·취소·삭제 | 요청 5 | 부분. task 삭제·job 취소·job 조회(`docs/api.md` `:155`, `:163`) | 목록·이벤트·삭제 확인 문자열 |
+| 실행 환경 | 요청 6 | 부분. 세션 응답의 `analysis_environment`·`capabilities`(`workflow-http.ts:64-66`) | `/api/v1/runtime`·앱 버전·디버그 정책 |
+
+화면은 아직 세션을 호출하지 않는다. `packages/client/src/main.ts:39`는 공개 결정 영역을 토큰 없이
+마운트하고, 클라이언트는 "운영 화면에 인증된 세션의 CSRF 토큰이 제공되지 않았습니다"라는 사유로
+쓰기를 막는다(`packages/client/src/disclosure-contract.ts:502-504`). 서버 구현과 화면 연결 사이에
+남은 간격이 이것이다.
+
+## 작성 시점 상태
 
 | 영역 | 이 문서의 요청 | 이미 있는 내부 기능 | HTTP 라우트 | 화면 |
 | --- | --- | --- | --- | --- |
@@ -28,62 +50,65 @@
 | 실행 환경 | 요청 6 | `CoreInfo` 3필드 | `/api/core`만 | 일부 표시 |
 | A·B·D 미리보기 엔진 | 관련 요청 | 변환 함수만(`transforms.ts`), `Engine.preview`·`interpret`는 미구현 | 없음 | 미리보기 비활성 |
 
-실제 라우트는 지금 `GET /api/core`, `POST /api/sharing`, `POST /api/analysis`, `GET /health`,
-`GET|POST /api/documents` 여섯 개뿐이고 나머지는 404다(`packages/server/src/app.ts:39`, `:75`).
+작성 시점에는 실제 라우트가 `GET /api/core`, `POST /api/sharing`, `POST /api/analysis`,
+`GET /health`, `GET|POST /api/documents` 여섯 개뿐이었고 `/api/v1/*`는 404였다
+(`packages/server/src/app.ts:39`, `:75`). 병합 뒤에는 `/api/v1/*`를 워크플로 핸들러로 넘기며
+경로·필드 정본은 `docs/api.md` `:112-163`이다.
 
 ## 1편과 겹치는 항목
 
-[1편](ui-api-requests.md)을 먼저 구현하는 경우 아래 두 항목은 1편에서 함께 확정·구현한다. 같은
-엔드포인트를 두 번 만들지 않는다.
+1편의 요청은 병합된 원격 main에서 대부분 구현됐다. 그래서 이 문서는 세션·작업 생성·미리보기·결정
+엔드포인트를 다시 요청하지 않는다.
 
-| 항목 | 1편의 위치 | 이 문서의 처리 |
+| 항목 | 1편의 위치 | 병합 뒤 상태 |
 | --- | --- | --- |
-| 세션·CSRF 검사 | 요청 2의 수용 기준 1번(세션·CSRF·Host/Origin·`Idempotency-Key` 동시 검사) | 요청 0은 그 기준의 상세다. 1편이 토큰 획득 방식까지 정하면 별도 구현하지 않는다 |
-| task 생성 엔드포인트 | 요청 1의 "없는 부분"(task 생성·조회 라우트 없음) | 1편이 생성까지 구현하면 요청 1의 생성 부분은 중복이다. 원자료 배치·catalog·삭제는 이 문서 몫으로 남는다 |
+| 세션·CSRF | 요청 2의 수용 기준 1번 | 서버 구현됨. 화면의 토큰 획득만 남음 |
+| task 생성·조회 | 요청 1 | 구현됨 |
+| 분석 채택·job | 요청 1 | 구현됨 |
+| 미리보기·결정 배치·철회·C 필드 | 요청 2·3 | 구현됨 |
 
-1편 요청 1의 수용 기준은 채택·조회에 대한 것이라 생성 입력과 원자료 배치의 기준은 여기에만 있다.
-1편이 생성 DTO만 만들고 원자료 등록을 다루지 않으면 요청 1의 나머지 항목이 그대로 필요하다.
+이 문서가 계속 맡는 것은 원자료 catalog·삭제, 초안·검토, 최종 파일·확정·내보내기, 재사용 규칙,
+작업 목록·이벤트, 실행 환경 조회다.
 
 ## 요청 0 — 세션·CSRF 계약
 
-- 대상: 쓰기 요청의 세션·CSRF·Host/Origin·멱등 키 계약. 1편 요청 2의 수용 기준 1번과 같은
-  항목이므로, 1편을 먼저 구현할 때는 그쪽에서 확정하고 여기서 다시 구현하지 않는다. 1편이 토큰
-  획득 방식이나 쿠키 수명을 정하지 않고 지나가면 이 절을 정본으로 삼는다.
+- 대상: 쓰기 요청의 세션·CSRF·Host/Origin·멱등 키 계약.
+- 현재 상태: 병합된 원격 main이 `POST`·`GET /api/v1/session`을 구현했다(`docs/api.md` `:125-129`).
+  남은 것은 화면이 세션에서 토큰을 받아 쓰기 경로에 넣는 일이다. 이 문서의 세션 요청은 그 연결과
+  쿠키 수명·재시작 폐기 정책이 구현과 맞는지 확인하는 데 쓴다.
 - 문서 요구: 시작 토큰은 암호학적 난수로 터미널에만 표시하고 5분·1회 사용, 세션은 8시간 고정,
   쿠키는 `HttpOnly`·`SameSite=Strict`·`Path=/`, 재시작 시 폐기, 로그아웃 경로 제공, 쓰기 요청은
   세션·CSRF·`Idempotency-Key`를 함께 검사, Origin은 실제 Host와 정확 비교, 외부 CORS 금지
   ([실행 경계](features/10-runtime-boundary.md) `:57`, `:59`, `:61`, `:91-93`).
-- 이미 있는 부분: 클라이언트가 이미 `X-CSRF-Token`·`Idempotency-Key`를 붙이고
-  (`packages/client/src/disclosure-state.ts:842`, `:1172`), 토큰이 없으면 쓰기를 보내지 않는다
-  (`:519-521`, `:545-551`). 프록시도 헤더를 통과시킨다(`packages/client/src/server.ts:8-15`).
-- 없는 부분: 서버에 세션·토큰 발급·검사 코드가 전혀 없다. `app.ts`는 `new URL(url,
-  'http://localhost')`로 경로만 뽑고 Host·Origin을 보지 않는다(`packages/server/src/app.ts:37`).
-  문서가 정한 `POST /api/v1/auth/session`과 참고 계약의 `GET /api/v1/session`
-  (`contracts/openapi.json:2936`)이 서로 다르다.
+- 이미 있는 부분: 클라이언트가 `X-CSRF-Token`·`Idempotency-Key`를 붙이고
+  (`packages/client/src/disclosure-state.ts:325-326`, `:655-656`), 토큰이 없으면 쓰기를 보내지
+  않는다(`packages/client/src/disclosure-contract.ts:502-504`). 서버는 병합된 main에서
+  `POST`·`GET /api/v1/session`과 세션 쿠키 검사를 제공한다(`docs/api.md` `:125-129`).
+- 없는 부분: 화면이 세션을 호출해 토큰을 받는 경로가 없다. `packages/client/src/main.ts:39`는
+  토큰 없이 공개 결정 영역을 마운트하므로, 서버가 열려도 운영 화면의 쓰기는 막힌다.
 - 수용 기준:
   - 토큰 없는 쓰기는 401/403으로 거부하고, 성공·실패 모두 응답에 토큰이나 세션 비밀을 싣지 않는다.
   - 다른 Host·Origin에서 온 쓰기는 거부하고, 거부 사유를 클라이언트가 표시할 수 있는 코드로 준다.
   - 같은 `Idempotency-Key` 재전송은 첫 응답을 재현하고 부수 효과를 두 번 만들지 않는다(INV-16).
   - 재시작 뒤 기존 세션 쿠키는 무효다.
-- UI 접속점: 모든 쓰기 버튼의 사전 차단을 해제하는 지점. 현재 화면은
-  "세션 CSRF 토큰 계약이 미정이라 …" 문구만 표시한다(`disclosure-state.ts:519-521`).
+- UI 접속점: 모든 쓰기 버튼의 사전 차단을 해제하는 지점. 현재 화면은 토큰이 없다는 사유만
+  표시한다(`packages/client/src/disclosure-contract.ts:502-504`).
 
 ## 요청 1 — 작업 생성과 원자료 등록
 
 - 대상: 화면에서 새 작업을 만들고 원자료를 그 작업의 판본으로 저장하는 HTTP 접점. 이 접점이
   없으면 사용자는 공개 결정 화면에 입력할 task ID를 스스로 만들 수 없다.
-- 1편과의 관계: 1편 요청 1이 "task 생성 라우트가 없다"고 지목했으므로, 1편을 먼저 구현하면서
-  생성까지 만들면 그 부분은 중복이다. 그 경우 이 요청은 원자료 배치·catalog·자료 삭제를 맡는다.
-  생성 입력과 원자료 등록의 수용 기준은 1편에 없으므로 이 문서에만 있다.
+- 현재 상태: 병합된 main이 `POST /api/v1/tasks`·`GET /api/v1/tasks/{id}`·`PUT
+  /api/v1/tasks/{id}/sources`를 노출해 생성과 원자료 등록은 열렸다(`docs/api.md` `:150-152`).
+  이 요청에서 남은 것은 catalog·자료 삭제·자료 한도 정본이다.
 - 이미 있는 내부 기능: `TaskStore.create(context, sourceSetHash, skillSetHash)`가 revision 1과
   `needs_analysis` phase, 스냅샷을 함께 만든다(`packages/server/src/task-store.ts:54-65`).
   `AnalysisStore.replaceSources`는 원자료를 전량 검증한 뒤 한 트랜잭션으로 교체한다
   (`packages/server/src/analysis-store.ts:40-71`). `AnalysisStore.sources`로 내부 조회도 된다
   (`:34-39`).
-- 없는 부분: `POST /api/v1/tasks`, `POST /api/v1/tasks/{id}/source-batches`,
-  `DELETE /api/v1/tasks/{id}/sources/{source_id}`, `GET /api/v1/catalog`이 모두 없다. 화면에도
-  작업 이름·프로젝트·수신자 목록을 고르는 등록 폼이 없고, 목적·수신처는 자유 입력 두 칸뿐이다
-  (`packages/client/public/index.html:41`, `:46`).
+- 없는 부분: `GET /api/v1/catalog`과 `DELETE /api/v1/tasks/{id}/sources/{source_id}`가 없다.
+  화면에도 작업 이름·프로젝트·수신자 목록을 고르는 등록 폼이 없고, 목적·수신처는 자유 입력 두
+  칸뿐이다(`packages/client/public/index.html:41`, `:46`).
 - 문서와 구현의 차이(결정 필요):
   - `TaskContext`는 `purpose`·`recipient`·`goal_variant`·`output_language` 네 필드뿐이라
     `internal_title`·`project_id`·`audience`·`skill_ids`를 받을 자리가 없다
@@ -164,6 +189,9 @@
 
 - 대상: 이번 결정을 같은 조건에 다시 쓰는 규칙으로 저장하고, 목록·적용·새 판본·철회를 제공하는
   경로.
+- 현재 상태: 병합된 main도 규칙을 구현하지 않았다. 결정 배치가 `save_reusable_rule`을 422
+  `RULE_REUSE_NOT_IMPLEMENTED`로 거부하고(`packages/server/src/workflow-http.ts:196`), 세션
+  capability도 `reusable_rules:false`다(`:66`).
 - 이미 있는 내부 기능: 규칙 **검증**만 있다. `groundFacts`가 id·version 일치, 판본별 철회·만료,
   scope·representation·selector 일치, goal 바인딩 1개를 검사한다
   (`packages/core-interface/src/grounding.ts:71-80`). `composeFactPack`은 `applied_rule_id`가
@@ -190,6 +218,8 @@
 ## 요청 5 — 작업 목록·이력·취소·삭제
 
 - 대상: 최근 수정순 작업 목록, 이벤트 이력, 실행 취소, 작업 삭제.
+- 현재 상태: task 삭제·job 취소·job 조회는 병합된 main에 있다(`docs/api.md` `:155`, `:163`).
+  작업 목록·이벤트·삭제 확인 문자열은 아직 없다.
 - 이미 있는 내부 기능: `TaskStore.delete(id, revision)`이 revision을 본 뒤 행을 지운다
   (`packages/server/src/task-store.ts:187-189`). `AnalysisStore.cancel`은 `running`일 때만
   `cancelled`로 바꾼다(`packages/server/src/analysis-store.ts:91-93`). 늦은 worker 응답 거부는
@@ -212,6 +242,9 @@
 
 - 대상: 실행 모드·모델 식별자·앱 버전·등록 확장·검사기·재현 환경 상태·디버그 기록 정책을
   화면에 보여 주는 응답.
+- 현재 상태: 세션 응답이 `analysis_environment`(provider_origin·approval_status·verified_at)와
+  `capabilities`를 함께 준다(`packages/server/src/workflow-http.ts:63-66`). 별도
+  `/api/v1/runtime`은 없고 앱 버전·디버그 기록 정책도 응답에 없다.
 - 문서 요구: `GET /api/v1/runtime`과 `catalog`([화면 구조](IA.md) `:179`,
   [실행 경계](features/10-runtime-boundary.md) `:93`). fixture 고정 라벨과 live→fixture 자동 전환
   금지도 함께 요구된다(`docs/IA.md:181`, INV-15).
@@ -227,22 +260,17 @@
   - fixture와 live가 화면에서 구분되고, 자동 전환은 일어나지 않는다.
 - UI 접속점: `실행 정보` 접이식 영역(`index.html:150-198`).
 
-## 관련 요청 — 미리보기 엔진(preview·interpret)
+## 구현된 미리보기 엔진(preview·interpret)
 
-[1편](ui-api-requests.md) 요청 2가 미리보기와 D 조건 해석 HTTP를 요청하지만, 그 값을 계산할 엔진
-함수는 아직 없다. `RealCore.preview`와 `proposeDisclosure`는 `CORE_NOT_IMPLEMENTED`를 던진다
-(`packages/core/src/index.ts:195-198`). 변환 함수 자체는 있다 — `deriveSeries`,
-`renderTimeline`, `makeConfigExample`, `makeSyntheticInputs`, `renderApprovedExcerpt`
-(`packages/core/src/transforms.ts:4`, `:36`, `:62`, `:77`, `:91`).
+[1편](ui-api-requests.md) 요청 2가 요구한 미리보기와 D 조건 해석은 병합된 main에서 엔진까지
+연결됐다. `RealCore.preview`가 `calculatePreview`로 위임하고(`packages/core/src/index.ts:213-215`),
+`proposeDisclosure`는 모델 응답을 검증해 제안을 만든다(`:195-211`). 표현 검증은
+`validateRepresentation`, 계산은 `calculatePreview`다(`packages/core/src/disclosure.ts:8`, `:26`).
 
-- 영향: 미리보기 라우트를 열어도 연결할 구현이 없으면 `fact_summary`만 값이 나온다. 그러면
-  A(사실만)는 그 한 가지에 머물고 B(추이)·C(마스킹)·D(기타)는 빈 응답이나 오류가 된다. 발표
-  자료가 보여 주는 A~D 선택은 서버 라우트만으로 완성되지 않는다.
-- 결정 필요: preview·interpret를 누가 구현하는지(서버가 `transforms.ts`를 직접 호출할지,
-  `Engine`에 연결할지), D의 조건 해석을 모델 호출로 할지 등록 선택자 매칭으로 할지, 그 결과를
-  1편 요청 2의 미리보기 응답 DTO와 어떻게 맞출지.
-- 수용 기준(엔진 쪽): 표현별 변환이 결정적이고 입력 revision에 묶이며, 계산할 수 없는 표현은
-  거부하고 임의로 다른 표현으로 대체하지 않는다.
+- 남은 확인: 실제 모델 입력으로 A~D 결과가 문서의 표현 정의와 일치하는지, 계산할 수 없는 표현이
+  거부되는지는 이 문서를 쓰면서 실행으로 확인하지 않았다.
+- UI 접속점: 공개 결정 영역의 미리보기 표. 화면은 서버 응답만 그린다
+  (`packages/client/src/disclosure-state.ts:320`).
 
 ## 관련 요청 — 문서·계약 정리
 
@@ -263,9 +291,9 @@
 - 이 문서의 사실 확인은 정적 읽기다. 실행·빌드·데모를 새로 돌리지 않았고, 서버를 띄워 라우트를
   호출한 결과도 아니다.
 - 화면 실행 관찰은 [UI 구현 기준의 분석 연결 실행 확인](UI-구현기준.md#분석-연결-실행-확인)과
-  [1편의 확인 경계](ui-api-requests.md)에 기록된 범위까지만 유효하다. 그 범위에서 화면이 실제로
-  호출하는 경로는 `/api/core`, `/api/analysis`, `/api/documents`이고 `/api/v1/*`는 404로 끝났다.
-- `contracts/` 경로가 문서에 있다는 이유로 현재 서버에 존재한다고 쓰지 않는다. 현재 실제 라우트는
-  `docs/api.md`의 6개다.
+  [1편의 확인 경계](ui-api-requests.md)에 기록된 범위까지만 유효하다. 병합된 서버의 `/api/v1/*`가
+  실제로 응답하는지는 이 문서에서 실행으로 확인하지 않았다.
+- `contracts/` 경로가 문서에 있다는 이유로 현재 서버에 존재한다고 쓰지 않는다. 병합 뒤 라우트
+  정본은 `docs/api.md` `:112-163`이다.
 - 이 문서는 F04~F06, UI-02·UI-07·UI-09의 요구를 새로 만들지 않는다. 요구는 기준 문서에 있고,
   여기서는 서버가 제공해야 할 접점과 수용 기준만 옮겨 적었다.
