@@ -46,6 +46,16 @@ rules:
     options:
       ignoredDirectories: [.git, .local, .qg, node_modules, dist, var, bin]
 overrides:
+  # Presentation SVG markup and the combined printable deck have bounded larger sizes.
+  - files: [docs/presentation/*.html]
+    rules:
+      files/max-line-length: [error, {limit: 1600}]
+  - files: [docs/presentation/SafeHandoff_발표자료_통합.html]
+    rules:
+      files/max-lines: [error, {limit: 5700}]
+  - files: [docs/presentation/SafeHandoff_발표자료_통합.pdf]
+    rules:
+      files/max-bytes: [error, {limit: 4000000}]
   - files: [docs/traceability.csv]
     rules:
       files/max-line-length: [error, {limit: 650}]
