@@ -13,6 +13,7 @@
 | packages/core | 모델 주입 기반 작성·검토 Engine. 가짜 구현을 import하지 않음 |
 | packages/model-adapter | 설정 기반 호환 HTTP 모델 클라이언트 |
 | packages/sandbox-runner | digest 고정 toy 이미지의 격리 실행과 재현 판정 |
+| packages/skill-loader | manifest·파일 경로·digest를 검증하는 F07 파일시스템 로더 |
 | packages/fake-core | 연출용 문구와 결과 템플릿 |
 | packages/client | 별도 문서 저장·조회 화면과 API 프록시 |
 
@@ -82,3 +83,5 @@ intent.md·제품 설계·contracts·fixtures/demo·과거 evaluation 기록은 
 상대 설정 경로는 저장소 루트 기준입니다. 모델 세 변수가 모두 있어야 ready=true이며 이는 서버 응답이나 의미 정확성을 확인했다는 뜻은 아닙니다. 시작 시 모델을 호출하지 않습니다. TLS가 기본이며 HTTP 예외·기능·호출 제한은 설정 파일의 provider 블록으로 지정합니다. response_mode=text인 서버에는 response_format을 보내지 않고, JSON 출력은 프롬프트와 응답 검증으로 요구합니다. config.json과 .env는 커밋하지 않습니다.
 
 내부 `TaskStore`는 기존 SQLite 파일에 별도 workflow 테이블을 추가합니다. 현재는 앱 HTTP 경로와 연결하지 않았으며 자동으로 문서나 원자료를 작업으로 옮기지 않습니다. Docker 설치·등록·검증 절차는 [실행기 안내](packages/sandbox-runner/image/README.md)를 따릅니다.
+
+F07 1번의 파일시스템 로더는 [사용법과 제한](packages/skill-loader/README.md)을 따릅니다. 등록 CLI·역할별 프롬프트 연결·팩 활성화는 후속 범위이며 앱 시작 시 팩을 자동으로 읽거나 실행하지 않습니다.

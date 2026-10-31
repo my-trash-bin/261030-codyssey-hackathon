@@ -43,3 +43,5 @@ Node·pnpm·just는 mise, 의존성은 pnpm-lock.yaml로 고정한다. 패키지
 just check는 QG를 직접 실행하고 QG가 타입·빌드·pnpm test를 호출한다. pnpm test는 패키지별 Node 테스트와 의존성 경계·QG 정책 테스트를 실행한다. 공식 @slop-lab/qg-rules-js의 js preset을 적용하며 JS 타입 검사 표식·테스트 fixture 복제·패키지 매니저 혼용·pnpm lockfile 일치 등을 검사한다. 패키지 이름은 safehandoff 또는 @safehandoff/ 하위로 제한한다.
 
 3라운드의 내부 TaskStore와 Docker 실행기 경계는 [축소 범위](round3-scope.md)를 따른다. task/decision 저장은 HTTP로 노출하지 않았으며 기존 문서 API와 독립적이다. Docker에는 고정 공개 toy 이미지와 등록 합성 입력만 전달한다.
+
+F07의 `packages/skill-loader`는 core-interface만 참조하는 leaf 패키지다. 경로 문자열 검증은 core-interface의 순수 함수이며 실제 파일·digest 검증은 로더가 수행한다. app/core/server에 자동 연결하지 않았으며 역할별 프롬프트 조립·catalog 등록·팩 변경 무효화는 후속이다.

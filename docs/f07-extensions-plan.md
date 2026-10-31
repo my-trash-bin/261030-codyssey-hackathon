@@ -1,9 +1,9 @@
 # F07 도메인 확장 계약과 다음 구현 순서
 
-## 이번 라운드: 계약만
+## 계약 정리 라운드의 범위
 
 엔진 워크플로우 1라운드와 같은 방식으로, F07(제품별 지침 팩·맥락 검사·도구 registry)도 먼저
-TypeScript 계약만 정리하고 실제 로직은 다음 라운드로 미룬다. `docs/extensions.md`,
+TypeScript 계약만 정리하고 당시 실제 로직은 다음 라운드로 미뤘다. 현재 1번 구현 상태는 아래에 구분한다. `docs/extensions.md`,
 `docs/features/07-domain-extensions.md`, `contracts/tool_request.v1.schema.json`,
 `contracts/context_check_request.v1.schema.json`, `contracts/context_check.v1.schema.json`을
 직접 읽고 필드를 맞췄다.
@@ -71,3 +71,15 @@ catalog 등록. 수작업 체크리스트로 두지 말고 `pnpm run pack:regist
 모델도 적합하다. 4번(ProcessToolRunner 마운트/권한)과 7번(권한 교집합 정책)은 이전
 `DockerReproRunner`/3라운드 보안 검토와 같은 이유로 강한 모델 또는 `/security-review`를
 권장한다.
+
+## 1번 구현 상태 · 2026-10-31
+
+- 완료: core-interface의 순수 `validatePackLayout`과 `normalizePackPath`, leaf 패키지 `packages/skill-loader`의 `FsSkillPackLoader.load`/`verify`.
+- manifest는 알 수 없는 필드·중복 JSON 키·잘못된 UTF-8·등록되지 않은 product/purpose/tool/template ID·잘못된 참조를 거부한다. 등록 목록은 호출자가 명시적으로 제공하며 팩 자체의 목록으로 승인하지 않는다.
+- manifest.json과 SKILL.md가 필요하다. 전체 일반 파일을 정렬해 exact bytes의 SHA-256과 base64를 보관한다. manifest.json도 pack digest에 포함하므로 역할 매핑·등록 목록 변경도 지문을 바꾼다. scripts는 실행하지 않는다.
+- 설치용 load는 지문을 계산할 뿐 공개 승인·활성화를 만들지 않는다. 실행 전 verify는 설치자가 고정한 id/version/manifest_sha256/pack_sha256과 새 로딩 결과를 대조한다. 같은 version의 바이트 변경은 허용하지 않는다.
+- 안전한 경로 해석을 위해 Linux의 열린 디렉터리 descriptor와 /proc/self/fd를 사용한다. root부터 모든 경로 성분의 symlink를 거부하고 외부 경로로 fallback하지 않는다. 지원 범위·크기 제한·실행 예시는 [로더 안내](../packages/skill-loader/README.md)를 따른다.
+- 검증: 가상 VendorStore 팩, 실제 임시 디렉터리·파일·symlink·hardlink·FIFO로 정상/오류/지문 변경을 시험한다. 네트워크·모델·process 도구 호출은 없다.
+- 후속: 제출용 pack:register CLI, 2번 roleDocuments와 RealCore 프롬프트 연결, skillSetHash 및 권한 교집합 연결은 아직 구현하지 않았다. 기존 계약 선언을 실제 구현 완료로 간주하지 않는다.
+
+이번 1번의 `just check` 전체 검사가 통과했다. 빌드된 skill-loader로 저장소 가상 팩의 6개 파일을 load하고 같은 설치 pin으로 verify하는 실제 실행도 통과했다. 일반 검사에는 외부 모델이나 실제 업무 자료를 사용하지 않았다.

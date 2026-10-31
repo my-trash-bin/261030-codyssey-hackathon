@@ -85,6 +85,12 @@ importers:
         specifier: workspace:*
         version: link:../core-interface
 
+  packages/skill-loader:
+    dependencies:
+      '@safehandoff/core-interface':
+        specifier: workspace:*
+        version: link:../core-interface
+
 packages:
 
   '@slop-lab/qg-check-runner@0.1.0':

@@ -158,3 +158,10 @@
 포함한 다음 구현 순서는 [F07 계약과 다음 구현 순서](f07-extensions-plan.md)에 기록했다.
 OverlayFS 대신 읽기전용 bind mount + tmpfs를 쓰기로 했다(`DockerReproRunner`가 이미 쓰는
 패턴이며 쓰기 가능한 합성 뷰가 필요한 요구가 스펙에 없음).
+
+## 2026-10-31 · F07 1번 manifest·경로·digest 로더
+
+- 순수 경로 검증은 core-interface에 구현하고 실제 파일시스템 접근은 새 skill-loader leaf 패키지에 뒀다. 명시적 등록 ID 목록으로 manifest 참조를 검사한다. 기본 등록이나 공개 승인은 생성하지 않는다.
+- Linux descriptor 기준 탐색과 O_NOFOLLOW로 root/상위/하위 symlink를 거부한다. hardlink·특수 파일·중복 경로·변경 중 파일도 거부하며 탐색·파일·전체 바이트에 상한을 둔다. 지원하지 않는 환경에 경로 기반 fallback을 만들지 않았다.
+- manifest.json을 포함한 전체 파일 목록의 exact-byte digest로 팩 지문을 계산한다. scripts는 지문에 포함하지만 실행하지 않는다. verify는 저장한 설치 pin과 id/version/manifest/전체 지문을 대조한다.
+- 실제 가상 VendorStore 팩과 임시 디렉터리 시험으로 검증한다. roleDocuments/skillSetHash, 등록 CLI, 앱·task 연결은 이번 1번의 완료 범위에 넣지 않았다. 구체 제한과 지문 형식은 [로더 안내](../packages/skill-loader/README.md)에 기록했다.

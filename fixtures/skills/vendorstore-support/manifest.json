@@ -1,0 +1,14 @@
+{
+  "schema_version": "skill_manifest.v1",
+  "id": "vendorstore-support",
+  "version": "1.0.0",
+  "product_ids": ["vendorstore-lab"],
+  "purpose_ids": ["vendor_support"],
+  "role_documents": {
+    "analyst": ["SKILL.md", "references/analysis.md"],
+    "writer": ["references/public-writing.md"],
+    "reviewer": ["references/reviewer-checks.md"]
+  },
+  "tool_ids": ["derive_series_v1", "render_timeline_v1", "make_config_example_v1", "check_doc_ip_context_v1"],
+  "template_ids": ["vendor_support.v1"]
+}

@@ -24,7 +24,7 @@ export interface SkillPackFile { relative_path: string; sha256: string; bytes: s
 export interface SkillPack {
   manifest: SkillManifest;
   manifest_sha256: string;
-  files: SkillPackFile[];        // every file referenced by role_documents, plus assets
+  files: SkillPackFile[];        // every regular file, including manifest.json; scripts are never executed
   pack_sha256: string;           // hash of the sorted (relative_path, sha256) list
 }
 
@@ -34,7 +34,9 @@ export type SkillPackErrorCode =
   | 'PACK_PATH_SYMLINK'
   | 'PACK_PATH_DUPLICATE'
   | 'PACK_MANIFEST_INVALID'
-  | 'PACK_REFERENCE_MISSING';
+  | 'PACK_REFERENCE_MISSING'
+  | 'PACK_DIGEST_MISMATCH'
+  | 'PACK_LIMIT_EXCEEDED';
 export class SkillPackError extends Error {
   readonly code: SkillPackErrorCode;
   constructor(code: SkillPackErrorCode) { super(code); this.code = code; }
@@ -58,7 +60,7 @@ export declare function skillSetHash(packs: { id: string; version: string; pack_
 
 // The actual filesystem-reading side: resolves a pack root to a digest-pinned SkillPack,
 // following symlinks defensively (reject, never follow) and failing closed on any manifest/
-// reference mismatch. Implemented next round in a new leaf package, same seam pattern as
+// reference mismatch. Implemented by packages/skill-loader, using the same port pattern as
 // RealCore/DockerReproRunner/OpenAICompatibleModelClient.
 export interface SkillPackLoaderInfo { implementation: 'fs' | 'fake'; ready: boolean }
 export interface SkillPackLoader {
