@@ -103,6 +103,8 @@
 
 ## 3. 로컬 인증
 
+접속 주소는 server.listen과 구분한다. 기본 loopback 외에 명시한 wildcard/서버 IP 바인딩을 지원하며 server.allowed_hosts는 추가로 허용할 브라우저 호스트:포트 목록이다. Host는 허용 목록에 있어야 하고 Origin은 같은 요청 Host와 일치해야 한다. 임의 도메인·다른 Origin·CSRF 없는 변경 요청을 허용하지 않는다.
+
 앱을 시작한 OS 사용자에게만 256비트 일회 토큰을 터미널로 제시한다. 유효시간5분이다. 첫 PoC는 토큰을 URL에 넣지 않고 사용자가 로컬 접속 화면에 직접 입력한다. UI-10은 잘못된 토큰·만료·재사용을 공통 안전 문구로 안내한다. 새 토큰이 필요하면 앱을 재시작한다. 이때 queued/running 작업은 INTERRUPTED로 정리되고 저장 데이터는 유지된다. query/access log에 토큰을 남기지 않는다.
 
 교환은 허용 Host/Origin에서만 가능하다. 8시간 세션 cookie를 HttpOnly·SameSite=Strict·Path=/로 발급한다. TLS 사용 시 Secure를 붙인다. 첫 PoC loopback HTTP에서는 Secure cookie를 전제로 인증을 깨뜨리지 않고 로컬 실행 경계를 명시한다. 외부 CORS는 허용하지 않는다. 인증 후 모든 mutation은 session별 CSRF token을 검사한다. 세션이 만료되거나 앱이 재시작하면 새 접속이 필요하며 작업 데이터는 유지된다.

@@ -12,10 +12,19 @@ export const text = (b) =>
 		Uint8Array.from(atob(b || ""), (c) => c.charCodeAt(0)),
 	);
 
+function requestID() {
+	// getRandomValues is also available for HTTP access to a trusted LAN server.
+	const bytes = crypto.getRandomValues(new Uint8Array(16));
+	bytes[6] = (bytes[6] & 15) | 64;
+	bytes[8] = (bytes[8] & 63) | 128;
+	const hex = Array.from(bytes, (byte) => byte.toString(16).padStart(2, "0")).join("");
+	return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
+}
+
 export async function api(path, options = {}) {
 	let h = {};
 	if (options.method && options.method !== "GET") {
-		h = { "X-CSRF-Token": csrf, "Idempotency-Key": crypto.randomUUID() };
+		h = { "X-CSRF-Token": csrf, "Idempotency-Key": requestID() };
 		if (!(options.body instanceof FormData)) {
 			h["Content-Type"] = "application/json";
 			options.body = JSON.stringify(options.body);

@@ -1,5 +1,5 @@
 {
-  "server": {"listen":"127.0.0.1:8080"},
+  "server": {"listen":"127.0.0.1:8080", "allowed_hosts":[]},
   "data_dir":"./var/safehandoff",
   "provider": {
     "type":"openai_compatible",

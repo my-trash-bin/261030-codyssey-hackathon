@@ -144,21 +144,9 @@ func main() {
 		var p llm.Provider = llm.Fixture{}
 		if *mode == "live" {
 			var e error
-			cfg := llm.DefaultConfig()
-			if b, err := os.ReadFile(*configPath); err == nil {
-				var root map[string]json.RawMessage
-				if json.Unmarshal(b, &root) != nil {
-					panic("설정 JSON 오류")
-				}
-				if raw, ok := root["provider"]; ok {
-					if err = domain.Strict(raw, &cfg); err != nil {
-						panic("provider 설정 오류")
-					}
-				}
-			}
-			p, e = llm.NewLive(cfg)
+			p, e = liveProvider(*configPath)
 			if e != nil {
-				r.Checks = append(r.Checks, item{"live-provider", "not_run", "PROVIDER_CONFIG_UNSUPPORTED: endpoint 또는 모델 설정 필요"})
+				r.Checks = append(r.Checks, item{"live-provider", "not_run", e.Error()})
 				code = 2
 				break
 			}

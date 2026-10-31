@@ -25,7 +25,7 @@
 | ID | 이번 기준 | 왜 이 값/구조인가 | 변경 시 함께 볼 곳 |
 | --- | --- | --- | --- |
 | D01 | Go 단일 앱, SQLite BLOB, 서버 HTML+순수 JS | 이전 구현안을 이어 배포/분담 복잡도 제한 | architecture, ERD, plan |
-| D02 | 단일 OS 소유자·loopback, 계정/SSO 없음 | 핵심 업무 흐름을 먼저 검증 | security, F10 |
+| D02 | 단일 OS 소유자·기본 loopback, 명시적 사내 IP 바인딩 지원, 계정/SSO 없음 | 핵심 업무 흐름을 먼저 검증 | security, F10 |
 | D03 | 일회 토큰5분·세션8시간·터미널 입력, Host/Origin/CSRF | 로컬 앱도 브라우저 요청 경계 정의 | api, F10 |
 | D04 | 사내 모델 교체 어댑터, fixture/live DB분리·동시성1 | 성능 낮은 모델에서도 제어 흐름을 검증 | agent-workflow, architecture |
 | D05 | text/log/md/csv/json, 10개·256KiB/개·1MiB/작업 | 파싱/파일 의미를 작게 제한 | F01, schema, QA |
@@ -45,6 +45,8 @@
 | D19 | 재시작 queued/running 모두 failed/INTERRUPTED | 숨은 자동재개 없이 사용자가 실행상태 파악 | F09, spec |
 | D20 | 제목만 바뀌어도 revision 증가·stale | 첫 PoC 무효화 규칙 단순화 | spec, F01/F09 |
 | D21 | 한국어 문서·파일명 허용, npm QG recommended 규칙과 Go·문서 시험 연결 | 사용자 요청에 따라 언어 정책을 명시하고 검사 진입점을 통일. Node는 개발 도구로 한정 | AGENTS, .qg.yaml, package.json, Makefile, architecture |
+| D22 | 앱·live evaluator가 선택적 .env 자동 로딩, 기존 환경 변수 우선 | 사용자 요청에 따라 source/export 없이 실행. 설정 오류는 비밀 값 없이 원인 필드 구분 | architecture, F10, implementation-start, .env.example |
+| D23 | 기본 loopback 유지, 명시한 wildcard/서버 IP listen 지원, Host와 listen 분리 | 사용자 요청에 따라 0.0.0.0 바인딩에서도 서버 IP로 접속. 인터페이스 IP 및 allowed_hosts만 허용하고 Origin·CSRF 유지 | PRD, spec, API, security, F10, QA |
 
 런타임/드라이버 버전은 실제 빌드 호환성을 확인해 잠근다. 버전 선택만으로 제품 범위를 재질문할 필요는 없다. 현재 기본값으로 진행할 수 없는 실제 제약이 확인되면 D 변경 PR로 기록한다.
 

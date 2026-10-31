@@ -2,8 +2,6 @@ module safehandoff.local/poc
 
 go 1.27.3
 
-require modernc.org/sqlite v1.61.0
-
 require (
 	github.com/dustin/go-humanize v1.1.0 // indirect
 	github.com/google/uuid v1.6.0 // indirect
@@ -16,5 +14,10 @@ require (
 	modernc.org/memory v1.12.1 // indirect
 )
 
-require safehandoff.local/toyrecord v0.0.0
+require (
+	github.com/joho/godotenv v1.5.1
+	modernc.org/sqlite v1.61.0
+	safehandoff.local/toyrecord v0.0.0
+)
+
 replace safehandoff.local/toyrecord => ./fixtures/public/targets/toyrecord

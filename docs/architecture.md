@@ -68,12 +68,14 @@ SQLite connection마다 foreign keys를 켜고 단일 DB 연결로 시작한다.
 
 ## 4. 설정 계약
 
-아래는 구현할 설정의 예다. 환경 변수 값을 파일에 채워 넣지 않는다. 비밀은 UI·로그·export에 노출하지 않는다.
+아래는 구현할 설정의 예다. config.json에는 환경 변수 이름을 지정하며 비밀 값은 실행 환경 또는 Git에서 제외한 `.env`에 둔다. 비밀은 UI·로그·export에 노출하지 않는다.
+
+앱과 live evaluator는 실행 디렉터리의 `.env`를 자동으로 읽는다. 이미 존재하는 프로세스 환경 변수는 빈 값도 포함해 우선하며 `.env`가 없으면 오류 없이 계속한다. dotenv는 변수 할당·따옴표·export 구문을 해석하고 shell 명령은 실행하지 않는다. 읽기·파싱 오류에는 원문 줄이나 비밀 값을 표시하지 않는다. provider 검증 실패는 필드와 원인을 구분해 보고한다.
 
 ```json
 {
   "schema_version": "config.v1",
-  "server": {"listen": "127.0.0.1:8080", "session_hours": 8},
+  "server": {"listen": "127.0.0.1:8080", "allowed_hosts": [], "session_hours": 8},
   "data_dir": "./var/live",
   "provider": {
     "mode": "live",
@@ -154,7 +156,7 @@ go run ./cmd/safehandoff --config config.live.json
 go run ./cmd/safehandoff --check-config --config config.live.json
 ```
 
-첫 실행은 loopback 주소와 일회 접속 절차를 터미널에 표시한다. 자원을 CDN에서 받지 않도록 web asset을 포함한다. 빌드·이미지 준비는 허용된 준비 단계에서 하며 자료 처리 런타임에는 새 다운로드를 하지 않는다. source/DB 접근은 앱 내부 API로만 하며 `data_dir`를 정적 웹 경로로 만들지 않는다.
+첫 실행은 listen 주소와 실제 접속 가능한 Host별 URL을 터미널에 표시한다. 기본은 loopback이며 명시한 wildcard/서버 IP 바인딩도 지원한다. wildcard 자체는 브라우저 URL로 표시하지 않고 서버 인터페이스 IP를 사용한다. 사용자 지정 접속 이름은 server.allowed_hosts로 허용한다. 일회 접속 절차는 F10의 구현 목표를 따른다. 자원을 CDN에서 받지 않도록 web asset을 포함한다. 빌드·이미지 준비는 허용된 준비 단계에서 하며 자료 처리 런타임에는 새 다운로드를 하지 않는다. source/DB 접근은 앱 내부 API로만 하며 `data_dir`를 정적 웹 경로로 만들지 않는다.
 
 Docker가 없으면 기본 자료 작성은 동작한다. 재현 확장은 `not_run/no_environment`이고 사전등록한 필수 외부 검사기는 미수행으로 막는다. 임의 호스트 shell 실행으로 자동 대체하지 않는다. Docker `none`은 컨테이너에 loopback만 남기는 네트워크 구성을 제공한다.[R6] 이는 호스트 전체나 사내 모델 endpoint까지 통제하는 수단과는 별도다.
 

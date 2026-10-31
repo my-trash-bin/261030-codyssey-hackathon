@@ -45,18 +45,49 @@ type Live struct {
 }
 
 func NewLive(c Config) (*Live, error) {
-	if c.Type != "openai_compatible" || c.ResponseMode != "text" || c.Concurrency != 1 {
-		return nil, errors.New("PROVIDER_CONFIG_UNSUPPORTED")
+	if c.Type != "openai_compatible" {
+		return nil, invalidConfig("type", "openai_compatible만 지원합니다")
 	}
-	u, e := url.Parse(os.Getenv(c.BaseURLEnv))
-	if e != nil || u.Host == "" || u.User != nil || u.RawQuery != "" || u.Fragment != "" || (u.Scheme != "https" && !(u.Scheme == "http" && c.AllowHTTP)) || os.Getenv(c.ModelEnv) == "" {
-		return nil, errors.New("PROVIDER_CONFIG_UNSUPPORTED")
+	if c.ResponseMode != "text" {
+		return nil, invalidConfig("response_mode", "text만 지원합니다")
+	}
+	if c.Concurrency != 1 {
+		return nil, invalidConfig("global_concurrency", "1이어야 합니다")
+	}
+	base := os.Getenv(c.BaseURLEnv)
+	if base == "" {
+		return nil, invalidConfig("base_url_env", "지정한 환경 변수에 endpoint 주소가 없습니다; .env 또는 실행 환경을 확인하세요")
+	}
+	u, e := url.Parse(base)
+	if e != nil {
+		return nil, invalidConfig("base_url_env", "환경 변수 값은 올바른 http:// 또는 https:// URL이어야 합니다")
+	}
+	if u.Scheme != "http" && u.Scheme != "https" {
+		return nil, invalidConfig("base_url_env", "endpoint 주소 앞에 http:// 또는 https://가 필요합니다")
+	}
+	if u.Hostname() == "" || u.User != nil || u.RawQuery != "" || u.Fragment != "" {
+		return nil, invalidConfig("base_url_env", "호스트가 있는 API root를 지정하고 URL 인증정보·query·fragment는 제거하세요")
+	}
+	if u.Scheme == "http" && !c.AllowHTTP {
+		return nil, invalidConfig("allow_plain_http", "HTTP endpoint는 allow_plain_http=true 설정이 필요합니다; HTTPS가 기본입니다")
+	}
+	if strings.TrimSpace(os.Getenv(c.ModelEnv)) == "" {
+		return nil, invalidConfig("model_env", "지정한 환경 변수에 모델 ID가 없습니다; .env 또는 실행 환경을 확인하세요")
 	}
 	if c.OutputField != "max_tokens" && c.OutputField != "max_completion_tokens" && c.OutputField != "omit" {
-		return nil, errors.New("PROVIDER_CONFIG_UNSUPPORTED")
+		return nil, invalidConfig("output_limit_field", "max_tokens, max_completion_tokens, omit 중 하나여야 합니다")
 	}
-	if c.Timeout < 1 || c.MaxInput < 1 || c.MaxOutput < 1 || c.MaxAttempts < 1 || c.MaxAttempts > 2 {
-		return nil, errors.New("PROVIDER_CONFIG_UNSUPPORTED")
+	if c.Timeout < 1 {
+		return nil, invalidConfig("request_timeout_seconds", "1 이상이어야 합니다")
+	}
+	if c.MaxInput < 1 {
+		return nil, invalidConfig("max_input_bytes", "1 이상이어야 합니다")
+	}
+	if c.MaxOutput < 1 {
+		return nil, invalidConfig("max_output_tokens", "1 이상이어야 합니다")
+	}
+	if c.MaxAttempts < 1 || c.MaxAttempts > 2 {
+		return nil, invalidConfig("max_attempts_per_step", "1 또는 2여야 합니다")
 	}
 	return &Live{Config: c, Client: &http.Client{Timeout: time.Duration(c.Timeout) * time.Second, CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }}, Base: strings.TrimRight(u.String(), "/"), Model: os.Getenv(c.ModelEnv), Key: os.Getenv(c.KeyEnv)}, nil
 }

@@ -25,12 +25,20 @@ type Server struct {
 	Host     string
 	Token    string
 	Session  string
+	hosts    map[string]bool
 	mux      *http.ServeMux
 	mutation sync.Mutex
 }
 
-func New(s *workflow.Service, host string) *Server {
-	v := &Server{Service: s, Host: host, Token: domain.ID("csrf"), Session: domain.ID("session"), mux: http.NewServeMux()}
+func New(s *workflow.Service, host string, allowedHosts ...string) *Server {
+	if len(allowedHosts) == 0 {
+		allowedHosts = []string{host}
+	}
+	hosts := map[string]bool{}
+	for _, authority := range allowedHosts {
+		hosts[strings.ToLower(authority)] = true
+	}
+	v := &Server{Service: s, Host: host, hosts: hosts, Token: domain.ID("csrf"), Session: domain.ID("session"), mux: http.NewServeMux()}
 	v.routes()
 	return v
 }
@@ -38,13 +46,13 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Cache-Control", "no-store")
 	w.Header().Set("X-Content-Type-Options", "nosniff")
 	w.Header().Set("Content-Security-Policy", "default-src 'self'; script-src 'self'; style-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'")
-	if r.Host != s.Host {
+	if !s.hosts[strings.ToLower(r.Host)] {
 		http.Error(w, "허용되지 않은 Host", 403)
 		return
 	}
 	if o := r.Header.Get("Origin"); o != "" {
 		u, e := url.Parse(o)
-		if e != nil || u.Host != s.Host || u.Scheme != "http" {
+		if e != nil || !strings.EqualFold(u.Host, r.Host) || u.Scheme != "http" || u.User != nil {
 			http.Error(w, "허용되지 않은 Origin", 403)
 			return
 		}

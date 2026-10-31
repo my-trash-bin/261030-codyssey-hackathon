@@ -6,11 +6,11 @@ import (
 	"flag"
 	"fmt"
 	"log"
-	"net"
 	"net/http"
 	"os"
 	"os/signal"
 	"safehandoff.local/poc/internal/domain"
+	"safehandoff.local/poc/internal/envfile"
 	"safehandoff.local/poc/internal/httpapi"
 	"safehandoff.local/poc/internal/llm"
 	"safehandoff.local/poc/internal/store"
@@ -21,7 +21,8 @@ import (
 
 type config struct {
 	Server struct {
-		Listen string `json:"listen"`
+		Listen       string   `json:"listen"`
+		AllowedHosts []string `json:"allowed_hosts"`
 	} `json:"server"`
 	DataDir  string     `json:"data_dir"`
 	Provider llm.Config `json:"provider"`
@@ -48,6 +49,9 @@ func main() {
 	listen := flag.String("listen", "", "로컬 수신 주소 덮어쓰기")
 	seed := flag.Bool("seed-demo", false, "demo 전용 미승인 작업 생성 후 종료")
 	flag.Parse()
+	if err := envfile.Load(".env"); err != nil {
+		log.Fatal(err)
+	}
 	var c config
 	c.Server.Listen = "127.0.0.1:8080"
 	c.DataDir = "./var/safehandoff"
@@ -73,9 +77,9 @@ func main() {
 	if *listen != "" {
 		c.Server.Listen = *listen
 	}
-	host, _, e := net.SplitHostPort(c.Server.Listen)
-	if e != nil || net.ParseIP(host) == nil || !net.ParseIP(host).IsLoopback() {
-		log.Fatal("로컬 loopback IP 주소만 허용합니다")
+	hosts, e := httpapi.ListenerHosts(c.Server.Listen, c.Server.AllowedHosts)
+	if e != nil {
+		log.Fatal(e)
 	}
 	var p llm.Provider
 	if *fixture {
@@ -83,7 +87,7 @@ func main() {
 	} else {
 		live, e := llm.NewLive(c.Provider)
 		if e != nil {
-			log.Fatal("live 설정 대기: ", e)
+			log.Fatal("live 설정 대기: ", llm.ConfigurationDiagnostic(e))
 		}
 		p = live
 	}
@@ -144,7 +148,7 @@ func main() {
 		}
 		return
 	}
-	server := &http.Server{Addr: c.Server.Listen, Handler: httpapi.New(svc, c.Server.Listen), ReadHeaderTimeout: 5 * time.Second, IdleTimeout: 60 * time.Second}
+	server := &http.Server{Addr: c.Server.Listen, Handler: httpapi.New(svc, c.Server.Listen, hosts...), ReadHeaderTimeout: 5 * time.Second, IdleTimeout: 60 * time.Second}
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, os.Interrupt, syscall.SIGTERM)
 	go func() {
@@ -153,7 +157,10 @@ func main() {
 		defer cancel()
 		server.Shutdown(ctx)
 	}()
-	log.Printf("SafeHandoff %s: http://%s", p.Mode(), c.Server.Listen)
+	log.Printf("SafeHandoff %s listen=%s", p.Mode(), c.Server.Listen)
+	for _, host := range hosts {
+		log.Printf("브라우저 접속: http://%s", host)
+	}
 	if e = server.ListenAndServe(); e != nil && e != http.ErrServerClosed {
 		log.Fatal(e)
 	}

@@ -50,15 +50,33 @@ SafeHandoff fixture: http://127.0.0.1:8080
 
 fixture DB는 `var/fixture`, 일반 live DB는 `var/safehandoff`에 분리됩니다. 실행 중인 다른 서버가 있으면 `./bin/safehandoff --fixture --data-dir ./var/demo --listen 127.0.0.1:8081`처럼 포트를 바꿉니다. seed는 `mise exec -- make seed-demo`로 전용 `var/demo`에 **미승인** 작업 세 개를 만듭니다. 이 DB를 보려면 `./bin/safehandoff --fixture --data-dir ./var/demo`로 실행하세요.
 
+### 사내 서버 IP로 접속
+
+다른 컴퓨터에서 접속하려면 `config.json`에 다음처럼 바인딩을 지정하고 서버를 재시작합니다.
+
+```json
+"server": {"listen": "0.0.0.0:8080", "allowed_hosts": []}
+```
+
+브라우저에서는 `http://서버IP:8080`을 엽니다. `0.0.0.0`은 바인딩 주소이며 접속 URL이 아닙니다. 시작 로그에 서버 인터페이스 IP별 접속 URL이 표시됩니다. 기본값은 계속 `127.0.0.1:8080`입니다.
+
+서버 IP 외의 도메인이나 NAT 주소로 접속한다면 `allowed_hosts`에 브라우저 주소의 `호스트:포트`를 넣습니다. 예: `"allowed_hosts": ["safehandoff.internal:8080"]`. Host는 허용 목록과, Origin은 실제 요청 Host와 비교합니다. HTTP 사내 IP에서도 업로드·공개 선택·작성·확정이 가능하며 클립보드와 원문 발췌의 WebCrypto 기능은 브라우저의 HTTPS/secure context 지원이 필요합니다.
+
 ## 실제 사내 모델 연결
 
 ```bash
 cp config.example.json config.json
-export SAFEHANDOFF_LLM_BASE_URL=https://your-internal-endpoint/v1
-export SAFEHANDOFF_LLM_MODEL=your-internal-model
-# 인증이 필요한 경우에만 환경 변수 설정
-export SAFEHANDOFF_LLM_API_KEY=...
+cp .env.example .env
+# .env에 실제 endpoint·모델 ID·필요한 인증키를 입력합니다.
 mise exec -- make run
+```
+
+앱과 live evaluator는 실행 디렉터리의 `.env`를 자동으로 읽습니다. 기존 `.env`가 있으면 위 복사 단계는 생략하세요. `source`·`export` 없이 `make run`, `make test-live`를 실행할 수 있습니다. 이미 export된 환경 변수는 `.env`보다 우선하며 빈 값도 덮어쓰지 않습니다. `.env`가 없으면 기존 환경 변수만 사용합니다.
+
+```dotenv
+SAFEHANDOFF_LLM_BASE_URL=https://your-internal-endpoint/v1
+SAFEHANDOFF_LLM_MODEL=your-internal-model
+SAFEHANDOFF_LLM_API_KEY=your-key-if-required
 ```
 
 `base_url`은 `/v1`까지의 API root입니다. 모델 서비스가 HTTP만 제공하면 **해당 로컬 설정의** `provider.allow_plain_http`를 `true`로 바꿉니다. redirect는 따라가지 않습니다. 시스템 역할 미지원은 `supports_system_role=false`, temperature 미지원은 `send_temperature=false`, 출력 제한 매개변수는 `max_tokens / max_completion_tokens / omit`으로 설정합니다. 일반 텍스트 JSON 응답만 필요하며 native tool calling은 실행하지 않습니다. live 장애 시 fixture로 자동 전환하지 않습니다.
@@ -67,7 +85,7 @@ mise exec -- make run
 mise exec -- make test-live
 ```
 
-endpoint·모델이 없으면 evaluator가 `not_run`, 종료 코드 2를 남깁니다. 실제 사내 모델 실행 기록은 아직 없습니다. 인증 값을 UI·프롬프트·저장소에 넣지 마세요. `config.json`, `.env`, `var`, `bin`은 Git에서 제외됩니다.
+연결 전 설정 검증이 실패하면 evaluator가 `not_run`, 종료 코드 2와 원인 필드를 남깁니다. 예를 들어 스킴 누락은 `provider.base_url_env`, HTTP 허용 누락은 `provider.allow_plain_http`, 모델 ID 누락은 `provider.model_env`로 구분합니다. 진단에는 주소·모델명·인증키 값을 출력하지 않습니다. 실제 사내 모델 실행 기록은 아직 없습니다. 인증 값을 UI·프롬프트·저장소에 넣지 마세요. `config.json`, `.env`, `var`, `bin`은 Git에서 제외됩니다.
 
 ## 재현과 평가
 
