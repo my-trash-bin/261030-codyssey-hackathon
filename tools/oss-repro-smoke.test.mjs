@@ -2,6 +2,7 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
+import { fileURLToPath } from 'node:url';
 import { registerPack } from './pack-register.mjs';
 import { selectToyrecordPack, toyrecordAllowlist } from './toyrecord-pack.mjs';
 import { runOssReproSmoke, fixtureModel } from './oss-repro-smoke.mjs';
@@ -48,9 +49,11 @@ test('a reproduced label with missing execution rows cannot count as a successfu
   await assert.rejects(result, /INVALID_REPRO_MATRIX/);
 });
 
-test('verified catalog pack is bound to reproduction, grounding, report and transcript', async () => {
+test('verified catalog pack is bound to reproduction, grounding, report and transcript', {
+  skip: process.platform !== 'linux' ? 'Requires Linux descriptor-relative /proc filesystem traversal' : false,
+}, async () => {
   const image = `sha256:${'a'.repeat(64)}`;
-  const registered = await registerPack({ packRoot: new URL('../fixtures/skills/toyrecord-repro/', import.meta.url).pathname,
+  const registered = await registerPack({ packRoot: fileURLToPath(new URL('../fixtures/skills/toyrecord-repro/', import.meta.url)),
     allowlist: toyrecordAllowlist, catalog: [] });
   const selection = await selectToyrecordPack({ catalog: registered.catalog, version: '1.0.0',
     installation: { schema_version: 'toyrecord_installation.v1', pack: registered.pin,

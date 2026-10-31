@@ -119,6 +119,35 @@ OSS 스모크의 자동 회귀 검사는 실행 행·고정 oracle·수치·hash
 
 실행 transcript는 `SAFEHANDOFF_TRANSCRIPT_DIR=.local/transcripts`로 켠다. 기본은 단계 메타데이터이며 `SAFEHANDOFF_TRANSCRIPT_CONTENT=1`을 함께 설정하면 승인된 모델 입력과 작성 초안도 기록한다. HTTP 응답은 바뀌지 않는다. 데모 연결 형식·권한·보존 제한은 [transcript 문서](docs/transcript.md)를 참고한다.
 
+## CDP 화면 시연
+
+최신 fake-app의 전용 화면 `http://127.0.0.1:8081/__presentation`에서 가상 흐름을 연출합니다.
+하단 의미 자막·6단계 표시·장면 타임라인·이전/다음·일시정지/재생을 제공합니다.
+분석·공개 선택은 브라우저 연출이며 실제 승인 API를 구현한 것으로 표시하지 않습니다.
+문서 생성·저장·조회는 최신 `/api/sharing`, `/api/documents`를 사용합니다.
+실제 앱·코어·모델 연결을 바꾸지 않고 fake-app만 자동 실행합니다.
+
+```bash
+mise exec -- pnpm build
+mise exec -- pnpm demo:cdp
+# 탐색·일시정지·재생 검증
+mise exec -- pnpm demo:cdp --headless --fast --verify-playback
+# macOS에서 정상 속도 제출용 MP4 생성 및 110초 제한 검증
+mise exec -- pnpm demo:cdp --headless --record
+```
+
+Chrome은 macOS 기본 경로를 사용하며 `CHROME_PATH`로 바꿀 수 있습니다.
+매 실행마다 `var/cdp-demo-*`에 별도 SQLite와 보고서를 만들고 loopback 서버를 사용합니다.
+녹화는 macOS Swift·AVFoundation으로 인코딩합니다. `bin/`·`var/`는 자동 생성됩니다.
+분석·선택·최종 확인은 연출용 상태이고 생성된 문서의 실제 저장만 확인합니다.
+장면 이동은 새 브라우저 시연 상태를 구성한 뒤 해당 장면에서 일시정지합니다.
+110초를 초과한 정상 속도 실행은 실패로 처리합니다. `--fast`는 제출 시간 검증이 아닙니다.
+
+보존 중인 이전 실행: [제출 영상](docs/demo-media/SafeHandoff-demo.mp4) ·
+[미리보기](docs/demo-media/preview.png) · [영상 검증 기록](evaluation/results/cdp-submission-run.json).
+이 묶음의 기준 main은 `3aaf0a4`입니다. 최신 main 통합의 검증 결과와 별도 제출 묶음 위치는
+[CDP 통합 기록](docs/cdp-integration-2026-10-31.md)을 따릅니다.
+
 ToyRecord 팩을 실제 catalog에서 선택해 OSS 스모크로 연결할 수 있다. `--catalog`, `--pack-version`, 운영자 `--registration`을 함께 사용하며 실행 전에 digest를 재검증한다. [설치·실행 절차](docs/toyrecord-pack.md)를 따른다.
 
 

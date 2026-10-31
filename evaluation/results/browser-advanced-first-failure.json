@@ -1,0 +1,9 @@
+{
+  "status": "fail",
+  "code_commit": "2211886595ac225fc3f3233976261b1d9f7de0dc",
+  "check": "advanced-browser-custom-disclosure",
+  "error_code": "TIMEOUT_WAITING_FOR_HIDDEN_CUSTOM_FIELD",
+  "evidence": "Playwright가 닫힌 details 안의 #custom-5에 fill을 시도해 30초 후 실패했다.",
+  "repair": "선택한 공개 방법에 해당하는 직접 입력·열 선택·원문 패널을 자동으로 연다.",
+  "human_semantic_evaluation": null
+}

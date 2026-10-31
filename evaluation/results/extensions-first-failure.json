@@ -1,0 +1,37 @@
+{
+  "run_id": "eval_fb850bc73d2fe20f254805934ba44fdd",
+  "mode": "extensions",
+  "started_at": "2026-10-30T12:19:26.761027771Z",
+  "finished_at": "2026-10-30T12:19:30.351890633Z",
+  "code_commit": "cc07e97b1efb14c1a412546668b21215f795c75d",
+  "checks": [
+    {
+      "name": "synthetic-reproduction",
+      "status": "fail",
+      "evidence": "{\"reason_code\":\"CONTROL_FAILED\",\"runs\":[{\"exit_code\":0,\"input\":\"ascii\",\"output_exists\":false,\"output_matches\":false,\"result\":{\"code\":null,\"schema_version\":\"target_run.v1\",\"stage\":\"persist\",\"status\":\"ok\"},\"target\":\"buggy\"},{\"exit_code\":2,\"input\":\"multibyte\",\"output_exists\":false,\"output_matches\":false,\"result\":{\"code\":\"E_ENCODE_SHORT_BUFFER\",\"schema_version\":\"target_run.v1\",\"stage\":\"encode\",\"status\":\"domain_error\"},\"target\":\"buggy\"},{\"exit_code\":0,\"input\":\"ascii\",\"output_exists\":false,\"output_matches\":false,\"result\":{\"code\":null,\"schema_version\":\"target_run.v1\",\"stage\":\"persist\",\"status\":\"ok\"},\"target\":\"fixed\"},{\"exit_code\":0,\"input\":\"multibyte\",\"output_exists\":false,\"output_matches\":false,\"result\":{\"code\":null,\"schema_version\":\"target_run.v1\",\"stage\":\"persist\",\"status\":\"ok\"},\"target\":\"fixed\"}],\"schema_version\":\"repro_result.v1\",\"status\":\"inconclusive\"}"
+    },
+    {
+      "name": "process-checker-allowed",
+      "status": "pass",
+      "evidence": "{\"schema_version\":\"context_check.v1\",\"finding_id\":\"finding_specific\",\"artifact_set_hash\":\"current-hash\",\"status\":\"allowed\",\"reason_code\":\"APPROVED_DOCUMENTATION_ADDRESS_IN_GENERATED_CONFIG\"}\n"
+    },
+    {
+      "name": "process-checker-connection-log",
+      "status": "pass",
+      "evidence": "{\"schema_version\":\"context_check.v1\",\"finding_id\":\"finding_specific\",\"artifact_set_hash\":\"current-hash\",\"status\":\"denied\",\"reason_code\":\"CONTEXT_MISMATCH\"}\n"
+    },
+    {
+      "name": "process-checker-broken-route",
+      "status": "pass",
+      "evidence": "{\"schema_version\":\"context_check.v1\",\"finding_id\":\"finding_specific\",\"artifact_set_hash\":\"current-hash\",\"status\":\"denied\",\"reason_code\":\"BROKEN_CONFIG_REFERENCE\"}\n"
+    },
+    {
+      "name": "wrong-target",
+      "status": "pass",
+      "evidence": "TARGET_DIGEST_MISMATCH"
+    }
+  ],
+  "human_semantic_evaluation": null,
+  "recipient_evaluation": null,
+  "cases": []
+}

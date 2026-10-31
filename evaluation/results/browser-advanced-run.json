@@ -1,0 +1,20 @@
+{
+  "status": "pass",
+  "errors": [],
+  "checks": [
+    "원문 byte range 미리보기와 별도 첨부",
+    "조건 해석 job→비율 미리보기→사용자 적용",
+    "표현 기준 저장",
+    "간격 없는 사건 순서 표",
+    "새 설정의 문서용 IP 문맥 검사",
+    "모든 파일 검토·확정"
+  ],
+  "files": [
+    "approved-excerpt.txt",
+    "client-config-example.json",
+    "manifest.json",
+    "observations.csv",
+    "support-request.md",
+    "timeline.csv"
+  ]
+}

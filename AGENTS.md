@@ -19,6 +19,8 @@
 - .qg.yaml, justfile, package.json, tools/qg.test.mjs: 검사 실행과 정책 회귀.
 - intent.md: 변경 승인이 필요한 프로젝트 의도.
 - docs, contracts: 현재 구조 문서와 향후 제품 설계·참고 계약.
+- scripts/demo: fake-app 전용 CDP 자막·재생·녹화. 실제 앱의 승인 구현으로 표시하지 않는다.
+- docs/demo-media: 검증 시점이 표시된 제출 영상·미리보기.
 - fixtures/demo: 가상 시연 원자료. 실제 정보가 아니다.
 - evaluation: 이전 실행 기록. 현재 시스템 검증 결과와 구분한다.
 

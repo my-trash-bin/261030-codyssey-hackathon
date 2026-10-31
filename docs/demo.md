@@ -69,3 +69,33 @@
 ## 7. 시연 종료 보고
 
 실제로 수행한 모드와 시험, 생성된 파일, 사용자 개입, 수신자 행동, 미해결 실패를 간단히 기록한다. 시간 절감이나 보안 개선 수치는 비교 측정 뒤에만 말한다. 티켓 생성·자동 제출은 현재 핵심 시연과 구현 완료 기준에 넣지 않는다.
+
+## 8. 최신 fake-app 기반 CDP 연출
+
+실행은 [README](../README.md#cdp-화면-시연)를 따릅니다.
+[진행 코드](../scripts/demo/run.mjs)는 최신 fake-app을 별도 DB·loopback 포트로 실행합니다.
+[화면](../packages/fake-app/public/presentation.html)은 fake-app만 제공합니다.
+실제 앱·server·core에는 이 화면을 연결하지 않습니다.
+분석·공개 선택·미리보기·최종 확인은 브라우저 연출이며 실제 승인 기능이 아닙니다.
+문서 생성과 저장·조회는 현재 공통 API로 수행하고 fake provenance와 저장 바이트를 확인합니다.
+현재 제품에서 미구현인 분석·승인·확정 API가 존재하는 것처럼 처리하지 않습니다.
+
+[자막](../scripts/demo/stage.mjs)과 [장면 정의](../scripts/demo/scenes.mjs)는 6단계·세부 장면·의미를 표시합니다.
+[재생 제어](../scripts/demo/playback.mjs)는 페이지 밖에서 상태를 유지합니다.
+원하는 장면을 선택하면 상태를 다시 구성하고 해당 위치에서 정지합니다. 완료 후에도 탐색할 수 있습니다.
+`--headless --fast --verify-playback`으로 이전·다음·타임라인·도착 후 정지·재생을 검증합니다.
+
+## 9. 제출 시간과 녹화
+
+110초 이내를 목표로 해설 시간을 배정하고 문서·패널 스크롤 500ms, 커서 500ms,
+내용 전환 450ms를 적용합니다. 패널 갱신 후 스크롤 위치를 유지합니다.
+[녹화 코드](../scripts/demo/recording.mjs)와 [macOS 인코더](../scripts/demo/encode.swift)는
+실제 CDP 프레임을 H.264 MP4로 만들고 길이와 6구간 프레임을 다시 확인합니다.
+녹화는 `--headless --record`로 수행하며 일시정지·탐색 없이 처음부터 끝까지 측정합니다.
+실행 폴더에는 `run.json`, `motion.json`, `video-check-*.png`, `submission.mp4`가 남습니다.
+[저장된 영상](demo-media/SafeHandoff-demo.mp4)과 [검증 결과](../evaluation/results/cdp-submission-run.json)의
+실행 모드·대상 구조를 확인합니다. 이전 Go fixture 영상의 결과를 최신 앱 검증으로 해석하지 않습니다.
+
+최신 fake-app 녹화의 실제 길이는 **99.988초**이며 110초 제한을 통과했습니다.
+타입·빌드·패키지 시험·의존성 경계·QG 전체 검사를 통과했습니다.
+macOS에서 Linux 전용 팩 파일시스템 시험 10개는 skip이며 Linux 안전성 검증 완료로 보고하지 않습니다.

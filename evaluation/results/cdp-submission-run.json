@@ -1,0 +1,39 @@
+{
+  "status": "pass",
+  "mode": "fixture",
+  "source_run": "var/cdp-demo-59Ztz1",
+  "submission": "docs/demo-media/SafeHandoff-demo.mp4",
+  "duration_ms": 103140,
+  "limit_ms": 110000,
+  "remaining_ms": 6860,
+  "sha256": "8197b9c69dde353cecefee9526f51ad170fdeb6c8930c7e8a8b6bc70deac1825",
+  "video": {
+    "codec": "h264",
+    "decodedCheckFrames": 6,
+    "durationMs": 103140,
+    "file": "submission.mp4",
+    "frames": 2639,
+    "height": 1000,
+    "width": 1440,
+    "capturedFrames": 2638,
+    "maxFrameGapMs": 508,
+    "averageFrameGapMs": 39
+  },
+  "transitions": {
+    "status": "pass",
+    "checked_scrolls": 38,
+    "min_samples": 31,
+    "max_normalized_step": 0.05714285714285714
+  },
+  "input_sha256": {
+    "fixtures/author/b2b-timeout/support-notes.md": "39f7866c9d34e02fad35a8b32e048e4f66d5ad884eee93bb6197c98bad7c71da",
+    "fixtures/author/b2b-timeout/client-log.txt": "12b2486bbcade954e567b2d4d98369c90a0ba6cf799a74e6bb47f33a166653f8",
+    "fixtures/author/b2b-timeout/request-summary.csv": "46b4c889612fc8011eb952cde6f67fe7a07665105364da15b5c88a489faf9cfd"
+  },
+  "playback_test": {
+    "status": "pass",
+    "run": "var/cdp-demo-68vivx/run.json"
+  },
+  "manual_visual_review": "Decoded video frames reviewed separately; no real data or live model used.",
+  "scope": "CDP fixture presentation and video duration only; final approval remains manual."
+}

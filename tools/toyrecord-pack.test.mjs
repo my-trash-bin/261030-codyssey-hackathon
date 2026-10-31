@@ -10,6 +10,9 @@ import { selectToyrecordPack, toyrecordAllowlist } from './toyrecord-pack.mjs';
 import { parseSmokeArguments } from './oss-repro-smoke.mjs';
 const source = fileURLToPath(new URL('../fixtures/skills/toyrecord-repro/', import.meta.url));
 const image = `sha256:${'a'.repeat(64)}`;
+const linuxTest = (name, run) => test(name, {
+  skip: process.platform !== 'linux' ? 'Requires Linux descriptor-relative /proc filesystem traversal' : false,
+}, run);
 async function setup(t) {
   const dir = await mkdtemp(join(tmpdir(), 'toyrecord-pack-'));
   t.after(() => rm(dir, { recursive: true, force: true }));
@@ -21,7 +24,7 @@ async function setup(t) {
   }
   return { packRoot, registered, options: await registered() };
 }
-test('catalog selects a pinned installed pack without exposing its path', async t => {
+linuxTest('catalog selects a pinned installed pack without exposing its path', async t => {
   const { options } = await setup(t);
   const result = await selectToyrecordPack(options);
   assert.equal(result.pack.id, 'toyrecord-repro');
@@ -30,7 +33,7 @@ test('catalog selects a pinned installed pack without exposing its path', async 
   assert.match(result.skill_set_hash, /^[a-f0-9]{64}$/);
   assert.equal(JSON.stringify(result).includes('root'), false);
 });
-test('selection rejects missing versions, duplicates, and altered installation binding', async t => {
+linuxTest('selection rejects missing versions, duplicates, and altered installation binding', async t => {
   const { options } = await setup(t);
   for (const catalog of [[], [...options.catalog, ...options.catalog]]) {
     await assert.rejects(selectToyrecordPack({ ...options, catalog }), /TOYRECORD_PACK_SELECTION_INVALID/);
@@ -40,12 +43,12 @@ test('selection rejects missing versions, duplicates, and altered installation b
     await assert.rejects(selectToyrecordPack({ ...options, installation: { ...options.installation, ...patch } }), /TOYRECORD_INSTALLATION_MISMATCH/);
   }
 });
-test('changes after installation fail pin verification', async t => {
+linuxTest('changes after installation fail pin verification', async t => {
   const { options, packRoot } = await setup(t);
   await writeFile(join(packRoot, 'SKILL.md'), 'changed');
   await assert.rejects(selectToyrecordPack(options), /PACK_DIGEST_MISMATCH/);
 });
-test('even a repinned pack must satisfy required tools and fixed reproduction spec', async t => {
+linuxTest('even a repinned pack must satisfy required tools and fixed reproduction spec', async t => {
   const { options, packRoot, registered } = await setup(t);
   const path = join(packRoot, 'manifest.json');
   const manifest = JSON.parse(await readFile(path, 'utf8'));
@@ -62,7 +65,7 @@ test('even a repinned pack must satisfy required tools and fixed reproduction sp
   await assert.rejects(selectToyrecordPack(await registered()), /TOYRECORD_SPEC_INVALID/);
   assert.equal(options.installation.image, image);
 });
-test('operator allowlist rejects unregistered declarations', async t => {
+linuxTest('operator allowlist rejects unregistered declarations', async t => {
   const { packRoot } = await setup(t), path = join(packRoot, 'manifest.json');
   const value = JSON.parse(await readFile(path, 'utf8')); value.tool_ids.push('unknown_tool');
   await writeFile(path, JSON.stringify(value));

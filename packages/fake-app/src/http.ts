@@ -6,6 +6,17 @@ import type { SimulatedConnection, ConnectionPlan } from './connection.ts';
 export function createDemoHandler(base: RequestListener, core: FakeCore, connector: SimulatedConnection): RequestListener {
   return async (request, response) => {
     const path = new URL(request.url || '/', 'http://localhost').pathname;
+    const presentationFiles: Record<string, [string, string]> = {
+      '/__presentation': ['presentation.html', 'text/html; charset=utf-8'],
+      '/__presentation.js': ['presentation.js', 'text/javascript'],
+      '/__presentation.css': ['presentation.css', 'text/css'],
+    };
+    if (request.method === 'GET' && Object.hasOwn(presentationFiles, path)) {
+      const [name, type] = presentationFiles[path]!;
+      response.setHeader('Content-Type', type);
+      response.setHeader('Cache-Control', 'no-store');
+      response.end(await readFile(new URL('../public/' + name, import.meta.url))); return;
+    }
     if (request.method === 'GET' && (path === '/__demo' || path === '/__demo.js')) {
       const name = path === '/__demo' ? 'index.html' : 'controls.js';
       response.setHeader('Content-Type', name.endsWith('.html') ? 'text/html; charset=utf-8' : 'text/javascript');

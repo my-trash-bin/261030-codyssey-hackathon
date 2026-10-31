@@ -4,11 +4,12 @@ import type { AddressInfo } from 'node:net';
 import { mkdtemp, readFile, readdir, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import test from 'node:test';
 import { createApp, DocumentStore, TaskStore, runTaskAnalysis } from '@safehandoff/server';
 import { configuredCore, configuredTranscripts, loadConfig } from './config.ts';
 
-const root = new URL('../../../', import.meta.url).pathname;
+const root = fileURLToPath(new URL('../../../', import.meta.url));
 test('public config works without private config and invalid config fails safely', async () => {
   const dir = await mkdtemp(join(tmpdir(), 'safehandoff-config-'));
   try {

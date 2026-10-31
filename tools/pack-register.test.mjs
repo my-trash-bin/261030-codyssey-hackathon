@@ -7,11 +7,23 @@ import { fileURLToPath } from 'node:url';
 import test from 'node:test';
 import { registerPack } from './pack-register.mjs';
 
+const linuxTest = (name, run) => test(name, {
+  skip: process.platform !== 'linux' ? 'Requires Linux descriptor-relative /proc filesystem traversal' : false,
+}, run);
+
+test('unsupported platforms reject registration without writing a catalog', {
+  skip: process.platform === 'linux' ? 'Non-Linux platform contract' : false,
+}, async () => {
+  const catalog = [];
+  await assert.rejects(registerPack({ packRoot, allowlist, catalog }), /PACK_MANIFEST_INVALID/);
+  assert.deepEqual(catalog, []);
+});
+
 const packRoot = fileURLToPath(new URL('../fixtures/skills/vendorstore-support/', import.meta.url));
 const allowlist = { productIds: ['vendorstore-lab'], purposeIds: ['vendor_support'],
   toolIds: ['derive_series_v1', 'render_timeline_v1', 'make_config_example_v1', 'check_doc_ip_context_v1'], templateIds: ['vendor_support.v1'] };
 
-test('registering a new pack appends a pinned catalog entry', async () => {
+linuxTest('registering a new pack appends a pinned catalog entry', async () => {
   const result = await registerPack({ packRoot, allowlist, catalog: [] });
   assert.equal(result.changed, true);
   assert.equal(result.pin.id, 'vendorstore-support');
@@ -21,14 +33,14 @@ test('registering a new pack appends a pinned catalog entry', async () => {
   assert.equal(result.catalog[0].root, packRoot);
 });
 
-test('re-registering the identical pack is a no-op, not a duplicate entry', async () => {
+linuxTest('re-registering the identical pack is a no-op, not a duplicate entry', async () => {
   const first = await registerPack({ packRoot, allowlist, catalog: [] });
   const second = await registerPack({ packRoot, allowlist, catalog: first.catalog });
   assert.equal(second.changed, false);
   assert.equal(second.catalog.length, 1);
 });
 
-test('same id+version with different bytes is rejected without --force', async () => {
+linuxTest('same id+version with different bytes is rejected without --force', async () => {
   const parent = await mkdtemp(join(tmpdir(), 'safehandoff-pack-register-'));
   try {
     const { cp } = await import('node:fs/promises');

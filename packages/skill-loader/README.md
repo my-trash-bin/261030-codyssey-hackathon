@@ -63,3 +63,7 @@ const verified = await loader.verify(root, pin);
 ## 현재 연결 범위
 
 실제 가상 팩과 임시 파일시스템의 정상·경계·오류 테스트를 포함한다. core-interface의 roleDocuments/skillSetHash는 아직 선언만 있으며 이 로더가 작성기에 내부 문서를 전달하지 않는다. pack:register CLI, catalog 저장, 앱 자동 로딩, task revision 연결은 다음 단계다. 환경 변수와 HTTP API는 추가하지 않았다.
+
+팩 파일시스템 시험은 Linux에서 실행한다. macOS 등에서는 이 10개 시험을 skip으로 표시하고,
+지원하지 않는 플랫폼의 로딩 요청이 거부되는 별도 계약 시험을 실행한다.
+skip은 Linux 경로·digest·경합 안전성 검증을 통과했다는 의미가 아니다.

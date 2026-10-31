@@ -63,6 +63,13 @@ SAFEHANDOFF_TRANSCRIPT_DIR를 설정하면 실제 app과 OSS 스모크의 Engine
 
 기존 HTTP 요청·응답 필드는 그대로이며 transcript 조회 API는 없다. 파일은 로컬 내부 기록이고 녹화 재생은 실제 호출 표시와 구분해야 한다. [이벤트 계약과 보존 제한](transcript.md)을 따른다. 작업 삭제 연동·상시 24시간 만료는 후속 구현이다.
 
+## fake-app CDP 연출 화면
+
+GET `/__presentation`, `/__presentation.js`, `/__presentation.css`는 fake-app만 제공하는 고정 자원입니다.
+기존 `/__demo` 설정 화면과 병행하며 실제 app이나 공통 server에는 추가하지 않습니다.
+연출의 분석·공개 선택은 브라우저 상태이며 새로운 task/decision API가 아닙니다.
+생성·저장·조회는 위 `/api/sharing`, `/api/documents` 계약을 그대로 사용합니다.
+
 ## ToyRecord 팩 스모크
 
 HTTP 필드와 환경 변수는 추가하지 않았다. OSS CLI는 `--catalog`와 `--pack-version`을 함께 받으며 `--registration`의 pack pin·target·정확한 image digest를 대조한다. `--seed`는 기본 42인 unsigned 32-bit 정수다. 기존 catalog 없는 image 등록 경로도 유지한다. 새 bound installation을 catalog 없이 쓰면 거부한다. 보고서 selected_pack과 transcript pack_selected가 같은 팩 지문을 담는다. [명세·실행 절차](toyrecord-pack.md)를 따른다.
