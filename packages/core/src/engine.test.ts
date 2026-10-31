@@ -105,3 +105,20 @@ test('a model pass cannot bypass deterministic required fact coverage', async ()
   const rejected = setup([noReferences, pass]);
   await assert.rejects(rejected.core.generate({ purpose: 'support', recipient: 'vendor', facts: [{ id: 'f_1', text: 'required' }] }), code('CORE_UNAVAILABLE'));
 });
+test('adapter argument repairs consume both step attempts and shared writer-reviewer call budget', async () => {
+  for (const [maxCalls, attempts, expectedCalls, succeeds] of [[2, 2, 2, false], [3, 2, 3, true], [12, 1, 1, false]] as const) {
+    let calls = 0;
+    const client: ModelClient = { info: { provider: 'fake', model: 'test', ready: true }, async complete(request, options) {
+      calls++;
+      assert.ok(options?.output, 'each analysis/writer/reviewer request carries schema and contextual validation');
+      if (request.role === 'writer') { options.onAdditionalCall!(); calls++; }
+      return { text: request.role === 'writer' ? draft : pass, model: 'test', usage: { inputTokens: 1, outputTokens: 1 } };
+    } };
+    const core = new RealCore(client, { ...config, provider: { ...config.provider, max_attempts_per_step: attempts },
+      workflow: { ...config.workflow, max_model_calls_per_run: maxCalls } });
+    const pending = core.writeReviewed(pack, { grounding: reviewGroundingFixture(pack) });
+    if (succeeds) assert.equal((await pending).review.result, 'pass');
+    else await assert.rejects(pending, code('MODEL_BUDGET_EXCEEDED'));
+    assert.equal(calls, expectedCalls);
+  }
+});

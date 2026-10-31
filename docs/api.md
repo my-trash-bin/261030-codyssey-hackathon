@@ -58,7 +58,8 @@
 
 1. **모델 연결 환경 변수**:
    - `SAFEHANDOFF_LLM_BASE_URL`, `SAFEHANDOFF_LLM_MODEL`, `SAFEHANDOFF_LLM_API_KEY`를 설정 파일(`SAFEHANDOFF_CONFIG`, 기본 `config.json` / `config.example.json`)에 지정된 환경 변수 이름으로 읽는다.
-   - `provider.response_mode=text`이면 JSON 출력 요청에도 HTTP `response_format` 필드를 강제하지 않고 프롬프트와 엔진 엄격 파서로 검증한다.
+   - 분석/작성/검토는 tool calling이 필요한 `submit` 결과 도구를 사용하며 `response_format`을 전송하지 않는다.
+   - `provider.response_mode`는 도구 없는 공개 조건 해석/provider 확인 호출에만 적용한다. text는 프롬프트와 엄격한 응답 검증을 사용하고, json일 때만 JSON 응답 형식 필드를 전송한다.
 2. **로컬 실행 Transcript (`transcript.v1`)**:
    - `SAFEHANDOFF_TRANSCRIPT_DIR` 설정 시 실행별 JSONL(`transcript-<run_id>.jsonl`)을 기록한다.
    - `SAFEHANDOFF_TRANSCRIPT_CONTENT=1`은 명시적 opt-in이며 원자료/API 키/리뷰어 내부 설명은 기록하지 않는다. 세부 이벤트 순서는 [에이전트 역할 계약](agent-workflow.md) 10을 따른다.
@@ -278,3 +279,15 @@ confirmation=DELETE와 acknowledge_saved_rules_retained=true를 요구하고 실
 
 모델 통신은 Vercel AI SDK의 OpenAI 호환 provider를 사용한다. SDK 자체 재시도는 비활성화하고
 기존 Engine 호출 예산, 직접 전송의 리다이렉트 금지, 크기 제한과 타임아웃을 유지한다.
+
+분석/작성/검토는 `@typia/vercel`의 `submit` 도구와 typia 런타임 검증을 사용한다. 서버 HTTP/DB
+계약은 유지한다. 도구는 결과 객체를 반환할 뿐 외부 실행이나 승인 결정을 수행하지 않는다.
+스키마의 타입 검증 뒤 기존 Engine의 현재 근거/참조 검증을 그대로 적용한다. 중복 JSON 키와
+알 수 없는 속성은 허용하지 않는다. 한 응답에 도구 호출은 정확히 하나여야 하며, 일반 텍스트만
+반환하거나 여러 도구를 호출한 응답은 MODEL_INVALID_RESPONSE다. 도구 이름 오류는 복구 대상이다.
+
+AI SDK의 tool-call repair는 구문/타입을 로컬에서 복구할 수 있으면 추가 호출 없이 검증한다.
+모델 재호출이 필요하면 같은 역할의 입력과 검증 피드백만 전달한다. 모든 추가 HTTP 호출은
+Engine의 단계별 시도 수와 전체 run 예산을 전송 전에 차감한다. SDK의 자동 재시도와 다단계
+실행은 사용하지 않는다. 타임아웃/취소/동시성 제한은 복구 호출에도 적용하며, 응답 usage는
+복구 호출을 포함한 합계다. 측정값이 없는 토큰 필드는 null이다. 인증 키/운영 설정은 추가하지 않았다.

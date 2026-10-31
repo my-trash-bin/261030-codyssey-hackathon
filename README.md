@@ -32,11 +32,11 @@ Node 24(`node:sqlite`, `node --test`) + TypeScript 5.8 + React 19 기반 `pnpm` 
 | --- | --- | --- |
 | `@safehandoff/core-interface` | 순수 도메인 인터페이스/검증/투영 (외부/Node 의존성 0) | `parseSources`, `composeFactPack`, `groundFacts`, `validatePackLayout`, `resolveToolAccess` |
 | `@safehandoff/core` | 에이전트 오케스트레이션 및 내장 변환 도구 | `RealCore` (`analyze`, `write`, `review`, `writeReviewed`, `reproduce`, `generate`), `builtin-tools` 5종, `FileTranscriptSink` |
-| `@safehandoff/model-adapter` | OpenAI 호환 LLM HTTP 클라이언트 | `HttpModelClient` (`/v1/chat/completions`, 타임아웃/크기 제한/엄격 오류 매핑) |
+| `@safehandoff/model-adapter` | OpenAI 호환 LLM HTTP 클라이언트 | `OpenAICompatibleModelClient` (`/v1/chat/completions`, 타임아웃/크기 제한/엄격 오류 매핑) |
 | `@safehandoff/sandbox-runner` | 무인터넷 Docker 재현 실행기 | `DockerReproRunner` (`--network=none`, `--read-only`, 이미지 digest 검증, 4회 실행 고정 oracle) |
 | `@safehandoff/skill-loader` | 도메인 지침 팩(`SkillPack`) 로더 | `FsSkillPackLoader` (`O_NOFOLLOW` 심볼릭링크 차단, `manifest.json` 및 파일 전체 SHA-256 지문 검증) |
 | `@safehandoff/server` | HTTP 서버 및 SQLite 저장소 | `createServer` (`/api/documents`, `/api/sharing`, `/api/analysis`), `TaskStore` (`workflow_*` 11개 테이블/migration v2/`TaskStore.analysis` CAS) |
-| `@safehandoff/app` | 실제 실행 서버 (`:8080`) | `RealCore` + `HttpModelClient` + `DockerReproRunner` + SQLite 연결 |
+| `@safehandoff/app` | 실제 실행 서버 (`:8080`) | `RealCore` + `OpenAICompatibleModelClient` + `DockerReproRunner` + SQLite 연결 |
 | `@safehandoff/fake-app` | 시연/연출용 서버 (`:8081`) | `FakeCore` + 시연 상태 제어 (`/__demo`, `/api/demo/settings`) 및 CDP 연출 화면 (`/__presentation`) |
 | `@safehandoff/client` | 웹 클라이언트 (`:5173` / `:5174`) | Swiss Grid UI, 원자료 분석 연결(`analysis-view.ts`, `POST /api/analysis`), 후보별 공개 결정 화면(`disclosure-view.ts`), 문서 보관소 |
 
@@ -98,5 +98,20 @@ node tools/oss-repro-smoke.mjs \
 
 자세한 시연 시나리오/제출 영상(`docs/demo-media/SafeHandoff-demo.mp4`)/과거 영상 참고자료([docs/presentation/video/README.md](docs/presentation/video/README.md))는 [docs/demo.md](docs/demo.md), 검증 수치와 근거는 [docs/검증보고서.md](docs/검증보고서.md)에서 확인할 수 있습니다.
 
+### 3.5 모델 통신과 결과 인자 복구
+
 모델 통신은 Vercel AI SDK의 OpenAI 호환 provider를 사용한다. SDK 자체 재시도는 비활성화하고
 기존 Engine 호출 예산, 직접 전송의 리다이렉트 금지, 크기 제한과 타임아웃을 유지한다.
+
+분석/작성/검토는 `@typia/vercel`의 로컬 `submit` 도구로 결과만 받습니다. 이 도구는 원자료 조회나
+외부 실행 기능이 없으며 공개 권한을 만들지 않습니다. 런타임 JSON Schema와 typia 유틸리티를
+사용하므로 별도 TypeScript 변환기 설치는 필요하지 않습니다. 기존 모델 환경 변수는 유지합니다.
+
+SDK의 tool-call repair는 먼저 제한된 JSON 구문 복구와 타입 변환을 시도하고 기존 근거/참조
+검증을 적용합니다. 추가 모델 호출은 `provider.max_attempts_per_step`과
+`workflow.max_model_calls_per_run`을 모두 소비합니다. writer와 reviewer 사이에도 전체 예산을
+공유하며 `max_review_repairs`가 제어하는 문서 수정 횟수와는 별개입니다. 도구 호출이 없거나
+여러 개면 거부하며 텍스트 응답으로 대체하지 않습니다. 공개 조건 해석(disclosure)과
+provider 확인은 기존 텍스트 경로를 유지합니다.
+
+분석/작성/검토에는 tool calling을 지원하는 OpenAI 호환 모델 서버가 필요합니다.

@@ -14,9 +14,24 @@ export interface ModelRequest {
 export interface ModelUsage { inputTokens: number | null; outputTokens: number | null }
 export interface ModelResponse { text: string; usage: ModelUsage; model: string }
 export interface ModelClientInfo { provider: 'openai_compatible' | 'fake'; model: string; ready: boolean }
+// SDK-neutral JSON Schema subset for model result submission tools.
+export type ModelValueSchema = ModelAtomicSchema | { anyOf: ModelAtomicSchema[] };
+export type ModelAtomicSchema = ModelObjectSchema | { type: 'string'; enum?: string[]; maxLength?: number; minLength?: number } |
+  { type: 'integer'; minimum?: number; maximum?: number } | { type: 'boolean' } | { type: 'null' } |
+  { type: 'array'; items: ModelValueSchema; minItems?: number; maxItems?: number };
+export interface ModelObjectSchema {
+  type: 'object'; properties: Record<string, ModelValueSchema>; required: string[]; additionalProperties: false;
+}
+export interface ModelCallOptions {
+  signal?: AbortSignal;
+  output?: { schema: ModelObjectSchema; validate: (text: string) => unknown };
+  // Invoked immediately before every additional HTTP call, including argument repair.
+  // The Engine owns the run/step counters and may reject the call before transmission.
+  onAdditionalCall?: () => void;
+}
 export interface ModelClient {
   readonly info: ModelClientInfo;
-  complete(request: ModelRequest, options?: { signal?: AbortSignal }): Promise<ModelResponse>;
+  complete(request: ModelRequest, options?: ModelCallOptions): Promise<ModelResponse>;
 }
 
 export type ModelErrorCode =

@@ -8,6 +8,7 @@ import { parseCandidateProposals, parseDraft, parseReview, validateDraft } from 
 import { calculatePreview, validateRepresentation } from './disclosure.ts';
 import { parseDisclosureProposal } from './validation.ts';
 import { invalidSource, parseEvidence, wellFormed } from './evidence-parser.ts';
+import { responseSchema } from './response-schemas.ts';
 import { approvedRequestGrounding, validateProjectionHashes } from './fresh-grounding.ts';
 
 import type { TranscriptRun, TranscriptSink } from './transcript.ts';
@@ -37,14 +38,25 @@ export class RealCore implements Engine {
   private async call<T>(request: ModelRequest, parse: (text: string) => T, run: Run): Promise<T> {
     if (run.signal?.aborted) throw new CoreError('CORE_CANCELLED');
     if (!this.model || !this.config) throw new CoreError('CORE_NOT_IMPLEMENTED');
-    for (let attempt = 0; attempt < this.config.provider.max_attempts_per_step; attempt++) {
+    let attempt = 0;
+    while (attempt < this.config.provider.max_attempts_per_step) {
       if (run.signal?.aborted) throw new CoreError('CORE_CANCELLED');
       if (run.calls >= this.config.workflow.max_model_calls_per_run) throw new ModelError('MODEL_BUDGET_EXCEEDED');
-      run.calls++;
+      run.calls++; attempt++;
       run.onProgress?.(request.role === 'writer' ? 'writer_started' : run.publicFiles ? 'files_review_started' : 'review_started');
-      run.trace?.emit('model_started', { role: request.role, call: run.calls, attempt: attempt + 1 }, run.sensitive ? undefined : request);
+      run.trace?.emit('model_started', { role: request.role, call: run.calls, attempt }, run.sensitive ? undefined : request);
       try {
-        const response = await this.model.complete(request, { signal: run.signal });
+        const schema = responseSchema(request.role);
+        const response = await this.model.complete(request, { signal: run.signal,
+          ...(schema ? { output: { schema, validate: parse } } : {}),
+          onAdditionalCall: () => {
+            if (run.signal?.aborted) throw new ModelError('MODEL_CANCELLED');
+            if (attempt >= this.config!.provider.max_attempts_per_step || run.calls >= this.config!.workflow.max_model_calls_per_run) {
+              throw new ModelError('MODEL_BUDGET_EXCEEDED');
+            }
+            run.calls++; attempt++;
+            run.trace?.emit('model_started', { role: request.role, call: run.calls, attempt, argument_repair: true });
+          } });
         if (run.signal?.aborted) throw new CoreError('CORE_CANCELLED');
         const parsed = parse(response.text);
         run.trace?.emit('model_completed', { role: request.role, call: run.calls, usage: response.usage },
@@ -54,7 +66,7 @@ export class RealCore implements Engine {
         run.trace?.emit('model_failed', { role: request.role, call: run.calls,
           code: error instanceof ModelError || error instanceof CoreError ? error.code : 'UNEXPECTED_ERROR' });
         if (!(error instanceof ModelError) || error.code === 'MODEL_CANCELLED' || error.code === 'MODEL_BUDGET_EXCEEDED' ||
-          attempt + 1 === this.config.provider.max_attempts_per_step) throw error;
+          attempt >= this.config.provider.max_attempts_per_step) throw error;
       }
     }
     throw new ModelError('MODEL_UNAVAILABLE');
@@ -204,14 +216,14 @@ export class RealCore implements Engine {
           'relevance: required/optional. At most 30 candidates. Use only supplied evidence IDs; never invent offsets or sources. ' +
           'Separate observed facts, constraints, hypotheses and unknowns. Preserve conflicting accounts with separate candidates ' +
           'and conflicts referencing at least two local_keys. Do not infer server completion or root cause from a timeout. ' +
-          'This is a proposal, not disclosure permission. No approval fields, tools, external requests or writer output. ' +
+          'This is a proposal, not disclosure permission. No approval fields, external tool execution, external requests or writer output. ' +
           'If no relevant candidates exist, return empty arrays. Prefer the requested output_language. ' +
           'Never copy personal or identifying values into any statement or purpose_relevance: person names, phone numbers, ' +
           'email addresses, national or resident ID numbers, account or card numbers, street addresses, IP addresses, ' +
           'user or customer IDs, tokens or credentials. Describe them only by category and count ' +
           '(e.g. "로그에 고객 성명·전화번호·이메일이 평문으로 기록됨", "고객 1명의 결제 요청"); the evidence_ids already locate the values. ' +
           'Keep non-identifying technical values such as timestamps, service names, log levels, durations and error codes. ' +
-          'Output the raw JSON object only, without markdown code fences or commentary.',
+          'Submit the result JSON without markdown code fences or commentary.',
         input: JSON.stringify({ task, sources: parsed.sources, evidence: parsed.evidence }) };
       if (Buffer.byteLength(JSON.stringify(modelRequest)) > this.config.provider.max_input_bytes) throw new ModelError('MODEL_BUDGET_EXCEEDED');
       const proposals = await this.call(modelRequest, text => parseCandidateProposals(text, parsed.evidence),
