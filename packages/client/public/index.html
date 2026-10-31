@@ -47,6 +47,31 @@
       <p class="status" id="session-status" role="status" aria-live="polite">세션 상태를 확인하는 중입니다…</p>
     </section>
 
+    <section class="session" id="task-create" aria-labelledby="task-create-heading">
+      <h2 id="task-create-heading">작업 만들기</h2>
+      <p class="hint" id="task-create-hint">목적·수신처로 작업을 만들고 원자료를 그 작업의 첫 판본으로 등록합니다. 형식은 txt·log·md·csv·json(UTF-8), 파일당 256 KiB, 합계 1 MiB까지입니다.</p>
+      <form class="form" id="task-form" novalidate>
+        <div class="field">
+          <label for="task-purpose">전달 목적</label>
+          <input id="task-purpose" name="purpose" type="text" autocomplete="off" aria-describedby="task-create-hint task-status">
+        </div>
+        <div class="field">
+          <label for="task-recipient">수신처</label>
+          <input id="task-recipient" name="recipient" type="text" autocomplete="off" aria-describedby="task-create-hint task-status">
+        </div>
+        <div class="field">
+          <label for="task-files">원자료 파일</label>
+          <input id="task-files" name="files" type="file" multiple accept=".txt,.log,.md,.csv,.json" aria-describedby="task-create-hint task-status">
+        </div>
+        <button class="button button--solid" id="task-submit" type="submit" disabled>작업 만들기</button>
+      </form>
+      <div class="actions">
+        <button class="button button--solid" id="analyze-start" type="button" disabled aria-describedby="task-create-hint task-status">분석 시작</button>
+        <button class="button" id="analyze-cancel" type="button" disabled hidden aria-describedby="task-status">분석 취소</button>
+      </div>
+      <p class="status" id="task-status" role="status" aria-live="polite">세션을 열면 작업을 만들 수 있습니다.</p>
+    </section>
+
     <div class="work">
       <div class="work__side">
         <section class="block" aria-labelledby="intent-heading">

@@ -197,7 +197,7 @@ async function readSources(files: readonly File[], subtle: SubtleCrypto): Promis
   return sources;
 }
 
-interface WireSource {
+export interface WireSource {
   id: string;
   source_id: string;
   version: number;
@@ -221,6 +221,19 @@ function toWireSource(source: AnalysisSource, index: number): WireSource {
     sha256: source.sha256,
     included: true,
   };
+}
+
+// v1 작업 원자료 등록용 변환. 파일 수·크기 한도까지 여기서 검사한다.
+export async function toWireSources(files: readonly File[], subtle: SubtleCrypto): Promise<WireSource[]> {
+  if (files.length === 0) throw new Error('원자료 파일을 하나 이상 고르세요.');
+  if (files.length > MAX_FILES) throw new Error(`원자료는 ${MAX_FILES}개까지 등록할 수 있습니다.`);
+  let total = 0;
+  for (const file of files) {
+    if (file.size > MAX_FILE_BYTES) throw new Error(`${file.name}이(가) 파일 한도 ${MAX_FILE_BYTES / 1024} KiB를 넘습니다.`);
+    total += file.size;
+  }
+  if (total > MAX_TOTAL_BYTES) throw new Error(`선택한 파일 합계가 한도 ${MAX_TOTAL_BYTES / 1048576} MiB를 넘습니다.`);
+  return (await readSources(files, subtle)).map(toWireSource);
 }
 
 function serverErrorCode(body: unknown): string {

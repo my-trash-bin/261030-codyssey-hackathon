@@ -9,6 +9,9 @@ import { mountAnalysis } from './analysis-view.js';
 import { mountDisclosures } from './disclosure-view.js';
 import { openSession, restoreSession, sessionFailureMessage } from './session-client.js';
 import type { SessionInfo } from './session-client.js';
+import { toWireSources } from './analysis-state.js';
+import type { WireSource } from './analysis-state.js';
+import { cancelAnalysis, createTask, readAnalysisJob, replaceSources, startAnalysis, taskFailureMessage } from './task-client.js';
 
 interface DocumentRecord { id: string; text: string; createdAt: string }
 type LoadResult = 'ok' | 'failed';
@@ -35,6 +38,14 @@ const sessionForm = required<HTMLFormElement>('session-form');
 const sessionToken = required<HTMLInputElement>('session-token');
 const sessionConnect = required<HTMLButtonElement>('session-connect');
 const sessionStatus = required<HTMLParagraphElement>('session-status');
+const taskForm = required<HTMLFormElement>('task-form');
+const taskPurpose = required<HTMLInputElement>('task-purpose');
+const taskRecipient = required<HTMLInputElement>('task-recipient');
+const taskFiles = required<HTMLInputElement>('task-files');
+const taskSubmit = required<HTMLButtonElement>('task-submit');
+const taskStatus = required<HTMLParagraphElement>('task-status');
+const analyzeStart = required<HTMLButtonElement>('analyze-start');
+const analyzeCancel = required<HTMLButtonElement>('analyze-cancel');
 
 // 서버 API가 없는 동작은 어떤 경우에도 활성화하지 않는다.
 // 클릭 핸들러를 붙이지 않으므로 성공 토스트나 가짜 결과가 생기지 않는다.
@@ -262,8 +273,16 @@ void checkRuntime();
 void loadDocuments();
 
 // 로컬 접속. 세션이 열려야 공개 결정 영역의 쓰기가 열린다.
+let csrfToken: string | null = null;
+// 마지막으로 만든 작업과 분석 job. 작업 판본이 바뀌면 이전 job은 무효가 된다.
+let currentTask: { id: string; revision: number } | null = null;
+let analysisJob: { id: string; revision: number } | null = null;
+
 function applySession(session: SessionInfo, restored: boolean): void {
   workspace.setCsrfToken(session.csrfToken);
+  csrfToken = session.csrfToken;
+  taskSubmit.disabled = false;
+  taskStatus.textContent = '목적·수신처와 원자료를 넣고 작업을 만드세요.';
   sessionToken.value = '';
   sessionToken.removeAttribute('aria-invalid');
   const at = new Date(session.expiresAt);
@@ -332,3 +351,157 @@ async function restoreLocalSession(): Promise<void> {
 }
 
 void restoreLocalSession();
+
+// 작업 만들기. 세션의 CSRF 토큰이 있어야 하며, 만든 작업은 공개 결정 영역이 바로 조회한다.
+let taskBusy = false;
+
+function rejectTaskField(input: HTMLInputElement, message: string): void {
+  taskStatus.textContent = message;
+  input.setAttribute('aria-invalid', 'true');
+  input.focus();
+}
+
+async function runTaskCreate(): Promise<void> {
+  if (taskBusy) return;
+  const token = csrfToken;
+  if (!token) {
+    taskStatus.textContent = '세션을 먼저 여세요. 작업 생성과 원자료 등록은 인증된 세션에서만 됩니다.';
+    return;
+  }
+  const purpose = taskPurpose.value.trim();
+  const recipient = taskRecipient.value.trim();
+  if (purpose === '') {
+    rejectTaskField(taskPurpose, '전달 목적을 입력하세요.');
+    return;
+  }
+  if (recipient === '') {
+    rejectTaskField(taskRecipient, '수신처를 입력하세요.');
+    return;
+  }
+  const files = Array.from(taskFiles.files ?? []);
+  taskBusy = true;
+  setBusy(taskSubmit, true);
+  taskForm.setAttribute('aria-busy', 'true');
+  taskStatus.textContent = '원자료를 읽는 중입니다…';
+  try {
+    let sources: WireSource[];
+    try {
+      sources = await toWireSources(files, crypto.subtle);
+    } catch (error) {
+      taskStatus.textContent = error instanceof Error ? error.message : '원자료를 읽지 못했습니다.';
+      return;
+    }
+    taskStatus.textContent = '작업을 만드는 중입니다…';
+    const created = await createTask(fetch, token, { purpose, recipient });
+    if (!created.ok) {
+      taskStatus.textContent = taskFailureMessage(created.failure);
+      return;
+    }
+    taskStatus.textContent = '원자료를 등록하는 중입니다…';
+    const registered = await replaceSources(fetch, token, created.value.id, created.value.revision, sources);
+    if (!registered.ok) {
+      taskStatus.textContent = `작업 ${created.value.id}은(는) 만들어졌지만 원자료 등록에 실패했습니다. ${taskFailureMessage(registered.failure)}`;
+      return;
+    }
+    taskFiles.value = '';
+    currentTask = { id: registered.value.id, revision: registered.value.revision };
+    analyzeStart.disabled = false;
+    taskStatus.textContent = `작업 ${created.value.id}을(를) 만들고 원자료 ${sources.length}개를 판본 ${registered.value.revision}에 등록했습니다. 분석 시작을 누르면 후보를 만듭니다.`;
+    await workspace.loadTask(registered.value.id);
+  } finally {
+    taskBusy = false;
+    setBusy(taskSubmit, false);
+    taskForm.removeAttribute('aria-busy');
+  }
+}
+
+taskForm.addEventListener('submit', (event: SubmitEvent) => {
+  event.preventDefault();
+  void runTaskCreate();
+});
+
+for (const input of [taskPurpose, taskRecipient]) {
+  input.addEventListener('input', () => {
+    if (input.getAttribute('aria-invalid') !== 'true') return;
+    input.removeAttribute('aria-invalid');
+    taskStatus.textContent = '';
+  });
+}
+
+// 분석 job. 시작한 뒤 상태를 폴링하고, 끝나면 작업을 다시 조회해 후보를 표시한다.
+let analysisBusy = false;
+
+const sleep = (ms: number): Promise<void> => new Promise<void>((resolve) => { setTimeout(resolve, ms); });
+
+async function runAnalysis(): Promise<void> {
+  const task = currentTask;
+  const token = csrfToken;
+  if (analysisBusy || !task || !token) return;
+  analysisBusy = true;
+  setBusy(analyzeStart, true);
+  analyzeCancel.hidden = false;
+  setBusy(analyzeCancel, false);
+  try {
+    taskStatus.textContent = '분석 job을 시작하는 중입니다…';
+    const started = await startAnalysis(fetch, token, task.id, task.revision);
+    if (!started.ok) {
+      taskStatus.textContent = taskFailureMessage(started.failure);
+      return;
+    }
+    analysisJob = { id: started.value.id, revision: started.value.revision };
+    currentTask = { id: task.id, revision: started.value.revision };
+    taskStatus.textContent = '분석 job이 실행 중입니다…';
+    const waitStart = Date.now();
+    for (;;) {
+      await sleep(800);
+      const polled = await readAnalysisJob(fetch, token, task.id, started.value.id);
+      if (!polled.ok) {
+        taskStatus.textContent = taskFailureMessage(polled.failure);
+        return;
+      }
+      const job = polled.value;
+      const seconds = Math.round((Date.now() - waitStart) / 1000);
+      if (job.status === 'running') {
+        if (seconds > 180) {
+          taskStatus.textContent = '3분이 지났지만 분석이 끝나지 않았습니다. 분석 취소를 누르거나 상태를 다시 확인하세요.';
+          return;
+        }
+        taskStatus.textContent = `분석 job이 실행 중입니다… ${seconds}초`;
+        continue;
+      }
+      analysisJob = null;
+      if (job.status === 'succeeded') {
+        taskStatus.textContent = '분석이 끝났습니다. 공개 결정 영역에서 후보를 확인하세요.';
+        currentTask = { id: task.id, revision: job.revision };
+        await workspace.loadTask(task.id);
+        return;
+      }
+      taskStatus.textContent = job.status === 'failed'
+        ? `분석이 실패했습니다.${job.errorCode === null ? '' : ` (${job.errorCode})`} 원자료와 분석 모델 설정을 확인하세요.`
+        : job.status === 'cancelled'
+          ? '분석이 취소되었습니다. 다시 시작할 수 있습니다.'
+          : '원자료가 바뀌어 분석 결과가 무효가 되었습니다. 원자료를 다시 등록한 뒤 시작하세요.';
+      return;
+    }
+  } finally {
+    analysisBusy = false;
+    analyzeCancel.hidden = true;
+    setBusy(analyzeStart, false);
+  }
+}
+
+async function cancelJob(): Promise<void> {
+  const task = currentTask;
+  const job = analysisJob;
+  const token = csrfToken;
+  if (!task || !job || !token) return;
+  setBusy(analyzeCancel, true);
+  const result = await cancelAnalysis(fetch, token, task.id, job.id, job.revision);
+  analyzeCancel.hidden = true;
+  taskStatus.textContent = result.ok
+    ? result.value.cancelled ? '분석 취소를 요청했습니다. 실행이 멈추면 상태가 취소로 바뀝니다.' : '이미 끝난 분석이라 취소되지 않았습니다.'
+    : taskFailureMessage(result.failure);
+}
+
+analyzeStart.addEventListener('click', () => { void runAnalysis(); });
+analyzeCancel.addEventListener('click', () => { void cancelJob(); });

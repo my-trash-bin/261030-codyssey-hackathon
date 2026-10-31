@@ -381,6 +381,13 @@ textarea[aria-invalid="true"]:focus-visible {
   gap: 16px;
 }
 
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 20px;
+}
+
 /* 버튼 */
 
 .button {
@@ -453,6 +460,10 @@ textarea[aria-invalid="true"]:focus-visible {
 
 .session > p {
   max-width: 68ch;
+}
+
+.session > .form > .button {
+  justify-self: start;
 }
 
 .session__form {

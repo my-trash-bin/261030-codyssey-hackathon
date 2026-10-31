@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { AnalysisWorkspace } from './analysis-state.ts';
+import { AnalysisWorkspace, toWireSources } from './analysis-state.ts';
 
 interface Call {
   url: string;
@@ -375,4 +375,27 @@ test('UTF-8 문자 중간에서 끊긴 근거 범위는 거부한다', async () 
   await workspace.run();
   assert.equal(workspace.result, null);
   assert.equal(workspace.problem?.field, 'request');
+});
+
+test('지원하지 않는 형식은 원자료로 만들지 않는다', async () => {
+  await assert.rejects(() => toWireSources([new File(['x'], 'a.pdf')], crypto.subtle), /지원하지 않는 파일 형식/);
+});
+
+test('파일 없이 원자료를 만들지 않는다', async () => {
+  await assert.rejects(() => toWireSources([], crypto.subtle), /하나 이상/);
+});
+
+test('파일 한도를 넘는 원자료를 거부한다', async () => {
+  await assert.rejects(() => toWireSources([new File([new Uint8Array(262145)], 'big.txt')], crypto.subtle), /파일 한도/);
+});
+
+test('원자료는 형식·sha256·UTF-8 원본을 함께 담는다', async () => {
+  const wire = await toWireSources([new File(['한글 로그'], 'a.log')], crypto.subtle);
+  assert.equal(wire.length, 1);
+  const first = wire[0]!;
+  assert.equal(first.format, 'log');
+  assert.equal(first.source_id, 'local_source_1');
+  assert.equal(first.included, true);
+  assert.match(first.sha256, /^[a-f0-9]{64}$/);
+  assert.equal(Buffer.from(first.raw_bytes, 'base64').toString('utf8'), '한글 로그');
 });
