@@ -182,3 +182,33 @@ OverlayFS 대신 읽기전용 bind mount + tmpfs를 쓰기로 했다(`DockerRepr
   리뷰어까지 전달해 검증하며, 근거가 없으면 기본적으로 거부한다. `decision.v1`에 이미 필수 필드로 있는
   `applied_rule_id`/`applied_rule_version`을 core-interface에 복원하는 것이 핵심이며, 거부 판정은
   프롬프트가 아니라 코드 레벨 검증을 1차로 둔다.
+
+## 2026-10-31 · builtin·OSS 스모크와 기본 거부 grounding
+
+- builtin 5개는 순수 변환으로 구현하고 현재 task/revision·검증된 grant와 인수 hash에 묶었다. 정확한 지수 반올림, 시간 공개 수준, 문서용 주소와 route, seed 입력, UTF-8 인용과 렌더 hash를 검사한다. 도구 결과가 공개 결정을 만들지는 않는다.
+- composeFactPack 반환형과 fact_pack.v1은 유지했다. applied_rule_*를 복원하고 별도 groundFacts로 현재 결정/preview/scope/source/Rule/goal 바인딩을 대조한다. 근거 누락과 모순은 모델 전 needs_decision이며 모델 pass로 덮어쓰지 않는다. 만료는 응답 채택 때도 검사한다.
+- rule wire scope에 없는 goal_variant는 서버 소유의 내부 rule_goals 바인딩으로 보완하고 누락을 wildcard로 해석하지 않는다. 원문·정확값·실제값 selected_fields와 자유 문장의 자동 재사용은 거부한다. Rule 저장/매칭·UI·실행 후 DB revision/CAS 채택은 구현하지 않았다.
+- 기존 Core.generate의 승인 facts 요청만 명시적인 fresh context로 연결한다. 일반 review의 metadata 누락을 fresh로 추정하는 fallback은 없다. writer에는 Rule·scope·source 바인딩이나 리뷰 자유 설명을 전달하지 않는다.
+- 사용자 요청에 따라 회귀 시험은 결정적 수치/바이트/hash/참조/정책 상태만 판정한다. 생성 문장 의미의 정규식 검사와 해당 테스트는 제거했다. 모델 검토는 보조이며 문서 최종화와 구분한다.
+- 실제 Docker 네 실행 및 기존 모델 작성·검토의 결과와 앞선 자연어 횟수 오류는 [3차 실행 기록](live-smoke-2026-10-31c.md)에 남겼다. 원자료 분석과 사람 승인은 fixture 가정이며 실제 운영 기능 완료의 근거로 사용하지 않는다.
+
+## 2026-10-31 · F07 잔여 항목 일부 정리
+
+사용자 요청에 따라 OSS 재현 스모크를 세 사례(seed 42/7/2026)로 transcript 기록과 함께 재확인했다
+([4차 실행 기록](live-smoke-2026-10-31d.md)). 등록 이미지가 지금 소스와 맞지 않는 낡은 레이아웃이라
+`REPRO_UNAVAILABLE`만 반환하던 문제를 발견해 `oss-repro-smoke.mjs`에 실행 전 sanity-run을 추가했다
+(`SMOKE_IMAGE_SANITY_FAILED`로 원인을 바로 드러냄, CLI 전용이라 단위테스트는 Docker 없이 그대로 통과).
+
+이어서 `docs/f07-extensions-plan.md`의 미완료 항목 중 저위험·기계적인 것부터 정리했다:
+
+- `roleDocuments`(role별 팩 문서 projection)를 core-interface에 실제로 구현했다. `RealCore` 프롬프트
+  연결은 여전히 미구현 — `AnalyzeRequest`/`FactPack`에 팩 문서가 들어갈 자리가 아직 없다.
+- `skillSetHash`는 core-interface가 아니라 `packages/skill-loader`에 구현했다. sha256 계산이
+  필요해 core-interface의 "Node API 없음" 규칙과 맞지 않다는 걸 뒤늦게 발견했고, 죽은
+  `declare function`을 남기지 않기 위해 core-interface에서 완전히 뺐다. 실제 task에 연결하는
+  부분(카탈로그·팩 선택)은 여전히 미구현.
+- `tools/pack-register.mjs`(제출/등록 CLI)를 추가했다. 구조·digest·등록 ID 허용목록을 확인하고
+  로컬 catalog JSON에 pin을 추가한다. 카탈로그를 "읽어서" task에 적용하는 쪽은 별도 작업이다.
+
+`check_doc_ip_context_v1`(ProcessToolRunner 일반화)과 역할×도구 권한 교집합 연결은 이전과 같은
+이유(보안 판단, 실제 registry 부재)로 이번에도 범위에서 뺐다.

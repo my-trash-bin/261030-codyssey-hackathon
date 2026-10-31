@@ -9,7 +9,7 @@
 - `docs/test-data.md` A절: `labelapp`이 `toyrecord 0.1.0-demo`로 문자열을 저장하는데 ASCII는 되고
   한글은 인코딩 단계에서 실패하는 가상 OSS 버그 시나리오(원자료: `fixtures/reference-pack/author/oss-encoding/{app-log.txt,incident-notes.md,observations.csv,sample-input.json}`).
 - `var/runners/targets.json`/`checker.json`: 실제로 로컬에 빌드되어 있는 등록 이미지(`safehandoff-runner:local`,
-  `docker image inspect`로 확인됨)의 digest.
+  `docker image inspect`로 확인된 적이 있음)의 legacy digest. 현재 `/repro` supervisor 계약과의 호환은 별도 확인해야 하며 그대로 실행하지 않는다.
 - `fixtures/public/targets/toyrecord/inputs/{ascii,multibyte}.json`: 기존 합성 입력 예시(`QWERTY`/`하늘바다나무`).
 
 ## 계획
@@ -36,7 +36,7 @@
   결과 기록에 명시한다.
 - 승인(disclosure decision)도 그 자리에서 즉시 `allow`로 하드코드한다(사람 승인 UI는 범위 밖).
 - `make_synthetic_inputs_v1`로 새 ascii/multibyte 입력을 생성하고, `var/runners/targets.json`의 실제
-  로컬 digest로 `DockerRegistration`을 구성해 `DockerReproRunner.reproduce()`를 **실제로 호출**한다
+  호환이 검증된 현재 supervisor 이미지의 전체 ID로 `DockerRegistration`을 구성해 `DockerReproRunner.reproduce()`를 **실제로 호출**한다
   (진짜 Docker, `--network=none`, 이미 로컬에 빌드된 이미지).
 - 반환된 실제 `ReproduceResult`를 `FactPack.public_tool_results`(`{status, reason_code}`)에 반영하고,
   `RealCore.write()`+`review()`를 **실제 등록 모델로** 호출한다(1·2차 live smoke로 이미 검증된 경로).
@@ -56,3 +56,21 @@
 
 - 2번 스크립트의 실행 자체가 검증이다(각 단계 상태코드·응답·재현 판정을 기록).
 - 1번 builtin 도구는 단위테스트 + `pnpm typecheck && pnpm test && just check`로 기존 계약 무회귀 확인.
+
+## 구현 상태 · builtin과 스모크
+
+builtin 5개와 tools/oss-repro-smoke.mjs를 구현했다. builtin 실행은 task/revision, 설치자가 검증해 전달한 grant ID와 인수 hash에 묶인다. 변환 자체나 요청 문자열이 공개 결정을 생성하지 않는다. count 지수는 BigInt 유리수 HALF_UP, 인용은 UTF-8 바이트 경계와 원본/렌더 hash를 검증한다.
+
+스모크는 기존 legacy var/runners 등록을 추정하지 않고 현재 sandbox_observation.v1 supervisor 이미지의 전체 ID를 담은 명시적 등록 파일을 요구한다. --live-model이 없으면 fixture 모델임을 기록한다. Docker 실행은 항상 실제 runner이며 mock runner는 자동 테스트에서만 주입한다. reproduction_evidence 목표가 충족되지 않으면 모델을 호출하지 않고 미완료로 끝낸다. 출력은 새 파일만 생성하며 기존 결과를 덮어쓰지 않는다.
+
+기존 등록 모델과 가상 승인 요약으로 첫 실제 실행에서 reproduced/pass를 확인했다. analysis와 decision 단계는 여전히 fixture 가정이며 원자료 문자열·내부 경로·가상 인증 표식은 모델 입력과 결과에서 거부한다. grounding 계획의 추가 검증은 다음 중간 커밋에서 연결한다.
+
+## grounding 연결과 결정적 검증 범위
+
+기본 거부 review를 연결한 뒤에는 fixture의 새 결정도 applied_rule_id/version, scope/source/preview hash를 명시한다. rules는 빈 목록이며 재사용 결정을 만들어내지 않는다. review에 metadata가 없는 경우는 fixture에서도 fresh로 간주하지 않는다.
+
+회귀 시험과 스크립트의 자동 판정은 수치 계산, 네 실행 행과 고정 oracle, hash, 원문 sentinel 바이트, 필수 참조 ID, scope·판본·만료·호출 횟수처럼 결정적으로 검사 가능한 것만 다룬다. 생성 문장의 의미를 정규식으로 판정하지 않는다. 실행 횟수는 execution_summary의 구조화된 값이 기준이며 draft의 자연어 표현은 별도 확인 대상이다.
+
+완료 플래그는 스모크 연결과 모델 검토의 완료를 뜻한다. 모든 출력에 document_status=reviewed_draft_not_finalized와 manual_review_required=true를 기록해 자동 최종화와 구분한다. 실제 모델이 pass를 주어도 의미 정확성이 보장되는 것은 아니다. 원자료 분석·사람 승인·최종화 UI는 여전히 제외했다.
+
+최종 실행은 [3차 실제 기록](live-smoke-2026-10-31c.md)에 남겼다. 앞선 실행의 자연어 횟수 오류와 의미 정규식 검사 제거도 구분해 기록했다.

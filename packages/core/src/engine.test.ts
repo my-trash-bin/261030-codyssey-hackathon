@@ -4,6 +4,7 @@ import test from 'node:test';
 import { CoreError, ModelError } from '@safehandoff/core-interface';
 import type { EngineConfig, FactPack, ModelClient, ModelRequest } from '@safehandoff/core-interface';
 import { RealCore } from './index.ts';
+import { reviewGroundingFixture } from './test-fixtures.ts';
 
 const config: EngineConfig = {
   provider: { type: 'openai_compatible', base_url_env: 'BASE', model_env: 'MODEL', api_key_env: 'KEY',
@@ -13,7 +14,7 @@ const config: EngineConfig = {
   workflow: { max_review_repairs: 2, max_model_calls_per_run: 12 }, reproduction: { enabled: false, runner: 'docker' },
 };
 const pack: FactPack = { schema_version: 'fact_pack.v1', task_revision: 1, template_id: 'support', audience_type: 'vendor',
-  output_language: 'ko', approved_brief: 'support', facts: [{ id: 'f_1', kind: 'observation', statement: 'timeout', uncertainty: 'observed' }],
+  output_language: 'ko', approved_brief: '', facts: [{ id: 'f_1', kind: 'observation', statement: 'timeout', uncertainty: 'observed' }],
   required_fact_ids: ['f_1'], tables: [], excerpt_slots: [], asset_slots: [], public_tool_results: [] };
 const draft = readFileSync(new URL('../../../contracts/examples/draft.valid.json', import.meta.url), 'utf8');
 const pass = JSON.stringify({ schema_version: 'review.v1', result: 'pass', issues: [] });
@@ -49,25 +50,25 @@ test('generate keeps the narrow contract and does exactly one writer/reviewer ex
 });
 test('repairs carry only validated IDs and fixed reason codes', async () => {
   const { core, requests } = setup([draft, changes(), draft, pass]);
-  const result = await core.writeReviewed(pack);
+  const result = await core.writeReviewed(pack, { grounding: reviewGroundingFixture(pack) });
   assert.equal(result.review.result, 'pass');
   assert.deepEqual(JSON.parse(requests[2]!.input).feedback, [{ reason_code: 'UNCERTAINTY_REMOVED', approved_fact_ids: ['f_1'] }]);
   assert.equal(requests[2]!.input.includes('PRIVATE'), false);
 });
 test('repair limit returns a nonpassing review; needs_decision never triggers disclosure expansion', async () => {
   const limited = setup([draft, changes(), draft, changes()], { max_review_repairs: 1 });
-  assert.equal((await limited.core.writeReviewed(pack)).review.result, 'needs_changes');
+  assert.equal((await limited.core.writeReviewed(pack, { grounding: reviewGroundingFixture(pack) })).review.result, 'needs_changes');
   assert.equal(limited.requests.length, 4);
   const decision = setup([draft, changes('needs_decision')]);
-  assert.equal((await decision.core.writeReviewed(pack)).review.result, 'needs_decision');
+  assert.equal((await decision.core.writeReviewed(pack, { grounding: reviewGroundingFixture(pack) })).review.result, 'needs_decision');
   assert.equal(decision.requests.length, 2);
 });
 test('model failures and invalid JSON retry within step and total budgets', async () => {
   const retry = setup([new ModelError('MODEL_TIMEOUT'), draft, pass]);
-  assert.equal((await retry.core.writeReviewed(pack)).review.result, 'pass');
+  assert.equal((await retry.core.writeReviewed(pack, { grounding: reviewGroundingFixture(pack) })).review.result, 'pass');
   assert.equal(retry.requests.length, 3);
   const limited = setup(['{}', draft], { max_model_calls_per_run: 2 });
-  await assert.rejects(limited.core.writeReviewed(pack), code('MODEL_BUDGET_EXCEEDED'));
+  await assert.rejects(limited.core.writeReviewed(pack, { grounding: reviewGroundingFixture(pack) }), code('MODEL_BUDGET_EXCEEDED'));
   assert.equal(limited.requests.length, 2);
   const attempts = setup(['{}', '{}', draft]);
   await assert.rejects(attempts.core.write(pack), code('MODEL_INVALID_RESPONSE'));
@@ -81,7 +82,7 @@ test('unknown and duplicate fields and unapproved IDs cannot pass model output v
   }
   for (const invalid of [JSON.stringify({ result: 'pass', issues: [] }), changes().replace('UNCERTAINTY_REMOVED', 'PRIVATE_CODE'), changes().replace('"f_1"', '"private"'),
     changes().replace('"kind":"document"', '"kind":"block","block_id":"unknown"'), pass.replace('"issues":[]', '"issues":[],"raw":"secret"')]) {
-    await assert.rejects(setup([invalid, invalid]).core.review(JSON.parse(draft), pack), code('MODEL_INVALID_RESPONSE'));
+    await assert.rejects(setup([invalid, invalid]).core.review(JSON.parse(draft), pack, reviewGroundingFixture(pack)), code('MODEL_INVALID_RESPONSE'));
   }
 });
 test('cancellation does not retry and concurrent runs have independent budgets', async () => {
@@ -91,14 +92,14 @@ test('cancellation does not retry and concurrent runs have independent budgets',
   const controller = new AbortController(); controller.abort();
   await assert.rejects(cancelled.core.generate({ purpose: 'p', recipient: 'r', facts: [] }, { signal: controller.signal }), code('CORE_CANCELLED'));
   const concurrent = setup([draft, draft, pass, pass], { max_model_calls_per_run: 2 });
-  const results = await Promise.all([concurrent.core.writeReviewed(pack), concurrent.core.writeReviewed(pack)]);
+  const results = await Promise.all([concurrent.core.writeReviewed(pack, { grounding: reviewGroundingFixture(pack) }), concurrent.core.writeReviewed(pack, { grounding: reviewGroundingFixture(pack) })]);
   assert(results.every(result => result.review.result === 'pass'));
 });
 
 test('a model pass cannot bypass deterministic required fact coverage', async () => {
   const noReferences = JSON.stringify({ schema_version: 'draft.v1', blocks: [{ type: 'paragraph', text: 'unsupported' }] });
   const { core, requests } = setup([noReferences, pass, draft, pass]);
-  const result = await core.writeReviewed(pack);
+  const result = await core.writeReviewed(pack, { grounding: reviewGroundingFixture(pack) });
   assert.equal(result.review.result, 'pass');
   assert.equal(JSON.parse(requests[2]!.input).feedback[0].reason_code, 'MISSING_REQUIRED_FACT');
   const rejected = setup([noReferences, pass]);

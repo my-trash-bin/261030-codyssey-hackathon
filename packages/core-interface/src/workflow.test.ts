@@ -7,7 +7,7 @@ import type { CandidateProposals, ComposeFactPackInput, ReproRun } from './index
 const proposals: CandidateProposals = JSON.parse(readFileSync(new URL('../../../contracts/examples/candidate.valid.json', import.meta.url), 'utf8'));
 function input(): ComposeFactPackInput {
   return { task: { purpose: 'support', recipient: 'vendor' }, task_revision: 1, template_id: 'support', audience_type: 'vendor',
-    candidates: proposals.candidates, decisions: [{ id: 'f_1', candidate_id: 'c1', disposition: 'allow', revoked: false,
+    candidates: proposals.candidates, rules: [], decisions: [{ id: 'f_1', candidate_id: 'c1', disposition: 'allow', revoked: false, applied_rule_id: '', applied_rule_version: 0,
       representation: { kind: 'fact_summary' } }],
     previews: [{ schema_version: 'disclosure_preview.v1', preview_id: 'p1', candidate_id: 'c1', input_revision: 1,
       representation: { kind: 'fact_summary' }, projection_sha256: 'server-validated',

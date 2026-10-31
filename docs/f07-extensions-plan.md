@@ -36,19 +36,28 @@ TypeScript 계약만 정리하고 당시 실제 로직은 다음 라운드로 �
 
 1. **manifest·경로/digest 검증 + 로더 구현**: `validatePackLayout`/`SkillPackLoader`의 실제
    로직. 새 leaf 패키지(가칭 `packages/skill-loader`, core-interface에만 의존)에 둔다.
-2. **역할별 지침 로딩**: `roleDocuments`로 writer에는 `public-writing.md`류만, analyst에는
-   `SKILL.md`+`references/`까지 전달하도록 `RealCore`의 프롬프트 조립에 연결한다.
+2. **역할별 지침 로딩**: `roleDocuments`(2026-10-31, `packages/core-interface/src/role-documents.ts`)는
+   이미 로딩된 `SkillPack`에서 role별 파일을 순수하게 골라내는 부분까지는 구현했다. `RealCore`의
+   프롬프트 조립에 실제로 연결하는 부분은 **아직 미구현** — `AnalyzeRequest`/`FactPack` 어디에도
+   팩 문서가 들어갈 자리가 없어서, 연결 전에 그 계약을 한 번 더 확장해야 한다(이전에 이미 식별한
+   간극, 그대로 남아 있음).
 3. **builtin 도구 5개**: `derive_series_v1`, `render_timeline_v1`, `make_config_example_v1`,
    `make_synthetic_inputs_v1`, `render_approved_excerpt_v1`. `docs/extensions.md` §6/§7에
-   계산식·허용 조건이 이미 적혀 있는 순수 TS 함수라 저성능 모델도 안전한 영역.
+   계산식·허용 조건이 이미 적혀 있는 순수 TS 함수라 저성능 모델도 안전한 영역. **완료**
+   (2026-10-31, `packages/core/src/builtin-tools.ts`), OSS 재현 스모크에서 `make_synthetic_inputs_v1`을
+   실제 등록 모델·실제 Docker로 반복 확인함.
 4. **finding 단위 checker**: `check_doc_ip_context_v1`을 `ProcessToolRunner`의 첫 구현으로.
    `DockerReproRunner`(`packages/sandbox-runner/src/command.ts`)의 컨테이너 실행 프리미티브를
    뽑아내 재사용한다. §8 판정표가 있어 로직 자체는 기계적이지만, 마운트·권한 플래그는
    DockerReproRunner와 같은 수준의 주의(강한 모델 또는 이후 보안 검토)가 필요하다.
 5. **process adapter 일반화**: `scan_candidate_bundle_v1`.
 6. **팩 변경 무효화**: `packages/server/src/task-schema.ts`의 `workflow_tasks.skill_set_hash`
-   컬럼은 이미 있다 — 실제 활성 팩의 `skillSetHash()` 값을 채우고, 변경 시 revision 증가·
-   기존 artifact stale 처리를 `task-store.ts`에 연결한다.
+   컬럼은 이미 있다. `skillSetHash()` 함수 자체는 **구현 완료**(2026-10-31) — 단, core-interface가
+   아니라 `packages/skill-loader/src/index.ts`에 있다. sha256 계산이 필요해서 "Node API 없음"
+   규칙과 맞지 않는다는 걸 뒤늦게 발견했고, `roleDocuments`와 달리 core-interface에는 시그니처만
+   남기지 않고 아예 뺐다(죽은 `declare function`을 남기지 않기 위해). 실제 활성 팩 목록에서 이
+   값을 채워 변경 시 revision 증가·기존 artifact stale 처리를 `task-store.ts`에 연결하는 부분은
+   여전히 미구현 — 카탈로그/팩 선택 API가 먼저 있어야 의미가 생긴다.
 7. **역할×도구 권한 교집합**: `resolveToolAccess`를 실제 registry/역할 허용목록/팩
    `tool_ids`/현재 `grant_ids` 조회에 연결한다. 정책 판단이 들어가므로 4번과 같은 수준의
    주의가 필요하다.
@@ -60,10 +69,14 @@ TypeScript 계약만 정리하고 당시 실제 로직은 다음 라운드로 �
 
 `docs/extensions.md` §10이 이미 순서를 적어뒀다: 새 팩 작성 → 내부용/공개용 지침 분리 →
 schema·도구·검사 등록 → 정상/경계/오류 예시 작성 → 공개 결과와 권한 검토 → digest 고정 →
-catalog 등록. 수작업 체크리스트로 두지 말고 `pnpm run pack:register <dir>` 같은 작은 CLI로
-자동화한다 — `validatePackLayout` + `SkillPackLoader.load()`로 구조·digest를 확인하고, 통과하면
-로컬 catalog 설정 파일에 항목을 추가한다. 이 CLI 자체는 1번(로더 구현) 다음에 바로 뒤따르는
-작업이다.
+catalog 등록.
+
+**완료**(2026-10-31): `tools/pack-register.mjs` — `FsSkillPackLoader.load()`로 구조·digest·
+등록 ID 허용목록을 확인하고, 통과하면 로컬 catalog JSON 파일에 `{id, version, manifest_sha256,
+pack_sha256, root}` 항목을 추가한다. 같은 id+version에 바이트가 다른 팩이 오면 `--force` 없이는
+거부한다(extensions.md §2). 카탈로그 "읽기"(앱이 설치된 팩을 조회해 task에 선택하는 쪽)는
+아직 없다 — 이 CLI는 등록(쓰기)만 하고, 7번(역할×도구 권한 교집합)과 서버의 카탈로그 API는
+여전히 별도 작업이다.
 
 ## 모델 성능 메모
 

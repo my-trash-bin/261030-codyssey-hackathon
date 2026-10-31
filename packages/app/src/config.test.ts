@@ -1,12 +1,12 @@
 import assert from 'node:assert/strict';
 import { createServer } from 'node:http';
 import type { AddressInfo } from 'node:net';
-import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import { mkdtemp, readFile, readdir, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import test from 'node:test';
 import { createApp, DocumentStore } from '@safehandoff/server';
-import { configuredCore, loadConfig } from './config.ts';
+import { configuredCore, configuredTranscripts, loadConfig } from './config.ts';
 
 const root = new URL('../../../', import.meta.url).pathname;
 test('public config works without private config and invalid config fails safely', async () => {
@@ -39,7 +39,8 @@ test('app composition uses example env names for actual HTTP writer/reviewer req
     const config = JSON.parse(await readFile(join(root, 'config.example.json'), 'utf8')); config.provider.allow_plain_http = true;
     await writeFile(join(dir, 'config.example.json'), JSON.stringify(config));
     const core = configuredCore(dir, { SAFEHANDOFF_LLM_BASE_URL: `http://127.0.0.1:${(model.address() as AddressInfo).port}/v1`,
-      SAFEHANDOFF_LLM_MODEL: 'mock', SAFEHANDOFF_LLM_API_KEY: 'local-test' });
+      SAFEHANDOFF_LLM_MODEL: 'mock', SAFEHANDOFF_LLM_API_KEY: 'local-test',
+      SAFEHANDOFF_TRANSCRIPT_DIR: 'transcripts', SAFEHANDOFF_TRANSCRIPT_CONTENT: '1' });
     assert.equal(core.info.ready, true);
     server = createServer(createApp(store, core));
     await new Promise<void>(resolve => server!.listen(0, '127.0.0.1', resolve));
@@ -48,9 +49,21 @@ test('app composition uses example env names for actual HTTP writer/reviewer req
       body: JSON.stringify({ purpose: 'support', recipient: 'vendor', facts: [{ id: 'f1', text: 'approved' }] }),
     });
     assert.equal(response.status, 200); assert.equal((await response.json()).document.body, 'approved');
+    const files = await readdir(join(dir, 'transcripts'));
+    assert.equal(files.length, 1);
+    const trace = await readFile(join(dir, 'transcripts', files[0]!), 'utf8');
+    assert.equal(trace.includes('local-test'), false);
+    assert.equal(trace.includes('127.0.0.1'), false);
+    assert.equal(JSON.parse(trace.trim().split('\n').at(-1)!).event, 'run_completed');
   } finally {
     server?.closeAllConnections(); if (server) await new Promise<void>(resolve => server!.close(() => resolve()));
     model.closeAllConnections(); await new Promise<void>(resolve => model.close(() => resolve())); store.close();
     await rm(dir, { recursive: true, force: true });
   }
+});
+
+test('transcripts are disabled by default and content requires explicit directory', () => {
+  assert.equal(configuredTranscripts(root, {}), undefined);
+  assert.throws(() => configuredTranscripts(root, { SAFEHANDOFF_TRANSCRIPT_CONTENT: '1' }), /INVALID_TRANSCRIPT_CONFIG/);
+  assert.throws(() => configuredTranscripts(root, { SAFEHANDOFF_TRANSCRIPT_CONTENT: 'true' }), /INVALID_TRANSCRIPT_CONFIG/);
 });

@@ -1,7 +1,7 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import type { EngineConfig } from '@safehandoff/core-interface';
-import { RealCore } from '@safehandoff/core';
+import { FileTranscriptSink, RealCore } from '@safehandoff/core';
 import { OpenAICompatibleModelClient } from '@safehandoff/model-adapter';
 import { DockerReproRunner } from '@safehandoff/sandbox-runner';
 
@@ -36,5 +36,13 @@ export function configuredCore(root: string, env: Record<string, string | undefi
     try { runner = new DockerReproRunner(JSON.parse(readFileSync(resolve(root, env.SAFEHANDOFF_REPRO_REGISTRY), 'utf8'))); }
     catch { throw new Error('INVALID_REPRO_REGISTRY'); }
   }
-  return new RealCore(new OpenAICompatibleModelClient(config.provider, env), config, runner);
+  const transcripts = configuredTranscripts(root, env);
+  return new RealCore(new OpenAICompatibleModelClient(config.provider, env), config, runner, Date.now, transcripts);
+}
+
+export function configuredTranscripts(root: string, env: Record<string, string | undefined> = process.env): FileTranscriptSink | undefined {
+  if (env.SAFEHANDOFF_TRANSCRIPT_CONTENT && env.SAFEHANDOFF_TRANSCRIPT_CONTENT !== '1') throw new Error('INVALID_TRANSCRIPT_CONFIG');
+  if (env.SAFEHANDOFF_TRANSCRIPT_CONTENT && !env.SAFEHANDOFF_TRANSCRIPT_DIR) throw new Error('INVALID_TRANSCRIPT_CONFIG');
+  return env.SAFEHANDOFF_TRANSCRIPT_DIR
+    ? new FileTranscriptSink(resolve(root, env.SAFEHANDOFF_TRANSCRIPT_DIR), env.SAFEHANDOFF_TRANSCRIPT_CONTENT === '1') : undefined;
 }
