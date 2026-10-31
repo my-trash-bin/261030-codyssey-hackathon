@@ -6,7 +6,7 @@ import type { Candidate, DisclosurePreview, TaskContext } from '@safehandoff/cor
 import { AnalysisStore } from './analysis-store.ts';
 import { TaskStoreError } from './task-error.ts';
 export { TaskStoreError } from './task-error.ts';
-import { analysisSchema, taskSchema } from './task-schema.ts';
+import { analysisSchema, httpSchema, taskSchema } from './task-schema.ts';
 
 export interface StoredTask {
   id: string; revision: number; phase: 'needs_analysis' | 'needs_decisions' | 'ready_to_generate';
@@ -35,10 +35,10 @@ export class TaskStore {
     try {
       this.db.exec('PRAGMA foreign_keys=ON; PRAGMA journal_mode=WAL; PRAGMA busy_timeout=3000;');
       const migrated = this.db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='task_store_migrations'").get();
-      if (migrated && Number(this.db.prepare('SELECT max(version) AS version FROM task_store_migrations').get()?.version) > 2) {
+      if (migrated && Number(this.db.prepare('SELECT max(version) AS version FROM task_store_migrations').get()?.version) > 3) {
         throw new Error('UNSUPPORTED_TASK_SCHEMA');
       }
-      this.transaction(() => { this.db.exec(taskSchema + analysisSchema); });
+      this.transaction(() => { this.db.exec(taskSchema + analysisSchema + httpSchema); });
     } catch (error) { this.db.close(); throw error; }
     this.analysis = new AnalysisStore(this.db, {
       transaction: work => this.transaction(work), current: (id, revision) => this.current(id, revision),
@@ -46,10 +46,13 @@ export class TaskStore {
       adopt: (task, candidates) => this.adoptCandidates(task, candidates),
     });
   }
+  private transactionDepth = 0;
   private transaction<T>(work: () => T): T {
-    this.db.exec('BEGIN IMMEDIATE');
+    if (this.transactionDepth) return work();
+    this.db.exec('BEGIN IMMEDIATE'); this.transactionDepth++;
     try { const result = work(); this.db.exec('COMMIT'); return result; }
     catch (error) { this.db.exec('ROLLBACK'); throw error; }
+    finally { this.transactionDepth--; }
   }
   create(context: TaskContext, sourceSetHash: string, skillSetHash: string): StoredTask {
     if (!text(context.purpose) || !text(context.recipient) || !sha(sourceSetHash) || !sha(skillSetHash) ||
@@ -125,6 +128,73 @@ export class TaskStore {
       return preview;
     });
   }
+  // HTTP idempotency is durable; nested store writes participate in this same transaction.
+  replay<T>(operation: string, key: string, input: unknown): { result: T } | null {
+    const row = this.db.prepare('SELECT request_hash,result_json FROM workflow_http_requests WHERE operation=? AND key=?').get(operation, key);
+    if (!row) return null;
+    if (row.request_hash !== hash(JSON.stringify(input))) throw new TaskStoreError('IDEMPOTENCY_CONFLICT');
+    return { result: JSON.parse(String(row.result_json)) as T };
+  }
+  request<T>(operation: string, key: string, input: unknown, work: () => T): { replayed: boolean; result: T } {
+    if (!text(key) || key.length > 200) fail();
+    return this.transaction(() => {
+      const digest = hash(JSON.stringify(input));
+      const previous = this.db.prepare('SELECT * FROM workflow_http_requests WHERE operation=? AND key=?').get(operation, key);
+      if (previous) {
+        if (previous.request_hash !== digest) throw new TaskStoreError('IDEMPOTENCY_CONFLICT');
+        return { replayed: true, result: JSON.parse(String(previous.result_json)) as T };
+      }
+      const result = work();
+      const taskId = operation.split(':')[1];
+      const exists = taskId && this.db.prepare('SELECT id FROM workflow_tasks WHERE id=?').get(taskId);
+      this.db.prepare('INSERT INTO workflow_http_requests VALUES(?,?,?,?,?)').run(operation, key, digest, JSON.stringify(result), exists ? taskId : null);
+      return { replayed: false, result };
+    });
+  }
+  assertRevision(id: string, revision: number): StoredTask { return this.current(id, revision); }
+  storePreview(id: string, revision: number, value: DisclosurePreview): DisclosurePreview {
+    value = structuredClone(value);
+    return this.transaction(() => {
+      const task = this.current(id, revision); this.candidate(task, value.candidate_id);
+      if (value.input_revision !== revision || value.schema_version !== 'disclosure_preview.v1' || value.raw_grants.length ||
+        typeof value.projection.statement !== 'string' || !Array.isArray(value.projection.columns) || !Array.isArray(value.projection.rows) ||
+        value.projection.excerpt !== undefined || JSON.stringify(value).length > 1048576) fail();
+      value.preview_id = randomUUID(); value.projection_sha256 = hash(JSON.stringify(value.projection));
+      this.db.prepare('INSERT INTO workflow_previews VALUES(?,?,?,?,?,?,?,?)').run(id, value.preview_id, value.candidate_id, revision,
+        Buffer.from(JSON.stringify(value.projection)), value.projection_sha256, task.source_set_hash, hash(JSON.stringify(task.context)));
+      this.db.prepare('INSERT INTO workflow_preview_payloads VALUES(?,?,?)').run(id, value.preview_id, JSON.stringify(value));
+      return value;
+    });
+  }
+  getPreview(id: string, previewId: string): DisclosurePreview {
+    const row = this.db.prepare('SELECT payload_json FROM workflow_preview_payloads WHERE task_id=? AND id=?').get(id, previewId);
+    if (!row) throw new TaskStoreError('INVALID_DECISION');
+    return JSON.parse(String(row.payload_json));
+  }
+  recoverJobs(): void {
+    this.transaction(() => {
+      this.db.prepare("UPDATE workflow_analysis_jobs SET status='failed',error_code='CORE_CANCELLED' WHERE status='running'").run();
+      this.db.prepare("UPDATE workflow_disclosure_jobs SET status='failed',error_code='CORE_CANCELLED' WHERE status='running'").run();
+    });
+  }
+  createDisclosureJob(id: string, revision: number): string {
+    this.current(id, revision); const job = randomUUID();
+    this.db.prepare("INSERT INTO workflow_disclosure_jobs VALUES(?,?,?,'running',NULL,NULL)").run(job, id, revision); return job;
+  }
+  finishDisclosureJob(job: string, result: unknown, error: string | null): void {
+    const row = this.db.prepare('SELECT * FROM workflow_disclosure_jobs WHERE id=?').get(job);
+    if (!row || row.status !== 'running') return;
+    const stale = this.get(String(row.task_id)).revision !== row.revision;
+    this.db.prepare('UPDATE workflow_disclosure_jobs SET status=?,result_json=?,error_code=? WHERE id=?').run(
+      stale ? 'stale' : error ? 'failed' : 'succeeded', stale || error ? null : JSON.stringify(result), error, job);
+  }
+  disclosureJob(id: string): Record<string, unknown> {
+    const row = this.db.prepare('SELECT * FROM workflow_disclosure_jobs WHERE id=?').get(id);
+    if (!row) throw new TaskStoreError('ANALYSIS_NOT_FOUND');
+    const stale = this.get(String(row.task_id)).revision !== row.revision;
+    return { id, task_id: row.task_id, input_revision: row.revision, kind: 'interpret_disclosure',
+      status: stale ? 'stale' : row.status, result: stale || row.result_json === null ? null : JSON.parse(String(row.result_json)), error_code: row.error_code };
+  }
   applyDecisionBatch(id: string, revision: number, inputs: DecisionInput[], key: string): StoredTask {
     if (!text(key) || key.length > 200 || !Array.isArray(inputs) || !inputs.length || inputs.length > 100) fail();
     const requestHash = hash(JSON.stringify({ revision, inputs }));
@@ -185,7 +255,12 @@ export class TaskStore {
     });
   }
   delete(id: string, revision: number): void {
-    this.transaction(() => { this.current(id, revision); this.db.prepare('DELETE FROM workflow_tasks WHERE id=?').run(id); });
+    this.transaction(() => {
+      this.current(id, revision);
+      this.db.prepare(`UPDATE workflow_http_requests SET result_json=? WHERE operation='create-task'
+        AND json_extract(result_json,'$.id')=?`).run(JSON.stringify({ id, deleted: true }), id);
+      this.db.prepare('DELETE FROM workflow_tasks WHERE id=?').run(id);
+    });
   }
   close(): void { this.db.close(); }
 }

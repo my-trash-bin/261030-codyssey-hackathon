@@ -1,7 +1,7 @@
 // SafeHandoff 작업 화면 동작.
 // 실제 서버에 연결된 API는 GET/POST /api/documents, GET /api/core, POST /api/analysis다.
 // 공개 결정 영역은 disclosure-view.ts에서 후보별로 렌더한다. GET /api/v1/tasks/{id}의
-// 요청 경로는 준비됐지만 서버 라우트는 미제공이며, 미리보기·결정 저장·철회·해석 성공을 만들지 않는다.
+// 서버 경로는 제공되지만 운영 mount의 세션 연결은 후속이다. 실제 성공 응답 없이 완료를 표시하지 않는다.
 // 파일 분석 영역은 analysis-view.ts가 맡고 결과를 task 후보·공개 허가로 바꾸지 않는다.
 
 import { mountAnalysis } from './analysis-view.js';

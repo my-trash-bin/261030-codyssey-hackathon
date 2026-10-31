@@ -125,3 +125,11 @@ test('configured Engine analyze parses sources and uses the actual local HTTP mo
     await rm(dir, { recursive: true, force: true });
   }
 });
+
+test('authenticated analysis metadata strips URL credentials, path and query and never infers approval', async () => {
+  const { configuredAnalysisOrigin } = await import('./config.ts');
+  const root = fileURLToPath(new URL('../../../', import.meta.url));
+  assert.equal(configuredAnalysisOrigin(root, { SAFEHANDOFF_CONFIG: 'config.example.json',
+    SAFEHANDOFF_LLM_BASE_URL: 'https://user:secret@model.invalid/private?token=secret' }), 'https://model.invalid');
+  assert.equal(configuredAnalysisOrigin(root, { SAFEHANDOFF_CONFIG: 'config.example.json' }), null);
+});

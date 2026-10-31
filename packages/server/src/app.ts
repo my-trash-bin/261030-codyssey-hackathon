@@ -32,11 +32,14 @@ function documentText(value: unknown): string {
   return fields.text;
 }
 
-export function createApp(store: DocumentStore, core: Core, engine?: Engine) {
+export function createApp(store: DocumentStore, core: Core, engine?: Engine, workflow?: (request: IncomingMessage, response: ServerResponse) => Promise<void>) {
   return async (request: IncomingMessage, response: ServerResponse): Promise<void> => {
     const path = new URL(request.url || '/', 'http://localhost').pathname;
     try {
-      if (request.method === 'GET' && path === '/api/core') {
+      if (path.startsWith('/api/v1/')) {
+        if (workflow) await workflow(request, response);
+        else json(response, 503, { error: 'WORKFLOW_API_DISABLED' });
+      } else if (request.method === 'GET' && path === '/api/core') {
         json(response, 200, core.info);
       } else if (request.method === 'POST' && path === '/api/sharing') {
         if (!request.headers['content-type']?.startsWith('application/json')) {

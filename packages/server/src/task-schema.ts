@@ -96,3 +96,23 @@ CREATE TRIGGER IF NOT EXISTS workflow_analysis_snapshot_immutable BEFORE UPDATE 
  BEGIN SELECT RAISE(ABORT,'IMMUTABLE_ANALYSIS_SNAPSHOT'); END;
 INSERT OR IGNORE INTO task_store_migrations(version,applied_at) VALUES(2,strftime('%Y-%m-%dT%H:%M:%fZ','now'));
 `;
+
+// v3 HTTP idempotency and immutable representation metadata, additive to existing storage.
+export const httpSchema = `
+CREATE TABLE IF NOT EXISTS workflow_preview_payloads(
+ task_id TEXT NOT NULL, id TEXT NOT NULL, payload_json TEXT NOT NULL CHECK(json_valid(payload_json)),
+ PRIMARY KEY(task_id,id), FOREIGN KEY(task_id,id) REFERENCES workflow_previews(task_id,id) ON DELETE CASCADE
+);
+CREATE TRIGGER IF NOT EXISTS workflow_preview_payloads_immutable BEFORE UPDATE ON workflow_preview_payloads
+ BEGIN SELECT RAISE(ABORT,'IMMUTABLE_PREVIEW_PAYLOAD'); END;
+CREATE TABLE IF NOT EXISTS workflow_http_requests(
+ operation TEXT NOT NULL, key TEXT NOT NULL, request_hash TEXT NOT NULL, result_json TEXT NOT NULL,
+ task_id TEXT REFERENCES workflow_tasks(id) ON DELETE CASCADE,
+ PRIMARY KEY(operation,key)
+);
+CREATE TABLE IF NOT EXISTS workflow_disclosure_jobs(
+ id TEXT PRIMARY KEY, task_id TEXT NOT NULL REFERENCES workflow_tasks(id) ON DELETE CASCADE,
+ revision INTEGER NOT NULL, status TEXT NOT NULL, result_json TEXT, error_code TEXT
+);
+INSERT OR IGNORE INTO task_store_migrations(version,applied_at) VALUES(3,strftime('%Y-%m-%dT%H:%M:%fZ','now'));
+`;

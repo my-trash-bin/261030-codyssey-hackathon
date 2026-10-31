@@ -1,5 +1,5 @@
 import { ModelError } from '@safehandoff/core-interface';
-import type { CandidateProposals, Draft, EvidenceSpan, FactPack, Review } from '@safehandoff/core-interface';
+import type { CandidateProposals, DisclosureProposal, Representation, Draft, EvidenceSpan, FactPack, Review } from '@safehandoff/core-interface';
 
 export function invalid(): never { throw new ModelError('MODEL_INVALID_RESPONSE'); }
 function object(value: unknown, required: string[], optional: string[] = []): Record<string, unknown> {
@@ -139,4 +139,15 @@ export function parseCandidateProposals(input: string, evidence: EvidenceSpan[])
   });
   return { schema_version: 'candidate_proposals.v1', candidates: normalized,
     conflicts: normalizedConflicts } as CandidateProposals;
+}
+
+export function parseDisclosureProposal(input: string, candidateId: string, validate: (value: unknown) => Representation): DisclosureProposal {
+  const root = object(parse(input), ['schema_version', 'candidate_id', 'status', 'representation', 'requires_clarification']);
+  if (root.schema_version !== 'disclosure_proposal.v1' || root.candidate_id !== candidateId ||
+    !['supported', 'ambiguous', 'unsupported'].includes(String(root.status)) || typeof root.requires_clarification !== 'boolean') invalid();
+  if (root.status === 'supported') {
+    if (root.requires_clarification !== false || root.representation === null) invalid();
+    try { validate(root.representation); } catch { invalid(); }
+  } else if (root.representation !== null || (root.status === 'ambiguous' && !root.requires_clarification)) invalid();
+  return root as unknown as DisclosureProposal;
 }

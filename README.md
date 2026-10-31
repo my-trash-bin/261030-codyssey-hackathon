@@ -171,3 +171,20 @@ F02 내부 저장은 `TaskStore.analysis`와 `runTaskAnalysis`를 사용한다. 
 revision·job·source/skill 바인딩을 대조하며 취소·재분석·삭제 뒤 늦은 응답을 거부한다. 모델 없는
 수동 후보는 현재 근거나 user_note에 묶으며 이전 공개 결정을 복제하지 않는다. task HTTP API는 아직
 없고, 작업 화면은 이 저장 경로 대신 stateless `/api/analysis`를 호출한다. [내부 계약·한도](docs/f02-analyze-plan.md)를 따른다.
+
+### UI용 task·공개 결정 HTTP
+
+`SAFEHANDOFF_WORKFLOW_TOKEN`을 32자 이상 비밀로 설정하면 실제 앱에서 인증된 v1 task API를
+사용할 수 있다. 브라우저 origin은 `SAFEHANDOFF_WORKFLOW_BROWSER_ORIGIN`(기본
+http://127.0.0.1:5173), 서버 origin은 `SAFEHANDOFF_WORKFLOW_SERVER_ORIGIN`(기본
+http://127.0.0.1:8080)으로 지정한다. HTTP loopback·단일 운영자 개발용이며 LAN 인증을 대신하지 않는다.
+미설정·fake-app은 WORKFLOW_API_DISABLED다. 기존 stateless API는 그대로 유지된다.
+
+세션 생성/조회, task 생성/조회/삭제·원자료 교체·분석 job/CAS·수동 후보, 후보 필드 목록,
+실제 미리보기·조건 해석 제안·결정 배치·철회를 제공한다. 세션 쿠키·CSRF·Host/Origin·revision·
+멱등 키를 검사한다. C는 검증된 CSV/JSON 근거에서 선택한 값만 계산하고 Rule 저장은 거부한다.
+인증된 세션 응답의 모델 origin은 설정 위치 안내이며 사내 환경 승인이나 연결 성공 판정이 아니다.
+
+[실제 API·환경 변수·DTO](docs/api.md)와 [UI 연결 잔여 작업](docs/ui-api-requests.md)을 따른다.
+현재 UI의 stateless 분석 결과는 영속 task로 자동 채택되지 않으며 로그인·C 필드 선택 화면도
+후속이다. `/api/analysis` 결과를 공개 결정으로 자동 승격하지 않는다.

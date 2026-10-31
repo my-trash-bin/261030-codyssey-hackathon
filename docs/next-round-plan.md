@@ -91,3 +91,10 @@ F06 본체, `check_doc_ip_context_v1`/`scan_candidate_bundle_v1`(ProcessToolRunn
 다음 연결 작업은 [F03 계획](f03-plan.md)의 제안/미리보기 계약과 내부 후보·결정 저장의 접점이다.
 인증·CSRF·Host/Origin·판본 규칙을 정리하기 전에 task CRUD를 임의로 노출하지 않는다. 역할별
 모델 예산·실제 모델 length 종료와 roleDocuments 주입도 별도 검증 대상으로 유지한다.
+
+
+## UI 요청 후속 구현
+
+인증된 단일 운영자 loopback task HTTP·분석 job·미리보기·결정·철회와 CSV/JSON 선택 필드 변환을
+구현했다. 위 server task HTTP 제외 문구는 당시 범위 기록이다. 현재 남은 화면 로그인·task 저장·
+C 선택 연결과 원문/타임라인/Rule·최종화는 [요청 현황](ui-api-requests.md)을 따른다.

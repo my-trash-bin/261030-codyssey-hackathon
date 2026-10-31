@@ -35,7 +35,7 @@ function reusableRepresentation(representation: ReviewGroundingContext['input'][
   if (representation.kind === 'fact_summary') return transform === 'series_fact_summary.v1' && !Object.keys(parameters).length;
   if (transform === 'series_fact_summary.v1') return false;
   if (transform === 'series_index_base100.v1') return Object.keys(parameters).every(key => key === 'decimal_places') &&
-    (parameters.decimal_places === undefined || (Number.isInteger(parameters.decimal_places) && parameters.decimal_places >= 0 && parameters.decimal_places <= 4));
+    (parameters.decimal_places === undefined || (typeof parameters.decimal_places === 'number' && Number.isInteger(parameters.decimal_places) && parameters.decimal_places >= 0 && parameters.decimal_places <= 4));
   if (['timeline_shifted_absolute.v1', 'timeline_synthetic_schedule.v1'].includes(transform)) {
     return Object.keys(parameters).length === 1 && Number.isSafeInteger(parameters.base_epoch_seconds);
   }

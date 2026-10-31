@@ -1,10 +1,3 @@
-// SafeHandoff 공개 결정 화면 — 후보별 반복 렌더.
-// 서버 상태·전송 경계·draft 수명은 disclosure-state.ts가 맡고, 이 파일은 DOM만 만든다.
-// 실제 연결: GET task 집계 조회 하나뿐이다. 미리보기·결정 배치·철회·조건 해석은
-// 서버 F03 라우트가 없으면 오류로 끝나며, 이 화면은 성공이나 후보를 지어내지 않는다.
-// csrfToken이 주어지지 않은 운영 mount에서는 disclosure-state의 writeBlockReason이
-// 모든 쓰기 버튼을 사유와 함께 차단한다.
-
 import { DisclosureWorkspace } from './disclosure-state.js';
 import type {
   Candidate,
@@ -20,189 +13,15 @@ import type {
   Source,
 } from './disclosure-state.js';
 
-type MountOptions = { csrfToken?: string; fetch?: typeof fetch };
-
-type FocusState = {
-  key: string;
-  node: HTMLElement | null;
-  start: number | null;
-  end: number | null;
-};
-
-const MODE_LABELS: Record<Mode, string> = {
-  A: 'A. 사실 요약 — 구체적인 값 없이 사실만 문장으로',
-  B: 'B. 추이만 — 관측 순서와 증가·감소 방향만, 값·비율·시각 제외',
-  C: 'C. 요청 정보 마스킹 — 고른 필드와 값만 남김',
-  D: 'D. 기타 직접 입력 — 조건 해석이 지원될 때만',
-};
-
-const DISPOSITION_LABELS: Record<Disposition, string> = {
-  allow: '허용(미리보기 승인)',
-  exclude: '이번 결과에서 제외',
-  defer: '나중에 결정',
-};
-
-const KIND_LABELS: Record<string, string> = {
-  observation: '관측',
-  constraint: '제약',
-  hypothesis: '가설',
-  unknown: '미확인',
-  identifier: '식별자',
-  series: '추이',
-  timeline: '시간 순서',
-  synthetic: '합성 예시',
-  config_example: '설정 예',
-};
-
-const REPRESENTATION_LABELS: Record<Representation['kind'], string> = {
-  fact_summary: '사실 요약',
-  derived_table: '추이 표',
-  selected_fields: '선택 필드',
-  exact_value: '정확한 값',
-  approved_excerpt: '승인된 발췌',
-};
-
-// 목적 표시 이름은 기존 카탈로그 표기(contracts/catalog.example.json의 purposes[].display_name)를 그대로 쓴다.
-const PURPOSE_LABELS: Record<string, string> = {
-  oss_issue: '오픈소스 버그 제보',
-  vendor_support: 'B2B 기술지원 문의',
-  operations_advice: '외부 운영 자문',
-};
-
-// exact_value·approved_excerpt·선택 필드는 재사용 기준 저장이 허용되지 않는다.
-const REUSABLE_FORBIDDEN: readonly Representation['kind'][] = [
-  'exact_value',
-  'approved_excerpt',
-  'selected_fields',
-];
-
+import { MODE_LABELS, DISPOSITION_LABELS, KIND_LABELS, REPRESENTATION_LABELS, PURPOSE_LABELS, REUSABLE_FORBIDDEN, make, line, shortId, kindLabel, representationLabel, asRecord, readString, scopeSummary, purposeName, collapse, decodeBase64Text, interpretationText, emptyDraft, isEditable, findFocusable } from './disclosure-dom.ts';
+import type { MountOptions, FocusState, DecodedText } from './disclosure-dom.ts';
+import { createEvidenceRenderer } from './disclosure-evidence.ts';
 let mountCounter = 0;
-
-function make<K extends keyof HTMLElementTagNameMap>(tag: K, className?: string): HTMLElementTagNameMap[K] {
-  const node = document.createElement(tag);
-  if (className) node.className = className;
-  return node;
-}
-
-function line<K extends keyof HTMLElementTagNameMap>(
-  tag: K,
-  value: string,
-  className?: string,
-): HTMLElementTagNameMap[K] {
-  const node = make(tag, className);
-  node.textContent = value;
-  return node;
-}
-
-function shortId(value: string): string {
-  return value.length > 18 ? `${value.slice(0, 15)}…` : value;
-}
-
-function kindLabel(kind: string): string {
-  return KIND_LABELS[kind] ?? kind;
-}
-
-function representationLabel(representation: Representation | null): string {
-  if (!representation) return '표현 미선택';
-  const name = REPRESENTATION_LABELS[representation.kind] ?? representation.kind;
-  return representation.transform_id ? `${name} · ${representation.transform_id}` : name;
-}
-
-function asRecord(value: unknown): Record<string, unknown> {
-  return typeof value === 'object' && value !== null ? (value as Record<string, unknown>) : {};
-}
-
-function readString(record: Record<string, unknown>, key: string): string | null {
-  const value = record[key];
-  return typeof value === 'string' && value ? value : null;
-}
-
-function scopeSummary(scope: Scope): string {
-  const record = asRecord(scope);
-  const parts: string[] = [];
-  const purpose = readString(record, 'purpose_id');
-  if (purpose) parts.push(`목적 ${purpose}`);
-  const audience = readString(record, 'audience');
-  if (audience) parts.push(`공개 대상 ${audience}`);
-  const project = readString(record, 'project_id');
-  if (project) parts.push(`프로젝트 ${project}`);
-  const recipient = readString(record, 'recipient_id');
-  if (recipient) parts.push(`수신처 ${recipient}`);
-  const skillHash = readString(record, 'skill_set_hash');
-  if (skillHash) parts.push(`스킬 집합 해시 ${shortId(skillHash)}`);
-  return parts.length > 0 ? parts.join(' · ') : 'task 응답에 범위 정보가 없습니다.';
-}
-
-// 목적 ID는 서버 응답 값이다. 표기 이름을 모르는 값에 이름을 지어내지 않고 ID만 덧붙여 보여준다.
-function purposeName(scope: Scope): string {
-  const purpose = readString(asRecord(scope), 'purpose_id');
-  if (!purpose) return '';
-  const label = PURPOSE_LABELS[purpose];
-  return label ? `${label}(${purpose})` : `${purpose}(표시 이름 없음)`;
-}
-
-function collapse(value: string): string {
-  return value.replace(/\s+/g, ' ').trim();
-}
-
-type DecodedText = { ok: true; text: string } | { ok: false; reason: string };
-
-function decodeBase64Text(value: string): DecodedText {
-  try {
-    const binary = atob(value);
-    const bytes = new Uint8Array(binary.length);
-    for (let index = 0; index < binary.length; index += 1) bytes[index] = binary.charCodeAt(index);
-    return { ok: true, text: new TextDecoder('utf-8').decode(bytes) };
-  } catch {
-    return { ok: false, reason: 'base64를 UTF-8로 해석하지 못했습니다.' };
-  }
-}
-
-function interpretationText(draft: Draft): string {
-  switch (draft.interpretation) {
-    case 'supported':
-      return '해석 결과: 지원됨 — 미리보기를 만들 수 있습니다.';
-    case 'ambiguous':
-      return '해석 결과: 모호함 — 조건을 더 구체화해야 하며 미리보기와 적용이 차단됩니다.';
-    case 'unsupported':
-      return '해석 결과: 지원되지 않음 — 이 조건으로는 공개할 수 없습니다.';
-    default:
-      return '해석 결과: 아직 해석되지 않았습니다. 미리보기를 만들려면 해석을 먼저 요청하세요.';
-  }
-}
-
-function emptyDraft(): Draft {
-  return {
-    disposition: null,
-    mode: null,
-    condition: '',
-    reusable: false,
-    preview: null,
-    interpretation: 'uninterpreted',
-    jobId: null,
-    jobStatus: null,
-    representation: null,
-    message: '',
-  };
-}
-
-function isEditable(node: Element | null): node is HTMLInputElement | HTMLTextAreaElement {
-  if (node instanceof HTMLTextAreaElement) return true;
-  if (node instanceof HTMLInputElement) return ['text', 'search', 'url', 'email'].includes(node.type);
-  return false;
-}
-
-function findFocusable(scope: ParentNode, key: string): HTMLElement | null {
-  for (const node of Array.from(scope.querySelectorAll<HTMLElement>('[data-focus-key]'))) {
-    if (node.dataset.focusKey === key) return node;
-  }
-  return null;
-}
 
 export function mountDisclosures(root: HTMLElement, options: MountOptions = {}): DisclosureWorkspace {
   mountCounter += 1;
   const uid = `disclosures-${mountCounter}`;
-  const sourceBytes = new WeakMap<Source, Uint8Array | null>();
+  const { buildEvidence, buildConflict } = createEvidenceRenderer();
   // 후보 ID는 임의 문자열이므로 HTML id·radio name에 그대로 쓰지 않고 화면 안에서만 쓰는 토큰으로 바꾼다.
   const candidateTokens = new Map<string, string>();
 
@@ -398,7 +217,7 @@ export function mountDisclosures(root: HTMLElement, options: MountOptions = {}):
   function writeNoteText(reason: string): string {
     return reason
       ? `쓰기 차단: ${reason}`
-      : '쓰기 차단 사유 없음(토큰 제공됨). 서버 라우트가 없으면 요청은 오류로 끝납니다.';
+      : '쓰기 차단 사유 없음(토큰 제공됨). 실제 API 응답을 확인한 뒤 상태를 갱신합니다.';
   }
 
   function build(): HTMLElement {
@@ -420,7 +239,7 @@ export function mountDisclosures(root: HTMLElement, options: MountOptions = {}):
       empty.append(line('p', '아직 조회한 작업이 없습니다. 위에 작업 ID를 입력해 조회하세요.', 'status'));
       empty.append(line(
         'p',
-        '서버에 task 조회 라우트가 없으면 조회는 정확한 오류로 끝나며, 이 화면은 후보를 지어내지 않습니다.',
+        '조회에는 인증된 세션이 필요합니다. API 비활성·미인증·작업 부재는 서버 오류 코드로 구분합니다.',
         'hint',
       ));
       container.append(empty);
@@ -522,7 +341,7 @@ export function mountDisclosures(root: HTMLElement, options: MountOptions = {}):
     if (reason) {
       wrap.append(line(
         'p',
-        '조회(GET)는 이 사유와 무관합니다. 토큰이 있어도 서버에 F03 라우트가 없으면 요청은 실패하며 성공으로 표시하지 않습니다.',
+        '조회(GET)에도 세션이 필요합니다. 쓰기는 인증된 세션과 CSRF 토큰이 모두 있어야 서버에서 처리합니다.',
         'hint',
       ));
     }
@@ -544,142 +363,6 @@ export function mountDisclosures(root: HTMLElement, options: MountOptions = {}):
     reload.disabled = ws.busy;
     reload.addEventListener('click', () => { void ws.loadTask(snapshot.id); });
     wrap.append(reload);
-    return wrap;
-  }
-
-  function findSource(snapshot: Snapshot, sourceVersionId: string): Source | undefined {
-    return snapshot.sources.find(source =>
-      source.id === sourceVersionId || source.source_id === sourceVersionId);
-  }
-
-  function decodeSource(source: Source): Uint8Array | null {
-    if (sourceBytes.has(source)) return sourceBytes.get(source) ?? null;
-    let decoded: Uint8Array | null = null;
-    const raw = source.raw_bytes;
-    if (typeof raw === 'string' && raw.length > 0) {
-      try {
-        const binary = atob(raw);
-        const bytes = new Uint8Array(binary.length);
-        for (let index = 0; index < binary.length; index += 1) bytes[index] = binary.charCodeAt(index);
-        decoded = bytes;
-      } catch {
-        decoded = null;
-      }
-    }
-    sourceBytes.set(source, decoded);
-    return decoded;
-  }
-
-  function excerptText(source: Source | undefined, start: number, end: number): string {
-    if (!source) return '원자료를 task 응답에서 찾지 못해 발췌를 표시할 수 없습니다.';
-    const bytes = decodeSource(source);
-    if (!bytes) return '원자료 원문 바이트(raw_bytes)가 응답에 없어 발췌를 표시할 수 없습니다.';
-    if (!Number.isInteger(start) || !Number.isInteger(end) || start < 0 || end < start || end > bytes.length) {
-      return `발췌 범위(${start}–${end})가 원문 바이트 길이(${bytes.length})를 벗어나 표시하지 않습니다.`;
-    }
-    const slice = bytes.subarray(start, end);
-    let text = new TextDecoder('utf-8', { fatal: false }).decode(slice);
-    const partial = start > 0 || end < bytes.length;
-    if (partial) text = text.replace(/^\uFFFD+/, '').replace(/\uFFFD+$/, '');
-    const collapsed = collapse(text);
-    if (!collapsed) return '발췌 구간이 비어 있습니다(공백 또는 문자 경계 아님).';
-    const bounded = collapsed.length > 160 ? `${collapsed.slice(0, 160)}…` : collapsed;
-    return `"${bounded}"${partial ? ' (구간 일부)' : ''}`;
-  }
-
-  function buildEvidenceItem(snapshot: Snapshot, evidenceId: string): HTMLElement {
-    const item = make('li', 'evidence');
-    const evidence: Evidence | undefined = snapshot.evidence.find(entry => entry.id === evidenceId);
-    if (!evidence) {
-      item.append(line('p', `근거 ${evidenceId}: task 응답에 상세가 없습니다.`, 'hint'));
-      return item;
-    }
-    const source = findSource(snapshot, evidence.source_version_id);
-    const locator = evidence.locator;
-    const meta: string[] = [
-      source ? source.display_name : `원자료 ${evidence.source_version_id}`,
-      source ? `형식 ${source.format}` : '형식 미확인',
-      `바이트 ${evidence.start}–${evidence.end}`,
-      `locator ${locator.kind}`,
-    ];
-    if (locator.kind === 'csv_cell') {
-      if (locator.row !== undefined) meta.push(`행 ${locator.row}`);
-      if (locator.column) meta.push(`열 ${locator.column}`);
-    }
-    if (locator.kind === 'json_pointer' && locator.pointer) meta.push(locator.pointer);
-    item.append(line('p', meta.join(' · '), 'evidence__meta'));
-    if (locator.kind === 'byte_range') {
-      item.append(line('p', excerptText(source, evidence.start, evidence.end), 'evidence__excerpt'));
-    } else {
-      item.append(line('p', '바이트 구간 근거가 아니어서 원문 발췌를 표시하지 않습니다.', 'hint'));
-    }
-    return item;
-  }
-
-  function buildEvidence(snapshot: Snapshot, evidenceIds: string[] | null, heading: string): HTMLElement {
-    const wrap = make('div', 'candidate__evidence');
-    wrap.append(line('h3', heading));
-    if (!evidenceIds || evidenceIds.length === 0) {
-      wrap.append(line('p', '이 후보에 연결된 근거가 없습니다.', 'hint'));
-      return wrap;
-    }
-    const list = make('ul', 'evidence-list');
-    for (const evidenceId of evidenceIds) list.append(buildEvidenceItem(snapshot, evidenceId));
-    wrap.append(list);
-    return wrap;
-  }
-
-  function conflictPeers(snapshot: Snapshot, candidate: Candidate): Candidate[] {
-    const group = candidate.conflict_group;
-    const reason = candidate.conflict_reason;
-    return snapshot.candidates.filter(other => {
-      if (other.id === candidate.id) return false;
-      if (group && other.conflict_group === group) return true;
-      return !group && Boolean(reason) && other.conflict_reason === reason;
-    });
-  }
-
-  function buildConflict(snapshot: Snapshot, candidate: Candidate): HTMLElement | null {
-    const group = candidate.conflict_group;
-    const reason = candidate.conflict_reason;
-    const peers = conflictPeers(snapshot, candidate);
-    if (!group && !reason && peers.length === 0) return null;
-    const wrap = make('div', 'candidate__conflict');
-    wrap.append(line('h3', '자료 충돌'));
-    wrap.append(line(
-      'p',
-      group
-        ? `같은 충돌 묶음 ${group}에 속한 후보가 서로 다른 근거를 인용합니다.`
-        : '이 후보에는 충돌 사유가 표시되어 있습니다.',
-      'status',
-    ));
-    if (reason) wrap.append(line('p', `충돌 사유: ${reason}`, 'hint'));
-
-    const sides: { candidate: Candidate; current: boolean }[] = [
-      { candidate, current: true },
-      ...peers.map(peer => ({ candidate: peer, current: false })),
-    ];
-    for (const side of sides) {
-      const block = make('div', 'conflict__side');
-      const label = side.current
-        ? '이 후보의 근거'
-        : `충돌 후보 ${shortId(side.candidate.id)}의 근거`;
-      block.append(line('p', label, 'conflict__side-label'));
-      block.append(line('p', side.candidate.statement, 'conflict__statement'));
-      if (!side.current && side.candidate.conflict_reason && side.candidate.conflict_reason !== reason) {
-        block.append(line('p', `이 후보의 충돌 사유: ${side.candidate.conflict_reason}`, 'hint'));
-      }
-      block.append(buildEvidence(snapshot, side.candidate.evidence_ids, '인용 근거'));
-      wrap.append(block);
-    }
-    if (peers.length === 0) {
-      wrap.append(line('p', '같은 충돌 묶음의 다른 후보가 task 응답에 없습니다.', 'hint'));
-    }
-    wrap.append(line(
-      'p',
-      '어느 근거가 맞는지는 이 화면에서 확인할 수 없습니다. 양쪽 후보의 문장과 근거 출처·바이트 구간을 비교해 남길 내용을 직접 판단하세요.',
-      'hint',
-    ));
     return wrap;
   }
 
@@ -851,7 +534,7 @@ export function mountDisclosures(root: HTMLElement, options: MountOptions = {}):
       'hint',
     ));
     const reasons: Partial<Record<Mode, string>> = {
-      C: 'C(선택 필드)는 선택 가능한 필드 목록과 서버 변환이 아직 제공되지 않아 사용할 수 없습니다.',
+      C: 'C(선택 필드)는 이 화면의 서버 필드 목록·선택 연결이 아직 없어 사용할 수 없습니다.',
     };
     if (candidate.kind !== 'series') {
       reasons.B = `이 후보의 종류는 ${kindLabel(candidate.kind)}입니다. B는 series 후보에만 쓸 수 있어 차단합니다.`;

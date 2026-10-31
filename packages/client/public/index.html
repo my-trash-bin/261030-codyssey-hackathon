@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>SafeHandoff — 공개 전 확인 작업 공간</title>
   <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="/disclosure.css">
   <script type="module" src="/main.js"></script>
 </head>
 <body>
@@ -173,7 +174,7 @@
               <li>POST /api/analysis — 선택한 파일의 내부 근거·후보 제안 요청(분석 응답이며 공개 허가가 아닙니다)</li>
               <li>GET /api/documents — 저장된 내부 텍스트 조회</li>
               <li>POST /api/documents — 내부 텍스트 저장</li>
-              <li>GET /api/v1/tasks/{id} — 공개 결정 화면의 task 집계 조회(계약에 정의됨, 서버 라우트가 없으면 404 오류로 표시)</li>
+              <li>GET /api/v1/tasks/{id} — 공개 결정 task 집계 조회(인증된 세션 필요, API 비활성·미인증·작업 부재를 오류 코드로 구분)</li>
             </ul>
           </div>
 
@@ -188,7 +189,7 @@
           <div class="env">
             <h3>연결되지 않은 기능</h3>
             <ul class="plain-list">
-              <li>공개 미리보기·결정 배치 저장·결정 철회·직접 입력 조건 해석 — 화면과 전송 경계만 있고 서버 라우트가 없어 요청이 오류로 끝납니다</li>
+              <li>공개 미리보기·결정 배치 저장·결정 철회·직접 입력 조건 해석 — 서버 API는 제공되며 화면 로그인·CSRF 토큰 전달 연결은 후속입니다</li>
               <li>공유 초안 생성·확정·다운로드</li>
               <li>내부 검토·이력 조회, 스킬 등록</li>
               <li>원자료 파일의 서버 저장 — 파일은 분석 요청 본문으로만 쓰이고 보관되지 않습니다</li>

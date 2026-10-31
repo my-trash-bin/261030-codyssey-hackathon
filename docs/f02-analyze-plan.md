@@ -212,3 +212,10 @@ app 통합 시험은 실제 RealCore 파서 → 로컬 HTTP 모델 adapter → T
 HTTP 분석은 여전히 stateless이고 새 내부 job 저장에 자동 연결하지 않았다. 인증·CSRF·Host/Origin·
 task CRUD·수동 후보 UI·Rule/roleDocuments·팩 변경 무효화·artifact/export 전체 연결은 후속이다.
 실제 모델의 length 종료·역할별 출력 예산 문제는 이번에 변경하지 않았다.
+
+
+## UI 요청 후속 HTTP 연결
+
+[UI 요청 현황](ui-api-requests.md)에 따라 인증된 task·source·분석 job/CAS·수동 후보 HTTP를
+구현했다. 앞의 task HTTP 제외 문구는 내부 저장 라운드 당시 범위다. stateless `/api/analysis`는
+그대로이며 현재 UI를 영속 저장에 자동 연결하지 않는다. [실제 API](api.md)를 따른다.
