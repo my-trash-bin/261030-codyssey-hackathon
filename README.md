@@ -1,6 +1,6 @@
 # SafeHandoff
 
-실제 앱과 연출용 가짜 앱을 독립적으로 개발하기 위한 TypeScript·pnpm 작업 공간입니다. 실제 앱은 문서 저장·조회와 코어 호출 경계만 제공하며 **진짜 코어는 아직 미구현**입니다. 가짜 앱은 템플릿·응답 지연·실패를 바꿔 흐름을 반복 개선합니다.
+실제 앱과 연출용 가짜 앱을 독립적으로 개발하기 위한 TypeScript·pnpm 작업 공간입니다. 실제 앱은 문서 저장·조회와 코어 호출 경계만 제공하며 **진짜 코어의 작성·검토는 주입한 모델로 동작하며, 앱 진입점에는 아직 연결하지 않았습니다**. 가짜 앱은 템플릿·응답 지연·실패를 바꿔 흐름을 반복 개선합니다.
 
 ## 패키지 경계
 
@@ -10,7 +10,9 @@
 | packages/fake-app | 연출용 가짜 앱: 가짜 코어·연결 연출·조절 화면 |
 | packages/server | 코어 구현을 모르는 공통 HTTP·SQLite 껍데기 |
 | packages/core-interface | 공유 요청·응답·오류와 Core 계약 |
-| packages/core | 개발할 진짜 코어. 가짜 구현을 import하지 않음 |
+| packages/core | 모델 주입 기반 작성·검토 Engine. 가짜 구현을 import하지 않음 |
+| packages/model-adapter | 설정 기반 호환 HTTP 모델 클라이언트 |
+| packages/sandbox-runner | 아직 미구현인 Docker 실행 경계 |
 | packages/fake-core | 연출용 문구와 결과 템플릿 |
 | packages/client | 별도 문서 저장·조회 화면과 API 프록시 |
 
@@ -56,3 +58,11 @@ just check는 QG를 직접 실행합니다. QG가 recommended 규칙과 공식 @
 빌드된 앱은 `pnpm --filter @safehandoff/app start`, 가짜 앱은 `pnpm --filter @safehandoff/fake-app start`로 각각 실행합니다. 진짜 코어는 packages/core에서 공통 계약을 구현하면서 독립 시험합니다.
 
 intent.md·제품 설계·contracts·fixtures/demo·과거 evaluation 기록은 보존합니다. 제품 전체 기능의 구현 완료와 시연 템플릿 동작을 구분합니다.
+
+## 코어 라이브러리의 현재 범위
+
+`RealCore(modelClient, engineConfig, reproRunner?)`에 설정과 모델을 주입하면 `write`·`review`를 사용할 수 있습니다. `writeReviewed`는 단계별 재시도, 전체 모델 호출 수, 검토 수정 횟수 상한을 함께 지킵니다. `generate`는 기존 승인 facts 계약으로 작성·검토 한 번만 수행하며 검토 실패 시 문서를 반환하지 않습니다.
+
+`OpenAICompatibleModelClient(providerConfig, env?)`는 설정에 지정한 환경 변수 이름으로 URL·모델·키를 조회합니다. 실제 운영 값이나 새 환경 변수는 추가하지 않았습니다. 한 complete 호출은 HTTP 요청 한 번이며 재시도는 Engine이 담당합니다. HTTP 테스트는 로컬 목 서버만 사용합니다.
+
+분석·공개 제안·미리보기 계산, Docker 실행, server의 task/decision 저장은 미구현입니다. `composeFactPack`은 서버가 범위·원자료·hash를 검증한 현재 결정과 미리보기를 입력받는 순수 변환이며 승인 저장을 대신하지 않습니다.

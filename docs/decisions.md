@@ -125,3 +125,12 @@
 - `judgeReproduction` checks the `buggy/fixed × ascii/multibyte` matrix, exit/stdout consistency and runner-observed output flags before applying F08's oracle. Timeout exit codes 124/137 produce `error/REPRO_TIMEOUT`.
 - `OpenAICompatibleModelClient` resolves provider environment names at construction, rejects unapproved plaintext URLs and redirects, bounds input/response size and in-flight calls, and supports cancellation/timeouts. One `complete` call makes one HTTP attempt; Engine owns retry and aggregate call budgets.
 - Tests use contract examples and a local Node HTTP server only. No external model or real source data is used. Docker execution and server task/decision persistence remain separate work.
+
+## 2026-10-31 · 2b writer/reviewer Engine subset
+
+- `RealCore` implements `Engine` and accepts `ModelClient`, `EngineConfig` and optional `ReproRunner` through its constructor. Configuration is supplied by the caller; core does not read private config files or environment variables.
+- `write` and `review` each enforce per-step attempt limits. `writeReviewed` shares the total model-call budget across writing, review, retries and repairs, and stops at `max_review_repairs`. Nonpassing results stay nonpassing; `needs_decision` never starts an automatic rewrite or disclosure expansion.
+- `generate` preserves the existing approved-facts HTTP contract and performs one writer/reviewer exchange (`maxRepairs: 0`), with bounded retries inside each step. It returns a document only after a passing review. Model errors map to existing Core error codes.
+- Strict response validation rejects unknown/duplicate fields and unknown fact/block/slot references. Repair feedback contains only fixed reason codes and validated block/fact IDs, excluding free-form reviewer explanations, actions and candidate IDs.
+- `analyze`, `proposeDisclosure`, and `preview` remain explicitly unimplemented. Reproduction delegates only to an injected runner when enabled; Docker execution remains unimplemented. The app entrypoint still constructs an unconfigured core and makes no external model calls.
+- Round 3 remains separate: Docker implementation requires the requested security review, and server task/decision persistence requires a scoped plan before coding. Neither is implemented in this round.

@@ -34,3 +34,9 @@ facts는 호출자가 이번 목적·수신자에게 공개하기로 승인한 �
 fake-app만 GET /__demo, GET /__demo.js, GET /api/demo/settings, PUT /api/demo/settings를 제공한다. 실제 app에서는 모두 404다. 설정 JSON은 script: title/opening/closing과 connection: delayMs/failuresRemaining이다. 지연은 0–30000 ms, 실패 수는 0–10이다. 설정을 바꾸면 다음 요청부터 적용한다.
 
 문서 저장·조회 클라이언트는 SERVER_ORIGIN으로 대상을 바꿀 수 있다. 실제 앱은 8080, 가짜 앱은 8081이며 조절 화면은 가짜 앱에서 직접 연다.
+
+## 주입형 Engine 라이브러리
+
+HTTP 필드와 환경 변수는 이번 라운드에서 변경하지 않았다. 앱 진입점은 여전히 모델을 주입하지 않아 503 CORE_NOT_IMPLEMENTED를 반환한다. 모델과 EngineConfig를 주입한 RealCore는 작성·검토를 수행하며, 실패·예산 초과·통과하지 못한 검토는 기존 CORE_UNAVAILABLE로 매핑한다. 취소는 CORE_CANCELLED다.
+
+`writeReviewed`의 수정 루프는 라이브러리 전용이다. `/api/sharing`의 `generate`는 작성·검토 한 번만 수행하고 검토 통과 후 기존 title/body 응답을 반환한다. task/decision API나 자동 공개 승인 기능은 추가하지 않았다.

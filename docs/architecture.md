@@ -30,7 +30,7 @@ server는 app·core·fake-core·fake-app을 import하지 않는다. Core를 생�
 
 ## 실제 앱과 연출 앱
 
-실제 app은 기본 8080과 .local/data/safehandoff.sqlite를 사용한다. 현재 진짜 코어는 미구현이며 재생성 요청에는 CORE_NOT_IMPLEMENTED를 반환한다. 기존 문서 저장·조회는 그대로 동작한다. 진짜 구현은 packages/core 안에서 Core 계약을 구현하면 되고 server·fake-app 수정이 필요하지 않다.
+실제 app은 기본 8080과 .local/data/safehandoff.sqlite를 사용한다. 현재 앱 진입점은 모델을 주입하지 않으므로 재생성 요청에는 CORE_NOT_IMPLEMENTED를 반환한다. packages/core의 RealCore는 모델과 EngineConfig를 주입하면 작성·검토를 수행한다. 기존 문서 저장·조회는 그대로 동작한다. 진짜 구현은 packages/core 안에서 Core 계약을 구현하면 되고 server·fake-app 수정이 필요하지 않다.
 
 fake-app은 기본 8081과 .local/data/demo.sqlite를 사용한다. 실제 DATABASE_PATH 환경 변수를 재사용하지 않으며 DEMO_DATABASE_PATH를 별도로 지정한다. /__demo에서 가짜 코어의 제목·도입·마무리와 연결 지연·앞으로 실패할 요청 수를 변경한다. 설정은 메모리에 있으며 재시작하면 초기화한다. 이는 모델·네트워크·의미 검토의 실제 품질 검증이 아니다.
 
