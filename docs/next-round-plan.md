@@ -13,7 +13,7 @@
 | `scan_candidate_bundle_v1` | F07 5번 | 중간 |
 | 역할×도구 권한 교집합(`resolveToolAccess`) 실제 연결 | F07 7번 | 큼, 실제 registry 없음 |
 | F06 본체(서버 `rules` 테이블·scope 매칭·철회/만료 전파) | review-grounding 계획 | 큼, 별도 기능 |
-| **`analyze()`(F02, 원자료 → candidate 자동 추출)** | OSS 계획 | **큼** — 지금까지 모든 실행에서 facts를 손으로 구성한 유일한 이유 |
+| `analyze()`(F02) 서버·UI 연결 | [Engine 범위](f02-analyze-plan.md) | **Engine 완료** — job/CAS·수동 후보·HTTP/UI는 후속 |
 | server task/decision HTTP API, client UI | round3-scope 이후 계속 미룸 | 큼 |
 
 ## 구현 완료: `toyrecord-repro` 스킬 팩을 실제로 로딩하게 연결
@@ -74,13 +74,12 @@
 stale 전파(F07 6번 전체), 카탈로그 HTTP API, 역할별 지침의 실제 프롬프트 주입을 완료했다고
 보고하지 않는다. OSS 계획에서 미뤘던 팩 연결 범위만 해소한다.
 
-## 그 다음 큰 결정: `analyze()`(F02)
+## F02 Engine 구현 이후
 
-`analyze()`는 원자료에서 candidate를 자동 추출하는 미구현 단계다. 현재 사람이 스크립트에서
-facts를 구성하는 주요 이유이며, 팩 연결 후에도 이 제한은 남는다. 공개 결정·팩 지침 연결·
-최종화도 별도 간극으로 남는다. F02는 도구 호출 없는 LLM 처리와 서버측 파서(txt/log/md/csv
-위치추적)를 포함한다. 위치 정확성과 원자료 경계 검증이 필요하므로 별도 라운드로 다룬다.
-팩 연결 작업이 끝나면 이 구현을 시작할지 다시 판단한다.
+근거 파서·후보 strict 검증·`RealCore.analyze()`는 [F02 범위](f02-analyze-plan.md)로 구현했다.
+현재 OSS 스모크는 여전히 수동 fixture 후보를 사용하며 이 함수로 자동 전환하지 않았다.
+서버 job snapshot/CAS·candidate_set 채택·수동 후보와 HTTP/UI 연결, 공개 결정과 최종화가 남는다.
+역할별 팩 프롬프트 주입·Rule 적용도 이 완료 범위에 포함하지 않는다.
 
 ## 이번에도 빼는 것
 

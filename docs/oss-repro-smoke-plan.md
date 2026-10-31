@@ -78,3 +78,7 @@ builtin 5개와 tools/oss-repro-smoke.mjs를 구현했다. builtin 실행은 tas
 후속 구현: 이번 계획에서 제외했던 toyrecord-repro 팩 연결은 이후 [catalog 연결](toyrecord-pack.md)로
 구현했다. 별도 운영자 image 등록과 실행 전 pin 검증을 사용하며, 기존 수동 candidate·결정 fixture와
 모델 프롬프트 지침 미연결 범위는 그대로다.
+
+
+후속 F02의 파서·analyze Engine은 [별도 라운드](f02-analyze-plan.md)로 구현했다. 이 스모크의
+fixture 후보 구성과 사람 승인 UI 미연결 가정은 유지하며 자동 분석으로 전환한 것으로 보고하지 않는다.

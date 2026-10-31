@@ -274,3 +274,13 @@ F03 착수 전에 현재 클라이언트 UI(전역 A~D 하나, 저장 없는 dis
 (`docs/features/03-disclosure-decisions.md`)을 대조해 10개 항목의 계약 체크리스트를
 [F03 UI 사전 체크리스트](f03-ui-prerequisites.md)에 정리했다. 가장 큰 차이는 F03이 candidate별
 결정인데 지금 UI는 작업 전체에 전역 선택 하나뿐이라는 점이다. UI 코드는 고치지 않았다.
+
+
+## 2026-10-31 · F02 분석 Engine 구현
+
+[F02 범위](f02-analyze-plan.md)에 따라 근거 파서·후보 응답 strict 검증·`RealCore.analyze()`를
+구현했다. source version/byte/hash는 코드가 계산하고 모델은 제공된 evidence ID만 참조한다.
+한도 초과는 전체 실패이며 원문을 잘라 부분 성공으로 반환하지 않는다. 분석은 새 analysis 호출만
+사용하고 승인·writer·도구를 실행하지 않는다. 상세 로그를 켜도 분석 본문은 기록하지 않는다.
+기존 호출 예산·재시도·취소를 재사용하고 가상 자료·로컬 HTTP 목 서버로 결정적 조건을 검사했다.
+의미 정확도와 실제 외부 모델 성공은 주장하지 않으며 서버 CAS·HTTP/UI·Rule 연결은 후속이다.

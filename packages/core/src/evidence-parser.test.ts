@@ -5,7 +5,7 @@ import { CoreError } from '@safehandoff/core-interface';
 import type { SourceDocument } from '@safehandoff/core-interface';
 import { parseEvidence } from './evidence-parser.ts';
 const hash = (value: string | Buffer) => createHash('sha256').update(value).digest('hex');
-export function source(text: string, format: SourceDocument['format'] = 'txt', id = 'version-1'): SourceDocument {
+function source(text: string, format: SourceDocument['format'] = 'txt', id = 'version-1'): SourceDocument {
   return { id, source_id: 'source', version: 1, display_name: 'fictional', format, source_slot: 'input',
     raw_bytes: Buffer.from(text).toString('base64'), sha256: hash(text), included: true };
 }
