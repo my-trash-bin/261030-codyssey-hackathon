@@ -6,6 +6,7 @@ import { CoreError, ModelError } from '@safehandoff/core-interface';
 import type { AnalyzeRequest, AnalyzeResult, Core, Engine, GenerateRequest } from '@safehandoff/core-interface';
 import { createApp } from './app.ts';
 import { DocumentStore } from './database.ts';
+import { WorkflowSessions } from './workflow-session.ts';
 
 test('server shell forwards only the contract to an injected core, and exposes its errors', async () => {
   const requests: GenerateRequest[] = [];
@@ -111,6 +112,55 @@ test('server exposes analysis only when an engine is injected, and forwards its 
       server.close(error => error ? reject(error) : resolve());
       server.closeAllConnections();
     })));
+    store.close();
+  }
+});
+
+// Regression for docs/decisions.md's "두 신뢰 경계" entry: /api/sharing, /api/analysis and
+// /api/documents must share the exact same session/CSRF/Host/Origin boundary as /api/v1/*
+// whenever an operator has turned it on, not stay silently open next to it.
+test('legacy routes share the session boundary once an operator enables it', async () => {
+  const core: Core = {
+    info: { implementation: 'real', connection: 'direct', ready: true },
+    async generate(input) { return { document: { title: 't', body: input.facts[0]!.text }, provenance: { ...this.info } }; },
+  };
+  const store = new DocumentStore(':memory:');
+  let app: ReturnType<typeof createApp>;
+  const server = createServer((request, response) => { void app(request, response); });
+  await new Promise<void>(resolve => server.listen(0, '127.0.0.1', resolve));
+  const origin = `http://127.0.0.1:${(server.address() as AddressInfo).port}`;
+  const sessions = new WorkflowSessions({ token: 's'.repeat(32), browserOrigin: origin, serverOrigin: origin });
+  app = createApp(store, core, undefined, undefined, sessions);
+  // Forge a session the same way workflow-http.test.ts's session-expiry case does, without
+  // needing /api/v1/session mounted (this test only exercises the legacy routes' guard).
+  let setCookie = '';
+  const fakeRequest = { headers: { host: new URL(origin).host, origin } } as import('node:http').IncomingMessage;
+  const fakeResponse = { setHeader: (_n: string, v: string) => { setCookie = v; } } as unknown as import('node:http').ServerResponse;
+  const { csrf_token: csrf } = sessions.open(fakeRequest, fakeResponse, 's'.repeat(32));
+  const cookie = setCookie.split(';')[0]!;
+  const input = { purpose: 'support', recipient: 'vendor', facts: [{ id: 'a', text: 'approved' }] };
+  try {
+    const unauthenticated = await fetch(origin + '/api/sharing', { method: 'POST',
+      headers: { 'Content-Type': 'application/json', Origin: origin }, body: JSON.stringify(input) });
+    assert.equal(unauthenticated.status, 401);
+    assert.deepEqual(await unauthenticated.json(), { error: 'AUTH_REQUIRED' });
+    const noCsrf = await fetch(origin + '/api/sharing', { method: 'POST',
+      headers: { 'Content-Type': 'application/json', Origin: origin, Cookie: cookie }, body: JSON.stringify(input) });
+    assert.equal(noCsrf.status, 403);
+    const authenticated = await fetch(origin + '/api/sharing', { method: 'POST',
+      headers: { 'Content-Type': 'application/json', Origin: origin, Cookie: cookie, 'X-CSRF-Token': csrf }, body: JSON.stringify(input) });
+    assert.equal(authenticated.status, 200);
+    const documentsWithoutSession = await fetch(origin + '/api/documents');
+    assert.equal(documentsWithoutSession.status, 401);
+    const documentsWithSession = await fetch(origin + '/api/documents', { headers: { Cookie: cookie } });
+    assert.equal(documentsWithSession.status, 200);
+    // /health and /api/core carry no raw material or model output, so they stay outside
+    // GUARDED_PATHS even once sessions are required for the routes above.
+    assert.equal((await fetch(origin + '/health')).status, 200);
+    assert.equal((await fetch(origin + '/api/core')).status, 200);
+  } finally {
+    await new Promise<void>((resolve, reject) => server.close(error => error ? reject(error) : resolve()));
+    server.closeAllConnections();
     store.close();
   }
 });

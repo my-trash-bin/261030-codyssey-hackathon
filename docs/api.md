@@ -112,8 +112,12 @@ source/evidence/job을 저장하고 CAS로 채택하지만 이 라우트와 연�
 
 기존 `/api/analysis`는 stateless로 유지한다. 아래 v1 경로는 실제 앱에서
 `SAFEHANDOFF_WORKFLOW_ENABLED=1`로 켠 경우 활성화된다. 기존 WORKFLOW_TOKEN 설정도 활성화 입력으로 지원한다. 미설정/fake-app은
-503 `WORKFLOW_API_DISABLED`다. 기존 `/api/documents`/`/api/sharing`/`/api/analysis`의 인증을
-이 설정이 대신하지 않는다. 다중 사용자/LAN 운영 인증이나 외부 제출을 구현한 것이 아니다.
+503 `WORKFLOW_API_DISABLED`다. 워크플로우 세션을 켜면 기존 `/api/documents`/`/api/sharing`/
+`/api/analysis`도 **같은** 세션/CSRF/Host/Origin 검사를 거친다(`packages/server/src/app.ts`의
+`GUARDED_PATHS`, `packages/app/src/main.ts`가 `createWorkflowHandler`와 `createApp`에 같은
+`WorkflowSessions` 인스턴스를 공유해 한 쪽에서 연 세션이 다른 쪽에도 통한다). 세션을 켜지 않으면
+세 경로는 이전처럼 그대로 열려 있다. 다중 사용자/LAN 운영 인증이나 외부 제출을 구현한 것이
+아니며, `/health`/`/api/core`는 원자료나 모델 출력을 반환하지 않아 이 검사 대상이 아니다.
 
 `SAFEHANDOFF_WORKFLOW_BROWSER_ORIGIN`은 브라우저의 정확한 origin(기본
 `http://127.0.0.1:5173`), `SAFEHANDOFF_WORKFLOW_SERVER_ORIGIN`은 API origin(기본

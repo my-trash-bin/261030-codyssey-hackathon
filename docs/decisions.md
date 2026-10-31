@@ -355,6 +355,35 @@ revision/SQLite 멱등 기록을 함께 검사한다. 기존 stateless API의 �
 D 모델 응답도 제안이며 실제 미리보기와 사람 결정은 별도다. Rule 저장과 원문 예외/타임라인은
 미지원으로 거부한다. 현재 서버 DTO는 [API](api.md), 남은 화면 작업은 [요청 현황](ui-api-requests.md)을 따른다.
 
+## 2026-10-31 / 두 신뢰 경계를 하나로 묶음
+
+`docs/ui-api-requests-2.md`(이후 통합 삭제) 점검 중 실제 코드를 읽어 확인한 간극이다.
+워크플로우 세션(`/api/v1/*`)이 세션/CSRF/Host/Origin 검사를 갖춘 뒤에도, 원자료를 실제
+모델에 보내는 `/api/analysis`와 외부 공개 문서를 만드는 `/api/sharing`, 그리고
+`/api/documents`는 아무 검사 없이 그대로 열려 있었다. `docs/api.md`에는 "이 설정이 기존
+세 경로의 인증을 대신하지 않는다"고 적혀 있었는데, 이걸 의도된 설계로 해석하지 않았다 -
+F10(`docs/features/10-runtime-boundary.md`)의 전체 취지가 원자료/모델 호출 경로를 막는
+것이라, 더 민감한 경로가 더 약한 경로보다 느슨한 채로 남는 건 누락으로 보는 게 맞다는
+판단으로 수정했다.
+
+`packages/server/src/app.ts`에 `GUARDED_PATHS`(`/api/sharing`, `/api/analysis`,
+`/api/documents`)를 추가하고, `createApp`의 새 선택 인자 `sessions?: WorkflowSessions`가
+있으면 이 세 경로에 `sessions.require()`를 그대로 적용한다(`/health`, `/api/core`는 원자료나
+모델 출력을 반환하지 않아 대상에서 뺐다). `WorkflowHTTPError`도 catch에서 처리한다.
+`createWorkflowHandler`가 더는 내부에서 `WorkflowSessions`를 새로 만들지 않고 호출자가
+주입한 인스턴스를 받게 고쳤다(기존 호출자는 기본값으로 그대로 동작, 하위 호환 유지).
+`packages/app/src/main.ts`가 `WorkflowSessions`를 한 번만 만들어 `createWorkflowHandler`와
+`createApp` 양쪽에 **같은** 인스턴스를 넘긴다 - 따로 만들면 `POST /api/v1/session`으로 연
+세션을 legacy 경로가 못 알아본다. `docs/api.md`의 해당 문장도 새 동작에 맞게 고쳤다.
+
+재발 방지로 `packages/server/src/core.test.ts`에 "legacy routes share the session boundary
+once an operator enables it" 테스트를 추가했다 - sessions를 주입한 뒤 쿠키/CSRF 없이
+`/api/sharing`을 치면 401, Origin만 맞고 CSRF가 없으면 403, 둘 다 맞으면 200, `/api/documents`도
+같은 패턴, `/health`/`/api/core`는 그대로 열려 있는지까지 한 테스트에서 확인한다. 코드
+쪽에는 이 테스트와 `docs/decisions.md`의 이 항목을 가리키는 주석을 남겼다(`app.ts`의
+`GUARDED_PATHS` 주석, `workflow-http.ts`의 `createWorkflowHandler` 주석) - 다음에 누가 세
+경로 중 하나를 바꾸거나 세션 공유를 깨면 주석이 먼저 그 테스트와 이 결정을 보라고 가리킨다.
+
 ## 2026-10-31 / QG 문자 예외 제거
 
 사용자 승인에 따라 문서의 비 ASCII 문장 기호를 ASCII 기호로 일괄 치환했다.

@@ -37,13 +37,17 @@ function fieldList(store: TaskStore, id: string, candidateId: string) {
     fields: [...new Set(evidence.map(e => source.format === 'csv' ? e.locator.column! : e.locator.pointer!))], reusable: false };
 }
 
-export function createWorkflowHandler(store: TaskStore, engine: Engine, access: WorkflowAccess) {
+// `sessions` defaults to a private instance for callers (tests) that only exercise the
+// workflow API; app.ts's legacy routes (/api/sharing, /api/analysis, /api/documents) need the
+// *same* instance passed in explicitly so a session opened via POST /api/v1/session also
+// covers them -- see app.ts's GUARDED_PATHS and packages/app/src/main.ts.
+export function createWorkflowHandler(store: TaskStore, engine: Engine, access: WorkflowAccess, sessions: WorkflowSessions = new WorkflowSessions(access)) {
   store.recoverJobs();
   const environment = { provider_origin: access.analysisProviderOrigin ?? null,
     approval_status: 'operator_confirmation_required', verified_at: null };
   const sessionData = (data: unknown) => ({ ...(data as Record<string, unknown>), analysis_environment: environment,
     capabilities: { tasks: true, selected_fields: true, reusable_rules: true, artifacts: true, exports: true, approved_excerpt: false } });
-  const sessions = new WorkflowSessions(access), controllers = new Map<string, AbortController>(), deletingTasks = new Set<string>(), streams = new Set<ServerResponse>(), pending = new Set<Promise<void>>(), jobTasks = new Map<string, string>(), jobPromises = new Map<string, Promise<void>>();
+  const controllers = new Map<string, AbortController>(), deletingTasks = new Set<string>(), streams = new Set<ServerResponse>(), pending = new Set<Promise<void>>(), jobTasks = new Map<string, string>(), jobPromises = new Map<string, Promise<void>>();
   const launch = (jobId: string, taskId: string, work: (signal: AbortSignal) => Promise<void>) => {
     const controller = new AbortController(); controllers.set(jobId, controller); jobTasks.set(jobId, taskId);
     const promise = work(controller.signal).catch(() => {}).finally(() => { controllers.delete(jobId); jobTasks.delete(jobId); jobPromises.delete(jobId); pending.delete(promise); });
