@@ -35,6 +35,12 @@ Go의 HTTP 서버/클라이언트와 템플릿 기능은 표준 패키지에서 
 | `packs` | 설치된 내부 지침/공개 양식/검사기 manifest | 권한 자체 부여 |
 | `evaluation` | 별도 평가자 정답·수신자 자료·측정 | 앱 런타임 검색/도구의 입력 |
 
+현재 코드의 평가 CLI는 `main.go`의 실행 모드·준비와 `cases.go`의 사례 실행·결과 공개로 나눕니다. HTTP 입력 처리는 `inputs.go`의 원자료, `candidates.go`의 후보, `decisions.go`의 미리보기·공개 결정으로 구분합니다. API 통합시험의 공통 도우미는 `harness_test.go`에 둡니다.
+
+workflow는 `service.go`의 서비스·큐 접수, `run.go`의 작업 실행·결과 적용, `model.go`의 모델 호출 예산·trace, `review.go`의 검토 응답 검증으로 나눕니다. 화면은 `app.js`의 진입·조회·화면 전환, `workspace.js`의 작업 공간 렌더링·작업 동작, `disclosure-cards.js`의 공개 선택·미리보기·조건 해석을 사용합니다. 해석 중 갱신 억제 상태는 앱이 소유하고 카드에 상태 변경 함수를 전달합니다.
+
+core JSON Schema는 [진입점](../contracts/core.schema.json)과 [세 모듈](../contracts/core/README.md)로 구성합니다. schema 엔진은 각 `$id`를 로컬 등록하며 참조를 해석할 때 네트워크를 사용하지 않습니다. 문서 검증기도 이 registry를 통해 모듈 참조·필수 키를 검사합니다.
+
 ```mermaid
 flowchart TD
   U["로컬 사용자 화면"] --> S["업무 서비스와 상태 검사"]

@@ -30,7 +30,7 @@
 | `docs/ERD.md` | 무엇을 읽고 쓰며 어떤 관계·보존·삭제를 지키는가? | spec, 공통 DTO | schema.sql, migrations, 저장 코드 |
 | `docs/api.md` | 기능 사이의 요청·응답·서버 함수·오류는 무엇인가? | spec, ERD, 화면의 행동 | 공통 DTO, API/서비스 구현 |
 | `contracts/domain-contract.json` | 공통 enum·scope·한도·필수 정보는 무엇인가? | spec/API | 서버·UI·시험의 동일 상수 |
-| `contracts/core.schema.json` | 핵심 요청/모델 응답의 구조는 무엇인가? | API, agent-workflow | strict parsing/schema 검증 |
+| `contracts/core.schema.json`, `contracts/core/*.schema.json` | 핵심 요청/모델 응답의 구조는 무엇인가? 진입점과 공통·요청·모델 정의를 로컬 ID로 연결 | API, agent-workflow | strict parsing/schema 검증 |
 | `contracts/schema.sql` | 초기 DB의 실제 DDL 제약은 무엇인가? | ERD | 초기 migration·DB 시험 |
 | `contracts/catalog.example.json` | 가상 환경에서 어떤 선택 항목으로 시작하는가? | PRD/spec, 테스트 사례 | 개발용 카탈로그 설정 |
 | `docs/IA.md` | 화면·경로·상태·버튼은 어디에 있는가? | PRD/spec/API | UI 구현, 사용자 시험 |

@@ -20,7 +20,7 @@
 | [설계 결정](docs/decisions.md), [구현 시작 지시](docs/implementation-start.md) | 기본값·확인 필요·구현 절차 |
 | [검증보고서](docs/검증보고서.md) | 현재 구현·시험 결과·미완료 사항 |
 
-공통 계약은 [domain-contract.json](contracts/domain-contract.json), [core.schema.json](contracts/core.schema.json), [참조 DDL](contracts/schema.sql), [카탈로그 예시](contracts/catalog.example.json)를 따릅니다. 24개 참조 테이블과 새 API 계약은 아직 런타임에 적용되지 않았습니다. `contracts/openapi.json`과 개별 `*.v1.schema.json`은 기존 코드에서 생성한 산출물이며 새 기준과 다른 부분은 구현 전환 대상입니다.
+공통 계약은 [domain-contract.json](contracts/domain-contract.json), [core.schema.json](contracts/core.schema.json), [참조 DDL](contracts/schema.sql), [카탈로그 예시](contracts/catalog.example.json)를 따릅니다. core schema는 [공통·요청·모델 모듈](contracts/core/README.md)을 로컬 등록해 사용하며 기존 schema ID와 정의 이름을 유지합니다. 24개 참조 테이블과 새 API 계약은 아직 런타임에 적용되지 않았습니다. `contracts/openapi.json`과 개별 `*.v1.schema.json`은 기존 코드에서 생성한 산출물이며 새 기준과 다른 부분은 구현 전환 대상입니다.
 
 P0는 입력·분석·선택·작성/검토·확정·재사용·복구·실행 경계, P1은 제품 팩·맥락 검사·재현 확장입니다. core fixture 동작, 실제 모델 검증, 확장 검증, 전체 PoC 완료를 구분합니다. 실제 모델·수신자 평가와 작업량 비교는 아직 미수행입니다.
 
@@ -111,7 +111,7 @@ mise exec -- make test-docs
 
 `make test`와 `npm test`는 `@slop-lab/qg`의 기본 recommended 규칙, QG 정책 회귀시험, Go 단위·통합시험, 문서 검사를 함께 실행합니다. `.qg.yaml`에서 한국어·영어 문서를 허용하고 문서에서 사용하는 기호를 명시했습니다. 한국어 문서를 영어로 바꿀 필요는 없습니다.
 
-생성된 계약·실행 보고서·로컬 빌드 출력은 생성물로 분류합니다. 기존 CSV 행·프롬프트·HTML/JS 템플릿의 긴 줄은 해당 경로에만 유한 한도를 설정했으며 그 밖의 recommended 규칙은 유지합니다. Git hook 자동 설치는 끄고 동일 검사를 npm/Make 진입점으로 실행합니다. 현재 500줄 초과 파일의 경고는 유지되며 오류는 테스트를 실패시킵니다.
+생성된 계약·실행 보고서·로컬 빌드 출력은 생성물로 분류합니다. 기존 CSV 행·프롬프트·HTML/JS 템플릿의 긴 줄은 해당 경로에만 유한 한도를 설정했으며 그 밖의 recommended 규칙은 유지합니다. Git hook 자동 설치는 끄고 동일 검사를 npm/Make 진입점으로 실행합니다. 파일 길이는 500줄 초과 경고·1000줄 초과 오류를 유지하며, 기존 경고 파일은 책임별로 분할했습니다.
 
 문서 링크·AC/QA 연결·가상 자료·참조 SQL을 검사합니다. [문서 검사 결과](validation-report.json)는 제품 시험 결과와 별개입니다. 현재 앱의 실행 증거는 [fixture](evaluation/results/fixture-run.json), [확장](evaluation/results/extensions-run.json), [live 미수행](evaluation/results/live-run.json) 및 [검증보고서](docs/검증보고서.md)를 참고하세요.
 

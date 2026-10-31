@@ -2,6 +2,10 @@ AGENTS.md
 README.md
 contracts/catalog.example.json
 contracts/core.schema.json
+contracts/core/README.md
+contracts/core/models.schema.json
+contracts/core/requests.schema.json
+contracts/core/shared.schema.json
 contracts/domain-contract.json
 contracts/schema.sql
 docs/API와역할계약.md

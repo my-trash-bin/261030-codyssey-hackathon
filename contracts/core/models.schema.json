@@ -1,0 +1,354 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:safehandoff:core-contracts:models:v1",
+  "title": "SafeHandoff core models definitions",
+  "$defs": {
+    "fact": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[A-Za-z0-9_.:-]+$"
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "observation",
+            "constraint",
+            "hypothesis",
+            "unknown"
+          ]
+        },
+        "statement": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 8192
+        }
+      },
+      "required": [
+        "id",
+        "kind",
+        "statement"
+      ]
+    },
+    "draft_block": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "type": {
+              "const": "heading"
+            },
+            "level": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 3
+            },
+            "text": {
+              "type": "string"
+            },
+            "fact_ids": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 128,
+                "pattern": "^[A-Za-z0-9_.:-]+$"
+              },
+              "minItems": 0
+            }
+          },
+          "required": [
+            "type",
+            "level",
+            "text",
+            "fact_ids"
+          ]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "type": {
+              "const": "paragraph"
+            },
+            "text": {
+              "type": "string"
+            },
+            "fact_ids": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 128,
+                "pattern": "^[A-Za-z0-9_.:-]+$"
+              },
+              "minItems": 0
+            }
+          },
+          "required": [
+            "type",
+            "text",
+            "fact_ids"
+          ]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "type": {
+              "const": "list"
+            },
+            "items": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "text": {
+                    "type": "string"
+                  },
+                  "fact_ids": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 128,
+                      "pattern": "^[A-Za-z0-9_.:-]+$"
+                    },
+                    "minItems": 0
+                  }
+                },
+                "required": [
+                  "text",
+                  "fact_ids"
+                ]
+              },
+              "minItems": 1,
+              "maxItems": 60
+            }
+          },
+          "required": [
+            "type",
+            "items"
+          ]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "type": {
+              "const": "table_ref"
+            },
+            "table_id": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128,
+              "pattern": "^[A-Za-z0-9_.:-]+$"
+            }
+          },
+          "required": [
+            "type",
+            "table_id"
+          ]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "type": {
+              "const": "excerpt_ref"
+            },
+            "excerpt_id": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128,
+              "pattern": "^[A-Za-z0-9_.:-]+$"
+            }
+          },
+          "required": [
+            "type",
+            "excerpt_id"
+          ]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "type": {
+              "const": "asset_ref"
+            },
+            "asset_id": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128,
+              "pattern": "^[A-Za-z0-9_.:-]+$"
+            }
+          },
+          "required": [
+            "type",
+            "asset_id"
+          ]
+        }
+      ]
+    },
+    "draft": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "schema_version": {
+          "const": "draft.v1"
+        },
+        "blocks": {
+          "type": "array",
+          "items": {
+            "$ref": "urn:safehandoff:core-contracts:models:v1#/$defs/draft_block"
+          },
+          "minItems": 1,
+          "maxItems": 60
+        }
+      },
+      "required": [
+        "schema_version",
+        "blocks"
+      ]
+    },
+    "candidate_proposal": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "local_key": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[A-Za-z0-9_.:-]+$"
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "observation",
+            "constraint",
+            "hypothesis",
+            "unknown"
+          ]
+        },
+        "uncertainty": {
+          "type": "string",
+          "enum": [
+            "observed",
+            "reported",
+            "inferred",
+            "unknown"
+          ]
+        },
+        "statement": {
+          "type": "string"
+        },
+        "evidence_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128,
+            "pattern": "^[A-Za-z0-9_.:-]+$"
+          },
+          "minItems": 1,
+          "maxItems": 50
+        },
+        "relevance": {
+          "type": "string",
+          "enum": [
+            "required",
+            "optional"
+          ]
+        },
+        "purpose_relevance": {
+          "type": "string"
+        },
+        "need_keys": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "constraints",
+              "diagnostic_question",
+              "environment",
+              "expectation",
+              "observation",
+              "observed_sequence",
+              "process",
+              "question",
+              "reproduction_result",
+              "uncertainty"
+            ]
+          },
+          "minItems": 0
+        }
+      },
+      "required": [
+        "local_key",
+        "kind",
+        "uncertainty",
+        "statement",
+        "evidence_ids",
+        "relevance",
+        "purpose_relevance",
+        "need_keys"
+      ]
+    },
+    "candidate_proposals": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "schema_version": {
+          "const": "candidate_proposals.v1"
+        },
+        "candidates": {
+          "type": "array",
+          "items": {
+            "$ref": "urn:safehandoff:core-contracts:models:v1#/$defs/candidate_proposal"
+          },
+          "minItems": 0,
+          "maxItems": 30
+        },
+        "conflicts": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "local_keys": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 128,
+                  "pattern": "^[A-Za-z0-9_.:-]+$"
+                },
+                "minItems": 2,
+                "maxItems": 30
+              },
+              "reason": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "local_keys",
+              "reason"
+            ]
+          },
+          "minItems": 0
+        }
+      },
+      "required": [
+        "schema_version",
+        "candidates",
+        "conflicts"
+      ]
+    }
+  }
+}

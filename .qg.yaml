@@ -49,10 +49,10 @@ overrides:
   - files: [docs/traceability.csv]
     rules:
       files/max-line-length: [error, {limit: 650}]
-  - files: [prompts/*.txt, scripts/generate-contracts.go, scripts/generate-openapi.py, internal/workflow/service.go, web/templates/app.html]
+  - files: [prompts/*.txt, scripts/generate-contracts.go, scripts/generate-openapi.py, internal/workflow/model.go, web/templates/app.html]
     rules:
       files/max-line-length: [error, {limit: 800}]
-  - files: [web/static/app.js]
+  - files: [web/static/app.js, web/static/workspace.js]
     rules:
       files/max-line-length: [error, {limit: 3500}]
 

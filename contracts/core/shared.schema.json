@@ -1,0 +1,309 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:safehandoff:core-contracts:shared:v1",
+  "title": "SafeHandoff core shared definitions",
+  "$defs": {
+    "scope": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "project_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[A-Za-z0-9_.:-]+$"
+        },
+        "purpose_id": {
+          "type": "string",
+          "enum": [
+            "oss_issue",
+            "vendor_support",
+            "operations_advice"
+          ]
+        },
+        "goal_variant": {
+          "type": "string",
+          "enum": [
+            "default",
+            "observations_only",
+            "ask_for_diagnostics",
+            "reproduction_evidence"
+          ]
+        },
+        "recipient_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[A-Za-z0-9_.:-]+$"
+        },
+        "audience": {
+          "type": "string",
+          "enum": [
+            "public",
+            "named_external"
+          ]
+        },
+        "skill_set_hash": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      },
+      "required": [
+        "project_id",
+        "purpose_id",
+        "goal_variant",
+        "recipient_id",
+        "audience",
+        "skill_set_hash"
+      ]
+    },
+    "representation": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "const": "fact_summary"
+            },
+            "transform_id": {
+              "const": "series_fact_summary.v1"
+            },
+            "parameters": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {},
+              "required": []
+            }
+          },
+          "required": [
+            "kind",
+            "transform_id",
+            "parameters"
+          ]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "const": "fact_summary"
+            },
+            "transform_id": {
+              "type": "null"
+            },
+            "parameters": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "statement": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 8192
+                }
+              },
+              "required": [
+                "statement"
+              ]
+            }
+          },
+          "required": [
+            "kind",
+            "transform_id",
+            "parameters"
+          ]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "const": "derived_table"
+            },
+            "transform_id": {
+              "const": "series_direction_only.v1"
+            },
+            "parameters": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {},
+              "required": []
+            }
+          },
+          "required": [
+            "kind",
+            "transform_id",
+            "parameters"
+          ]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "const": "derived_table"
+            },
+            "transform_id": {
+              "const": "series_index_base100.v1"
+            },
+            "parameters": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "decimal_places": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 4
+                }
+              },
+              "required": [
+                "decimal_places"
+              ]
+            }
+          },
+          "required": [
+            "kind",
+            "transform_id",
+            "parameters"
+          ]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "const": "selected_fields"
+            },
+            "transform_id": {
+              "const": "select_fields.v1"
+            },
+            "parameters": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "fields": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "minItems": 1,
+                  "maxItems": 30
+                }
+              },
+              "required": [
+                "fields"
+              ]
+            }
+          },
+          "required": [
+            "kind",
+            "transform_id",
+            "parameters"
+          ]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "const": "exact_value"
+            },
+            "transform_id": {
+              "type": "null"
+            },
+            "parameters": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "evidence_ids": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 128,
+                    "pattern": "^[A-Za-z0-9_.:-]+$"
+                  },
+                  "minItems": 1,
+                  "maxItems": 30
+                }
+              },
+              "required": [
+                "evidence_ids"
+              ]
+            }
+          },
+          "required": [
+            "kind",
+            "transform_id",
+            "parameters"
+          ]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "const": "approved_excerpt"
+            },
+            "transform_id": {
+              "type": "null"
+            },
+            "parameters": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "source_version_id": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 128,
+                  "pattern": "^[A-Za-z0-9_.:-]+$"
+                },
+                "start": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "end": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "hidden_ranges": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "start": {
+                        "type": "integer",
+                        "minimum": 0
+                      },
+                      "end": {
+                        "type": "integer",
+                        "minimum": 1
+                      }
+                    },
+                    "required": [
+                      "start",
+                      "end"
+                    ]
+                  },
+                  "minItems": 0
+                }
+              },
+              "required": [
+                "source_version_id",
+                "start",
+                "end",
+                "hidden_ranges"
+              ]
+            }
+          },
+          "required": [
+            "kind",
+            "transform_id",
+            "parameters"
+          ]
+        }
+      ]
+    }
+  }
+}

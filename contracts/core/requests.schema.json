@@ -1,0 +1,245 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:safehandoff:core-contracts:requests:v1",
+  "title": "SafeHandoff core requests definitions",
+  "$defs": {
+    "create_task": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "internal_title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        "project_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[A-Za-z0-9_.:-]+$"
+        },
+        "purpose_id": {
+          "type": "string",
+          "enum": [
+            "oss_issue",
+            "vendor_support",
+            "operations_advice"
+          ]
+        },
+        "goal_variant": {
+          "type": "string",
+          "enum": [
+            "default",
+            "observations_only",
+            "ask_for_diagnostics",
+            "reproduction_evidence"
+          ]
+        },
+        "recipient_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[A-Za-z0-9_.:-]+$"
+        },
+        "audience": {
+          "type": "string",
+          "enum": [
+            "public",
+            "named_external"
+          ]
+        },
+        "output_language": {
+          "type": "string",
+          "enum": [
+            "ko",
+            "en"
+          ]
+        },
+        "skill_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128,
+            "pattern": "^[A-Za-z0-9_.:-]+$"
+          },
+          "minItems": 0,
+          "maxItems": 8
+        }
+      },
+      "required": [
+        "internal_title",
+        "project_id",
+        "purpose_id",
+        "goal_variant",
+        "recipient_id",
+        "audience",
+        "output_language",
+        "skill_ids"
+      ]
+    },
+    "create_preview": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "expected_revision": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "candidate_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[A-Za-z0-9_.:-]+$"
+        },
+        "representation": {
+          "$ref": "urn:safehandoff:core-contracts:shared:v1#/$defs/representation"
+        },
+        "extension_option_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[A-Za-z0-9_.:-]+$"
+        }
+      },
+      "required": [
+        "expected_revision",
+        "candidate_id",
+        "representation"
+      ]
+    },
+    "decision_item": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "candidate_id": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128,
+              "pattern": "^[A-Za-z0-9_.:-]+$"
+            },
+            "disposition": {
+              "const": "allow"
+            },
+            "preview_id": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128,
+              "pattern": "^[A-Za-z0-9_.:-]+$"
+            },
+            "approved_projection_sha256": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{64}$"
+            },
+            "expires_at": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "save_rule": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "candidate_id",
+            "disposition",
+            "preview_id",
+            "approved_projection_sha256",
+            "expires_at",
+            "save_rule"
+          ]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "candidate_id": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128,
+              "pattern": "^[A-Za-z0-9_.:-]+$"
+            },
+            "disposition": {
+              "enum": [
+                "exclude",
+                "defer"
+              ]
+            }
+          },
+          "required": [
+            "candidate_id",
+            "disposition"
+          ]
+        }
+      ]
+    },
+    "decision_batch": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "expected_revision": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "urn:safehandoff:core-contracts:requests:v1#/$defs/decision_item"
+          },
+          "minItems": 1,
+          "maxItems": 30
+        }
+      },
+      "required": [
+        "expected_revision",
+        "items"
+      ]
+    },
+    "finalize": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "expected_revision": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "expected_artifact_set_hash": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "confirm": {
+          "const": true
+        }
+      },
+      "required": [
+        "expected_revision",
+        "expected_artifact_set_hash",
+        "confirm"
+      ]
+    },
+    "delete_task": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "expected_revision": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "confirmation": {
+          "const": "DELETE"
+        },
+        "acknowledge_saved_rules_retained": {
+          "const": true
+        }
+      },
+      "required": [
+        "expected_revision",
+        "confirmation",
+        "acknowledge_saved_rules_retained"
+      ]
+    }
+  }
+}

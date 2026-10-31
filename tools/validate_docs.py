@@ -95,19 +95,48 @@ checks['qa_scenarios_defined_not_executed'] = len(qa_ids)
 
 domain = json_documents.get('contracts/domain-contract.json', {})
 schema = json_documents.get('contracts/core.schema.json', {})
-defs = schema.get('$defs', {})
-def inspect_schema(node, path='$'):
+# Modular schemas retain absolute IDs; register them locally without network access.
+schema_registry = {doc['$id']: doc for doc in json_documents.values()
+                   if isinstance(doc, dict) and '$id' in doc}
+def schema_reference(document, reference):
+    base, separator, pointer = reference.partition('#')
+    if base and base not in schema_registry:
+        raise ValueError(f'unregistered schema ID: {base}')
+    target_document = schema_registry[base] if base else document
+    target = target_document
+    if separator and pointer:
+        if not pointer.startswith('/'):
+            raise ValueError(f'unsupported schema fragment: {pointer}')
+        for part in pointer[1:].split('/'):
+            target = target[part.replace('~1', '/').replace('~0', '~')]
+    return target_document, target
+
+visited_references = set()
+def inspect_schema(node, document, path='$'):
     if isinstance(node, dict):
-        if '$ref' in node and node['$ref'].startswith('#/$defs/'):
-            check(node['$ref'].split('/')[-1] in defs, f'unresolved schema ref at {path}')
+        if '$ref' in node:
+            key = (document.get('$id'), node['$ref'])
+            if key not in visited_references:
+                visited_references.add(key)
+                try:
+                    target_document, target = schema_reference(document, node['$ref'])
+                    inspect_schema(target, target_document, path+'->$ref')
+                except (ValueError, KeyError, TypeError) as exc:
+                    errors.append(f'unresolved schema ref at {path}: {exc}')
         if 'properties' in node and 'required' in node:
             check(set(node['required']) <= set(node['properties']), f'invalid required property in {path}')
-        for k, v in node.items():
-            inspect_schema(v, path+'.'+k)
+        for key, value in node.items():
+            inspect_schema(value, document, path+'.'+key)
     elif isinstance(node, list):
-        for i, v in enumerate(node):
-            inspect_schema(v, path+f'[{i}]')
-inspect_schema(schema)
+        for index, value in enumerate(node):
+            inspect_schema(value, document, path+f'[{index}]')
+inspect_schema(schema, schema)
+defs = {}
+for name, definition in schema.get('$defs', {}).items():
+    try:
+        defs[name] = schema_reference(schema, definition['$ref'])[1] if '$ref' in definition else definition
+    except (ValueError, KeyError, TypeError) as exc:
+        errors.append(f'unresolved definition {name}: {exc}')
 checks['schema_internal_definitions_checked'] = len(defs)
 # Check the authored model examples for the named mandatory keys. This is
 # deliberately not claimed as full JSON Schema validation.
