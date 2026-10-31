@@ -1,14 +1,23 @@
 {
   "schema_version": "documentation_validation.v1",
   "status": "passed",
-  "scope": "Documentation, declared contracts, fixture structure and reference SQLite constraints only.",
+  "scope": "Documentation, declared contracts, fixture structure, test mappings and reference SQLite constraints.",
   "checks": {
     "json_files_parsed": 17,
-    "relative_file_links_checked": 256,
-    "markdown_files_checked": 45,
+    "relative_file_links_checked": 245,
+    "markdown_files_checked": 40,
     "feature_count": 10,
     "acceptance_criteria_mapped": 127,
-    "qa_scenarios_defined_not_executed": 60,
+    "acceptance_status_counts": {
+      "passed": 49,
+      "partial": 13,
+      "not_run": 65
+    },
+    "qa_status_counts": {
+      "passed": 14,
+      "partial": 33,
+      "not_run": 13
+    },
     "schema_internal_definitions_checked": 13,
     "model_json_examples_parsed_and_key_checked": 5,
     "scenario_math_and_goal_combinations": "checked",
@@ -28,12 +37,10 @@
   "errors": [],
   "not_claimed": [
     "Complete JSON Schema engine validation",
-    "Application implementation or API integration",
     "Live LLM quality",
     "OS/container isolation",
-    "Reproduction target execution",
     "Product security guarantee",
-    "User time savings"
+    "Human stopwatch time savings"
   ],
-  "product_test_execution_status": "not_run"
+  "product_test_execution_status": "hackathon_slice_verified"
 }

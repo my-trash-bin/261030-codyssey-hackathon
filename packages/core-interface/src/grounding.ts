@@ -46,7 +46,7 @@ function reusableRepresentation(representation: ReviewGroundingContext['input'][
 export function groundFacts(context: ReviewGroundingContext, pack: FactPack, now: number): FactGrounding[] {
   if (!context || !Number.isFinite(now) || !scopeValid(context.scope) || !/^[a-f0-9]{64}$/.test(context.source_set_hash) ||
     !Array.isArray(context.input?.rules) || !Array.isArray(context.rule_goals) || !Array.isArray(context.approved_tool_results) ||
-    !['default', 'observations_only', 'reproduction_evidence'].includes(context.input.task.goal_variant ?? 'default')) denied();
+    !['default', 'observations_only', 'ask_for_diagnostics', 'reproduction_evidence'].includes(context.input.task.goal_variant ?? 'default')) denied();
   const expected = composeFactPack(context.input, now);
   expected.public_tool_results = context.approved_tool_results;
   if (!pack.facts.length || canonical(expected) !== canonical(pack)) denied();

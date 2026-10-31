@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#163172">
 <meta name="description" content="SafeHandoff 10. 팀원 소개 및 역할 분담 — 16:9 와이드스크린 발표 슬라이드">
-<title>SafeHandoff · 10 팀원 소개 및 역할 분담</title>
+<title>SafeHandoff · 7. 팀원별 역할 분담</title>
 <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -356,11 +356,10 @@ button{font:inherit;cursor:pointer}
 <body>
 <header class="toolbar">
   <div class="toolbar-inner">
-    <a class="brand" href="#team"><span class="brand-badge">S</span>SafeHandoff <small>10 · TEAM ROLES &amp; CONTRIBUTIONS</small></a>
+    <a class="brand" href="#team"><span class="brand-badge">S</span>SafeHandoff <small>7 · TEAM ROLES</small></a>
     <div class="tools">
-      <a class="tool-button" href="SafeHandoff_목차.html">00. 목차</a>
-      <a class="tool-button" href="SafeHandoff_기대효과.html">08. 기대효과</a>
-      <a class="tool-button" href="SafeHandoff_확장_가능성.html">‹ 09. 확장 가능성</a>
+      <a class="tool-button" href="SafeHandoff_기술_스택.html">‹ 6. 기술 스택</a>
+      <a class="tool-button" href="SafeHandoff_외부_자원.html">8. 외부 자원 ›</a>
       <a class="tool-button" href="../spec.md">제품 설계</a>
       <a class="tool-button" href="../../README.md">실제 구현</a>
       <button class="tool-button" id="print-document" type="button">인쇄 / PDF 저장</button>
@@ -375,7 +374,7 @@ button{font:inherit;cursor:pointer}
       <!-- // DECISION: [PRES-DEC-01] 기업 솔루션·시장성 표현은 해커톤 포장 결정. ../decisions.md 참조; 구현 TODO와 구분. -->
         <div class="header-left">
           <h2 id="team-title">팀원 소개 및 역할 분담</h2>
-          <span class="header-sub">담당 개발 범위 · 개별 기능 완료는 <a href="../../README.md">실제 구현</a> · <a href="ISSUES.md">발표 이슈</a> 참조</span>
+          <span class="header-sub">팀원별 담당 업무와 기여 내용</span>
         </div>
         <span class="team-badge">TEAM · 지피한테물어봐</span>
       </header>
@@ -400,14 +399,12 @@ button{font:inherit;cursor:pointer}
           </div>
           <h3 class="member-name">김병철</h3>
       <!-- // TODO: [PRES-05] 앱 인증·전체 원자료 격리·배포는 후속. Docker toy 실행 격리만 완료. ISSUES.md 참조. -->
-          <div class="member-title">팀 총괄 · 보안 격리 백엔드 설계</div>
+          <div class="member-title">팀 총괄 · 백엔드 구조 설계</div>
           <div class="contrib-label">담당 업무 및 개발 범위</div>
           <ul class="contrib-list">
-            <li><b>프로젝트 총괄 및 아키텍처:</b> 사내 작업 공간 원문 처리 경계 구조 및 핵심 API 서버 설계·구현</li>
-      <!-- // TODO: [PRES-02] 전체 UI/API 연결·본문/표 갱신·근거·내보내기는 미구현. 현재는 메모 저장/조회와 상태 확인. -->
-            <li><b>사내 근거 매핑 엔진 개발:</b> 반출용 초안 문장과 사내 원본 문서(운영메모.md) 위치 연결 백엔드 구현</li>
-      <!-- // TODO: [PRES-02] 전체 UI/API 연결·본문/표 갱신·근거·내보내기는 미구현. 현재는 메모 저장/조회와 상태 확인. -->
-            <li><b>시스템 통합 및 품질 검증:</b> 멀티 에이전트 파이프라인과 백엔드 상태 동기화 총괄</li>
+            <li><b>프로젝트 총괄 및 아키텍처:</b> app·server·core 경계 구조와 HTTP API 서버 설계·구현</li>
+            <li><b>통합 및 품질 검증:</b> 작성·검토 흐름과 저장·API 통합, 검사 체계 운영</li>
+            <li><b>근거 위치 연결:</b> 초안 문장과 원본 문서 위치를 잇는 구조 설계</li>
           </ul>
           <div class="stack-box">
             <span class="stack-chip">Team Lead</span>
@@ -419,49 +416,41 @@ button{font:inherit;cursor:pointer}
         <article class="member-card">
           <div class="avatar-wrap">
             <svg class="avatar-squircle" aria-hidden="true"><use href="#member-avatar"/></svg>
-            <span class="role-tag">AI 서빙</span>
+            <span class="role-tag">AI 엔진</span>
           </div>
           <h3 class="member-name">김민성</h3>
-          <div class="member-title">멀티 에이전트 · AI 추론 서빙</div>
+          <div class="member-title">LLM 연동 · 작성·검토 엔진</div>
           <div class="contrib-label">담당 업무 및 개발 범위</div>
           <ul class="contrib-list">
-      <!-- // TODO: [PRES-01] 분석 Engine 구현됨. 묶음 질문·공개 제안/미리보기·서버/UI 연결은 후속. ../f02-analyze-plan.md 참조. -->
-      <!-- // TODO: [PRES-04] 전체 원자료 대조/제약 자동 복원은 계획. 현재는 초안·FactPack·grounding 검토. -->
-            <li><b>3단계 AI 서빙 파이프라인:</b> 분석·작성·검토 에이전트 추론 서빙 및 응답 지연 최적화 구현</li>
-      <!-- // TODO: [PRES-07] 보안 보장/경쟁 비교/효과 수치는 ISSUES.md에서 검토. 현재 보장·측정 완료로 해석하지 않음. -->
-            <li><b>모델 교체형 추론 인터페이스:</b> 사내 LLM 및 경량 공개 모델(sLLM) 즉시 연결·교체 서빙 구조 개발</li>
-      <!-- // TODO: [PRES-01] 분석 Engine 구현됨. 묶음 질문·공개 제안/미리보기·서버/UI 연결은 후속. ../f02-analyze-plan.md 참조. -->
-      <!-- // TODO: [PRES-04] 전체 원자료 대조/제약 자동 복원은 계획. 현재는 초안·FactPack·grounding 검토. -->
-      <!-- // TODO: [PRES-06] AI 생성 선택지와 A~D 표시 계약 정리 필요. D는 현행 직접 입력; 비율은 예시. ISSUES.md 참조. -->
-            <li><b>JSON Schema 제어 및 검증:</b> 유사 항목 묶음 질문(A~D) 및 3-Way 의미 대조 추론 안정화</li>
+            <li><b>작성·검토 파이프라인:</b> 승인 사실 기반 LLM 호출, 재시도와 호출 상한 구현</li>
+            <li><b>모델 연결 인터페이스:</b> OpenAI 호환 LLM을 설정으로 연결 (네이토 API)</li>
+            <li><b>JSON 응답 검증:</b> draft·review 응답의 형식과 참조 검증</li>
+            <li><b>분석·묶음 질문·3자 대조:</b> 로그 분석 단계와 의미 대조 설계</li>
           </ul>
           <div class="stack-box">
-            <span class="stack-chip">AI Serving</span>
-            <span class="stack-chip">LLM Agent</span>
+            <span class="stack-chip">LLM Engine</span>
+            <span class="stack-chip">Prompt</span>
           </div>
         </article>
 
-        <!--  3. 임재홍 (백엔드)  -->
+        <!--  3. 임재홍 (프론트엔드, 사용자 확인)  -->
         <article class="member-card">
           <div class="avatar-wrap">
             <svg class="avatar-squircle" aria-hidden="true"><use href="#member-avatar"/></svg>
-            <span class="role-tag">백엔드</span>
+            <span class="role-tag">프론트엔드</span>
           </div>
           <h3 class="member-name">임재홍</h3>
-      <!-- // TODO: [PRES-03] Rule 저장/매칭은 미구현. SkillPack과 혼용 금지; 공개 팩 공유는 별도 후속. ISSUES.md 참조. -->
-          <div class="member-title">비식별 규칙 엔진 · 스킬 저장소 서버</div>
+          <div class="member-title">공개 범위 선택 · 결과 미리보기</div>
           <div class="contrib-label">담당 업무 및 개발 범위</div>
           <ul class="contrib-list">
-      <!-- // TODO: [PRES-06] AI 생성 선택지와 A~D 표시 계약 정리 필요. D는 현행 직접 입력; 비율은 예시. ISSUES.md 참조. -->
-            <li><b>공개 수준(A~D) 변환 엔진 개발:</b> 실제 수치·단가를 선택한 공개 수준(추이·비율·마스킹)으로 안전하게 변환하는 백엔드 구현</li>
-      <!-- // TODO: [PRES-03] Rule 저장/매칭은 미구현. SkillPack과 혼용 금지; 공개 팩 공유는 별도 후속. ISSUES.md 참조. -->
-            <li><b>조건부 스킬(Skill) 엔진 구현:</b> 검증된 가림 기준 저장 및 ‘목적·수신처·조건’ 일치 판별 백엔드 개발</li>
-      <!-- // TODO: [PRES-04] 전체 원자료 대조/제약 자동 복원은 계획. 현재는 초안·FactPack·grounding 검토. -->
-            <li><b>누락 제약 복원 로직:</b> 필수 업무 제약(“기존 접수 채널 유지”) 자동 탐지 및 복원 처리</li>
+            <li><b>공개 범위 선택 UI:</b> 사실별 공개·제외 선택과 조건 입력 화면</li>
+            <li><b>변환 결과 미리보기:</b> 수치를 추이·비율로 보여 주는 화면 구성</li>
+            <li><b>초안 검토·승인 UI:</b> 문의문 확인·수정과 최종 확정 동선</li>
+            <li><b>스킬·Rule 설정 UI:</b> 지침·규칙 목록과 설정 폼</li>
           </ul>
           <div class="stack-box">
-            <span class="stack-chip">Backend Dev</span>
-            <span class="stack-chip">Rule &amp; Skill</span>
+            <span class="stack-chip">Front-end Dev</span>
+            <span class="stack-chip">Preview UI</span>
           </div>
         </article>
 
@@ -473,21 +462,16 @@ button{font:inherit;cursor:pointer}
           </div>
           <h3 class="member-name">맹주영</h3>
       <!-- // TODO: [PRES-02] 전체 UI/API 연결·본문/표 갱신·근거·내보내기는 미구현. 현재는 메모 저장/조회와 상태 확인. -->
-          <div class="member-title">워크스페이스 UI · 동시 갱신 연동</div>
+          <div class="member-title">작업 화면 · 앱 클라이언트</div>
           <div class="contrib-label">담당 업무 및 개발 범위</div>
           <ul class="contrib-list">
-      <!-- // TODO: [PRES-02] 전체 UI/API 연결·본문/표 갱신·근거·내보내기는 미구현. 현재는 메모 저장/조회와 상태 확인. -->
-      <!-- // TODO: [PRES-06] AI 생성 선택지와 A~D 표시 계약 정리 필요. D는 현행 직접 입력; 비율은 예시. ISSUES.md 참조. -->
-            <li><b>5단계 워크스페이스 구현:</b> 자료 입력 → 공개 수준(A~D) 선택 → 직접 입력(D) → 최종 확인 풀스택 개발</li>
-      <!-- // TODO: [PRES-02] 전체 UI/API 연결·본문/표 갱신·근거·내보내기는 미구현. 현재는 메모 저장/조회와 상태 확인. -->
-      <!-- // TODO: [PRES-06] AI 생성 선택지와 A~D 표시 계약 정리 필요. D는 현행 직접 입력; 비율은 예시. ISSUES.md 참조. -->
-            <li><b>본문·표·설명 동시 갱신:</b> A~D 선택 변경 시 연결된 문장·표·설명을 실시간 동기화하고 잔존 숫자를 제거</li>
-      <!-- // TODO: [PRES-02] 전체 UI/API 연결·본문/표 갱신·근거·내보내기는 미구현. 현재는 메모 저장/조회와 상태 확인. -->
-            <li><b>공유본 반출 인터페이스:</b> 내부 근거 분리 표시 및 최종 결과 복사·다운로드 기능 개발 계획</li>
+            <li><b>작업 화면 구현:</b> 전달 조건·공개 방식 화면과 메모 저장·조회 연결</li>
+            <li><b>본문·표·설명 동시 갱신:</b> A~D 변경 시 연결 내용 갱신 설계</li>
+            <li><b>공유본 반출:</b> 내부 근거 분리 표시와 복사·다운로드 설계</li>
           </ul>
           <div class="stack-box">
             <span class="stack-chip">Full-Stack</span>
-            <span class="stack-chip">Sync UI/API</span>
+            <span class="stack-chip">Client UI</span>
           </div>
         </article>
 
@@ -498,13 +482,13 @@ button{font:inherit;cursor:pointer}
             <span class="role-tag">PM</span>
           </div>
           <h3 class="member-name">이상혁</h3>
-          <div class="member-title">서비스 기획 총괄 · UX 및 시장 전략</div>
+          <div class="member-title">서비스 기획 · UX · 오픈소스 확장</div>
           <div class="contrib-label">담당 업무 및 개발 범위</div>
           <ul class="contrib-list">
             <li><b>문제 정의 및 도메인 기획:</b> 기업 보안 사고 사례 조사 및 타겟 페르소나·유즈케이스·요구사항 정의</li>
       <!-- // TODO: [PRES-06] AI 생성 선택지와 A~D 표시 계약 정리 필요. D는 현행 직접 입력; 비율은 예시. ISSUES.md 참조. -->
             <li><b>공개 수준(A~D) UX 설계:</b> 실무자 친화적 4단계 공개 기준(사실만·추이만·마스킹·비율) 및 플로우 설계</li>
-            <li><b>확장 전략 및 스토리라인:</b> 타겟 시장(TAM-SAM-SOM) 로드맵, 서비스 차별점 및 발표 구성 총괄</li>
+            <li><b>확장 전략 및 스토리라인:</b> 온프레미스·오픈소스 생태계 확장 방향, 서비스 설명 및 발표 구성 총괄</li>
           </ul>
           <div class="stack-box">
             <span class="stack-chip">Product PM</span>
@@ -517,7 +501,7 @@ button{font:inherit;cursor:pointer}
         <div class="collab-left">
           <span class="collab-pill">협업 및 직접 개발 원칙</span>
       <!-- // TODO: [PRES-02] 전체 UI/API 연결·본문/표 갱신·근거·내보내기는 미구현. 현재는 메모 저장/조회와 상태 확인. -->
-          <span>서비스 기획(PM)부터 AI 서빙, 보안·스킬 백엔드, 동시 갱신 풀스택 워크스페이스까지 전 과정의 담당 범위이며 항목별 완료 여부는 별도 확인</span>
+          <span>기획, 백엔드·LLM 엔진, 프론트엔드·앱 클라이언트로 역할을 나눠 개발</span>
         </div>
         <span class="collab-right">CODYSSEY HACKATHON · 지피한테물어봐</span>
       </footer>

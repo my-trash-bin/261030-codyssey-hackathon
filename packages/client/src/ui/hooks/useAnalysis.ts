@@ -38,14 +38,20 @@ export interface AnalysisApi {
   run(): Promise<void>;
 }
 
-export function useAnalysis(options?: { fetch?: typeof fetch }): AnalysisApi {
+// 전역 fetch는 receiver를 요구하므로 호출 시점에 메서드로 부른다. 렌더마다 새 함수를 만들지 않는다.
+const defaultFetch: typeof fetch = (input, init) => globalThis.fetch(input, init);
+
+export function useAnalysis(options?: { csrfToken?: string | null; fetch?: typeof fetch }): AnalysisApi {
   const [state, dispatch] = useReducer(analysisReducer, initialAnalysisState);
+  // 운영자가 세션 경계를 켠 서버에서만 /api/analysis가 쓰기 경계 안에 든다(packages/server/src/app.ts의
+  // GUARDED_PATHS, sessions 옵션). 세션이 있으면 그 응답의 CSRF 토큰을 그대로 쓰고, 없으면 보내지 않는다.
+  const csrfToken = options?.csrfToken ?? '';
   // 요청 수명에만 쓰는 참조. 상태 자체를 복제하지 않는다.
   const ownerRef = useRef(0);
   const activeRef = useRef<number | null>(null);
   const controllerRef = useRef<AbortController | null>(null);
-  // 지역 함수로 호출하므로 클래스 메서드의 receiver를 붙일 필요가 없다.
-  const fetchFn = options?.fetch ?? globalThis.fetch;
+  // 전역 fetch는 receiver를 요구하므로 호출 시점에 메서드로 부른다. 렌더마다 새 함수를 만들지 않는다.
+  const fetchFn = options?.fetch ?? defaultFetch;
 
   useEffect(() => () => {
     activeRef.current = null;
@@ -148,11 +154,15 @@ export function useAnalysis(options?: { fetch?: typeof fetch }): AnalysisApi {
 
     const controller = new AbortController();
     controllerRef.current = controller;
+    const headers: Record<string, string> = { 'Content-Type': 'application/json', Accept: 'application/json' };
+    // 세션이 열린 화면에서만 CSRF 토큰을 싣는다. 워크플로 경계를 켜지 않은 서버는 legacy
+    // 라우트를 그대로 열어 두므로(packages/server/src/app.ts의 sessions 옵션) 요청을 막지 않는다.
+    if (csrfToken !== '') headers['X-CSRF-Token'] = csrfToken;
     let response: Response;
     try {
       response = await fetchFn('/api/analysis', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        headers,
         credentials: 'same-origin',
         body: serialized,
         signal: controller.signal,

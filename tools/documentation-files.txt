@@ -8,7 +8,6 @@ contracts/core/requests.schema.json
 contracts/core/shared.schema.json
 contracts/domain-contract.json
 contracts/schema.sql
-docs/API와역할계약.md
 docs/ERD.md
 docs/IA.md
 docs/acceptance-map.csv
@@ -29,7 +28,6 @@ docs/features/07-domain-extensions.md
 docs/features/08-reproduction.md
 docs/features/09-history-recovery.md
 docs/features/10-runtime-boundary.md
-docs/implementation-start.md
 docs/plan.md
 docs/prd.md
 docs/qa.md
@@ -39,14 +37,12 @@ docs/test-data.md
 docs/traceability.csv
 docs/uj.md
 docs/검증보고서.md
-docs/구조와설계.md
-docs/시연안내.md
+evaluation/effect-compare/cases.json
 evaluation/expected/b2b-ids-allowed.json
 evaluation/expected/b2b-ids-excluded.json
 evaluation/expected/operations-direction.json
 evaluation/expected/operations-index.json
 evaluation/expected/oss-baseline.json
-evaluation/results/report-template.json
 fixtures/reference-pack/author/README.md
 fixtures/reference-pack/author/b2b-timeout/client-log.txt
 fixtures/reference-pack/author/b2b-timeout/request-summary.csv
@@ -70,4 +66,3 @@ fixtures/reference-pack/recipient/b2b-timeout/provider-traces.csv
 intent.md
 tools/validate_docs.py
 validation-report.json
-docs/separated-runtime.md

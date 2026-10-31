@@ -1,101 +1,113 @@
-# 팀 시연과 사용자 확인
+# SafeHandoff 시연 및 실행 안내
 
-> 보존한 제품 설계·이전 기록이다. 현재 구현은 TypeScript 서버·클라이언트의 문서 저장·조회만 제공한다. 현재 실행과 API는 [README](../README.md) 및 [api](api.md)를 따른다.
+문서 버전: 2.0 / 기준일: 2026-10-31 / 상태: 현행 정본 (TypeScript 워크스페이스 기준) / 연결: [README.md](../README.md), [api.md](api.md), [uj.md](uj.md)
 
-현행 시연 실행·연결 범위는 [README](../README.md)와 [API](api.md)를 따른다. 현재 없는 `just demo-start` 경로를 완료된 흐름으로 안내하지 않는다. 원격 CDP 영상 연출 브랜치의 이전 Go 시제품 녹화는 [별도 영상 안내](presentation/video/README.md)에 정리했으며 현행 구현 증거와 구분한다.
+## 1. 시연 모드 구분과 투명성 원칙
 
-## 1. 시연 목표
+SafeHandoff는 심사위원과 사용자가 **실제 동작하는 코드**와 **화면 연출/고정 응답 모드**를 혼동하지 않도록 실행 경로를 명확히 분리한다 (`INV-14`).
 
-이 프로젝트가 **공유용 자료 준비 작업**을 어떻게 도와주는지 보여준다. 입력 원문을 가리는 화면보다 사용자가 선택한 공개 수준이 실제 결과에 반영되고, 상대가 그 결과를 사용할 수 있는 장면을 중심에 둔다.
+| 실행 경로 | 실행 명령 | 포트 | 동작 내용과 표시 |
+| --- | --- | --- | --- |
+| 1. 실제 앱 (`@safehandoff/app`) | `just app` (또는 `pnpm --filter @safehandoff/app start`) | `127.0.0.1:8080` | `RealCore` + OpenAI 호환 모델 어댑터(`HttpModelClient`) + SQLite(`node:sqlite`) 실행. `/api/core/status`, `/api/core/generate`, `/api/documents` 제공 |
+| 2. 연출용 앱 (`@safehandoff/fake-app`) | `just fake-app` | `127.0.0.1:8081` | 외부 LLM 없이 고정 시나리오 응답(`FakeCore`)과 상태 제어(`POST /__demo`)를 제공. 실제 모델 추론 완료로 집계하지 않음 |
+| 3. 웹 클라이언트 (`@safehandoff/client`) | `just client` / `just client-fake` | `127.0.0.1:5173` / `:5174` | React 19 + Vite UI. 상단 배지로 코어 준비 상태(`ready`)와 연결 모드를 실시간 표시 |
+| 4. OSS 재현/작성/검토 종단간 스모크 | `node tools/oss-repro-smoke.mjs ...` | CLI | `make_synthetic_inputs_v1` -> `DockerReproRunner`(`--network=none`, 4회 실행) -> `composeFactPack` + `groundFacts` -> `RealCore.writeReviewed()` 실행 |
+| 5. 3자 가치 비교 실험 | `node tools/value-comparison.mjs` | CLI | 가상 로그 10건(`cases.json`)에 대해 직접 정규식 가림 vs 미검토 원문 AI vs SafeHandoff 파이프라인을 결정적으로 비교 측정 |
 
-오픈소스는 각 회사 안에서 실행하는 배포 형태다. 중앙 운영 서비스에 여러 회사의 원문을 모으는 화면으로 설명하지 않는다. 실제 PoC 상태에 따라 fixture, live, 사람 개입, 미수행 확장을 화면과 말에서 일치시킨다.
+---
 
-바로 업로드할 자료와 사례별 진행 순서는 [시연용 가상 자료](../fixtures/demo/README.md)에 있다. 운영 자문부터 시작하고, 공급사 문의·OSS 제보·요청량 변형을 별도 작업으로 시연한다. 추가 가상 사례로 스트리밍 CSV 청크 경계 오류와 배송 웹훅 중복·순서 역전 문의를 제공한다.
+## 2. 빠른 시작 (Quick Start)
 
-## 2. 시연 준비
+### 2.1 빌드 및 전체 품질 검증
 
-1. 가상 자료만 있는 전용 demo DB와 로컬 접속 세션을 준비한다.
-2. provider 모드, 실제 모델 연결 상태, 등록 확장·runner 준비 상태를 확인한다.
-3. 실제 실행할 경우 사전 준비 이미지·의존성을 확보한다. runtime 인터넷 연결을 켜서 몰래 해결하지 않는다.
-4. 한 화면은 사용자 작업, 다른 폴더는 실제 다운로드 파일로 준비한다.
-5. 평가 정답·공급사 내부 trace는 생성 앱이 읽지 못하는 곳에 둔다.
-6. 이전 실행을 보여주면 “이전 실행 기록”, 고정 응답이면 “fixture”라고 표시한다.
+```sh
+pnpm build
+pnpm typecheck
+pnpm test
+python tools/validate_docs.py
+```
 
-## 3. 짧은 시연 흐름
+### 2.2 실제 서버와 클라이언트 실행
 
-| 장면 | 보여줄 것 | 전달할 내용 |
-| --- | --- | --- |
-| 문제 | 가상 오류 로그의 기술 단서와 고객·내부 업무 정보 | 도움을 요청하려면 자료가 필요한데, 그대로 보내기 전에 준비할 일이 생긴다 |
-| 목적 입력 | OSS 이슈/업체 기술지원/운영 자문 목적과 수신자 | 무엇을 해결할지에 따라 필요한 공개 범위가 달라진다 |
-| 선택 | 요청량 질문 A–D, 실제 미리보기, 이번만/규칙 저장 | AI가 필요할 것 같은 정보를 제안하고 사람이 공개 수준을 정한다 |
-| 결과 변경 | D100/141/212에서 B방향 표로 변경, 기존 결과 stale | 선택 변경이 본문·표·첨부 전체에 함께 반영된다 |
-| 확정 | 실제 파일 목록·내용 확인→동일 바이트 다운로드 | 사용자가 본 결과를 직접 복사·저장해 공유한다 |
-| 수신자 | 공개 자료만 읽어 다음 조사/자문 행동 | 정보가 적다는 것만으로 성공이 아니라 목적에 도움이 되어야 한다 |
+`.env` 파일 또는 환경 변수로 OpenAI 호환 모델 정보를 설정한다 (`SAFEHANDOFF_LLM_BASE_URL`, `SAFEHANDOFF_LLM_MODEL`, 선택적 `SAFEHANDOFF_LLM_API_KEY`).
 
-비개발자 설명에서는 “회사 안의 AI가 필요한 공개 수준을 물어보며 문의 자료를 새로 작성한다”로 표현한다. 세부 동작을 묻는 경우 승인 정보만 받는 작성기, 작성 중 검토, 현재 파일 확인을 추가 설명한다.
+```sh
+# 터미널 1 - 실제 서버 (:8080)
+just app
 
-## 4. 확장 시연 두 가지
+# 터미널 2 - 웹 클라이언트 (:5173 -> :8080 프록시)
+just client
+```
 
-### 4.1 오픈소스 라이브러리별 제보 도움
+모델 서버가 없는 환경에서 UI 흐름만 먼저 확인할 때는 연출용 서버를 사용한다.
 
-공개 제품 버전·필수 질문·문의 양식을 담은 지침을 선택한다. 그 지침에 맞춰 새 예시와 실행 방법을 만든다. 준비된 toy 환경에서 새 ASCII/한글 입력을 buggy/fixed에 실행하고 네 결과를 보여준다.
+```sh
+# 터미널 1 - 연출용 서버 (:8081)
+just fake-app
 
-“이 고정 예시에서는 회사 입력 없이 같은 관찰 조건을 확인했습니다”라고 설명한다. 실제 라이브러리 전체에 자동 적용되거나 같은 근본 원인을 증명했다고 말하지 않는다. 환경이 없으면 not_run을 보여준다. 재현 근거를 얻는 목표였다면 사용자가 관찰 문의 목표로 바꾸고 재평가한 뒤 계속한다.
+# 터미널 2 - 연출용 서버에 연결된 웹 클라이언트 (:5174 -> :8081 프록시)
+just client-fake
+```
 
-### 4.2 같은 값도 쓰인 맥락에 따라 확인
+### 2.3 ToyRecord 스킬 팩 등록 및 Docker 재현 종단간 시연
 
-새 설정 예시와 원래 접속 로그에 똑같은192.0.2.17을 넣는다. 새 설정+승인 조건에서는 해당 패턴 지적만 해소되고, 원래 접속 로그에는 같은 예외가 적용되지 않는 모습을 보여준다. 제품마다 필요한 검사 프로그램과 자료 준비 절차를 추가할 수 있음을 설명한다.
+```sh
+# 1. 로컬 카탈로그에 toyrecord-repro 1.0.0 팩 지문 검증/등록
+node tools/pack-register.mjs \
+  --root fixtures/skills/toyrecord-repro \
+  --allowlist fixtures/skills/toyrecord-allowlist.json \
+  --catalog .local/toyrecord-catalog.json
 
-## 5. 재사용과 실패도 보여주기
+# 2. 합성 입력 생성 + Docker 4회 재현 + 승인팩 작성/검토 스모크 (고정 모델 fixture 모드)
+SAFEHANDOFF_TRANSCRIPT_DIR=.local/transcripts SAFEHANDOFF_TRANSCRIPT_CONTENT=1 \
+  node tools/oss-repro-smoke.mjs \
+  --catalog .local/toyrecord-catalog.json \
+  --pack-version 1.0.0 \
+  --registration .local/toyrecord-installation.json \
+  --seed 42 \
+  --output .local/toyrecord-pack-smoke-42.json
+```
 
-다음 자료820/780/1740에 같은 방향 기준을 적용해 감소/증가가 나오는지 확인한다. 수신자를 지정 업체에서 공개 이슈로 바꾸면 기존 정확한 ID 허용이 다시 필요하다는 점을 보여준다. 이전 값을 기억해서 그대로 넣는 동작과 구분한다.
+실제 사내/외부 등록 모델을 호출할 때는 `--live-model` 플래그를 추가한다.
 
-한 번은 모델 응답 오류나 runner 미설정을 보여준다. 마지막 선택이 보존되고 재시도·사람 검토·미수행 상태가 명확히 나타나야 한다. 이를 숨기고 미리 만든 결과로 교체하지 않는다.
+---
 
-## 6. 관찰자에게 묻는 질문
+## 3. 3대 핵심 시연 시나리오
 
-먼저 설명 없이 “무슨 일을 돕는 프로젝트로 이해했나요?”를 묻는다. 이후 입력 대상, 실행 위치, AI가 결정하는 것과 사람이 결정하는 것, 결과를 실제로 쓰는 다음 행동을 확인한다.
+### 시나리오 1 - 일반 내부 자료로 외부 운영 자문 요청 (`UJ-03`, 표현 수준 A / B / C / D)
 
-| 확인할 오해 | 중립적인 후속 질문 |
-| --- | --- |
-| 스크린샷 마스킹 제품으로 이해 | “어떤 종류의 자료를 넣는 상황을 떠올렸나요?” |
-| 중앙 SaaS가 원문을 모음 | “원문을 읽고 처리하는 곳은 어디라고 이해했나요?” |
-| 완전한 정보유출 차단 보장 | “어떤 점은 사용자가 직접 확인해야 한다고 보셨나요?” |
-| 그냥 AI와 차이가 없음 | “현재 하던 과정 중 어떤 일을 덜 하거나 더 하게 될 것 같나요?” |
-| 재현 없는 상황에는 못 씀 | “실행 환경이 없을 때도 이 자료로 상대에게 무엇을 물을 수 있을까요?” |
+1. **원자료**: `fixtures/reference-pack/author/internal-operations/` (`820 / 1,160 / 1,740` 요청량 CSV, 수동 대조/기존 채널 유지 제약이 적힌 운영 메모).
+2. **시연 포인트**:
+   - **A. 구체적인 데이터 없이 사실만**: 숫자/관찰 횟수 없이 `관찰된 구간에서 요청량이 증가했습니다.`만 승인팩에 들어간다.
+   - **B. 추이만 보이게 나머지 마스킹**: `derive_series_v1`(`series_direction_only.v1`)이 `첫 번째: 기준 / 두 번째: 증가 / 세 번째: 증가` 표를 생성한다.
+   - **D. 기타 (직접 입력)**: 첫 관찰을 100으로 둔 상대지수(`series_index_base100.v1`)를 적용하면 `100 / 141 / 212`가 결정적으로 계산된다.
+   - **다음 달 자료(`820 / 780 / 1,740`)에 기준 재사용**: 과거 문장을 복사하지 않고 새 입력에서 `기준 / 감소 / 증가`를 다시 계산한다.
 
-답을 유도하기 전에 첫 이해를 기록한다. 이해했다는 것과 실제 필요가 있다는 것은 다른 결과다. 최근 유사 업무, 준비 시간, 공개 판단 주체, 현재 쓰는 도구를 물어 실제 사용 대상을 좁힌다.
+### 시나리오 2 - 재현 환경이 없는 B2B 기술지원 문의 (`UJ-02`, 사실과 미확인 분리)
 
-## 7. 시연 종료 보고
+1. **원자료**: `fixtures/reference-pack/author/b2b-timeout/` (클라이언트 타임아웃 후 재시도 성공 로그, 내부 사업 메모).
+2. **시연 포인트**:
+   - `RealCore.analyze()`와 승인팩은 **클라이언트 타임아웃 관찰**과 **최초 요청의 서버 처리/중복 여부 미확인(`unknown`)**을 분리한다.
+   - 작성 모델이 "첫 요청이 실패했다"고 단정하면 `Reviewer`가 `UNSUPPORTED_CAUSAL_CLAIM` 또는 `UNCERTAINTY_REMOVED`로 반려하고 승인된 사실만으로 수리한다.
+   - 재현 환경이 없어도(`not_run / no_environment`) 관찰 사실과 공급사 확인 요청 질문으로 완결된 문의문을 만든다.
 
-실제로 수행한 모드와 시험, 생성된 파일, 사용자 개입, 수신자 행동, 미해결 실패를 간단히 기록한다. 시간 절감이나 보안 개선 수치는 비교 측정 뒤에만 말한다. 티켓 생성·자동 제출은 현재 핵심 시연과 구현 완료 기준에 넣지 않는다.
+### 시나리오 3 - 오픈소스 버그 제보와 합성 입력 Docker 재현 (`UJ-01`, `toyrecord`)
 
-## 8. 최신 fake-app 기반 CDP 연출
+1. **원자료**: `fixtures/reference-pack/author/oss-encoding/` (7글자 고객 문자열 `한글테스트값A`에서 `E_ENCODE_SHORT_BUFFER`가 발생한 로그와 비밀 토큰 `DEMO_ONLY_SECRET_TOKEN_01`).
+2. **시연 포인트**:
+   - 고객 문자열(7글자)과 내부 경로(`/srv/labelapp-prod/...`), 비밀 토큰은 제외한다.
+   - `make_synthetic_inputs_v1`이 시드 기반으로 원래 문자열과 무관한 6글자 새 입력(`ABCDEF`, `가나다라마바` 등)을 생성한다.
+   - `DockerReproRunner`가 `--network=none` 컨테이너에서 buggy/fixed x ASCII/한글 4회 실행을 수행해 `reproduced`를 확인하고, 승인팩에 정형 결과만 투영해 제보문을 완성한다.
 
-실행은 [README](../README.md#cdp-화면-시연)를 따릅니다.
-[진행 코드](../scripts/demo/run.mjs)는 최신 fake-app을 별도 DB·loopback 포트로 실행합니다.
-[화면](../packages/fake-app/public/presentation.html)은 fake-app만 제공합니다.
-실제 앱·server·core에는 이 화면을 연결하지 않습니다.
-분석·공개 선택·미리보기·최종 확인은 브라우저 연출이며 실제 승인 기능이 아닙니다.
-문서 생성과 저장·조회는 현재 공통 API로 수행하고 fake provenance와 저장 바이트를 확인합니다.
-현재 제품에서 미구현인 분석·승인·확정 API가 존재하는 것처럼 처리하지 않습니다.
+---
 
-[자막](../scripts/demo/stage.mjs)과 [장면 정의](../scripts/demo/scenes.mjs)는 6단계·세부 장면·의미를 표시합니다.
-[재생 제어](../scripts/demo/playback.mjs)는 페이지 밖에서 상태를 유지합니다.
-원하는 장면을 선택하면 상태를 다시 구성하고 해당 위치에서 정지합니다. 완료 후에도 탐색할 수 있습니다.
-`--headless --fast --verify-playback`으로 이전·다음·타임라인·도착 후 정지·재생을 검증합니다.
+## 4. 최신 fake-app 기반 CDP 연출 및 제출 영상 검증
 
-## 9. 제출 시간과 녹화
+- **실행 명령**: `mise exec -- just demo` (탐색/재생 검증: `just demo-check`, macOS MP4 녹화: `just demo-record`).
+- **동작 범위**: [진행 코드](../scripts/demo/run.mjs)가 최신 `fake-app`을 별도 SQLite DB/루프백 포트로 실행하고 전용 [연출 화면](../packages/fake-app/presentation.html)(`/__presentation`)을 연다. [자막](../scripts/demo/stage.mjs)/[장면 정의](../scripts/demo/scenes.mjs)/[재생 제어](../scripts/demo/playback.mjs)가 6단계/21개 세부 장면과 일시정지/탐색을 제공한다. 분석/공개 선택은 브라우저 연출 상태이며 문서 생성/저장/조회는 공통 `/api/sharing`/`/api/documents` API를 호출한다.
+- **녹화 및 제출 시간 검증**: [녹화 코드](../scripts/demo/recording.mjs)와 [macOS 인코더](../scripts/demo/encode.swift)가 실제 CDP 프레임을 H.264 MP4로 인코딩한다. 최신 `fake-app` 제출 녹화([저장된 영상](demo-media/SafeHandoff-demo.mp4), [미리보기](demo-media/preview.png), [검증 결과](../evaluation/results/cdp-submission-run.json))의 실제 길이는 **99.988초**로 110초 제한을 통과했다.
 
-110초 이내를 목표로 해설 시간을 배정하고 문서·패널 스크롤 500ms, 커서 500ms,
-내용 전환 450ms를 적용합니다. 패널 갱신 후 스크롤 위치를 유지합니다.
-[녹화 코드](../scripts/demo/recording.mjs)와 [macOS 인코더](../scripts/demo/encode.swift)는
-실제 CDP 프레임을 H.264 MP4로 만들고 길이와 6구간 프레임을 다시 확인합니다.
-녹화는 `--headless --record`로 수행하며 일시정지·탐색 없이 처음부터 끝까지 측정합니다.
-실행 폴더에는 `run.json`, `motion.json`, `video-check-*.png`, `submission.mp4`가 남습니다.
-[저장된 영상](demo-media/SafeHandoff-demo.mp4)과 [검증 결과](../evaluation/results/cdp-submission-run.json)의
-실행 모드·대상 구조를 확인합니다. 이전 Go fixture 영상의 결과를 최신 앱 검증으로 해석하지 않습니다.
+## 5. 시연 중 실패/질문 대응 기준
 
-최신 fake-app 녹화의 실제 길이는 **99.988초**이며 110초 제한을 통과했습니다.
-타입·빌드·패키지 시험·의존성 경계·QG 전체 검사를 통과했습니다.
-macOS에서 Linux 전용 팩 파일시스템 시험 10개는 skip이며 Linux 안전성 검증 완료로 보고하지 않습니다.
+- **모델 연결 실패 시**: live 모델 실패를 fixture 응답으로 몰래 대체하지 않는다 (`INV-14`). 오류 원인을 그대로 표시하거나 별도 표시된 fixture 시연 모드로 전환해 설명한다.
+- **과거 영상 참고자료 사용 시**: 초기 시제품 녹화 영상(`just preview-demo-video`, [영상 안내](presentation/video/README.md))을 참고로 보여줄 때는 사전 녹화된 시연 영상임을 명시하고 현재 실시간 실행 결과와 구분한다.

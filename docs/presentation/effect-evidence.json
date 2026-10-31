@@ -1,0 +1,125 @@
+{
+  "schema_version": "presentation_effect_evidence.v1",
+  "executed_at": "2026-10-31T16:38:20.080Z",
+  "mode": "synthetic_cases_fixed_model_responses",
+  "fixture_clock": "2026-10-31T12:00:00Z",
+  "actual_api_calls": 0,
+  "human_task_time_measured": false,
+  "actual_operating_cost_measured": false,
+  "comparison_totals": {
+    "cases": 10,
+    "forbidden_total": 48,
+    "required_total": 32,
+    "direct_regex_leaks": 41,
+    "direct_regex_cases_with_leaks": 10,
+    "raw_ai_payload_leaks": 48,
+    "raw_ai_output_leaks": 35,
+    "safehandoff_payload_leaks": 0,
+    "safehandoff_output_leaks": 0,
+    "safehandoff_passed_cases": 10,
+    "safehandoff_expired_blocked": 10
+  },
+  "required_reference_omission": {
+    "cases": 10,
+    "detected": 10,
+    "approved_facts_total": 26,
+    "meaning": "One required fact reference is removed per case; a false passing model review is overridden by the validator.",
+    "cases_detail": [
+      {
+        "case_id": "c01-webhook-timeout",
+        "approved_fact_count": 3,
+        "omitted_required_references": 1,
+        "result": "needs_changes",
+        "detected": true
+      },
+      {
+        "case_id": "c02-payment-duplicate",
+        "approved_fact_count": 3,
+        "omitted_required_references": 1,
+        "result": "needs_changes",
+        "detected": true
+      },
+      {
+        "case_id": "c03-csv-encoding",
+        "approved_fact_count": 3,
+        "omitted_required_references": 1,
+        "result": "needs_changes",
+        "detected": true
+      },
+      {
+        "case_id": "c04-db-pool",
+        "approved_fact_count": 3,
+        "omitted_required_references": 1,
+        "result": "needs_changes",
+        "detected": true
+      },
+      {
+        "case_id": "c05-sso-clock",
+        "approved_fact_count": 2,
+        "omitted_required_references": 1,
+        "result": "needs_changes",
+        "detected": true
+      },
+      {
+        "case_id": "c06-settlement-batch",
+        "approved_fact_count": 3,
+        "omitted_required_references": 1,
+        "result": "needs_changes",
+        "detected": true
+      },
+      {
+        "case_id": "c07-image-oom",
+        "approved_fact_count": 2,
+        "omitted_required_references": 1,
+        "result": "needs_changes",
+        "detected": true
+      },
+      {
+        "case_id": "c08-sms-rate",
+        "approved_fact_count": 2,
+        "omitted_required_references": 1,
+        "result": "needs_changes",
+        "detected": true
+      },
+      {
+        "case_id": "c09-search-reindex",
+        "approved_fact_count": 2,
+        "omitted_required_references": 1,
+        "result": "needs_changes",
+        "detected": true
+      },
+      {
+        "case_id": "c10-retention-advice",
+        "approved_fact_count": 3,
+        "omitted_required_references": 1,
+        "result": "needs_changes",
+        "detected": true
+      }
+    ]
+  },
+  "time_and_cost_assumptions": {
+    "human_stage_minutes_direct": [
+      4,
+      4,
+      2
+    ],
+    "human_stage_minutes_safehandoff": [
+      2,
+      1,
+      2
+    ],
+    "monthly_cases": 100,
+    "hourly_work_value_krw": 30000,
+    "monthly_hours_reclaimed": 8.333333333333334,
+    "gross_monthly_work_value_krw": 250000,
+    "break_even_incremental_cost_per_case_krw": 2500,
+    "excluded_costs": "API, incremental infrastructure, operations labor and monthly amortized introduction cost must all be deducted."
+  },
+  "limitations": [
+    "Candidates, public projections and disclosure decisions are prepared in advance.",
+    "The fixed writer copies approved facts; the fixed reviewer says pass. No live model accuracy is measured.",
+    "Forbidden items are exact substrings. Reference coverage does not establish semantic completeness.",
+    "The answer key lists 32 semantic clues, while composed packs contain 26 approved facts. These are different units.",
+    "No human timing, real deployment, actual billing or avoided incidents are measured."
+  ]
+}

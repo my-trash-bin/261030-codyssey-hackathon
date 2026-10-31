@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#163172">
+<meta name="description" content="SafeHandoff AI 파이프라인 - 승인 입력, 작성, 규칙 검사, LLM 검토, 사람 확정의 5단계">
+<title>SafeHandoff · 4. AI 파이프라인</title>
+<link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --blue:#2563eb;
+  --navy:#163172;
+  --ink:#111827;
+  --body:#334155;
+  --muted:#64748b;
+  --line:#dce4f0;
+  --paper:#ffffff;
+}
+*{box-sizing:border-box}
+html{
+  scroll-behavior:smooth;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+}
+body{
+  margin:0;
+  background:#e8edf5;
+  color:var(--ink);
+  font-family:"Pretendard Variable",Pretendard,"Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+  font-size:14px;
+  font-weight:600;
+  line-height:1.45;
+  word-break:keep-all;
+  overflow-wrap:break-word;
+}
+h1,h2,h3,h4,p,figure,ul{margin:0}
+a{color:inherit;text-decoration:none}
+button{font:inherit;cursor:pointer}
+
+.toolbar{
+  height:64px;
+  position:sticky;
+  top:0;
+  z-index:30;
+  background:#fffffff7;
+  border-bottom:1px solid var(--line);
+  backdrop-filter:blur(12px);
+}
+.toolbar-inner{
+  height:100%;
+  width:min(1280px,calc(100% - 40px));
+  margin:auto;
+  display:flex;
+  justify-content:space-between;
+  gap:20px;
+  align-items:center;
+}
+.brand{
+  font-size:19px;
+  font-weight:900;
+  color:var(--navy);
+  white-space:nowrap;
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+.brand-badge{
+  display:inline-grid;
+  place-items:center;
+  width:26px;
+  height:26px;
+  border-radius:7px;
+  background:#0f9f90;
+  color:#fff;
+  font-size:14px;
+  font-weight:900;
+}
+.brand small{
+  font-size:11px;
+  letter-spacing:.08em;
+  font-weight:700;
+  margin-left:4px;
+  color:var(--muted);
+}
+.tools{display:flex;gap:8px;align-items:center}
+.tool-button{
+  font-size:12px;
+  font-weight:700;
+  color:var(--navy);
+  background:#fff;
+  border:1.5px solid var(--line);
+  border-radius:8px;
+  padding:7px 13px;
+  line-height:1.5;
+}
+.tool-button:hover{background:#f0f5ff}
+
+.reader{padding:28px 0 42px}
+.page-shell{
+  position:relative;
+  margin:0 auto 28px;
+  width:1280px;
+  height:720px;
+}
+.page{
+  position:relative;
+  width:1280px;
+  height:720px;
+  padding:28px 46px 24px;
+  background:var(--paper);
+  box-shadow:0 6px 28px #16317212;
+  transform-origin:top left;
+  overflow:hidden;
+  display:flex;
+  flex-direction:column;
+}
+.page-header{
+  border-bottom:2px solid var(--navy);
+  padding-bottom:12px;
+  margin-bottom:18px;
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-end;
+  gap:16px;
+  flex-shrink:0;
+}
+.page-header h2{
+  font-size:30px;
+  color:var(--ink);
+  font-weight:900;
+  letter-spacing:-.04em;
+}
+.header-sub{
+  font-size:13px;
+  font-weight:700;
+  color:var(--muted);
+  white-space:nowrap;
+}
+
+
+
+
+
+
+.page-header{margin-bottom:16px;padding-bottom:11px}.page-header h2{font-size:31px}.header-sub{font-size:12.5px}.icon-defs{position:absolute;width:0;height:0;overflow:hidden}
+.ai-flow-diagram{display:block;width:100%;flex:1;min-height:0;font-family:inherit}
+.lane-title{font-size:16px;font-weight:900;fill:#163172;letter-spacing:-.025em}.lane-caption{font-size:11.5px;font-weight:600;fill:#64748b}
+.ai-stage rect,.row-output rect{fill:#f8fafc;stroke:#cbd5e1;stroke-width:1.4}.ai-stage.human rect,.row-output.final rect{fill:#f0fdf4;stroke:#a7d6b4}.ai-stage.writer rect{fill:#f2f7ff;stroke:#2563eb;stroke-width:1.7}.ai-stage.reviewer rect{fill:#f7f5ff;stroke:#7c3aed;stroke-width:1.7}
+.ai-stage.writer .brand-tile{fill:#181818;stroke:none}
+.node-icon{fill:none;stroke:#64748b;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}.human .node-icon,.final .node-icon{stroke:#15803d}.writer .node-icon{stroke:#2563eb}.reviewer .node-icon{stroke:#7c3aed}
+.node-title{font-size:18px;font-weight:900;fill:#111827;letter-spacing:-.025em}.node-body{font-size:13px;font-weight:600;fill:#475569;letter-spacing:-.02em}.node-caption{font-size:11.5px;font-weight:600;fill:#64748b}
+.stage-label{font-size:13px;font-weight:900;fill:#475569}.writer .stage-label{fill:#2563eb}.reviewer .stage-label{fill:#7c3aed}.model-name{font-size:22px;font-weight:900;fill:#111827;letter-spacing:-.035em}.rule-name{font-size:16px;font-weight:900;fill:#111827;letter-spacing:-.035em}
+.main-arrow path,.data-arrow{fill:none;stroke:#64748b;stroke-width:1.7;stroke-dasharray:2.5 3.5;stroke-linejoin:round}.revision-caption{font-size:12px;font-weight:600;fill:#64748b}
+@media(max-width:760px){
+ .toolbar-inner{width:calc(100% - 24px)}.reader{padding:16px 0 25px}.page-shell{width:calc(100% - 24px)!important;height:auto!important;margin-bottom:16px}.page{width:100%;height:auto;padding:20px 16px;transform:none!important;overflow:visible}.page-header{flex-direction:column;align-items:flex-start;gap:6px}.header-sub{white-space:normal}.ai-flow-diagram{flex:none;aspect-ratio:1188/540;height:auto}
+}
+@media print{
+ @page{size:1280px 720px;margin:0}body{background:#fff;margin:0;-webkit-print-color-adjust:exact;print-color-adjust:exact}.toolbar{display:none!important}.reader{padding:0;margin:0}.page-shell{width:1280px!important;height:720px!important;margin:0!important}.page{width:1280px!important;height:720px!important;transform:none!important;box-shadow:none!important;overflow:hidden!important}
+}
+</style></head><body>
+<header class="toolbar"><div class="toolbar-inner">
+      <a class="brand" href="#ai-scope"><span class="brand-badge">S</span>SafeHandoff <small>4 · AI PIPELINE</small></a>
+      <div class="tools"><a class="tool-button" href="SafeHandoff_전후_비교.html">‹ 3. 솔루션·유저 플로우</a>
+<a class="tool-button" href="SafeHandoff_직접_개발_범위.html">5. 직접 개발 범위 ›</a><a class="tool-button" href="../spec.md">제품 설계</a><a class="tool-button" href="../../README.md">실제 구현</a><button class="tool-button" id="print-document" type="button">인쇄 / PDF 저장</button></div>
+    </div></header>
+<main class="reader" aria-label="SafeHandoff AI 파이프라인"><div class="page-shell" id="sheet-ai-scope"><section class="page" id="ai-scope" aria-labelledby="ai-scope-title"><svg class="icon-defs" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"><defs>
+<symbol id="ai-human" viewBox="0 0 32 32"><circle cx="13" cy="9" r="5"/><path d="M3 28v-4a8 8 0 0 1 8-8h4a8 8 0 0 1 5 2M3 28h12"/><circle cx="24" cy="24" r="7"/><path d="m20.5 24 2.5 2.5 4.5-5"/></symbol>
+<symbol id="ai-facts" viewBox="0 0 32 32"><path d="M20 3H8a2 2 0 0 0-2 2v22a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9zM20 3v6h6M11 14l2 2 4-4M11 22l2 2 4-4M21 15h2M21 23h2"/></symbol>
+<symbol id="ai-check" viewBox="0 0 32 32"><rect x="4" y="4" width="24" height="24" rx="5"/><path d="m9 16 5 5 10-11"/></symbol>
+<symbol id="ai-pen" viewBox="0 0 32 32"><path d="M20 3H7a2 2 0 0 0-2 2v22a2 2 0 0 0 2 2h14M20 3v7h7M20 3l7 7M10 13h8M10 18h4M16 27l1-5 9-9 4 4-9 9zM24 15l4 4"/></symbol>
+<symbol id="ai-review" viewBox="0 0 32 32"><path d="M20 29H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h13l6 6v5M20 3v6h6M10 12h7M10 17h4M10 22h4"/><circle cx="22" cy="21" r="6"/><path d="m26.5 25.5 4 4"/></symbol>
+</defs></svg><header class="page-header"><h2 id="ai-scope-title">AI 파이프라인</h2><span class="header-sub">모델별 역할 구성 예시 · ChatGPT 초안 작성 · Gemini 이미지 검토</span></header><svg class="ai-flow-diagram" viewBox="0 0 1188 540" role="img" aria-labelledby="ai-flow-title ai-flow-desc">
+<title id="ai-flow-title">ChatGPT 초안 작성과 Gemini 이미지 검토를 나눈 모델별 역할 구성 예시</title>
+<desc id="ai-flow-desc">사용할 모델 API를 선택해 연결하는 구성 예시다. 사람이 승인한 사실과 이미지만 입력한다. ChatGPT가 초안을 작성하고 규칙을 검사한 뒤, Gemini가 승인 이미지의 내용을 읽고 초안과 대조한다. 사람이 최종 확인한 공유본을 직접 전달한다. 실제 연결 구현의 변경을 나타내지 않는다.</desc>
+<defs><marker id="ai-workflow-arrow" viewBox="0 0 8 8" markerWidth="7" markerHeight="7" refX="7" refY="4" orient="auto"><path d="M0 0 8 4 0 8Z" fill="#64748b"/></marker></defs>
+
+<text x="5" y="68" class="lane-title">공개 입력 준비</text><text x="5" y="91" class="lane-caption">사람이 공개 범위 결정</text>
+<text x="5" y="246" class="lane-title">AI 작성·검토</text><text x="5" y="271" class="lane-caption">원하는 API 선택·연결</text><text x="5" y="292" class="lane-caption">역할별 모델 선택</text>
+<text x="5" y="439" class="lane-title">사람 확정·공유</text><text x="5" y="462" class="lane-caption">최종 판단은 사람</text>
+
+<g class="ai-stage human"><rect x="185" y="24" width="345" height="91" rx="11"/><use href="#ai-human" x="204" y="48" width="40" height="40" class="node-icon"/><text x="258" y="58" class="node-title">01 공개할 자료 승인</text><text x="258" y="84" class="node-body">사실·이미지의 공개 범위를 지정</text></g>
+<g class="row-output"><rect x="615" y="24" width="495" height="91" rx="11"/><use href="#ai-facts" x="635" y="48" width="39" height="39" class="node-icon"/><text x="687" y="52" class="node-title">승인한 사실·이미지</text><text x="687" y="77" class="node-body">요청 ID · 응답 순서 · 공개 승인 이미지</text><text x="687" y="98" class="node-caption">원자료·미승인 정보는 AI 입력에서 제외</text></g>
+<path d="M530 69H615" class="data-arrow" marker-end="url(#ai-workflow-arrow)"/>
+<g class="main-arrow"><path d="M1110 69H1146V153H170V255H185" marker-end="url(#ai-workflow-arrow)"/></g>
+
+<g class="ai-stage writer"><rect x="185" y="196" width="270" height="126" rx="12"/><text x="205" y="222" class="stage-label">02 초안 작성</text><use href="#ai-pen" x="412" y="210" width="25" height="25" class="node-icon"/><rect x="203" y="237" width="43" height="43" rx="8" class="brand-tile"/><image href="logo_chatgpt.svg" x="208" y="242" width="33" height="33"/><text x="260" y="264" class="model-name">ChatGPT</text><text x="205" y="300" class="node-body">승인한 사실로 문의문 초안 생성</text></g>
+<g class="main-arrow"><path d="M455 259H515" marker-end="url(#ai-workflow-arrow)"/></g>
+<g class="ai-stage rules"><rect x="515" y="196" width="225" height="126" rx="12"/><text x="535" y="222" class="stage-label">03 규칙 검사</text><use href="#ai-check" x="535" y="241" width="34" height="34" class="node-icon"/><text x="582" y="264" class="rule-name">근거·형식 확인</text><text x="535" y="300" class="node-body">필수 조사 단서 포함 확인</text></g>
+<g class="main-arrow"><path d="M740 259H810" marker-end="url(#ai-workflow-arrow)"/></g>
+<g class="ai-stage reviewer"><rect x="810" y="196" width="300" height="126" rx="12"/><text x="830" y="222" class="stage-label">04 이미지 검토</text><use href="#ai-review" x="1067" y="210" width="25" height="25" class="node-icon"/><image href="logo_gemini.png" x="829" y="239" width="39" height="39"/><text x="881" y="264" class="model-name">Gemini</text><text x="830" y="300" class="node-body">승인 이미지의 내용 추출·초안 대조</text></g>
+<g class="main-arrow"><path d="M1110 259H1146V358H170V443H185" marker-end="url(#ai-workflow-arrow)"/></g>
+
+<g class="ai-stage human"><rect x="185" y="397" width="345" height="91" rx="11"/><use href="#ai-human" x="204" y="422" width="40" height="40" class="node-icon"/><text x="258" y="432" class="node-title">05 사람이 최종 확인</text><text x="258" y="458" class="node-body">내용·공개 범위를 검토하고 수정</text></g>
+<path d="M530 443H615" class="data-arrow" marker-end="url(#ai-workflow-arrow)"/>
+<g class="row-output final"><rect x="615" y="397" width="495" height="91" rx="11"/><use href="#ai-check" x="635" y="422" width="39" height="39" class="node-icon"/><text x="687" y="432" class="node-title">확정된 공유본</text><text x="687" y="458" class="node-body">사용자가 확인 후 직접 전달</text></g>
+
+<text x="185" y="523" class="revision-caption">보완이 필요하면 초안을 다시 수정합니다. 공개 범위 변경은 사람이 다시 승인합니다.</text>
+</svg></section></div></main>
+<script>
+(() => {
+  'use strict';
+  const shells = Array.from(document.querySelectorAll('.page-shell'));
+  function fitPages() {
+    const mobile = innerWidth <= 760;
+    const width = Math.min(1280, innerWidth - 40);
+    shells.forEach(shell => {
+      shell.style.width = mobile ? '' : width + 'px';
+      shell.style.height = mobile ? '' : 720 * width / 1280 + 'px';
+      shell.querySelector('.page').style.transform = mobile ? '' : 'scale(' + width / 1280 + ')';
+    });
+  }
+  document.getElementById('print-document').addEventListener('click', () => window.print());
+  window.addEventListener('resize', fitPages);
+  window.addEventListener('afterprint', fitPages);
+  fitPages();
+})();
+</script></body></html>

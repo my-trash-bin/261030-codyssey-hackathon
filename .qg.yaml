@@ -2,7 +2,7 @@ presets: [js]
 # just check invokes QG; pnpm test runs Node tests without invoking QG.
 hooks:
   preCommit:
-    installation: off
+    installation: auto
 artifacts:
   generated:
     include:
@@ -24,12 +24,10 @@ rules:
     options:
       allowedLanguages: [en, ko]
       ignoredPaths: [var/**, bin/**]
-      allowedCharacters: ["·", "→", "–", "‘", "’", "§", "—", "“", "”", "×", "∩", "…"]
   docs/valid-reference:
     severity: error
     options:
       ignoredPaths: [var/**, bin/**]
-      referenceStyle: slash-delimited
   files/max-bytes:
     severity: error
     options:

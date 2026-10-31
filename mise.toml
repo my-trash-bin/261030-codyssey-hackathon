@@ -8,7 +8,7 @@ python = "3.13.8"
 # just가 없는 첫 실행도 mise 자체로 설치할 수 있다.
 [tasks.setup]
 description = "고정 도구와 pnpm 의존성 설치"
-run = "pnpm install --frozen-lockfile"
+run = ["pnpm install --frozen-lockfile", "pnpm exec qg hooks install"]
 
 [tasks.setup-presentation]
 description = "발표 빌드 도구와 Chromium 설치"

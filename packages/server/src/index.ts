@@ -7,4 +7,7 @@ export { runTaskAnalysis } from './analysis-service.ts';
 export type { AnalysisJob, AnalysisCandidate, AnalysisAdoption, ManualCandidateInput } from './analysis-store.ts';
 
 export { createWorkflowHandler } from './workflow-http.ts';
+export { WorkflowSessions } from './workflow-session.ts';
 export type { WorkflowAccess } from './workflow-session.ts';
+
+export { validateCatalog } from './workflow-catalog.ts';

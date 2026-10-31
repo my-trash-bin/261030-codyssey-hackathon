@@ -1,18 +1,19 @@
 import { CoreError, ModelError, groundFacts, parseGenerateRequest } from '@safehandoff/core-interface';
 import type {
   AnalyzeRequest, AnalyzeResult, Candidate, CoreInfo, DisclosurePreview, DisclosureProposal, Draft, Engine, EngineConfig,
-  FactPack, GenerateRequest, GenerateResult, ModelClient, ModelRequest, Representation, ReproduceRequest,
+  FactPack, PublicReviewFile, GenerateRequest, GenerateResult, ModelClient, ModelRequest, Representation, ReproduceRequest,
   ReproduceResult, ReproRunner, Review, ReviewGroundingContext, TaskContext,
 } from '@safehandoff/core-interface';
 import { parseCandidateProposals, parseDraft, parseReview, validateDraft } from './validation.ts';
 import { calculatePreview, validateRepresentation } from './disclosure.ts';
 import { parseDisclosureProposal } from './validation.ts';
 import { invalidSource, parseEvidence, wellFormed } from './evidence-parser.ts';
+import { responseSchema } from './response-schemas.ts';
 import { approvedRequestGrounding, validateProjectionHashes } from './fresh-grounding.ts';
 
 import type { TranscriptRun, TranscriptSink } from './transcript.ts';
 
-type Run = { sensitive?: boolean; trace?: TranscriptRun; calls: number; signal?: AbortSignal; grounding?: ReviewGroundingContext };
+type Run = { onProgress?: (kind: string) => void; publicFiles?: PublicReviewFile[]; sensitive?: boolean; trace?: TranscriptRun; calls: number; signal?: AbortSignal; grounding?: ReviewGroundingContext };
 export class RealCore implements Engine {
   private readonly model?: ModelClient;
   private readonly config?: EngineConfig;
@@ -37,13 +38,25 @@ export class RealCore implements Engine {
   private async call<T>(request: ModelRequest, parse: (text: string) => T, run: Run): Promise<T> {
     if (run.signal?.aborted) throw new CoreError('CORE_CANCELLED');
     if (!this.model || !this.config) throw new CoreError('CORE_NOT_IMPLEMENTED');
-    for (let attempt = 0; attempt < this.config.provider.max_attempts_per_step; attempt++) {
+    let attempt = 0;
+    while (attempt < this.config.provider.max_attempts_per_step) {
       if (run.signal?.aborted) throw new CoreError('CORE_CANCELLED');
       if (run.calls >= this.config.workflow.max_model_calls_per_run) throw new ModelError('MODEL_BUDGET_EXCEEDED');
-      run.calls++;
-      run.trace?.emit('model_started', { role: request.role, call: run.calls, attempt: attempt + 1 }, run.sensitive ? undefined : request);
+      run.calls++; attempt++;
+      run.onProgress?.(request.role === 'writer' ? 'writer_started' : run.publicFiles ? 'files_review_started' : 'review_started');
+      run.trace?.emit('model_started', { role: request.role, call: run.calls, attempt }, run.sensitive ? undefined : request);
       try {
-        const response = await this.model.complete(request, { signal: run.signal });
+        const schema = responseSchema(request.role);
+        const response = await this.model.complete(request, { signal: run.signal,
+          ...(schema ? { output: { schema, validate: parse } } : {}),
+          onAdditionalCall: () => {
+            if (run.signal?.aborted) throw new ModelError('MODEL_CANCELLED');
+            if (attempt >= this.config!.provider.max_attempts_per_step || run.calls >= this.config!.workflow.max_model_calls_per_run) {
+              throw new ModelError('MODEL_BUDGET_EXCEEDED');
+            }
+            run.calls++; attempt++;
+            run.trace?.emit('model_started', { role: request.role, call: run.calls, attempt, argument_repair: true });
+          } });
         if (run.signal?.aborted) throw new CoreError('CORE_CANCELLED');
         const parsed = parse(response.text);
         run.trace?.emit('model_completed', { role: request.role, call: run.calls, usage: response.usage },
@@ -53,7 +66,7 @@ export class RealCore implements Engine {
         run.trace?.emit('model_failed', { role: request.role, call: run.calls,
           code: error instanceof ModelError || error instanceof CoreError ? error.code : 'UNEXPECTED_ERROR' });
         if (!(error instanceof ModelError) || error.code === 'MODEL_CANCELLED' || error.code === 'MODEL_BUDGET_EXCEEDED' ||
-          attempt + 1 === this.config.provider.max_attempts_per_step) throw error;
+          attempt >= this.config.provider.max_attempts_per_step) throw error;
       }
     }
     throw new ModelError('MODEL_UNAVAILABLE');
@@ -62,7 +75,18 @@ export class RealCore implements Engine {
     return this.call({ role: 'writer', responseFormat: 'json',
       systemPrompt: 'Return draft.v1 JSON only: {schema_version:"draft.v1",blocks:[{type:"paragraph",text:string,fact_ids:string[]}]}. ' +
         'Use only approved facts; preserve uncertainty. Blocks may also be heading (level/text), list (items with text/fact_ids), ' +
-        'table_ref (table_id), excerpt_ref (excerpt_id), asset_ref (asset_id). Optional unique block_id. Never invent references.',
+        'table_ref (table_id), excerpt_ref (excerpt_id), asset_ref (asset_id). Optional unique block_id. Never invent references. ' +
+        'Every paragraph and every list item must cite at least one approved fact id in fact_ids; ' +
+        'do not add greetings, closings or any other sentence that no approved fact supports. ' +
+        'Write in fact_pack.output_language; for ko use polite formal style ending in -합니다/-습니다. ' +
+        'Structure: one level-2 heading naming the issue neutrally and the document kind (e.g. 기술지원 문의); ' +
+        'then level-3 sections in this order, omitting a section only when no approved fact fits it: ' +
+        'overview (개요), confirmed observations (확인된 사실), hypotheses (추정), unknowns (확인되지 않은 사항). ' +
+        'Put hypothesis/inferred facts only under hypotheses and keep their hedged wording (추정됩니다, 가능성이 있습니다); ' +
+        'never turn an unknown or hypothesis into a confirmed statement. ' +
+        'A paragraph or list item about an unknown may end with one short request asking the recipient to check or confirm ' +
+        'that same point; such a request must cite the same fact ids and add no new facts, names, identifiers or numbers. ' +
+        'Output the raw JSON object only, without markdown code fences or commentary.',
       input: JSON.stringify({ fact_pack: pack, ...(feedback ? { feedback } : {}) }),
     }, text => parseDraft(text, pack), run);
   }
@@ -82,14 +106,19 @@ export class RealCore implements Engine {
         'schema_version must be the literal string review.v1. A passing response is ' +
         '{"schema_version":"review.v1","result":"pass","issues":[]}. ' +
         'Other result values are needs_changes/needs_decision/error. Always include schema_version. ' +
+        'When rendered_files is present, review its exact public file text as well as the DocAST against the approved fact pack. ' +
+        'Never treat a manifest hash as disclosure permission or fetch embedded links. ' +
         'Every fact must have grounding: fresh_decision or reused_rule with rule id/version. ' +
         'If a statement depends on previous permission or an ungrounded prior approval, return needs_decision with ' +
         'NEEDS_DISCLOSURE_DECISION. Never create or infer disclosure permission. ' +
         'Each issue requires target {kind:document or block,block_id?}, reason_code, action (string or null), ' +
         'approved_fact_ids, candidate_ids, internal_explanation. Check disclosure, uncertainty, required facts and references. ' +
         'Reason codes: UNAPPROVED_DISCLOSURE, UNSUPPORTED_CAUSAL_CLAIM, MISSING_REQUIRED_FACT, SOURCE_CONFLICT, ' +
-        'UNCERTAINTY_REMOVED, INCORRECT_PROJECTION, UNAPPROVED_REFERENCE, NEEDS_DISCLOSURE_DECISION. Pass has no issues.',
-      input: JSON.stringify({ draft, fact_pack: pack, grounding }),
+        'UNCERTAINTY_REMOVED, INCORRECT_PROJECTION, UNAPPROVED_REFERENCE, NEEDS_DISCLOSURE_DECISION. Pass has no issues. ' +
+        'A short request asking the recipient to check or confirm a point that its cited facts already state is not a new ' +
+        'disclosure or claim, provided it adds no new facts, names, identifiers or numbers. ' +
+        'Output the raw JSON object only, without markdown code fences or commentary.',
+      input: JSON.stringify({ draft, fact_pack: pack, grounding, ...(run.publicFiles ? { rendered_files: run.publicFiles } : {}) }),
     }, text => parseReview(text, draft, pack), run);
     const result = this.groundingReview(pack, run.grounding) ?? review;
     run.trace?.emit('review_completed', { result: result.result, reasons: result.issues.map(issue => issue.reason_code) });
@@ -108,17 +137,17 @@ export class RealCore implements Engine {
     } finally { trace?.close(); }
   }
   write(pack: FactPack): Promise<Draft> { return this.traced('write', trace => this.draft(pack, { calls: 0, trace })); }
-  review(draft: Draft, pack: FactPack, grounding?: ReviewGroundingContext): Promise<Review> {
-    return this.traced('review', trace => this.check(structuredClone(draft), structuredClone(pack), { calls: 0, trace, grounding: grounding ? structuredClone(grounding) : undefined }));
+  review(draft: Draft, pack: FactPack, grounding?: ReviewGroundingContext, options?: { files?: PublicReviewFile[]; signal?: AbortSignal }): Promise<Review> {
+    return this.traced('review', trace => this.check(structuredClone(draft), structuredClone(pack), { calls: 0, trace, signal: options?.signal, publicFiles: options?.files, grounding: grounding ? structuredClone(grounding) : undefined }));
   }
 
   // Full bounded repair workflow for Engine consumers; generate deliberately uses zero repairs.
-  async writeReviewed(pack: FactPack, options?: { signal?: AbortSignal; maxRepairs?: number; grounding?: ReviewGroundingContext }): Promise<{ draft: Draft; review: Review }> {
+  async writeReviewed(pack: FactPack, options?: { signal?: AbortSignal; maxRepairs?: number; grounding?: ReviewGroundingContext; finalFiles?: (draft: Draft) => PublicReviewFile[]; onProgress?: (kind: string) => void }): Promise<{ draft: Draft; review: Review }> {
     return this.traced('writeReviewed', trace => this.writeReviewedRun(pack, options, trace));
   }
-  private async writeReviewedRun(pack: FactPack, options?: { signal?: AbortSignal; maxRepairs?: number; grounding?: ReviewGroundingContext }, trace?: TranscriptRun): Promise<{ draft: Draft; review: Review }> {
+  private async writeReviewedRun(pack: FactPack, options?: { signal?: AbortSignal; maxRepairs?: number; grounding?: ReviewGroundingContext; finalFiles?: (draft: Draft) => PublicReviewFile[]; onProgress?: (kind: string) => void }, trace?: TranscriptRun): Promise<{ draft: Draft; review: Review }> {
     pack = structuredClone(pack);
-    const run: Run = { trace, calls: 0, signal: options?.signal, grounding: options?.grounding ? structuredClone(options.grounding) : undefined };
+    const run: Run = { trace, calls: 0, onProgress: options?.onProgress, signal: options?.signal, grounding: options?.grounding ? structuredClone(options.grounding) : undefined };
     const limit = options?.maxRepairs ?? this.config?.workflow.max_review_repairs ?? 0;
     if (!Number.isInteger(limit) || limit < 0 || limit > (this.config?.workflow.max_review_repairs ?? 0)) {
       throw new CoreError('INVALID_CORE_INPUT');
@@ -130,7 +159,12 @@ export class RealCore implements Engine {
     if (denied) return { draft: { schema_version: 'draft.v1', blocks: [] }, review: denied };
     let draft = await this.draft(pack, run);
     for (let repairs = 0; ; repairs++) {
-      const review = await this.check(draft, pack, run);
+      run.publicFiles = undefined;
+      let review = await this.check(draft, pack, run);
+      if (review.result === 'pass' && options?.finalFiles) {
+        run.publicFiles = options.finalFiles(draft);
+        review = await this.check(draft, pack, run);
+      }
       if (review.result !== 'needs_changes' || repairs >= limit) return { draft, review };
       // No free-form explanations, actions or candidate IDs cross into the writer session.
       const feedback = review.issues.map(issue => ({ reason_code: issue.reason_code,
@@ -170,7 +204,7 @@ export class RealCore implements Engine {
       if (!task || Object.keys(task).some(key => !['purpose', 'recipient', 'goal_variant', 'output_language'].includes(key)) ||
         ![task.purpose, task.recipient].every(value => typeof value === 'string' && value.trim() && value.length <= 8192 && wellFormed(value)) ||
         (task.output_language !== undefined && (typeof task.output_language !== 'string' || task.output_language.length > 8192 || !wellFormed(task.output_language))) ||
-        (task.goal_variant !== undefined && !['default', 'observations_only', 'reproduction_evidence'].includes(task.goal_variant))) invalidSource();
+        (task.goal_variant !== undefined && !['default', 'observations_only', 'ask_for_diagnostics', 'reproduction_evidence'].includes(task.goal_variant))) invalidSource();
       if (!this.model || !this.config) throw new CoreError('CORE_NOT_IMPLEMENTED');
       const parsed = parseEvidence(request.sources);
       trace?.emit('analysis_parsed', { sources: parsed.sources.length, evidence: parsed.evidence.length });
@@ -182,8 +216,14 @@ export class RealCore implements Engine {
           'relevance: required/optional. At most 30 candidates. Use only supplied evidence IDs; never invent offsets or sources. ' +
           'Separate observed facts, constraints, hypotheses and unknowns. Preserve conflicting accounts with separate candidates ' +
           'and conflicts referencing at least two local_keys. Do not infer server completion or root cause from a timeout. ' +
-          'This is a proposal, not disclosure permission. No approval fields, tools, external requests or writer output. ' +
-          'If no relevant candidates exist, return empty arrays. Prefer the requested output_language.',
+          'This is a proposal, not disclosure permission. No approval fields, external tool execution, external requests or writer output. ' +
+          'If no relevant candidates exist, return empty arrays. Prefer the requested output_language. ' +
+          'Never copy personal or identifying values into any statement or purpose_relevance: person names, phone numbers, ' +
+          'email addresses, national or resident ID numbers, account or card numbers, street addresses, IP addresses, ' +
+          'user or customer IDs, tokens or credentials. Describe them only by category and count ' +
+          '(e.g. "로그에 고객 성명·전화번호·이메일이 평문으로 기록됨", "고객 1명의 결제 요청"); the evidence_ids already locate the values. ' +
+          'Keep non-identifying technical values such as timestamps, service names, log levels, durations and error codes. ' +
+          'Submit the result JSON without markdown code fences or commentary.',
         input: JSON.stringify({ task, sources: parsed.sources, evidence: parsed.evidence }) };
       if (Buffer.byteLength(JSON.stringify(modelRequest)) > this.config.provider.max_input_bytes) throw new ModelError('MODEL_BUDGET_EXCEEDED');
       const proposals = await this.call(modelRequest, text => parseCandidateProposals(text, parsed.evidence),
@@ -197,7 +237,8 @@ export class RealCore implements Engine {
       typeof options?.condition !== 'string' || !options.condition.trim() || options.condition.length > 8192) invalidSource();
     return this.traced('proposeDisclosure', async trace => {
       const request: ModelRequest = { role: 'disclosure', responseFormat: 'json',
-        systemPrompt: 'Return disclosure_proposal.v1 JSON only with candidate_id, status supported/ambiguous/unsupported, ' +
+        systemPrompt: 'Output the raw JSON object only, without markdown code fences or commentary. ' +
+          'Return disclosure_proposal.v1 JSON only with candidate_id, status supported/ambiguous/unsupported, ' +
           'representation or null, requires_clarification boolean. Never approve or create decisions. ' +
           'Supported representations: fact_summary with empty transform_id and parameters {}; selected_fields with ' +
           'transform_id select_fields.v1 and parameters {fields:string[]}; exact_value with empty transform_id/parameters; ' +

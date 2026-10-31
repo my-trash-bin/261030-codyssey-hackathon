@@ -37,12 +37,21 @@ export class AnalysisStore {
       ON v.task_id=s.task_id AND v.id=s.source_id WHERE v.task_id=? ORDER BY v.id`).all(id)
       .map(row => JSON.parse(String(row.payload_json)));
   }
+  sourceCatalog(id: string) {
+    this.hooks.get(id);
+    return this.db.prepare(`SELECT v.id,v.payload_json,s.source_id AS selected FROM workflow_source_versions v
+      LEFT JOIN workflow_source_selections s ON s.task_id=v.task_id AND s.source_id=v.id WHERE v.task_id=? ORDER BY v.id`).all(id).map(row => {
+      const { raw_bytes, ...source } = JSON.parse(String(row.payload_json));
+      return { ...source, included: row.selected !== null, byte_size: Buffer.byteLength(Buffer.from(raw_bytes, 'base64')) };
+    });
+  }
   private saveSources(id: string, sources: SourceDocument[]): string {
-    validateSources(sources);
+    if (!Array.isArray(sources) || sources.some(s => !s || typeof s.included !== 'boolean')) invalid();
+    validateSources(sources.map(s => ({ ...s, included: true })));
     for (const input of sources) {
       const source: SourceDocument = { id: input.id, source_id: input.source_id, version: input.version,
         display_name: input.display_name, format: input.format, source_slot: input.source_slot,
-        raw_bytes: input.raw_bytes, sha256: input.sha256, included: input.included };
+        raw_bytes: input.raw_bytes, sha256: input.sha256, included: true };
       const bytes = JSON.stringify(source);
       const prior = this.db.prepare('SELECT payload_json FROM workflow_source_versions WHERE task_id=? AND id=?').get(id, source.id);
       if (prior && prior.payload_json !== bytes) invalid();
@@ -52,8 +61,8 @@ export class AnalysisStore {
       this.db.prepare('INSERT OR IGNORE INTO workflow_source_versions VALUES(?,?,?)').run(id, source.id, bytes);
     }
     this.db.prepare('DELETE FROM workflow_source_selections WHERE task_id=?').run(id);
-    for (const source of sources) this.db.prepare('INSERT INTO workflow_source_selections VALUES(?,?)').run(id, source.id);
-    return sourceSetHash(sources);
+    for (const source of sources.filter(s => s.included)) this.db.prepare('INSERT INTO workflow_source_selections VALUES(?,?)').run(id, source.id);
+    return sourceSetHash(sources.filter(s => s.included));
   }
   private clearCurrent(id: string): void {
     this.db.prepare('DELETE FROM workflow_current_decisions WHERE task_id=?').run(id);
@@ -87,6 +96,12 @@ export class AnalysisStore {
     if (!row) throw new TaskStoreError('ANALYSIS_NOT_FOUND');
     return { id: String(row.id), task_id: id, revision: Number(row.revision), status: row.status as AnalysisJob['status'],
       error_code: row.error_code as string | null, snapshot: JSON.parse(String(row.snapshot_json)) };
+  }
+  summary(jobId: string) {
+    const row = this.db.prepare('SELECT task_id FROM workflow_analysis_jobs WHERE id=?').get(jobId);
+    if (!row) throw new TaskStoreError('ANALYSIS_NOT_FOUND');
+    const { snapshot: _snapshot, ...job } = this.job(String(row.task_id), jobId);
+    return { ...job, kind: 'analyze', input_revision: job.revision };
   }
   cancel(id: string, jobId: string): boolean {
     return Number(this.db.prepare("UPDATE workflow_analysis_jobs SET status='cancelled' WHERE task_id=? AND id=? AND status='running'").run(id, jobId).changes) === 1;

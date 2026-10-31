@@ -48,7 +48,7 @@ function prerequisitesOf(analysis: AnalysisApi): AnalysisPrerequisites {
 export function App(): JSX.Element {
   const [csrfToken, setCsrfToken] = useState<string | null>(null);
   const disclosures = useDisclosures({ csrfToken });
-  const analysis = useAnalysis();
+  const analysis = useAnalysis({ csrfToken });
   const runtime = useRuntimeInfo();
   const session = useSession(setCsrfToken);
   const sessionView = {
@@ -58,7 +58,7 @@ export function App(): JSX.Element {
         ? ' 공개 결정 쓰기가 열렸습니다.' : ` ${disclosures.writeBlockReason}`}`
       : session.status,
   };
-  const documents = useDocuments();
+  const documents = useDocuments({ csrfToken });
   const task = useTaskFlow({
     csrfToken,
     onTaskLoaded: (id) => { void disclosures.loadTask(id); },

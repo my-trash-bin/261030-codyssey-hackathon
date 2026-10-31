@@ -11,7 +11,7 @@ export type Uncertainty = 'observed' | 'reported' | 'inferred' | 'unknown';
 export interface TaskContext {
   purpose: string;
   recipient: string;
-  goal_variant?: 'default' | 'observations_only' | 'reproduction_evidence';
+  goal_variant?: 'default' | 'observations_only' | 'ask_for_diagnostics' | 'reproduction_evidence';
   output_language?: string;
 }
 
@@ -233,6 +233,8 @@ export interface ReviewIssue {
 }
 export interface Review { schema_version: 'review.v1'; result: ReviewResultKind; issues: ReviewIssue[] }
 
+export interface PublicReviewFile { path: string; text: string; sha256: string }
+
 // -- the full pipeline. Core (generate) is the writer+reviewer subset; Engine adds analysis,
 // disclosure assistance and reproduction around it. decide() is deliberately absent: disclosure
 // decisions are made by a human and persisted by server, not produced by the engine. --
@@ -241,6 +243,8 @@ export interface Engine extends Core {
   proposeDisclosure(candidate: Candidate, task: TaskContext, options?: { condition?: string; signal?: AbortSignal }): Promise<DisclosureProposal>;
   preview(candidate: Candidate, representation: Representation, inputRevision: number, context?: { sources: SourceDocument[]; evidence: EvidenceSpan[] }): Promise<DisclosurePreview>;
   write(factPack: FactPack): Promise<Draft>;
-  review(draft: Draft, factPack: FactPack, grounding?: ReviewGroundingContext): Promise<Review>;
+  review(draft: Draft, factPack: FactPack, grounding?: ReviewGroundingContext, options?: { files?: PublicReviewFile[]; signal?: AbortSignal }): Promise<Review>;
+  writeReviewed(pack: FactPack, options?: { signal?: AbortSignal; maxRepairs?: number; grounding?: ReviewGroundingContext;
+    finalFiles?: (draft: Draft) => PublicReviewFile[]; onProgress?: (kind: string) => void }): Promise<{ draft: Draft; review: Review }>;
   reproduce(request: ReproduceRequest, options?: { signal?: AbortSignal }): Promise<ReproduceResult>;
 }

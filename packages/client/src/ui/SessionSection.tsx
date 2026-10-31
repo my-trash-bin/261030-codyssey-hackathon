@@ -16,7 +16,7 @@ export function SessionSection(props: { session: SessionApi }): JSX.Element {
   return (
     <section className="session" id="session" aria-labelledby="session-heading">
       <h2 id="session-heading">로컬 접속</h2>
-      <p className="hint" id="session-hint">서버를 시작할 때 설정한 운영자 토큰으로 세션을 엽니다. 토큰은 이 화면의 메모리에만 쓰고 저장하지 않습니다. 세션은 1시간 뒤 만료되며, 만료되면 다시 입력해야 합니다.</p>
+      <p className="hint" id="session-hint">서버를 시작할 때 설정한 운영자 토큰으로 세션을 엽니다. 토큰은 이 화면의 메모리에만 쓰고 저장하지 않습니다. 세션은 8시간 뒤 만료되며, 만료되면 다시 입력해야 합니다.</p>
       <form
         className="form session__form"
         id="session-form"

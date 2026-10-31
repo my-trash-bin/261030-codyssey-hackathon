@@ -2,6 +2,8 @@ import { CoreError, ModelError, parseGenerateRequest } from '@safehandoff/core-i
 import type { AnalyzeRequest, Core, Engine } from '@safehandoff/core-interface';
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import type { DocumentStore } from './database.ts';
+import { WorkflowHTTPError } from './workflow-session.ts';
+import type { WorkflowSessions } from './workflow-session.ts';
 
 const MAX_BODY_BYTES = 1024 * 1024;
 // analyze() budgets 1 MiB of decoded source bytes (packages/core/src/evidence-parser.ts); the
@@ -32,10 +34,22 @@ function documentText(value: unknown): string {
   return fields.text;
 }
 
-export function createApp(store: DocumentStore, core: Core, engine?: Engine, workflow?: (request: IncomingMessage, response: ServerResponse) => Promise<void>) {
+// Routes that touch raw material, call the model, or persist state share the exact same
+// session/CSRF/Host/Origin boundary as /api/v1/* (packages/server/src/workflow-session.ts),
+// whenever an operator has turned that boundary on (`sessions` present). docs/features/
+// 10-runtime-boundary.md's access rules are not scoped to the workflow API specifically --
+// see docs/decisions.md's "두 신뢰 경계" entry and core.test.ts's
+// "legacy routes share the session boundary once an operator enables it" test for the
+// regression this guards against.
+// `/health` and `/api/core` stay unguarded: they return no raw material and no model output.
+const GUARDED_PATHS = new Set(['/api/sharing', '/api/analysis', '/api/documents']);
+
+export function createApp(store: DocumentStore, core: Core, engine?: Engine,
+  workflow?: (request: IncomingMessage, response: ServerResponse) => Promise<void>, sessions?: WorkflowSessions) {
   return async (request: IncomingMessage, response: ServerResponse): Promise<void> => {
     const path = new URL(request.url || '/', 'http://localhost').pathname;
     try {
+      if (sessions && GUARDED_PATHS.has(path)) sessions.require(request, request.method !== 'GET');
       if (path.startsWith('/api/v1/')) {
         if (workflow) await workflow(request, response);
         else json(response, 503, { error: 'WORKFLOW_API_DISABLED' });
@@ -79,7 +93,9 @@ export function createApp(store: DocumentStore, core: Core, engine?: Engine, wor
       }
     } catch (error) {
       const code = error instanceof Error ? error.message : '';
-      if (error instanceof CoreError) {
+      if (error instanceof WorkflowHTTPError) {
+        json(response, error.status, { error: error.message });
+      } else if (error instanceof CoreError) {
         json(response, error.code === 'INVALID_CORE_INPUT' ? 400 : 503, { error: error.code });
       // analyze() (unlike generate()) does not wrap ModelError as CoreError -- the HTTP
       // boundary maps it the same way generate()'s own ModelError-to-CoreError conversion

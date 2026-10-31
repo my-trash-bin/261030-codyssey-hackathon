@@ -40,9 +40,10 @@ test('app composition uses example env names for actual HTTP writer/reviewer req
     const body = JSON.parse(input);
     assert.equal(req.headers.authorization, 'Bearer local-test');
     const writer = body.messages[0].content.includes('draft.v1');
-    res.end(JSON.stringify({ choices: [{ message: { content: JSON.stringify(writer ?
+    assert.equal(body.tool_choice.function.name, 'submit');
+    res.end(JSON.stringify({ choices: [{ finish_reason: 'tool_calls', message: { content: null, tool_calls: [{ id: 'result', type: 'function', function: { name: 'submit', arguments: JSON.stringify(writer ?
       { schema_version: 'draft.v1', blocks: [{ type: 'paragraph', text: 'approved', fact_ids: ['f1'] }] } :
-      { schema_version: 'review.v1', result: 'pass', issues: [] }) } }] }));
+      { schema_version: 'review.v1', result: 'pass', issues: [] }) } }] } }] }));
   });
   await new Promise<void>(resolve => model.listen(0, '127.0.0.1', resolve));
   const dir = await mkdtemp(join(tmpdir(), 'safehandoff-compose-'));
@@ -92,9 +93,10 @@ test('configured Engine analyze parses sources and uses the actual local HTTP mo
     assert.equal(wire.response_format, undefined);
     assert.deepEqual(input.sources.map((source: { text: string }) => source.text), ['가상 한글 로그', '{"ok":true}']);
     assert.deepEqual(input.evidence.map((item: { locator: { kind: string } }) => item.locator.kind), ['byte_range', 'json_pointer']);
-    res.end(JSON.stringify({ choices: [{ message: { content: JSON.stringify({ schema_version: 'candidate_proposals.v1',
+    assert.equal(wire.tool_choice.function.name, 'submit');
+    res.end(JSON.stringify({ choices: [{ finish_reason: 'tool_calls', message: { content: null, tool_calls: [{ id: 'result', type: 'function', function: { name: 'submit', arguments: JSON.stringify({ schema_version: 'candidate_proposals.v1',
       candidates: [{ local_key: 'c1', kind: 'observation', uncertainty: 'observed', statement: 'fixture candidate',
-        evidence_ids: input.evidence.map((item: { id: string }) => item.id), relevance: 'required', purpose_relevance: 'support' }], conflicts: [] }) } }] }));
+        evidence_ids: input.evidence.map((item: { id: string }) => item.id), relevance: 'required', purpose_relevance: 'support' }], conflicts: [] }) } }] } }] }));
   });
   await new Promise<void>(resolve => endpoint.listen(0, '127.0.0.1', resolve));
   const dir = await mkdtemp(join(tmpdir(), 'safehandoff-analyze-http-'));
@@ -132,4 +134,31 @@ test('authenticated analysis metadata strips URL credentials, path and query and
   assert.equal(configuredAnalysisOrigin(root, { SAFEHANDOFF_CONFIG: 'config.example.json',
     SAFEHANDOFF_LLM_BASE_URL: 'https://user:secret@model.invalid/private?token=secret' }), 'https://model.invalid');
   assert.equal(configuredAnalysisOrigin(root, { SAFEHANDOFF_CONFIG: 'config.example.json' }), null);
+});
+test('HTTP argument repair shares the Engine run budget before reviewer transmission', async t => {
+  for (const maxCalls of [2, 3]) {
+    let calls = 0;
+    const model = createServer(async (req, res) => {
+      let text = ''; for await (const chunk of req) text += chunk;
+      const request = JSON.parse(text); calls++;
+      assert.equal(request.tool_choice.function.name, 'submit');
+      const result = calls === 1 ? {} : calls === 2 ?
+        { schema_version: 'draft.v1', blocks: [{ type: 'paragraph', text: 'approved', fact_ids: ['f1'] }] } :
+        { schema_version: 'review.v1', result: 'pass', issues: [] };
+      res.end(JSON.stringify({ choices: [{ finish_reason: 'tool_calls', message: { content: null,
+        tool_calls: [{ id: 'result', type: 'function', function: { name: 'submit', arguments: JSON.stringify(result) } }] } }] }));
+    });
+    await new Promise<void>(resolve => model.listen(0, '127.0.0.1', resolve));
+    const dir = await mkdtemp(join(tmpdir(), 'safehandoff-tool-budget-'));
+    t.after(async () => { model.closeAllConnections(); await new Promise<void>(resolve => model.close(() => resolve())); await rm(dir, { recursive: true, force: true }); });
+    const config = JSON.parse(await readFile(join(root, 'config.example.json'), 'utf8'));
+    config.provider.allow_plain_http = true; config.workflow.max_model_calls_per_run = maxCalls;
+    await writeFile(join(dir, 'config.example.json'), JSON.stringify(config));
+    const core = configuredCore(dir, { SAFEHANDOFF_LLM_BASE_URL: `http://127.0.0.1:${(model.address() as AddressInfo).port}/v1`,
+      SAFEHANDOFF_LLM_MODEL: 'fixture', SAFEHANDOFF_LLM_API_KEY: 'fixture-only' });
+    const pending = core.generate({ purpose: 'support', recipient: 'vendor', facts: [{ id: 'f1', text: 'approved' }] });
+    if (maxCalls === 2) await assert.rejects(pending, /CORE_UNAVAILABLE/);
+    else assert.equal((await pending).document.body, 'approved');
+    assert.equal(calls, maxCalls);
+  }
 });

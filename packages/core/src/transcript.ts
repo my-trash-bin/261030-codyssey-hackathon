@@ -23,7 +23,9 @@ export class FileTranscriptSink implements TranscriptSink {
     this.directory = directory; this.content = content; this.clock = clock;
     mkdirSync(directory, { recursive: true, mode: 0o700 });
     const stat = lstatSync(directory);
-    if (!stat.isDirectory() || stat.isSymbolicLink() || (stat.mode & 0o077) !== 0) throw new Error('TRANSCRIPT_DIRECTORY_NOT_PRIVATE');
+    // Windows has no POSIX permission bits (lstat reports 0o666/0o777), so the group/other check only applies elsewhere.
+    const sharedMode = process.platform !== 'win32' && (stat.mode & 0o077) !== 0;
+    if (!stat.isDirectory() || stat.isSymbolicLink() || sharedMode) throw new Error('TRANSCRIPT_DIRECTORY_NOT_PRIVATE');
   }
   start(operation: string): TranscriptRun {
     const started = this.clock();

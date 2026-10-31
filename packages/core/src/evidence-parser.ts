@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto';
-import { CoreError } from '@safehandoff/core-interface';
+import { CoreError, csvCells } from '@safehandoff/core-interface';
 import type { EvidenceLocator, EvidenceSpan, SourceDocument } from '@safehandoff/core-interface';
 
 const sha = (bytes: string | Buffer) => createHash('sha256').update(bytes).digest('hex');
@@ -44,52 +44,7 @@ export function parseEvidence(sources: SourceDocument[]): ParsedSources {
 type Emit = (start: number, end: number, locator: EvidenceLocator) => void;
 
 function parseCSV(text: string, emit: Emit): void {
-  if (!text.length) invalidSource();
-  let i = 0, row = 0;
-  let headers: string[] = [];
-  while (i < text.length) {
-    const cells: { start: number; end: number; value: string }[] = [];
-    while (true) {
-      const start = i;
-      let value = '';
-      if (text[i] === '"') {
-        i++;
-        let closed = false;
-        while (i < text.length) {
-          if (text[i] === '"') {
-            if (text[i + 1] === '"') { value += '"'; i += 2; }
-            else { i++; closed = true; break; }
-          } else value += text[i++];
-        }
-        if (!closed) invalidSource();
-      } else {
-        while (i < text.length && ![',', '\r', '\n'].includes(text[i]!)) {
-          if (text[i] === '"') invalidSource();
-          value += text[i++];
-        }
-      }
-      if (i < text.length && ![',', '\r', '\n'].includes(text[i]!)) invalidSource();
-      cells.push({ start, end: i, value });
-      if (cells.length > 100) invalidSource();
-      if (text[i] !== ',') break;
-      i++;
-    }
-    row++;
-    if (row === 1) {
-      headers = cells.map(cell => cell.value);
-      if (headers.some(header => !short(header) || !header) || new Set(headers).size !== headers.length) invalidSource();
-    } else {
-      if (cells.length !== headers.length) invalidSource();
-      for (let column = 0; column < cells.length; column++) {
-        const cell = cells[column]!;
-        // Empty unquoted cells have a valid zero-byte range and a locator/value hash.
-        emit(cell.start, cell.end, { kind: 'csv_cell', row, column: headers[column]!, value_sha256: sha(cell.value) });
-      }
-    }
-    if (text[i] === '\r') { i++; if (text[i] === '\n') i++; }
-    else if (text[i] === '\n') i++;
-    if (row > 101) invalidSource();
-  }
+  for (const cell of csvCells(text)) emit(cell.start, cell.end, { kind: 'csv_cell', row: cell.row, column: cell.column, value_sha256: sha(cell.value) });
 }
 
 function parseJSON(text: string, emit: Emit): void {
