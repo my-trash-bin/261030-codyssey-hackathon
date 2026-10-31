@@ -63,7 +63,18 @@ export class RealCore implements Engine {
     return this.call({ role: 'writer', responseFormat: 'json',
       systemPrompt: 'Return draft.v1 JSON only: {schema_version:"draft.v1",blocks:[{type:"paragraph",text:string,fact_ids:string[]}]}. ' +
         'Use only approved facts; preserve uncertainty. Blocks may also be heading (level/text), list (items with text/fact_ids), ' +
-        'table_ref (table_id), excerpt_ref (excerpt_id), asset_ref (asset_id). Optional unique block_id. Never invent references.',
+        'table_ref (table_id), excerpt_ref (excerpt_id), asset_ref (asset_id). Optional unique block_id. Never invent references. ' +
+        'Every paragraph and every list item must cite at least one approved fact id in fact_ids; ' +
+        'do not add greetings, closings or any other sentence that no approved fact supports. ' +
+        'Write in fact_pack.output_language; for ko use polite formal style ending in -합니다/-습니다. ' +
+        'Structure: one level-2 heading naming the issue neutrally and the document kind (e.g. 기술지원 문의); ' +
+        'then level-3 sections in this order, omitting a section only when no approved fact fits it: ' +
+        'overview (개요), confirmed observations (확인된 사실), hypotheses (추정), unknowns (확인되지 않은 사항). ' +
+        'Put hypothesis/inferred facts only under hypotheses and keep their hedged wording (추정됩니다, 가능성이 있습니다); ' +
+        'never turn an unknown or hypothesis into a confirmed statement. ' +
+        'A paragraph or list item about an unknown may end with one short request asking the recipient to check or confirm ' +
+        'that same point; such a request must cite the same fact ids and add no new facts, names, identifiers or numbers. ' +
+        'Output the raw JSON object only, without markdown code fences or commentary.',
       input: JSON.stringify({ fact_pack: pack, ...(feedback ? { feedback } : {}) }),
     }, text => parseDraft(text, pack), run);
   }
@@ -91,7 +102,10 @@ export class RealCore implements Engine {
         'Each issue requires target {kind:document or block,block_id?}, reason_code, action (string or null), ' +
         'approved_fact_ids, candidate_ids, internal_explanation. Check disclosure, uncertainty, required facts and references. ' +
         'Reason codes: UNAPPROVED_DISCLOSURE, UNSUPPORTED_CAUSAL_CLAIM, MISSING_REQUIRED_FACT, SOURCE_CONFLICT, ' +
-        'UNCERTAINTY_REMOVED, INCORRECT_PROJECTION, UNAPPROVED_REFERENCE, NEEDS_DISCLOSURE_DECISION. Pass has no issues.',
+        'UNCERTAINTY_REMOVED, INCORRECT_PROJECTION, UNAPPROVED_REFERENCE, NEEDS_DISCLOSURE_DECISION. Pass has no issues. ' +
+        'A short request asking the recipient to check or confirm a point that its cited facts already state is not a new ' +
+        'disclosure or claim, provided it adds no new facts, names, identifiers or numbers. ' +
+        'Output the raw JSON object only, without markdown code fences or commentary.',
       input: JSON.stringify({ draft, fact_pack: pack, grounding, ...(run.publicFiles ? { rendered_files: run.publicFiles } : {}) }),
     }, text => parseReview(text, draft, pack), run);
     const result = this.groundingReview(pack, run.grounding) ?? review;
@@ -191,7 +205,13 @@ export class RealCore implements Engine {
           'Separate observed facts, constraints, hypotheses and unknowns. Preserve conflicting accounts with separate candidates ' +
           'and conflicts referencing at least two local_keys. Do not infer server completion or root cause from a timeout. ' +
           'This is a proposal, not disclosure permission. No approval fields, tools, external requests or writer output. ' +
-          'If no relevant candidates exist, return empty arrays. Prefer the requested output_language.',
+          'If no relevant candidates exist, return empty arrays. Prefer the requested output_language. ' +
+          'Never copy personal or identifying values into any statement or purpose_relevance: person names, phone numbers, ' +
+          'email addresses, national or resident ID numbers, account or card numbers, street addresses, IP addresses, ' +
+          'user or customer IDs, tokens or credentials. Describe them only by category and count ' +
+          '(e.g. "로그에 고객 성명·전화번호·이메일이 평문으로 기록됨", "고객 1명의 결제 요청"); the evidence_ids already locate the values. ' +
+          'Keep non-identifying technical values such as timestamps, service names, log levels, durations and error codes. ' +
+          'Output the raw JSON object only, without markdown code fences or commentary.',
         input: JSON.stringify({ task, sources: parsed.sources, evidence: parsed.evidence }) };
       if (Buffer.byteLength(JSON.stringify(modelRequest)) > this.config.provider.max_input_bytes) throw new ModelError('MODEL_BUDGET_EXCEEDED');
       const proposals = await this.call(modelRequest, text => parseCandidateProposals(text, parsed.evidence),
@@ -205,7 +225,8 @@ export class RealCore implements Engine {
       typeof options?.condition !== 'string' || !options.condition.trim() || options.condition.length > 8192) invalidSource();
     return this.traced('proposeDisclosure', async trace => {
       const request: ModelRequest = { role: 'disclosure', responseFormat: 'json',
-        systemPrompt: 'Return disclosure_proposal.v1 JSON only with candidate_id, status supported/ambiguous/unsupported, ' +
+        systemPrompt: 'Output the raw JSON object only, without markdown code fences or commentary. ' +
+          'Return disclosure_proposal.v1 JSON only with candidate_id, status supported/ambiguous/unsupported, ' +
           'representation or null, requires_clarification boolean. Never approve or create decisions. ' +
           'Supported representations: fact_summary with empty transform_id and parameters {}; selected_fields with ' +
           'transform_id select_fields.v1 and parameters {fields:string[]}; exact_value with empty transform_id/parameters; ' +
