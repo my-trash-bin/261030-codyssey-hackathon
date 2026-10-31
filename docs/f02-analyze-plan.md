@@ -55,7 +55,7 @@ strict 후보 검증 → 수동 후보 → snapshot/CAS → fixture 분석 → l
 ## 이번에도 안 하는 것
 
 - 원자료 분석 결과의 의미 정확도·누락/충돌 탐지 품질을 자동 성공으로 판정하는 시험. 이번 회귀는 구조·참조·범위·예산·취소만 검사한다.
-- server의 job/candidate_set/revision 저장 — 별도 범위, `task-store.ts` 확장 필요.
+- Engine 라운드에서 제외했던 server job/candidate_set/revision 저장은 아래 내부 서버 라운드로 구현했다. task HTTP·UI는 별도다.
 - rule 연결(F06) — F02 스펙도 뒤 단계로 둠.
 - F07 roleDocuments를 analyst 프롬프트에 섞는 것 — 이전에 식별한 별도 계약 확장, 아직 미결.
 
@@ -65,7 +65,7 @@ strict 후보 검증 → 수동 후보 → snapshot/CAS → fixture 분석 → l
 파서, strict 후보 응답 검증, `RealCore.analyze()`와 로컬 HTTP ModelClient 연결을 구현했다.
 모델은 `analysis` 역할의 새 호출만 받으며 도구·writer·공개 결정을 자동 실행하지 않는다.
 `AnalyzeResult`는 서버에 채택하기 전의 evidence/proposals이며 영속 candidate ID나 공개 허가가 아니다.
-서버 snapshot/CAS·job·수동 후보·Rule·roleDocuments·HTTP/UI 연결은 여전히 별도다.
+당시 제외한 서버 snapshot/CAS·job·수동 후보는 아래 내부 서버 라운드에서 구현했다. Rule·roleDocuments·task HTTP/UI는 별도다.
 
 ### 파서와 한도
 
@@ -153,3 +153,62 @@ transcript에 저장하지 않는다. 분석 결과는 자동으로 writer나 �
 인증·CSRF·Host/Origin·task CRUD·UI·Rule·roleDocuments·artifact/export 무효화의 전체 연결은
 이번에 포함하지 않는다. HTTP 분석의 stateless 경로도 그대로 유지한다. 실제 모델의 length 종료는
 공유 config를 임의 변경해 해결하지 않고 별도 역할별 예산/운영 검증 과제로 남긴다.
+
+## 내부 서버 구현 완료 · 2026-10-31
+
+`TaskStore.analysis`와 `runTaskAnalysis`를 추가했다. additive migration v2는 기존 documents와
+v1 후보·미리보기·결정을 보존한다. 새로 추가한 것은 다음 내부 레코드다.
+
+| 레코드 | 보관 범위 |
+| --- | --- |
+| workflow_source_versions / workflow_source_selections | 불변 source version과 현재 included snapshot |
+| workflow_evidence | source version에 묶인 근거와 정확한 byte 범위/hash |
+| workflow_analysis_jobs | immutable source/context/skill snapshot·revision, running/succeeded/failed/cancelled/stale |
+| workflow_candidate_provenance | 서버 후보 ID에 연결된 원래 local_key·model/manual origin·서버 conflict group |
+
+새 job은 서버 내부 분석 상태이며 전체 job.v1·스케줄러·작업 HTTP API가 아니다. 원자료와 분석
+결과는 내부 DB에만 보관한다. TaskStore.delete는 새 레코드도 cascade로 지우며 이미 외부로
+내보낸 파일이나 transcript 만료·삭제까지 새로 구현한 것은 아니다.
+
+### 호출 순서
+
+1. `store.analysis.replaceSources(taskId, revision, includedSources)`는 source hash·base64·UTF-8·
+   판본을 검증한다. 현재 snapshot에는 논리 source당 판본 하나만 허용한다. 동일 ID와 동일
+   논리 source/version은 불변이다. 바뀐 내용에는 새 version ID/version을 사용한다.
+2. 서버가 source_set_hash를 계산하고 현재 후보·결정을 비운 뒤 revision을 한 번 올린다.
+   source는 최대 100개/각 256 KiB/합계 1 MiB이고 빈 선택은 저장 가능하나 분석은 시작하지 못한다.
+3. `runTaskAnalysis(store, engine, taskId, revision, {signal})`은 start를 commit하고 DB lock 없이
+   Engine을 호출한다. 결과를 채택할 때 job 상태·revision·source/skill/context를 다시 대조한다.
+4. 범위와 원본 slice hash·셀/JSON value hash·source 소속·후보/충돌 참조를 확인하고, evidence·새 후보 집합·provenance·
+   job 성공을 같은 트랜잭션에 저장한다. 영속 ID와 conflict group ID는 서버가 발급한다.
+   채택 반환값의 job은 snapshot을 제외한 요약이며 원자료를 다시 포함하지 않는다.
+   CSV/JSON locator의 해석은 Engine 파서의 책임이며 이 저장 검사를 verified selector 발급으로
+   간주하지 않는다. 반환되는 selector는 항상 null이다.
+5. 오래된 revision이나 취소된 job의 complete는 adopted=false이며 현재 결과를 바꾸지 않는다.
+   삭제된 job은 ANALYSIS_NOT_FOUND이고 다시 생성하지 않는다. 실패 코드는 고정 목록만 저장하고
+   임의 오류 메시지는 저장하지 않는다. 분석 시작/수동 변경은 기존 공개 결정을 이어받지 않는다.
+
+`store.analysis.start/job/cancel/complete`는 내부 호출용이다. `candidates`는 서버 ID와 원래
+local_key를 구분하고 `evidence`는 현재 선택한 source에 속한 근거만 조회한다. 예전
+installCandidates seam으로 만든 후보에는 provenance/실제 source가 없으므로 새 F02 경로에서
+신뢰하지 않는다. 원래 저장/결정 기능은 보존하고 새 source snapshot에서 재분석해야 한다.
+
+### 모델 없는 수동 경로
+
+`store.analysis.addManual(taskId, revision, {candidate, evidence_ids})` 또는 `{candidate,user_note}`를
+호출한다. 둘 중 하나만 받으며 빈 근거·다른 source 근거는 거부한다. user_note이면 서버가 새
+source version과 byte_range evidence를 발급한다. 기존 현재 후보는 새 영속 ID로 복제하고 새
+수동 후보를 추가한다. 선택/승인은 복제하지 않는다. 전체 작업은 한 트랜잭션, revision 증가는
+한 번, 결과 phase는 needs_decisions다. Engine이 없거나 모델 실패 상태여도 이 경로는 사용 가능하다.
+
+### 검증과 남은 범위
+
+임시 SQLite에서 v1 migration 보존·재열기·불변 snapshot·원자적 rollback·작업 간 참조 치환·
+UTF-8 중간 범위 거부·새 ID/결정 비승계·취소/실패/삭제/재분석 뒤 늦은 응답을 검사한다.
+지연된 가상 Engine 중에도 source 교체가 가능해 모델 호출 동안 transaction이 없음을 확인한다.
+app 통합 시험은 실제 RealCore 파서 → 로컬 HTTP 모델 adapter → TaskStore 채택까지 연결한다.
+의미 정확도·실제 외부 모델 성공을 이 테스트로 판단하지 않는다.
+
+HTTP 분석은 여전히 stateless이고 새 내부 job 저장에 자동 연결하지 않았다. 인증·CSRF·Host/Origin·
+task CRUD·수동 후보 UI·Rule/roleDocuments·팩 변경 무효화·artifact/export 전체 연결은 후속이다.
+실제 모델의 length 종료·역할별 출력 예산 문제는 이번에 변경하지 않았다.

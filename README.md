@@ -95,7 +95,7 @@ intent.md·제품 설계·contracts·fixtures/demo·과거 evaluation 기록은 
 
 상대 설정 경로는 저장소 루트 기준입니다. 모델 세 변수가 모두 있어야 ready=true이며 이는 서버 응답이나 의미 정확성을 확인했다는 뜻은 아닙니다. 시작 시 모델을 호출하지 않습니다. TLS가 기본이며 HTTP 예외·기능·호출 제한은 설정 파일의 provider 블록으로 지정합니다. response_mode=text인 서버에는 response_format을 보내지 않고, JSON 출력은 프롬프트와 응답 검증으로 요구합니다. config.json과 .env는 커밋하지 않습니다.
 
-내부 `TaskStore`는 기존 SQLite 파일에 별도 workflow 테이블을 추가합니다. 현재는 앱 HTTP 경로와 연결하지 않았으며 자동으로 문서나 원자료를 작업으로 옮기지 않습니다. Docker 설치·등록·검증 절차는 [실행기 안내](packages/sandbox-runner/image/README.md)를 따릅니다.
+내부 `TaskStore`는 기존 SQLite 파일에 별도 workflow 테이블을 추가합니다. F02 내부 source/job/CAS·수동 후보까지 구현했지만 앱 HTTP 경로와 자동 연결하지 않았으며 문서나 원자료를 자동으로 작업으로 옮기지 않습니다. Docker 설치·등록·검증 절차는 [실행기 안내](packages/sandbox-runner/image/README.md)를 따릅니다.
 
 F07 1번의 파일시스템 로더는 [사용법과 제한](packages/skill-loader/README.md)을 따릅니다. 등록 CLI와 ToyRecord catalog 연결은 구현했습니다. 역할별 프롬프트 연결·앱의 팩 선택 및 변경 무효화는 후속이며 앱 시작 시 팩을 자동으로 읽거나 실행하지 않습니다.
 
@@ -134,3 +134,10 @@ F02 분석 라이브러리는 [범위·한도·근거 위치 계약](docs/f02-an
 source snapshot을 받아 evidence와 미승인 후보를 반환하며, 저장·공개 허가·writer 실행은 하지 않는다.
 분석 원자료와 후보 본문은 상세 transcript opt-in에도 기록하지 않는다. 로컬 HTTP 통합 시험은
 가상 자료와 목 모델만 사용한다.
+
+
+F02 내부 저장은 `TaskStore.analysis`와 `runTaskAnalysis`를 사용한다. source 바이트/hash를
+검증해 snapshot을 고정하고, 모델 호출은 SQLite transaction 밖에서 수행한다. 결과 채택은 현재
+revision·job·source/skill 바인딩을 대조하며 취소·재분석·삭제 뒤 늦은 응답을 거부한다. 모델 없는
+수동 후보는 현재 근거나 user_note에 묶으며 이전 공개 결정을 복제하지 않는다. 새 task HTTP API와
+UI는 아직 없고 `/api/analysis`도 이 저장을 자동 호출하지 않는다. [내부 계약·한도](docs/f02-analyze-plan.md)를 따른다.

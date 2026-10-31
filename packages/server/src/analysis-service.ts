@@ -12,6 +12,7 @@ export async function runTaskAnalysis(store: TaskStore, engine: Pick<Engine, 'an
   const cancel = () => { store.analysis.cancel(id, job.id); };
   options?.signal?.addEventListener('abort', cancel, { once: true });
   try {
+    if (options?.signal?.aborted) { cancel(); throw new CoreError('CORE_CANCELLED'); }
     const result = await engine.analyze({ task: job.snapshot.task, sources: job.snapshot.sources }, { signal: options?.signal });
     if (options?.signal?.aborted) throw new CoreError('CORE_CANCELLED');
     return store.analysis.complete(id, job.id, result);

@@ -42,15 +42,25 @@ export function validateResult(result: AnalyzeResult, sources: SourceDocument[])
     if (!Number.isSafeInteger(evidence.start) || !Number.isSafeInteger(evidence.end) || evidence.start < 0 || evidence.end < evidence.start ||
       evidence.end > bytes.length || !boundary(evidence.start) || !boundary(evidence.end) || hash(bytes.subarray(evidence.start, evidence.end)) !== evidence.evidence_sha256) invalid();
     const locator = evidence.locator;
+    const token = bytes.subarray(evidence.start, evidence.end).toString('utf8');
+    if (evidence.start === evidence.end && locator?.kind !== 'csv_cell') invalid();
     if (locator?.kind === 'byte_range') {
       fields(locator, ['kind']); if (!['txt', 'log', 'md'].includes(source.format)) invalid();
     } else if (locator?.kind === 'csv_cell') {
       fields(locator, ['kind', 'row', 'column', 'value_sha256']);
       if (source.format !== 'csv' || !Number.isSafeInteger(locator.row) || locator.row! < 2 || !text(locator.column) || !locator.column || !sha(locator.value_sha256)) invalid();
+      const value = token.startsWith('"') && token.endsWith('"') ? token.slice(1, -1).replaceAll('""', '"') : token;
+      if (hash(value) !== locator.value_sha256) invalid();
     } else if (locator?.kind === 'json_pointer') {
       fields(locator, ['kind', 'pointer', 'value_sha256']);
       if (source.format !== 'json' || !text(locator.pointer) || (locator.pointer !== '' && !locator.pointer.startsWith('/')) ||
         /~(?![01])/.test(locator.pointer) || !sha(locator.value_sha256)) invalid();
+      let value = token;
+      if (token.startsWith('"')) {
+        try { const decoded: unknown = JSON.parse(token); if (typeof decoded !== 'string' || Buffer.from(decoded).toString() !== decoded) invalid(); value = decoded; }
+        catch { invalid(); }
+      }
+      if (hash(value) !== locator.value_sha256) invalid();
     } else invalid();
   }
   const proposals = result.proposals;

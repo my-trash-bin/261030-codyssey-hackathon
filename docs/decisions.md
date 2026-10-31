@@ -307,3 +307,13 @@ F03도 F02와 같은 방식으로 계약·역할·구조를 먼저 정리했다(
 (`deriveSeries`/`renderTimeline`/`renderApprovedExcerpt`)가 F03 preview가 필요로 하는 계산과
 정확히 일치한다는 것도 확인했다 — grant 검사 없이 직접 호출하면 된다. `selected_fields`/
 `exact_value`는 대응하는 함수가 없어 다음 라운드로 남겼다. 로직 구현은 하지 않았다.
+
+
+## 2026-10-31 · F02 내부 snapshot/CAS와 수동 후보
+
+코딩 전 축소 계획 뒤 TaskStore migration v2로 source version/선택·evidence·분석 job·후보
+provenance를 추가했다. 모델 없는 user_note/근거 수동 경로는 새 후보 ID·단일 revision으로
+채택하고 기존 결정은 복제하지 않는다. 모델 호출은 DB lock 밖에서 하고 현재 job·revision·
+source/skill/context 대조 후에만 원자적으로 채택한다. 취소·실패·재분석·삭제 뒤 결과는 되살리지 않는다.
+검증은 임시 DB와 지연된 가상 Engine·로컬 HTTP 모델로 결정적 조건만 검사한다. 새 task HTTP·
+UI·Rule·roleDocuments·verified selector와 실제 모델 출력 예산 변경은 범위에 넣지 않았다.

@@ -76,3 +76,20 @@ base64 원자료·source SHA-256·version·included 바인딩을 검사하고 `{
 [파서 위치·한도·nullable 정규화·오류 계약](f02-analyze-plan.md)을 따른다. 원자료는 analysis 역할의
 설정된 모델로만 전달하고 writer 세션과 공유하지 않는다. 현재 라이브러리 자체가 프로세스의
 인터넷 차단이나 DB 권한·revision/CAS를 집행하는 것은 아니다. 분석 본문은 transcript에 기록하지 않는다.
+
+
+## F02 내부 저장·채택
+
+새 HTTP 경로·환경 변수는 없다. 기존 `/api/analysis`는 stateless이고 task/decision CRUD와
+job polling API를 추가하지 않았다. TaskStore의 migration v2는 source version/선택, evidence,
+분석 job snapshot, 후보 provenance를 추가하며 기존 문서·후보·결정을 보존한다.
+
+내부 호출 순서는 `store.analysis.replaceSources(id, revision, sources)` 후
+`runTaskAnalysis(store, engine, id, revision, {signal?})`다. 분석 시작은 이전 현재 후보·결정을
+무효화하고 revision을 올린다. 성공 채택도 새 revision이며 오래된 결과는 adopted=false다.
+모델 없는 `analysis.addManual`은 candidate와 evidence_ids 또는 user_note 중 하나를 받는다.
+현재 후보를 새 ID로 복제하되 선택은 옮기지 않으며 revision은 한 번 증가한다.
+
+새 내부 오류는 INVALID_ANALYSIS/ANALYSIS_NOT_FOUND다. 삭제된 job은 다시 만들지 않으며
+취소·실패·stale terminal 상태를 성공으로 복귀시키지 않는다. caller가 내부 job/source 조회 결과를
+일반 로그·공개 응답으로 직렬화하면 안 된다. [전체 내부 범위](f02-analyze-plan.md)를 따른다.

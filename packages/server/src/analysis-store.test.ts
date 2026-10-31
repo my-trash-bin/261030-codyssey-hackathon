@@ -37,6 +37,8 @@ test('snapshots and server candidate IDs/conflict groups are adopted atomically'
     assert.equal(store.get(task.id).current_candidate_set_id, null);
     const adopted = store.analysis.complete(task.id, job.id, result());
     assert.equal(adopted.adopted, true); assert.equal(adopted.task.revision, job.revision + 1);
+    assert.equal(Object.hasOwn(adopted.job, 'snapshot'), false);
+    assert.equal(JSON.stringify(adopted).includes(source().raw_bytes), false);
     const candidates = store.analysis.candidates(task.id);
     assert.equal(candidates.length, 2);
     assert.ok(candidates.every(c => c.id !== c.local_key && c.origin === 'model' && c.selector === null));
@@ -149,10 +151,14 @@ test('v1 migration preserves documents/old candidates; v2 snapshot/evidence surv
   try {
     const documents = new DocumentStore(path); const doc = documents.save('preserve document'); documents.close();
     const old = new DatabaseSync(path); old.exec('PRAGMA foreign_keys=ON;'+taskSchema);
-    old.prepare("INSERT INTO workflow_tasks VALUES('old',1,'needs_analysis',?,?,?,NULL,'now','now')")
-      .run(JSON.stringify(context), 'a'.repeat(64), 'b'.repeat(64)); old.close();
+    old.prepare("INSERT INTO workflow_tasks VALUES('old',1,'needs_decisions',?,?,?,'old-set','now','now')")
+      .run(JSON.stringify(context), 'a'.repeat(64), 'b'.repeat(64));
+    old.prepare("INSERT INTO workflow_candidate_sets VALUES('old','old-set',1)").run();
+    old.prepare("INSERT INTO workflow_candidates VALUES('old','old-set','old-candidate',?)").run(JSON.stringify({ ...result().proposals.candidates[0]!, local_key: 'old-candidate' }));
+    old.close();
     let store = new TaskStore(path);
     assert.equal(store.get('old').revision, 1);
+    assert.equal(store.preview('old', 1, 'old-candidate', 'preserved legacy candidate').candidate_id, 'old-candidate');
     let task = store.create(context, 'a'.repeat(64), 'b'.repeat(64));
     task = store.analysis.replaceSources(task.id, task.revision, [source()]);
     const job = store.analysis.start(task.id, task.revision); store.analysis.complete(task.id, job.id, result());
@@ -169,4 +175,53 @@ test('v1 migration preserves documents/old candidates; v2 snapshot/evidence surv
     raw.close(); store.close();
     const reopened = new DocumentStore(path); assert.ok(reopened.list().some(d => d.id === doc.id)); reopened.close();
   } finally { await rm(dir, { recursive: true, force: true }); }
+});
+
+test('superseded job cannot replace a newer successful candidate set', () => {
+  const { store, task } = setup();
+  try {
+    const first = store.analysis.start(task.id, task.revision);
+    const second = store.analysis.start(task.id, first.revision);
+    const success = store.analysis.complete(task.id, second.id, result());
+    const ids = store.analysis.candidates(task.id).map(candidate => candidate.id);
+    assert.equal(store.analysis.complete(task.id, first.id, result()).adopted, false);
+    assert.equal(store.get(task.id).revision, success.task.revision);
+    assert.deepEqual(store.analysis.candidates(task.id).map(candidate => candidate.id), ids);
+  } finally { store.close(); }
+});
+test('explicit cancellation and failure terminal states never revive', () => {
+  const { store, task } = setup();
+  try {
+    const job = store.analysis.start(task.id, task.revision);
+    assert.equal(store.analysis.cancel(task.id, job.id), true);
+    assert.equal(store.analysis.cancel(task.id, job.id), false);
+    store.analysis.fail(task.id, job.id, 'PRIVATE_ERROR');
+    assert.equal(store.analysis.complete(task.id, job.id, result()).adopted, false);
+    assert.equal(store.analysis.job(task.id, job.id).status, 'cancelled');
+    const retry = store.analysis.start(task.id, job.revision);
+    store.analysis.fail(task.id, retry.id, 'PRIVATE_ERROR');
+    assert.equal(store.analysis.job(task.id, retry.id).error_code, 'ANALYSIS_FAILED');
+    assert.equal(store.analysis.complete(task.id, retry.id, result()).adopted, false);
+    assert.equal(store.get(task.id).current_candidate_set_id, null);
+  } finally { store.close(); }
+});
+
+test('CSV/JSON value hashes are bound to the selected source bytes', () => {
+  for (const format of ['csv', 'json'] as const) {
+    const store = new TaskStore(':memory:');
+    try {
+      const raw = format === 'csv' ? 'name\n"한글"' : '{"name":"한글"}';
+      const s = { ...source('typed', raw), format };
+      let task = store.create(context, 'a'.repeat(64), 'b'.repeat(64));
+      task = store.analysis.replaceSources(task.id, task.revision, [s]);
+      const job = store.analysis.start(task.id, task.revision), good = result(s);
+      const start = format === 'csv' ? Buffer.byteLength('name\n') : Buffer.byteLength('{"name":');
+      good.evidence[0] = { id: 'e1', source_version_id: s.id, start, end: start + Buffer.byteLength('"한글"'), evidence_sha256: hash('"한글"'),
+        locator: format === 'csv' ? { kind: 'csv_cell', row: 2, column: 'name', value_sha256: hash('한글') }
+          : { kind: 'json_pointer', pointer: '/name', value_sha256: hash('한글') } };
+      const bad = structuredClone(good); bad.evidence[0]!.locator.value_sha256 = 'a'.repeat(64);
+      assert.throws(() => store.analysis.complete(task.id, job.id, bad), /INVALID_ANALYSIS/);
+      assert.equal(store.analysis.complete(task.id, job.id, good).adopted, true);
+    } finally { store.close(); }
+  }
 });

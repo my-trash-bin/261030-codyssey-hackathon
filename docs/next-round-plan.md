@@ -1,7 +1,7 @@
 # 다음 라운드 계획 (2026-10-31 정리)
 
 세 계획 문서(`f07-extensions-plan.md`, `review-grounding-plan.md`, `oss-repro-smoke-plan.md`)에
-흩어져 있던 "이번엔 빼는 것"을 한 곳에 모았다. 아래 toyrecord 팩 연결은 이후 구현했으며 나머지는 미구현이다.
+흩어져 있던 "이번엔 빼는 것"을 한 곳에 모았다. ToyRecord 팩 연결과 F02 Engine·분석 HTTP·내부 job/CAS·수동 후보는 이후 구현했다. 전체 UI·task HTTP·Rule과 아래 개별 후속은 남아 있다.
 
 ## 지금까지 남은 간극 전체 목록
 
@@ -13,7 +13,7 @@
 | `scan_candidate_bundle_v1` | F07 5번 | 중간 |
 | 역할×도구 권한 교집합(`resolveToolAccess`) 실제 연결 | F07 7번 | 큼, 실제 registry 없음 |
 | F06 본체(서버 `rules` 테이블·scope 매칭·철회/만료 전파) | review-grounding 계획 | 큼, 별도 기능 |
-| `analyze()`(F02) 서버·UI 연결 | [Engine 범위](f02-analyze-plan.md) | **Engine + HTTP 라우트 완료** — job/CAS·수동 후보·UI는 후속 |
+| `analyze()`(F02) 서버·UI 연결 | [Engine 범위](f02-analyze-plan.md) | **Engine + stateless HTTP + 내부 job/CAS·수동 후보 완료** — task HTTP/UI는 후속 |
 | server task/decision HTTP API, client UI | round3-scope 이후 계속 미룸 | `POST /api/analysis`는 생김(동기, task 저장 없음). task/decision CRUD는 여전히 없음 — 큼 |
 
 ## 구현 완료: `toyrecord-repro` 스킬 팩을 실제로 로딩하게 연결
@@ -78,7 +78,7 @@ stale 전파(F07 6번 전체), 카탈로그 HTTP API, 역할별 지침의 실제
 
 근거 파서·후보 strict 검증·`RealCore.analyze()`는 [F02 범위](f02-analyze-plan.md)로 구현했다.
 현재 OSS 스모크는 여전히 수동 fixture 후보를 사용하며 이 함수로 자동 전환하지 않았다.
-서버 job snapshot/CAS·candidate_set 채택·수동 후보와 HTTP/UI 연결, 공개 결정과 최종화가 남는다.
+서버 내부 source snapshot·job/CAS·candidate_set 채택·모델 없는 수동 후보도 구현했다. HTTP 분석은 stateless로 유지하며 내부 저장 자동 연결·task CRUD·수동 후보 UI·공개 결정과 최종화가 남는다.
 역할별 팩 프롬프트 주입·Rule 적용도 이 완료 범위에 포함하지 않는다.
 
 ## 이번에도 빼는 것
@@ -86,3 +86,8 @@ stale 전파(F07 6번 전체), 카탈로그 HTTP API, 역할별 지침의 실제
 F06 본체, `check_doc_ip_context_v1`/`scan_candidate_bundle_v1`(ProcessToolRunner 일반화),
 역할×도구 권한 교집합 실제 연결, server task HTTP API, client UI — 전부 이전과 같은 이유(보안
 판단 필요 또는 더 큰 별도 작업)로 그대로 남긴다.
+
+
+다음 연결 작업은 [F03 계획](f03-plan.md)의 제안/미리보기 계약과 내부 후보·결정 저장의 접점이다.
+인증·CSRF·Host/Origin·판본 규칙을 정리하기 전에 task CRUD를 임의로 노출하지 않는다. 역할별
+모델 예산·실제 모델 length 종료와 roleDocuments 주입도 별도 검증 대상으로 유지한다.

@@ -21,7 +21,7 @@ export interface AnalysisJob {
   status: 'running' | 'succeeded' | 'failed' | 'cancelled' | 'stale'; error_code: string | null;
   snapshot: { task: TaskContext; sources: SourceDocument[]; source_set_hash: string; skill_set_hash: string };
 }
-export interface AnalysisAdoption { adopted: boolean; job: AnalysisJob; task: StoredTask }
+export interface AnalysisAdoption { adopted: boolean; job: Omit<AnalysisJob, 'snapshot'>; task: StoredTask }
 export interface ManualCandidateInput {
   candidate: Omit<Candidate, 'local_key' | 'evidence_ids'>; evidence_ids?: string[]; user_note?: string;
 }
@@ -128,17 +128,21 @@ export class AnalysisStore {
       .run(task.id, c.id, JSON.stringify({ local_key: c.local_key, origin: c.origin, conflicts: c.conflicts }));
     return updated;
   }
+  private outcome(adopted: boolean, job: AnalysisJob, task: StoredTask): AnalysisAdoption {
+    const { snapshot: _snapshot, ...summary } = job;
+    return { adopted, job: summary, task };
+  }
   complete(id: string, jobId: string, result: AnalyzeResult): AnalysisAdoption {
     result = structuredClone(result);
     return this.hooks.transaction(() => {
       let job = this.job(id, jobId);
       const task = this.hooks.get(id);
-      if (job.status !== 'running') return { adopted: false, job, task };
+      if (job.status !== 'running') return this.outcome(false, job, task);
       if (job.revision !== task.revision || job.snapshot.source_set_hash !== task.source_set_hash ||
         job.snapshot.skill_set_hash !== task.skill_set_hash || JSON.stringify(job.snapshot.task) !== JSON.stringify(task.context) ||
         sourceSetHash(this.sources(id)) !== job.snapshot.source_set_hash) {
         this.db.prepare("UPDATE workflow_analysis_jobs SET status='stale' WHERE id=?").run(jobId);
-        return { adopted: false, job: this.job(id, jobId), task };
+        return this.outcome(false, this.job(id, jobId), task);
       }
       validateResult(result, job.snapshot.sources);
       this.saveEvidence(id, result.evidence);
@@ -149,7 +153,7 @@ export class AnalysisStore {
       this.db.prepare("UPDATE workflow_analysis_jobs SET status='succeeded',result_json=? WHERE id=?")
         .run(JSON.stringify(result), jobId);
       job = this.job(id, jobId);
-      return { adopted: true, job, task: updated };
+      return this.outcome(true, job, updated);
     });
   }
   addManual(id: string, revision: number, input: ManualCandidateInput): StoredTask {
