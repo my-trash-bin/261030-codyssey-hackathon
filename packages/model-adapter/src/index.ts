@@ -34,8 +34,14 @@ export class OpenAICompatibleModelClient implements ModelClient {
     const messages = request.systemPrompt && config.supports_system_role
       ? [{ role: 'system', content: request.systemPrompt }, { role: 'user', content: request.input }]
       : [{ role: 'user', content: [request.systemPrompt, request.input].filter(Boolean).join('\n\n') }];
+    // config.max_output_tokens===null means "no default ceiling": a per-request override
+    // is still honored, but absent that, the limit field is omitted so the provider's own
+    // default applies instead of an arbitrary cap.
+    const limit = config.max_output_tokens === null
+      ? request.maxOutputTokens ?? null
+      : Math.min(request.maxOutputTokens ?? config.max_output_tokens, config.max_output_tokens);
     const body = JSON.stringify({ model: this.info.model, messages,
-      [config.output_limit_field]: Math.min(request.maxOutputTokens ?? config.max_output_tokens, config.max_output_tokens),
+      ...(limit !== null ? { [config.output_limit_field]: limit } : {}),
       ...(config.send_temperature ? { temperature: request.temperature ?? config.temperature } : {}),
       ...(config.response_mode === 'json' && request.responseFormat !== 'text' ? { response_format: { type: 'json_object' } } : {}),
     });

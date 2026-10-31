@@ -22,6 +22,18 @@ test('public config works without private config and invalid config fails safely
     assert.equal(loadConfig(dir, { SAFEHANDOFF_CONFIG: 'config.example.json' }).provider.type, 'openai_compatible');
   } finally { await rm(dir, { recursive: true, force: true }); }
 });
+test('max_output_tokens accepts null (no default ceiling) but rejects other non-positive values', async () => {
+  const dir = await mkdtemp(join(tmpdir(), 'safehandoff-config-cap-'));
+  try {
+    const base = JSON.parse(await readFile(join(root, 'config.example.json'), 'utf8'));
+    base.provider.max_output_tokens = null;
+    await writeFile(join(dir, 'config.example.json'), JSON.stringify(base));
+    assert.equal(loadConfig(dir, {}).provider.max_output_tokens, null);
+    base.provider.max_output_tokens = 0;
+    await writeFile(join(dir, 'config.example.json'), JSON.stringify(base));
+    assert.throws(() => loadConfig(dir, {}), /^Error: INVALID_ENGINE_CONFIG$/);
+  } finally { await rm(dir, { recursive: true, force: true }); }
+});
 test('app composition uses example env names for actual HTTP writer/reviewer requests', async () => {
   const model = createServer(async (req, res) => {
     let input = ''; for await (const chunk of req) input += chunk;

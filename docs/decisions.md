@@ -326,3 +326,21 @@ provenance를 추가했다. 모델 없는 user_note/근거 수동 경로는 새 
 source/skill/context 대조 후에만 원자적으로 채택한다. 취소·실패·재분석·삭제 뒤 결과는 되살리지 않는다.
 검증은 임시 DB와 지연된 가상 Engine·로컬 HTTP 모델로 결정적 조건만 검사한다. 새 task HTTP·
 UI·Rule·roleDocuments·verified selector와 실제 모델 출력 예산 변경은 범위에 넣지 않았다.
+
+## 2026-10-31 · provider.max_output_tokens에 기본 상한 없음
+
+바로 위에서 기록만 남겼던 analysis 역할의 `finish_reason=length` 잘림을 실제로 고쳤다.
+처음엔 2048 → 8192로만 올렸으나, 숨은 reasoning 토큰 소비량이 예측 불가능해 고정된 상한
+자체가 임의적이라는 지적에 따라 **기본값을 상한 없음**으로 바꿨다 — `ProviderConfig.
+max_output_tokens`를 `number | null`로 바꾸고(`null`=기본 상한 없음), `config.json`/
+`config.example.json`도 `null`로 바꿨다. `OpenAICompatibleModelClient.complete()`
+(`packages/model-adapter/src/index.ts`)는 `max_output_tokens===null`이면 요청 바디에서
+`output_limit_field`를 통째로 빼서 provider 자체 기본값을 쓰게 하고, `ModelRequest.
+maxOutputTokens`로 호출별 override는 여전히 그대로 보낼 수 있게 했다(설정에 상한이 있으면
+기존처럼 그 상한으로 clamp). `packages/app/src/config.ts`의 `loadConfig` 검증도
+`max_output_tokens`만 `null` 또는 양의 safe integer를 허용하도록 분리했다.
+`packages/model-adapter/src/http.test.ts`·`packages/app/src/config.test.ts`에 null 경로
+단위테스트를 추가했고, 실제 등록 모델로 40줄 가상 로그를 `analyze()`에 보내 42.8초 만에
+candidate 9개로 성공(길이 잘림 없음)하는 것까지 실측으로 확인했다. write/review 역할도 같은
+설정을 공유하므로 동일하게 상한이 없어진다 — 별도 역할별 상한을 두지 않기로 한 것은 이미
+"핵심 기능 아님"이라는 전제에 따른 의도적 선택이다.

@@ -41,7 +41,9 @@ export interface ProviderConfig {
   output_limit_field: string;
   allow_plain_http: boolean;
   temperature: number;
-  max_output_tokens: number;
+  // null = no default ceiling; the provider's own limit applies unless a per-request
+  // ModelRequest.maxOutputTokens override is given.
+  max_output_tokens: number | null;
   max_input_bytes: number;
   request_timeout_seconds: number;
   max_attempts_per_step: number;
