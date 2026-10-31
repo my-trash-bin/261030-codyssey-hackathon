@@ -1,5 +1,5 @@
 import { ModelError } from '@safehandoff/core-interface';
-import type { Draft, FactPack, Review } from '@safehandoff/core-interface';
+import type { CandidateProposals, Draft, EvidenceSpan, FactPack, Review } from '@safehandoff/core-interface';
 
 export function invalid(): never { throw new ModelError('MODEL_INVALID_RESPONSE'); }
 function object(value: unknown, required: string[], optional: string[] = []): Record<string, unknown> {
@@ -8,7 +8,7 @@ function object(value: unknown, required: string[], optional: string[] = []): Re
   if (required.some(key => !Object.hasOwn(record, key)) || Object.keys(record).some(key => ![...required, ...optional].includes(key))) invalid();
   return record;
 }
-function text(value: unknown): value is string { return typeof value === 'string' && value.length <= 8192; }
+function text(value: unknown): value is string { return typeof value === 'string' && [...value].length <= 8192 && Buffer.from(value).toString('utf8') === value; }
 function strings(value: unknown, allowed?: Set<string>): value is string[] {
   return Array.isArray(value) && value.length <= 100 && value.every(item => text(item) && (!allowed || allowed.has(item)));
 }
@@ -106,4 +106,37 @@ export function parseReview(input: string, draft: Draft, pack: FactPack): Review
     }] };
   }
   return root as unknown as Review;
+}
+
+// Normalize wire-level nullable arrays to the Engine's array-only projection.
+export function parseCandidateProposals(input: string, evidence: EvidenceSpan[]): CandidateProposals {
+  const root = object(parse(input), ['schema_version', 'candidates', 'conflicts']);
+  const candidates = root.candidates === null ? [] : root.candidates;
+  const conflicts = root.conflicts === null ? [] : root.conflicts;
+  if (root.schema_version !== 'candidate_proposals.v1' || !Array.isArray(candidates) || candidates.length > 30 ||
+    !Array.isArray(conflicts) || conflicts.length > 100) invalid();
+  const known = new Set(evidence.map(item => item.id)), keys = new Set<string>();
+  const normalized = candidates.map(value => {
+    const candidate = object(value, ['local_key', 'kind', 'uncertainty', 'statement', 'evidence_ids', 'relevance', 'purpose_relevance']);
+    const refs = candidate.evidence_ids === null ? [] : candidate.evidence_ids;
+    if (!text(candidate.local_key) || !candidate.local_key.trim() || keys.has(candidate.local_key) ||
+      !text(candidate.statement) || !candidate.statement.trim() || !text(candidate.purpose_relevance) ||
+      typeof candidate.kind !== 'string' || !['observation', 'constraint', 'hypothesis', 'unknown', 'identifier'].includes(candidate.kind) ||
+      typeof candidate.uncertainty !== 'string' || !['observed', 'reported', 'inferred', 'unknown'].includes(candidate.uncertainty) ||
+      typeof candidate.relevance !== 'string' || !['required', 'optional'].includes(candidate.relevance) || !strings(refs, known) || new Set(refs).size !== refs.length) invalid();
+    keys.add(candidate.local_key);
+    return { ...candidate, evidence_ids: refs };
+  });
+  const groups = new Set<string>();
+  const normalizedConflicts = conflicts.map(value => {
+    const conflict = object(value, ['local_keys', 'reason']);
+    const refs = conflict.local_keys === null ? [] : conflict.local_keys;
+    if (!strings(refs, keys) || refs.length < 2 || new Set(refs).size !== refs.length || !text(conflict.reason) || !conflict.reason.trim()) invalid();
+    const signature = JSON.stringify([...refs].sort());
+    if (groups.has(signature)) invalid();
+    groups.add(signature);
+    return { local_keys: refs, reason: conflict.reason };
+  });
+  return { schema_version: 'candidate_proposals.v1', candidates: normalized,
+    conflicts: normalizedConflicts } as CandidateProposals;
 }
