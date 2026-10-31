@@ -522,6 +522,20 @@ textarea {
   white-space: nowrap;
 }
 
+/* 강제 색상 모드에서는 직접 그린 모양 대신 브라우저 기본 컨트롤을 쓴다. */
+@media (forced-colors: active) {
+  select,
+  input[type='checkbox'],
+  input[type='radio'] {
+    appearance: auto;
+  }
+
+  input[type='checkbox']::after,
+  input[type='radio']::after {
+    display: none;
+  }
+}
+
 /* 움직임을 줄이도록 설정한 사용자에게는 전환을 끈다. */
 @media (prefers-reduced-motion: reduce) {
   *,

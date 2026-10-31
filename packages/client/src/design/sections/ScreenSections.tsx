@@ -131,20 +131,22 @@ export function CandidateSection(): JSX.Element {
       lede="공개 결정 대상은 용지색 카드와 왼쪽 괘선으로 구분한다. 처리 선택은 라디오 행으로 두고, 고른 뒤에만 하위 선택이 열린다."
     >
       <div className="ds-demo">
-        <fieldset className="candidate">
-          <legend className="candidate__legend">후보 1 · observation · 필수</legend>
-          <p className="candidate__statement">10월 1일부터 3일까지 요청량이 늘었습니다.</p>
-          <p className="hint">후보 ID 6c4213ea-61c8-4e21-93d2-0ccdb837aad8</p>
-          <p className="hint">불확실성: observed</p>
-          <div className="option">
-            <input id="ds-candidate-allow" type="radio" name="ds-candidate" defaultChecked />
-            <label htmlFor="ds-candidate-allow">공개에 포함한다</label>
-          </div>
-          <div className="option">
-            <input id="ds-candidate-exclude" type="radio" name="ds-candidate" />
-            <label htmlFor="ds-candidate-exclude">공개에서 뺀다</label>
-          </div>
-        </fieldset>
+        <div className="candidate">
+          <fieldset className="candidate__group">
+            <legend className="candidate__legend">후보 1 · observation · 필수</legend>
+            <p className="candidate__statement">10월 1일부터 3일까지 요청량이 늘었습니다.</p>
+            <p className="hint">후보 ID 6c4213ea-61c8-4e21-93d2-0ccdb837aad8</p>
+            <p className="hint">불확실성: observed</p>
+            <div className="option">
+              <input id="ds-candidate-allow" type="radio" name="ds-candidate" defaultChecked />
+              <label htmlFor="ds-candidate-allow">공개에 포함한다</label>
+            </div>
+            <div className="option">
+              <input id="ds-candidate-exclude" type="radio" name="ds-candidate" />
+              <label htmlFor="ds-candidate-exclude">공개에서 뺀다</label>
+            </div>
+          </fieldset>
+        </div>
       </div>
     </Section>
   );

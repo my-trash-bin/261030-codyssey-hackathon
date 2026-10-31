@@ -55,13 +55,14 @@
   min-width: 0;
   margin-top: var(--space-7);
   padding: var(--space-4) var(--space-5);
-  border: var(--border-width) solid var(--color-border-subtle);
+  border: 0;
+  border-inline-start: var(--border-width-marker) solid var(--color-border-accent);
   background: var(--color-surface-raised);
 }
 
-/* 범례는 카드 위 테두리에 걸쳐 그려지므로, 좌우 여백을 주어 테두리 선과 글자가 붙지 않게 한다. */
+/* 위쪽 테두리가 없으므로 범례는 카드 안쪽 첫 줄에 그대로 놓인다. */
 .candidate__legend {
-  padding: 0 var(--space-3);
+  padding: 0;
   font-family: var(--font-body);
   font-size: var(--type-body-sm-size);
   font-weight: var(--font-weight-strong);
@@ -74,12 +75,19 @@
   font-weight: var(--font-weight-strong);
 }
 
-.candidate > * + * {
+.candidate__group {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.candidate__group > * + * {
   margin-top: var(--space-4);
 }
 
 /* 후보 ID·불확실성처럼 붙여 읽는 안내 줄은 한 덩어리로 좁게 묶는다. */
-.candidate > * + .hint {
+.candidate__group > * + .hint {
   margin-top: var(--space-2);
 }
 

@@ -117,6 +117,38 @@ mise exec -- pnpm --filter @safehandoff/client dev
 - 값은 `getComputedStyle`로 읽으므로 토큰을 고치면 화면도 바로 바뀐다. 화면에 적힌 hex와 px는 실제 계산값이다.
 - 해시 경로를 쓴 이유는 정적 서버 설정을 바꾸지 않기 위해서다. 배포 정적 파일에도 같은 경로로 열린다.
 
+## 참고 사례 대조
+
+컴포넌트 모양과 동작을 공개 디자인 시스템과 비교해 확인한 결과다(확인일 2026-11-01).
+
+| 컴포넌트 | 참고 사례 | 우리 구현 | 판단 |
+| --- | --- | --- | --- |
+| 필드 라벨과 도움말 | GOV.UK text input(label + hint) | 라벨 4px, 도움말 4px, 필드 사이 16px | 유지 |
+| 그룹 캡션 | GOV.UK fieldset(테두리 없는 fieldset + legend) | 카드 `div` 안에 테두리 없는 `fieldset` + `legend` | 수정 완료 |
+| 라디오와 체크박스 | GOV.UK radios(라디오를 라벨 왼쪽에, 사전 선택 금지) | 라디오 왼쪽, 20px, 사전 선택은 데모에만 | 유지 |
+| 접이식 | WAI-ARIA APG disclosure(button + `aria-expanded`) | 네이티브 `details`/`summary`가 같은 역할과 키보드 동작을 제공 | 유지 |
+| 파일 입력 | GOV.UK file upload(라벨을 버튼처럼) | 라벨 안에 실제 input을 숨긴 `FileField` | 유지 |
+| 셀렉트 | 브라우저 기본 select | Chrome `appearance: base-select`, 그 외 네이티브 폴백 | 유지(한계 명시) |
+| 단계 목록 | GOV.UK task list(링크 + 상태 문장) | 단계 이동 버튼 + `aria-current` | 유지 |
+| 강제 색상 모드 | 접근성 요구 | 직접 그린 컨트롤 대신 `appearance: auto` 폴백 | 추가 |
+
+출처:
+- GOV.UK Design System fieldset <https://design-system.service.gov.uk/components/fieldset/>
+- GOV.UK Design System radios <https://design-system.service.gov.uk/components/radios/>
+- WAI-ARIA APG disclosure <https://www.w3.org/WAI/ARIA/apg/patterns/disclosure/>
+- MDN `<legend>` (예제에서 범례에 padding을 준다) <https://developer.mozilla.org/ko/docs/Web/HTML/Reference/Elements/legend>
+
+## 외부 UI 라이브러리 검토
+
+shadcn/ui는 기존 Vite 프로젝트에 넣을 때 Tailwind CSS(`@import "tailwindcss"`), `@/*` 경로 별칭,
+`components.json`이 필요하고 컴포넌트는 Tailwind 클래스로 생성된다(확인일 2026-11-01,
+<https://ui.shadcn.com/docs/installation/vite>). 이 앱은 UI 의존성 없이 `react`만 쓰고 토큰 CSS 3장으로
+화면을 그리므로, 도입하면 Preflight 초기화, 이중 서체, 인주 팔레트를 Tailwind 쪽으로 다시 옮겨야 한다.
+
+Radix Primitives는 WAI-ARIA 패턴, 키보드, 포커스를 직접 구현해 준다
+(<https://www.radix-ui.com/primitives/docs/overview/accessibility>). 다만 지금 필요한 위젯(입력, 라디오, 체크박스, 셀렉트, 접이식)은 네이티브 요소로 이미 같은 동작을 얻고 있어서, 모달, 콤보박스, 토스트 같은 복합 위젯이 생길 때
+스타일 없는 Radix 조각만 골라 쓰는 쪽이 비용이 낮다.
+
 ## 토큰을 고칠 때
 
 1. 값을 바꾸려면 `tokens.css`의 해당 단계만 고친다. 화면 CSS를 고치지 않는다.

@@ -26,10 +26,11 @@ export function CandidateCard(props: {
   const { workspace, snapshot, candidate, index, writeReason, uid, token, setFocusFallback } = props;
   const draft = workspace.drafts.get(candidate.id) ?? emptyDraft();
   return (
-    <fieldset className="candidate" data-candidate-id={candidate.id}>
-      <legend className="candidate__legend">
-        {`후보 ${index + 1} · ${kindLabel(candidate.kind)} · ${candidate.required ? '필수' : '선택'}`}
-      </legend>
+    <div className="candidate" data-candidate-id={candidate.id}>
+      <fieldset className="candidate__group">
+        <legend className="candidate__legend">
+          {`후보 ${index + 1} · ${kindLabel(candidate.kind)} · ${candidate.required ? '필수' : '선택'}`}
+        </legend>
       <p className="candidate__statement">{candidate.statement}</p>
       <p className="hint">{`후보 ID ${candidate.id}`}</p>
       <p className="hint">
@@ -88,6 +89,7 @@ export function CandidateCard(props: {
         writeReason={writeReason}
         uid={uid}
       />
-    </fieldset>
+      </fieldset>
+    </div>
   );
 }
