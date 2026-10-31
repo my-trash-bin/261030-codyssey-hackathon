@@ -38,6 +38,20 @@ test('HTTP serializes configured messages and returns text/usage', async () => {
       { text: '{"ok":true}', model: 'mock-v1', usage: { inputTokens: 3, outputTokens: 4 } });
   });
 });
+test('null max_output_tokens omits the limit field unless a per-request override is given', async () => {
+  await mock(async (req, res) => {
+    let body = ''; for await (const chunk of req) body += chunk;
+    assert.deepEqual(JSON.parse(body), { model: 'mock', messages: [{ role: 'user', content: 'facts' }], temperature: 0 });
+    res.end('{"choices":[{"message":{"content":"ok"}}]}');
+  }, async client => { await client.complete({ role: 'writer', input: 'facts' }); },
+  { max_output_tokens: null, supports_system_role: false, response_mode: 'text' });
+  await mock(async (req, res) => {
+    let body = ''; for await (const chunk of req) body += chunk;
+    assert.deepEqual(JSON.parse(body), { model: 'mock', messages: [{ role: 'user', content: 'facts' }], max_tokens: 512, temperature: 0 });
+    res.end('{"choices":[{"message":{"content":"ok"}}]}');
+  }, async client => { await client.complete({ role: 'writer', input: 'facts', maxOutputTokens: 512 }); },
+  { max_output_tokens: null, supports_system_role: false, response_mode: 'text' });
+});
 test('provider capability switches change wire fields', async () => {
   await mock(async (req, res) => {
     let body = ''; for await (const chunk of req) body += chunk;

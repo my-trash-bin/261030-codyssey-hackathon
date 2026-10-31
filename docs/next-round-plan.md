@@ -7,7 +7,7 @@
 
 | 항목 | 출처 | 크기/위험 |
 | --- | --- | --- |
-| `roleDocuments` → `RealCore` 프롬프트 연결 (`AnalyzeRequest`/`FactPack`에 팩 문서 자리 없음) | F07 2번 | 작음, 계약 확장 1회 필요 |
+| `roleDocuments` → `RealCore` 프롬프트 연결 (`AnalyzeRequest`/`FactPack`에 팩 문서 자리 없음) | [F07 2번 — 인벤토리+테스트 방법 정리 완료](f07-extensions-plan.md), 구현은 아직 | 작음, 계약 확장 1회 필요 |
 | `toyrecord-repro` 스킬 팩을 실제 catalog로 로딩해 OSS 스모크에 연결 | F07 6번 + OSS 계획 | **연결 완료** — task 변경 무효화는 별도 |
 | `check_doc_ip_context_v1` (`ProcessToolRunner` 첫 구현) | F07 4번 | 큼, 보안 판단 필요 |
 | `scan_candidate_bundle_v1` | F07 5번 | 중간 |

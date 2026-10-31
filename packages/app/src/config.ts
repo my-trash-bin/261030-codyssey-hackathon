@@ -21,7 +21,9 @@ export function loadConfig(root: string, env: Record<string, string | undefined>
     }
     if (!['max_tokens', 'max_completion_tokens'].includes(provider.output_limit_field) ||
       !Number.isFinite(provider.temperature) || provider.temperature < 0 || provider.temperature > 2) throw new Error();
-    for (const key of ['max_output_tokens', 'max_input_bytes', 'request_timeout_seconds', 'max_attempts_per_step', 'global_concurrency']) {
+    if (provider.max_output_tokens !== null &&
+      (!Number.isSafeInteger(provider.max_output_tokens) || provider.max_output_tokens < 1)) throw new Error();
+    for (const key of ['max_input_bytes', 'request_timeout_seconds', 'max_attempts_per_step', 'global_concurrency']) {
       if (!Number.isSafeInteger(provider[key]) || provider[key] < 1) throw new Error();
     }
     if (provider.request_timeout_seconds > 3600 || !Number.isSafeInteger(workflow.max_review_repairs) || workflow.max_review_repairs < 0 ||
