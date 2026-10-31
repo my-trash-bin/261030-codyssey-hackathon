@@ -11,14 +11,14 @@
 | 문서 | 설명 |
 | --- | --- |
 | [intent.md](intent.md) | 사용자 확정 의도 원문 (`INT-01-INT-12`) |
-| [docs/prd.md](docs/prd.md) | **현행 제품 요구사항 정본 (`PRD-01-PRD-14`)** - 해커톤 구현 범위 vs 전체 제품 목표 한 장 요약 |
-| [docs/plan.md](docs/plan.md) | **해커톤 2일 수직 슬라이스(`H1-H4`)** vs 제품 마일스톤(`M0-M5`), **5인 실제 팀 역할 분담 및 커밋 구조** |
-| [docs/acceptance-map.csv](docs/acceptance-map.csv) / [docs/traceability.csv](docs/traceability.csv) | 127개 수용 기준(`AC-F01-01-AC-F10-12`) 및 60개 QA 시험(`T01-T60`)과 자동화 테스트 파일 매핑 |
-| [docs/architecture.md](docs/architecture.md) / [docs/api.md](docs/api.md) / [docs/ERD.md](docs/ERD.md) | TypeScript 9개 패키지 구조, HTTP/엔진 API 계약, SQLite 스키마 |
-| [docs/decisions.md](docs/decisions.md) / [docs/spec.md](docs/spec.md) / [docs/security.md](docs/security.md) | 설계 결정(`D01-D24`, Go -> TypeScript 전환 경위 포함), 상태/불변조건(`INV-01-16`), 실행 보안 경계 |
-| [docs/agent-workflow.md](docs/agent-workflow.md) / [docs/extensions.md](docs/extensions.md) | 역할별 JSON 계약/`groundFacts`/`transcript.v1` 및 `SkillPack`/내장 변환/Docker 재현 계약 |
+| [docs/product/prd.md](docs/product/prd.md) | **현행 제품 요구사항 정본 (`PRD-01-PRD-14`)** - 해커톤 구현 범위 vs 전체 제품 목표 한 장 요약 |
+| [docs/product/plan.md](docs/product/plan.md) | **해커톤 2일 수직 슬라이스(`H1-H4`)** vs 제품 마일스톤(`M0-M5`), **5인 실제 팀 역할 분담 및 커밋 구조** |
+| [docs/qa/acceptance-map.csv](docs/qa/acceptance-map.csv) / [docs/qa/traceability.csv](docs/qa/traceability.csv) | 127개 수용 기준(`AC-F01-01-AC-F10-12`) 및 60개 QA 시험(`T01-T60`)과 자동화 테스트 파일 매핑 |
+| [docs/design/architecture.md](docs/design/architecture.md) / [docs/design/api.md](docs/design/api.md) / [docs/design/erd.md](docs/design/erd.md) | TypeScript 9개 패키지 구조, HTTP/엔진 API 계약, SQLite 스키마 |
+| [docs/product/decisions.md](docs/product/decisions.md) / [docs/design/spec.md](docs/design/spec.md) / [docs/design/security.md](docs/design/security.md) | 설계 결정(`D01-D24`, Go -> TypeScript 전환 경위 포함), 상태/불변조건(`INV-01-16`), 실행 보안 경계 |
+| [docs/design/agent-workflow.md](docs/design/agent-workflow.md) / [docs/design/extensions.md](docs/design/extensions.md) | 역할별 JSON 계약/`groundFacts`/`transcript.v1` 및 `SkillPack`/내장 변환/Docker 재현 계약 |
 | [docs/design-tokens.md](docs/design-tokens.md) | 디자인 토큰 3단계(프리미티브/시멘틱/컴포넌트), 눈금, KRDS 참고 출처, `/#design-system` 화면 |
-| [docs/IA.md](docs/IA.md) / [docs/uj.md](docs/uj.md) / [docs/demo.md](docs/demo.md) | 화면 구조(`UI-01-10`), 사용자 여정(`UJ-01-07`), 로컬/Docker 시연 절차 |
+| [docs/design/ia.md](docs/design/ia.md) / [docs/ops/uj.md](docs/ops/uj.md) / [docs/ops/demo.md](docs/ops/demo.md) | 화면 구조(`UI-01-10`), 사용자 여정(`UJ-01-07`), 로컬/Docker 시연 절차 |
 | [docs/features/01-task-intake.md](docs/features/01-task-intake.md) - [10-runtime-boundary.md](docs/features/10-runtime-boundary.md) | 기능 단위 명세 (`F01-F10`) |
 | [docs/presentation/ISSUES.md](docs/presentation/ISSUES.md) / [GUIDE.md](docs/presentation/GUIDE.md) | 발표 슬라이드와 실제 코드 사이의 차이 관리(`PRES-01-12`) 및 발표 가이드 |
 
@@ -72,7 +72,7 @@ just fake-client
 SAFEHANDOFF_WORKFLOW_TOKEN(32자 이상)을 설정하면 실제 앱에서 세션/CSRF/Host/Origin/revision/멱등 키를
 검사하는 인증된 v1 task API(task 생성/원자료 교체/분석 job/CAS/수동 후보/미리보기/결정 배치/철회)를
 사용할 수 있습니다. HTTP loopback/단일 운영자 개발용이며 미설정/fake-app은 WORKFLOW_API_DISABLED입니다.
-상세 DTO는 [docs/api.md](docs/api.md) 5, 남은 UI 연결은 [docs/ui-api-requests.md](docs/ui-api-requests.md)를 따릅니다.
+상세 DTO는 [docs/design/api.md](docs/design/api.md) 5, 남은 UI 연결은 [docs/ops/ui-api-requests.md](docs/ops/ui-api-requests.md)를 따릅니다.
 
 ### 3.4 CDP 시연 및 OSS Docker 재현 스모크
 
@@ -96,7 +96,7 @@ node tools/oss-repro-smoke.mjs \
   --output .local/toyrecord-pack-smoke-42.json
 ```
 
-자세한 시연 시나리오/제출 영상(`docs/demo-media/SafeHandoff-demo.mp4`)/과거 영상 참고자료([docs/presentation/video/README.md](docs/presentation/video/README.md))는 [docs/demo.md](docs/demo.md)에서 확인할 수 있습니다.
+자세한 시연 시나리오/제출 영상(`docs/demo-media/SafeHandoff-demo.mp4`)/과거 영상 참고자료([docs/presentation/video/README.md](docs/presentation/video/README.md))는 [docs/ops/demo.md](docs/ops/demo.md)에서 확인할 수 있습니다.
 
 ### 3.5 모델 통신과 결과 인자 복구
 

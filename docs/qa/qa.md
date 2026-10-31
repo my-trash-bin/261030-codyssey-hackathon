@@ -25,7 +25,7 @@
 
 ## 3. 인수시험 목록
 
-F 번호는 [기능 파일](features/)의 책임 영역, INV 번호는 [spec.md](spec.md)의 불변조건이다. [acceptance-map.csv](acceptance-map.csv)는 개별 AC->시험 ID, [traceability.csv](traceability.csv)는 시험->기능/불변조건/AC를 연결한다. 여러 기능이 닿는 시험에는 관련 F를 모두 표기한다. 연결표의 `not_run`은 아직 제품 시험을 실행하지 않았다는 뜻이다.
+F 번호는 [기능 파일](../features)의 책임 영역, INV 번호는 [spec.md](../design/spec.md)의 불변조건이다. [acceptance-map.csv](acceptance-map.csv)는 개별 AC->시험 ID, [traceability.csv](traceability.csv)는 시험->기능/불변조건/AC를 연결한다. 여러 기능이 닿는 시험에는 관련 F를 모두 표기한다. 연결표의 `not_run`은 아직 제품 시험을 실행하지 않았다는 뜻이다.
 
 ### 3.1 공개 선택/원문 경계/판본
 

@@ -1,6 +1,6 @@
 # SafeHandoff 시연 및 실행 안내
 
-문서 버전: 2.0 / 기준일: 2026-10-31 / 상태: 현행 정본 (TypeScript 워크스페이스 기준) / 연결: [README.md](../README.md), [api.md](api.md), [uj.md](uj.md)
+문서 버전: 2.0 / 기준일: 2026-10-31 / 상태: 현행 정본 (TypeScript 워크스페이스 기준) / 연결: [README.md](../../README.md), [api.md](../design/api.md), [uj.md](uj.md)
 
 ## 1. 시연 모드 구분과 투명성 원칙
 
@@ -103,10 +103,10 @@ SAFEHANDOFF_TRANSCRIPT_DIR=.local/transcripts SAFEHANDOFF_TRANSCRIPT_CONTENT=1 \
 ## 4. 최신 fake-app 기반 CDP 연출 및 제출 영상 검증
 
 - **실행 명령**: `mise exec -- just demo` (탐색/재생 검증: `just demo-check`, macOS MP4 녹화: `just demo-record`).
-- **동작 범위**: [진행 코드](../scripts/demo/run.mjs)가 최신 `fake-app`을 별도 SQLite DB/루프백 포트로 실행하고 전용 [연출 화면](../packages/fake-app/presentation.html)(`/__presentation`)을 연다. [자막](../scripts/demo/stage.mjs)/[장면 정의](../scripts/demo/scenes.mjs)/[재생 제어](../scripts/demo/playback.mjs)가 6단계/21개 세부 장면과 일시정지/탐색을 제공한다. 분석/공개 선택은 브라우저 연출 상태이며 문서 생성/저장/조회는 공통 `/api/sharing`/`/api/documents` API를 호출한다.
-- **녹화 및 제출 시간 검증**: [녹화 코드](../scripts/demo/recording.mjs)와 [macOS 인코더](../scripts/demo/encode.swift)가 실제 CDP 프레임을 H.264 MP4로 인코딩한다. 최신 `fake-app` 제출 녹화([저장된 영상](demo-media/SafeHandoff-demo.mp4), [미리보기](demo-media/preview.png))의 실제 길이는 **99.988초**로 110초 제한을 통과했다. 당시 측정 로그는 저장소에 두지 않는다.
+- **동작 범위**: [진행 코드](../../scripts/demo/run.mjs)가 최신 `fake-app`을 별도 SQLite DB/루프백 포트로 실행하고 전용 [연출 화면](../../packages/fake-app/presentation.html)(`/__presentation`)을 연다. [자막](../../scripts/demo/stage.mjs)/[장면 정의](../../scripts/demo/scenes.mjs)/[재생 제어](../../scripts/demo/playback.mjs)가 6단계/21개 세부 장면과 일시정지/탐색을 제공한다. 분석/공개 선택은 브라우저 연출 상태이며 문서 생성/저장/조회는 공통 `/api/sharing`/`/api/documents` API를 호출한다.
+- **녹화 및 제출 시간 검증**: [녹화 코드](../../scripts/demo/recording.mjs)와 [macOS 인코더](../../scripts/demo/encode.swift)가 실제 CDP 프레임을 H.264 MP4로 인코딩한다. 최신 `fake-app` 제출 녹화([저장된 영상](../demo-media/SafeHandoff-demo.mp4), [미리보기](../demo-media/preview.png))의 실제 길이는 **99.988초**로 110초 제한을 통과했다. 당시 측정 로그는 저장소에 두지 않는다.
 
 ## 5. 시연 중 실패/질문 대응 기준
 
 - **모델 연결 실패 시**: live 모델 실패를 fixture 응답으로 몰래 대체하지 않는다 (`INV-14`). 오류 원인을 그대로 표시하거나 별도 표시된 fixture 시연 모드로 전환해 설명한다.
-- **과거 영상 참고자료 사용 시**: 초기 시제품 녹화 영상(`just preview-demo-video`, [영상 안내](presentation/video/README.md))을 참고로 보여줄 때는 사전 녹화된 시연 영상임을 명시하고 현재 실시간 실행 결과와 구분한다.
+- **과거 영상 참고자료 사용 시**: 초기 시제품 녹화 영상(`just preview-demo-video`, [영상 안내](../presentation/video/README.md))을 참고로 보여줄 때는 사전 녹화된 시연 영상임을 명시하고 현재 실시간 실행 결과와 구분한다.

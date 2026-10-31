@@ -1,6 +1,6 @@
 # SafeHandoff 제품 요구사항 정의서 (PRD)
 
-문서 버전: 2.0 / 기준일: 2026-10-31 / 상태: 현행 정본 (TypeScript 워크스페이스 기준) / 상위 기준: [intent.md](../intent.md) (`INT-01-INT-12`)
+문서 버전: 2.0 / 기준일: 2026-10-31 / 상태: 현행 정본 (TypeScript 워크스페이스 기준) / 상위 기준: [intent.md](../../intent.md) (`INT-01-INT-12`)
 
 ## 0. 한 장 요약 - 지금 무엇을 만드는가
 
@@ -37,8 +37,8 @@ SafeHandoff는 세 가지 원칙으로 이 문제를 푼다.
 
 | 기호 | 의미 | 변경 규칙 |
 | --- | --- | --- |
-| `U` | 사용자 확정 방향 ([intent.md](../intent.md) `INT-01-INT-12`에 직접 근거) | 사용자 승인 없이 변경 불가 (`U01-U12`) |
-| `D` | 구현 가능성을 위해 팀이 고정한 기본 설계 (`D01-D24`) | 더 나은 대안이 있으면 근거와 함께 [decisions.md](decisions.md), [spec.md](spec.md), [ERD.md](ERD.md), [api.md](api.md)를 동시에 갱신 |
+| `U` | 사용자 확정 방향 ([intent.md](../../intent.md) `INT-01-INT-12`에 직접 근거) | 사용자 승인 없이 변경 불가 (`U01-U12`) |
+| `D` | 구현 가능성을 위해 팀이 고정한 기본 설계 (`D01-D24`) | 더 나은 대안이 있으면 근거와 함께 [decisions.md](decisions.md), [spec.md](../design/spec.md), [ERD.md](../design/erd.md), [api.md](../design/api.md)를 동시에 갱신 |
 | `Q` | 실제 기업 도입/운영 시 확인이 필요한 질문 (`Q-LLM`, `Q-POLICY`, `Q-EXT`, `Q-DEPLOY`, `Q-LICENSE`) | 미확인 상태에서도 가상 자료와 고정 인터페이스로 구현/검증 가능하도록 격리 |
 
 ### 사용자 확정 항목 (`U01-U12`)
@@ -119,7 +119,7 @@ SafeHandoff는 세 가지 원칙으로 이 문제를 푼다.
 
 ### PRD-13 / 가치 검증과 수용 기준 추적 (`U11`, `D12`)
 1. **3자 비교 검증**: 가상 업무 로그 10건(금지 항목 43개/필수 단서 32개)에 대해 **직접 단순 마스킹** vs **미검토 원문 AI 생성** vs **SafeHandoff 파이프라인**의 금지 정보 노출/필수 단서 보존/미승인/만료 규칙 차단율을 결정적으로 비교 측정한다. 사람 참여자의 스톱워치 작업 시간 측정은 별도 실험으로 구분해 기록한다. 해커톤 당시 이를 실행하는 도구와 보고서를 만들었으나 2026-10-31에 저장소에서 제거했다 ([decisions.md](decisions.md)) - 이 수용 기준 자체는 남아 있으며 재구현이 필요하다.
-2. **추적성**: `INT-01-12` -> `PRD-01-14` -> `F01-F10` -> 127개 수용 기준(`AC-F01-01-AC-F10-12`)과 60개 품질 시험(`T01-T60`)을 [acceptance-map.csv](acceptance-map.csv) 및 [traceability.csv](traceability.csv)에서 실제 자동 테스트 파일과 연결해 관리한다.
+2. **추적성**: `INT-01-12` -> `PRD-01-14` -> `F01-F10` -> 127개 수용 기준(`AC-F01-01-AC-F10-12`)과 60개 품질 시험(`T01-T60`)을 [acceptance-map.csv](../qa/acceptance-map.csv) 및 [traceability.csv](../qa/traceability.csv)에서 실제 자동 테스트 파일과 연결해 관리한다.
 
 ### PRD-14 / 약속하지 않는 것 (`U12`)
 - **유출 위험 0% 절대 보장 불가**: 승인된 사실의 조합이나 도메인 맥락으로 추론되는 정보까지 수학적으로 완전 차단한다고 주장하지 않는다. 최종 반출 판단은 사람의 확인을 거친다.
@@ -144,15 +144,15 @@ SafeHandoff는 세 가지 원칙으로 이 문제를 푼다.
 
 | 문서 | 역할 |
 | --- | --- |
-| [intent.md](../intent.md) | 사용자 확정 의도 원문 (`INT-01-INT-12`, 수정 금지) |
-| [docs/prd.md](prd.md) | 제품 요구사항 정본 (`PRD-01-PRD-14`, 현행 TypeScript 범위 요약) |
-| [docs/plan.md](plan.md) | 해커톤 2일 수직 슬라이스(`H1-H4`), 제품 단계(`M0-M5`), 5인 팀 역할 분담과 커밋 구조 |
-| [docs/decisions.md](decisions.md) | 아키텍처/도메인 결정 기록 (`D01-D24`, Go 초기 시제품 -> TypeScript 전환 경위 포함) |
-| [docs/spec.md](spec.md) / [docs/security.md](security.md) | 상태 전이/불변조건(`INV-01-16`)/보안 경계 명세 |
-| [docs/architecture.md](architecture.md) / [docs/ERD.md](ERD.md) / [docs/api.md](api.md) | 9개 TypeScript 패키지 구조, 현행 SQLite 테이블 + 전체 목표 ERD, HTTP/Core API 계약 |
-| [docs/agent-workflow.md](agent-workflow.md) / [docs/extensions.md](extensions.md) | 에이전트 역할별 입출력/grounding/transcript 계약 및 `SkillPack`/내장 도구/Docker 재현 명세 |
-| [docs/IA.md](IA.md) / [docs/uj.md](uj.md) / [docs/demo.md](demo.md) | 화면 구조(`UI-01-10`), 사용자 여정(`UJ-01-07`), 로컬/Docker 시연 절차 |
-| [docs/features/01-task-intake.md](features/01-task-intake.md) - [10-runtime-boundary.md](features/10-runtime-boundary.md) | 기능 단위 상세 명세 (`F01-F10`) |
-| [docs/qa.md](qa.md) / [docs/test-data.md](test-data.md) | 시험 기준(`T01-T60`), 가상 데이터 명세 |
-| [docs/acceptance-map.csv](acceptance-map.csv) / [docs/traceability.csv](traceability.csv) | 127개 AC / 해커톤 범위 분류 / 자동화 테스트 연결 / 60개 QA 추적표 |
-| [docs/presentation/ISSUES.md](presentation/ISSUES.md) / [GUIDE.md](presentation/GUIDE.md) | 발표자료와 실제 구현의 차이 관리(`PRES-01-12`) 및 발표 가이드 |
+| [intent.md](../../intent.md) | 사용자 확정 의도 원문 (`INT-01-INT-12`, 수정 금지) |
+| [docs/product/prd.md](prd.md) | 제품 요구사항 정본 (`PRD-01-PRD-14`, 현행 TypeScript 범위 요약) |
+| [docs/product/plan.md](plan.md) | 해커톤 2일 수직 슬라이스(`H1-H4`), 제품 단계(`M0-M5`), 5인 팀 역할 분담과 커밋 구조 |
+| [docs/product/decisions.md](decisions.md) | 아키텍처/도메인 결정 기록 (`D01-D24`, Go 초기 시제품 -> TypeScript 전환 경위 포함) |
+| [docs/design/spec.md](../design/spec.md) / [docs/design/security.md](../design/security.md) | 상태 전이/불변조건(`INV-01-16`)/보안 경계 명세 |
+| [docs/design/architecture.md](../design/architecture.md) / [docs/design/erd.md](../design/erd.md) / [docs/design/api.md](../design/api.md) | 9개 TypeScript 패키지 구조, 현행 SQLite 테이블 + 전체 목표 ERD, HTTP/Core API 계약 |
+| [docs/design/agent-workflow.md](../design/agent-workflow.md) / [docs/design/extensions.md](../design/extensions.md) | 에이전트 역할별 입출력/grounding/transcript 계약 및 `SkillPack`/내장 도구/Docker 재현 명세 |
+| [docs/design/ia.md](../design/ia.md) / [docs/ops/uj.md](../ops/uj.md) / [docs/ops/demo.md](../ops/demo.md) | 화면 구조(`UI-01-10`), 사용자 여정(`UJ-01-07`), 로컬/Docker 시연 절차 |
+| [docs/features/01-task-intake.md](../features/01-task-intake.md) - [10-runtime-boundary.md](../features/10-runtime-boundary.md) | 기능 단위 상세 명세 (`F01-F10`) |
+| [docs/qa/qa.md](../qa/qa.md) / [docs/qa/test-data.md](../qa/test-data.md) | 시험 기준(`T01-T60`), 가상 데이터 명세 |
+| [docs/qa/acceptance-map.csv](../qa/acceptance-map.csv) / [docs/qa/traceability.csv](../qa/traceability.csv) | 127개 AC / 해커톤 범위 분류 / 자동화 테스트 연결 / 60개 QA 추적표 |
+| [docs/presentation/ISSUES.md](../presentation/ISSUES.md) / [GUIDE.md](../presentation/GUIDE.md) | 발표자료와 실제 구현의 차이 관리(`PRES-01-12`) 및 발표 가이드 |

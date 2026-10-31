@@ -2,7 +2,7 @@
 
 등급: P0 core / 담당: 정책/도메인 담당 / 의존: F01, F02, F03 / 연결: F04, F05, F09
 
-이 파일은 [PRD](../prd.md), [spec](../spec.md), [ERD](../ERD.md), [API](../api.md)의 F06 구현 단위다. 기능 파일에만 새로운 권한 규칙을 만들지 않는다.
+이 파일은 [PRD](../product/prd.md), [spec](../design/spec.md), [ERD](../design/erd.md), [API](../design/api.md)의 F06 구현 단위다. 기능 파일에만 새로운 권한 규칙을 만들지 않는다.
 
 ## 1. 목적
 
@@ -108,7 +108,7 @@ scope는 `project_id`, `purpose_id`, `goal_variant`, `recipient_id`, `audience`,
 | AC-F06-10 | late job/중복 요청이 current decision과 revision을 이중 변경하지 않음 |
 | AC-F06-11 | 최종 확인 화면에서 적용 범위/변환 결과를 확인할 수 있고 기준 재사용이 최종 확인을 생략하지 않음 |
 
-QA 연결: AC-F06-01 -> T04/T07, 02-04 -> T05/T49, 05 -> T06/T21/T50, 06-07 -> T49/T50, 08 -> T34/T49, 09 -> T45, 10 -> T03/T19, 11 -> T58. [QA](../qa.md)와 [추적표](../traceability.csv)에서 실행 증거를 연결한다.
+QA 연결: AC-F06-01 -> T04/T07, 02-04 -> T05/T49, 05 -> T06/T21/T50, 06-07 -> T49/T50, 08 -> T34/T49, 09 -> T45, 10 -> T03/T19, 11 -> T58. [QA](../qa/qa.md)와 [추적표](../qa/traceability.csv)에서 실행 증거를 연결한다.
 
 ## 9. 확인 필요
 

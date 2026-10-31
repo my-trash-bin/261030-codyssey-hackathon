@@ -53,7 +53,7 @@ overrides:
     rules:
       files/max-line-length: [error, {limit: 1600}]
 
-  - files: [docs/traceability.csv]
+  - files: [docs/qa/traceability.csv]
     rules:
       files/max-line-length: [error, {limit: 650}]
   # 통합 HTML은 개별 슬라이드에서 재생성하는 배포 산출물이다.

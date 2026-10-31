@@ -2,7 +2,7 @@
 
 문서 버전: 2.1 / 기준일: 2026-10-31 / 상태: **입력/기대 결과의 정의**. 모든 회사/제품/고객/식별자/사업 정보는 가상이다. 실제 실행 결과는 로컬 실행 기록으로 보관하며 저장소에 커밋하지 않는다.
 
-화면 시연에 바로 사용할 별도 입력은 [fixtures/demo](../fixtures/demo/README.md)에 있다. 기존 평가 원자료/정답표를 대체하지 않으며 실행 결과로 간주하지 않는다.
+화면 시연에 바로 사용할 별도 입력은 [fixtures/demo](../../fixtures/demo/README.md)에 있다. 기존 평가 원자료/정답표를 대체하지 않으며 실행 결과로 간주하지 않는다.
 
 ## 1. 자료 분리
 
@@ -55,10 +55,10 @@ B의 관찰 수/순서는 허용한 정보다. A에는 이 정보를 자동 붙�
 
 제공 파일:
 
-- [app-log.txt](../fixtures/reference-pack/author/oss-encoding/app-log.txt)
-- [incident-notes.md](../fixtures/reference-pack/author/oss-encoding/incident-notes.md)
-- [observations.csv](../fixtures/reference-pack/author/oss-encoding/observations.csv)
-- [sample-input.json](../fixtures/reference-pack/author/oss-encoding/sample-input.json)
+- [app-log.txt](../../fixtures/reference-pack/author/oss-encoding/app-log.txt)
+- [incident-notes.md](../../fixtures/reference-pack/author/oss-encoding/incident-notes.md)
+- [observations.csv](../../fixtures/reference-pack/author/oss-encoding/observations.csv)
+- [sample-input.json](../../fixtures/reference-pack/author/oss-encoding/sample-input.json)
 
 원래 실패 문자열 `라온제조공장점`은7코드포인트/UTF-8 21바이트다. 이 문자열을 그대로 이름만 바꿔 보내는 흐름이 아니라, 공개 입력 계약에서 선택한 **새 길이6의 예시**를 만들어 실행한다. 확장 검증의 기본 goal_variant는 `reproduction_evidence`이며 이 목표에서는 reproduced가 최종화 조건이다. 실행할 수 없으면 사용자가 `observations_only`로 목표를 바꾸고 재분석한 뒤 관찰 문의로 완료할 수 있다.
 
@@ -105,7 +105,7 @@ exit code는 성공0, 예상 도메인 오류2, 예기치 않은 실행 오류3�
 
 수신자는 `issue.md`, 새 입력, 고정 toy 소스/실행 방법/실제 결과만 받는다. 원자료/앱 DB/평가 정답 없이 호환 Go toolchain에서 실행해 네 조건을 확인한다. 일반 지원 환경에서 원본 재현을 수행하지 않았으면 수행했다고 쓰지 않는다.
 
-기대 평가 정의: [oss-baseline.json](../fixtures/reference-pack/evaluator/expected/oss-baseline.json).
+기대 평가 정의: [oss-baseline.json](../../fixtures/reference-pack/evaluator/expected/oss-baseline.json).
 
 ## 4. 사례 B - 재현 환경 없는 B2B 기술지원
 
@@ -115,9 +115,9 @@ exit code는 성공0, 예상 도메인 오류2, 예기치 않은 실행 오류3�
 
 제공 파일:
 
-- [request-summary.csv](../fixtures/reference-pack/author/b2b-timeout/request-summary.csv)
-- [client-log.txt](../fixtures/reference-pack/author/b2b-timeout/client-log.txt)
-- [support-notes.md](../fixtures/reference-pack/author/b2b-timeout/support-notes.md)
+- [request-summary.csv](../../fixtures/reference-pack/author/b2b-timeout/request-summary.csv)
+- [client-log.txt](../../fixtures/reference-pack/author/b2b-timeout/client-log.txt)
+- [support-notes.md](../../fixtures/reference-pack/author/b2b-timeout/support-notes.md)
 
 요청량820/1160/1740은 각 관찰 시점의 분당 수치라는 내부 설명을 notes에 둔다. 분당이라는 단위/시각/실제 간격은 기본 공개하지 않는다. 원문은 가상 payload와 `DEMO_ONLY_SECRET_B`를 포함한다.
 
@@ -141,11 +141,11 @@ ID를 모두 제외하면 구체 공급사 기록을 조회한 것처럼 쓰지 
 
 ### B-4. 수신자가 따로 아는 것
 
-[provider-traces.csv](../fixtures/reference-pack/recipient/b2b-timeout/provider-traces.csv)는 공급사 역할에게만 준다. 이 기록에는 두 요청 모두 별도 레코드를 만들었으나 첫 응답이 전달되지 않았다는 가상 상황이 있다.
+[provider-traces.csv](../../fixtures/reference-pack/recipient/b2b-timeout/provider-traces.csv)는 공급사 역할에게만 준다. 이 기록에는 두 요청 모두 별도 레코드를 만들었으나 첫 응답이 전달되지 않았다는 가상 상황이 있다.
 
 ID 허용 분기에서는 수신자가 공개 ID로 trace를 찾고 다음 조사/재시도 정책 확인을 제안한다. 생성 앱이 이 결론을 미리 쓰면 평가 정답 누출 또는 근거 없는 추정이다. ID 제외 분기는 조회 불가와 필요한 최소 후속 정보를 설명하면 정상이다.
 
-기대 평가 정의: [b2b-ids-allowed.json](../fixtures/reference-pack/evaluator/expected/b2b-ids-allowed.json), [b2b-ids-excluded.json](../fixtures/reference-pack/evaluator/expected/b2b-ids-excluded.json).
+기대 평가 정의: [b2b-ids-allowed.json](../../fixtures/reference-pack/evaluator/expected/b2b-ids-allowed.json), [b2b-ids-excluded.json](../../fixtures/reference-pack/evaluator/expected/b2b-ids-excluded.json).
 
 ## 5. 사례 C - 일반 내부 운영 자료 공유
 
@@ -153,9 +153,9 @@ ID 허용 분기에서는 수신자가 공개 ID로 trace를 찾고 다음 조�
 
 제공 파일:
 
-- [requests.csv](../fixtures/reference-pack/author/internal-operations/requests.csv)
-- [meeting-notes.md](../fixtures/reference-pack/author/internal-operations/meeting-notes.md)
-- [operations.md](../fixtures/reference-pack/author/internal-operations/operations.md)
+- [requests.csv](../../fixtures/reference-pack/author/internal-operations/requests.csv)
+- [meeting-notes.md](../../fixtures/reference-pack/author/internal-operations/meeting-notes.md)
+- [operations.md](../../fixtures/reference-pack/author/internal-operations/operations.md)
 
 필수 사실은 같은 내용을 접수표와 처리 시스템에 중복 입력하고, 사람이 상태를 대조한다는 점이다. **기존 메일/메신저 접수 채널을 유지해야 한다**는 제약도 포함한다. 고객명/사업 메모는 제외한다.
 
@@ -163,7 +163,7 @@ A-D를 모두 시도하고 실제 output 전체를 검사한다. D에서 B로 �
 
 수신자는 공개 `operations-brief.md`와 허용된 표만으로 현재 작업과 유지 제약을 이해하고 개선 질문을 제시한다. 제약을 잊고 메일/메신저를 모두 폐쇄하는 요청서가 나오면 유용성 실패다.
 
-기대 평가 정의: [operations-direction.json](../fixtures/reference-pack/evaluator/expected/operations-direction.json), [operations-index.json](../fixtures/reference-pack/evaluator/expected/operations-index.json).
+기대 평가 정의: [operations-direction.json](../../fixtures/reference-pack/evaluator/expected/operations-direction.json), [operations-index.json](../../fixtures/reference-pack/evaluator/expected/operations-index.json).
 
 ## 6. 맥락 예외의 공통 데이터
 

@@ -1,6 +1,6 @@
 # SafeHandoff 구현 계획 - 해커톤 2일 수직 슬라이스 / 5인 팀 분담 / 제품 마일스톤
 
-문서 버전: 2.1 / 기준일: 2026-10-31 / 상태: 현행 정본 (TypeScript 워크스페이스 기준) / 연결: [prd.md](prd.md), [acceptance-map.csv](acceptance-map.csv), [traceability.csv](traceability.csv)
+문서 버전: 2.1 / 기준일: 2026-10-31 / 상태: 현행 정본 (TypeScript 워크스페이스 기준) / 연결: [prd.md](prd.md), [acceptance-map.csv](../qa/acceptance-map.csv), [traceability.csv](../qa/traceability.csv)
 
 ## 1. 해커톤 2일(48시간) 수직 슬라이스 정의 (`H1-H4`)
 
@@ -17,7 +17,7 @@
 
 ### 1.2 기능별 127개 수용 기준(AC)의 해커톤 범위 분류
 
-모든 127개 수용 기준(`AC-F01-01-AC-F10-12`)은 [acceptance-map.csv](acceptance-map.csv)의 `hackathon_scope` 열에서 세 가지로 명확히 구분한다.
+모든 127개 수용 기준(`AC-F01-01-AC-F10-12`)은 [acceptance-map.csv](../qa/acceptance-map.csv)의 `hackathon_scope` 열에서 세 가지로 명확히 구분한다.
 
 - **`hackathon_core` (44개 AC)**: 해커톤 핵심 수직 슬라이스(`H1-H2`, `P0` 코어 엔진/저장소/모델 경계)에 포함된 수용 기준.
 - **`hackathon_ext` (18개 AC)**: 해커톤 도메인 확장/합성 재현 슬라이스(`H3`, `P1` `SkillPack` 로더/내장 변환/Docker 재현)에 포함된 수용 기준.
@@ -41,7 +41,7 @@
 
 ## 2. 실제 5인 팀 역할 분담과 Git 커밋 구조
 
-초기 기획 템플릿에 남아 있던 가상 3인(A/B/C) 분담표를 폐기하고, 실제 해커톤을 수행한 **5인 팀([SafeHandoff_팀원_소개.html](presentation/SafeHandoff_팀원_소개.html) 기준)의 역할 분담과 Git 커밋 집중 경위**를 투명하게 기록한다.
+초기 기획 템플릿에 남아 있던 가상 3인(A/B/C) 분담표를 폐기하고, 실제 해커톤을 수행한 **5인 팀([SafeHandoff_팀원_소개.html](../presentation/SafeHandoff_팀원_소개.html) 기준)의 역할 분담과 Git 커밋 집중 경위**를 투명하게 기록한다.
 
 ### 2.1 5인 팀원별 담당 영역
 
@@ -55,7 +55,7 @@
 
 ### 2.2 Git 커밋 이력과 협업 방식 설명
 
-저장소 커밋 이력에서 초기 56개 커밋 시점에는 통합 리드(`Juyeong Maing` 50개) 중심으로 코어/문서/도구 커밋이 집중되고 UI(`servercat` 5개)/발표(`이상혁` 1개)가 별도로 기록되었으며, 이후 후반 통합 라운드에서 UI(`servercat` 14개)/CDP 시연(`andy1398` 7개)/발표/평가(`이상혁`) 커밋이 [BRANCHING_STRATEGY.md](../BRANCHING_STRATEGY.md)(Trunk-Based Development)에 따라 병합되었다.
+저장소 커밋 이력에서 초기 56개 커밋 시점에는 통합 리드(`Juyeong Maing` 50개) 중심으로 코어/문서/도구 커밋이 집중되고 UI(`servercat` 5개)/발표(`이상혁` 1개)가 별도로 기록되었으며, 이후 후반 통합 라운드에서 UI(`servercat` 14개)/CDP 시연(`andy1398` 7개)/발표/평가(`이상혁`) 커밋이 [BRANCHING_STRATEGY.md](../../BRANCHING_STRATEGY.md)(Trunk-Based Development)에 따라 병합되었다.
 
 1. **엄격한 품질 게이트(`.qg.yaml`)와 통합 워크스테이션 중심 초기 부트스트랩**:
    - 본 저장소는 `pnpm typecheck`, `pnpm test`, `tools/qg.test.mjs`, `tools/validate_docs.py`가 모든 패키지 타입/문서 링크/허용 문자 집합/파일 줄 수를 동시에 검사한다.
@@ -63,7 +63,7 @@
 2. **모듈 경계 확립 이후 역할별 병렬 커밋 (`feat/hackathon-ui`, `feat/cdp-demo-presentation`, `docs/presentation-update`)**:
    - `Core` 인터페이스와 HTTP 경계가 고정된 뒤에는 클라이언트 공개 결정/분석 UI(`servercat`), CDP 자동 시연/제출 영상 녹화(`andy1398`), 발표 슬라이드/가치 비교 실험(`이상혁`)을 각자 브랜치와 `main`에서 병렬로 커밋/통합했다.
 3. **기여 투명성 원칙**:
-   - 위 표의 기능 배정은 팀원별 설계/검토/구현 참여 영역을 나타내며, 미연결 백로그(`product_backlog`)까지 모두 구현 완료했다는 뜻으로 부풀리지 않는다 ([docs/presentation/ISSUES.md](presentation/ISSUES.md) `PRES-02`).
+   - 위 표의 기능 배정은 팀원별 설계/검토/구현 참여 영역을 나타내며, 미연결 백로그(`product_backlog`)까지 모두 구현 완료했다는 뜻으로 부풀리지 않는다 ([docs/presentation/ISSUES.md](../presentation/ISSUES.md) `PRES-02`).
 
 ---
 

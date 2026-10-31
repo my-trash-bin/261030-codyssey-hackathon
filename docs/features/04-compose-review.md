@@ -1,6 +1,6 @@
 # F04 / 승인 정보로 새 작성과 작성 중 검토
 
-우선순위 P0 / 담당 역할: 워크플로우/도구 / 상태: 구현 명세 초안. 관련 [spec](../spec.md), [agent-workflow](../agent-workflow.md), [architecture](../architecture.md).
+우선순위 P0 / 담당 역할: 워크플로우/도구 / 상태: 구현 명세 초안. 관련 [spec](../design/spec.md), [agent-workflow](../design/agent-workflow.md), [architecture](../design/architecture.md).
 
 ## 1. 목적
 
@@ -104,7 +104,7 @@ DocAST의 허용 text/list/slot만 편집한다. raw HTML이나 임의 첨부 �
 | AC-F04-14 | 전체 파일생성 실패 시 일부 파일만 ready로 표시하지 않고 오류/재시도 안내 |
 | AC-F04-15 | 새 도구 결과를 투영할 때 승인한 결과schema/field범위 밖 자유 stdout/stderr는 팩에 들어가지 않음 |
 
-관련 QA: T01-T03, T08-T10, T15-T18, T20, T22-T24, T32-T35, T38-T40, T51, T56, T59. 개별 연결은 [acceptance-map.csv](../acceptance-map.csv).
+관련 QA: T01-T03, T08-T10, T15-T18, T20, T22-T24, T32-T35, T38-T40, T51, T56, T59. 개별 연결은 [acceptance-map.csv](../qa/acceptance-map.csv).
 
 ## 9. 확인 필요
 

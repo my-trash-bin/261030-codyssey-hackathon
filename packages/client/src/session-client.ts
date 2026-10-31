@@ -1,5 +1,5 @@
 // 로컬 접속 세션. 운영자 토큰을 POST /api/v1/session으로 교환하고 CSRF 토큰만 돌려준다.
-// 토큰은 메모리에만 두며 저장소·로그·URL에 남기지 않는다. 응답 DTO는 docs/api.md의
+// 토큰은 메모리에만 두며 저장소·로그·URL에 남기지 않는다. 응답 DTO는 docs/design/api.md의
 // "인증된 task·공개 결정 API" 절을 따른다.
 import { isRecord } from './disclosure-contract.ts';
 

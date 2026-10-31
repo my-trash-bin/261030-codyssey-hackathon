@@ -1,10 +1,10 @@
 # SafeHandoff 아키텍처/설계 결정 기록 (ADR)
 
-문서 버전: 2.0 / 기준일: 2026-10-31 / 상태: 현행 정본 (TypeScript 워크스페이스 기준) / 연결: [intent.md](../intent.md), [prd.md](prd.md), [spec.md](spec.md), [architecture.md](architecture.md)
+문서 버전: 2.0 / 기준일: 2026-10-31 / 상태: 현행 정본 (TypeScript 워크스페이스 기준) / 연결: [intent.md](../../intent.md), [prd.md](prd.md), [spec.md](../design/spec.md), [architecture.md](../design/architecture.md)
 
 ## 1. 결정 구분 원칙 (`U` / `D` / `Q`)
 
-- **`U` (`U01-U12`)**: [intent.md](../intent.md)에서 사용자가 확정한 제품 의도다. 임의로 축소하거나 변경하지 않는다.
+- **`U` (`U01-U12`)**: [intent.md](../../intent.md)에서 사용자가 확정한 제품 의도다. 임의로 축소하거나 변경하지 않는다.
 - **`D` (`D01-D24`)**: 제품 요구사항을 일관되게 구현하기 위해 확정한 기술/도메인 결정이다.
 - **`Q` (`Q-LLM`, `Q-POLICY`, `Q-EXT`, `Q-DEPLOY`, `Q-LICENSE`)**: 실제 도입 조직의 운영 환경에서 확인해야 할 사항이다. 미확인 상태에서도 로컬 가상 데이터와 고정 계약으로 검증 가능하게 설계한다.
 
@@ -44,9 +44,9 @@
 ## 3. 발표 패키지 관련 결정 (`PRES-DEC-01`)
 
 - **`PRES-DEC-01` (해커톤 발표용 B2B 솔루션 프레이밍 유지)**:
-  - 제품은 [intent.md](../intent.md) `INT-04`/`INT-12`에 따라 내부 설치형 오픈소스 도구로 개발한다.
+  - 제품은 [intent.md](../../intent.md) `INT-04`/`INT-12`에 따라 내부 설치형 오픈소스 도구로 개발한다.
   - 다만 해커톤 발표 슬라이드에서는 다양한 배경의 심사위원이 기업 문제/도입 효과/시장 규모(TAM/SAM/SOM)를 직관적으로 이해할 수 있도록 B2B 엔터프라이즈 솔루션 프레이밍을 유지한다.
-  - 발표 슬라이드의 가설/목업과 실제 코드 구현 범위의 차이는 숨기지 않고 [docs/presentation/ISSUES.md](presentation/ISSUES.md) (`PRES-01-PRES-12`)에 명시적으로 대조/관리한다.
+  - 발표 슬라이드의 가설/목업과 실제 코드 구현 범위의 차이는 숨기지 않고 [docs/presentation/ISSUES.md](../presentation/ISSUES.md) (`PRES-01-PRES-12`)에 명시적으로 대조/관리한다.
 
 ---
 
@@ -75,7 +75,7 @@ revision/SQLite 멱등 기록을 함께 검사한다. 기존 stateless API의 �
 원자료는 서버 snapshot으로 고정하고 서버 분석 job만 CAS 채택한다. 브라우저 AnalyzeResult를
 받아 후보나 허용 결정을 만들지 않는다. C는 연결된 단일 CSV/JSON 근거 필드만 계산한다.
 D 모델 응답도 제안이며 실제 미리보기와 사람 결정은 별도다. Rule 저장과 원문 예외/타임라인은
-미지원으로 거부한다. 현재 서버 DTO는 [API](api.md), 남은 화면 작업은 [요청 현황](ui-api-requests.md)을 따른다.
+미지원으로 거부한다. 현재 서버 DTO는 [API](../design/api.md), 남은 화면 작업은 [요청 현황](../ops/ui-api-requests.md)을 따른다.
 
 ## 2026-10-31 / 두 신뢰 경계를 하나로 묶음
 

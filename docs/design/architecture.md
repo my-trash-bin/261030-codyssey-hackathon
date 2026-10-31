@@ -1,6 +1,6 @@
 # SafeHandoff 아키텍처 - TypeScript 9개 패키지 구조와 의존성 경계
 
-문서 버전: 2.0 / 기준일: 2026-10-31 / 상태: 현행 정본 / 연결: [prd.md](prd.md), [decisions.md](decisions.md), [api.md](api.md), [ERD.md](ERD.md)
+문서 버전: 2.0 / 기준일: 2026-10-31 / 상태: 현행 정본 / 연결: [prd.md](../product/prd.md), [decisions.md](../product/decisions.md), [api.md](api.md), [ERD.md](erd.md)
 
 ## 1. 패키지 구성과 의존성 방향
 

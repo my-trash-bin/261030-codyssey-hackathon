@@ -2,7 +2,7 @@
 
 버전: 2.0 / 기준일: 2026-10-31 / 상태: 현행 구현 계약 (`@safehandoff/skill-loader`, `@safehandoff/core`, `@safehandoff/sandbox-runner` 기준)
 
-이 문서는 PRD-10/11의 구현 경계다. 라이브러리나 제품별로 먼저 확인할 질문, 공유 양식, 변환, 검사를 추가할 수 있게 한다. 기능 담당자는 [F07](features/07-domain-extensions.md)과 [F08](features/08-reproduction.md)를 함께 읽는다. 제품별 전문성을 매번 긴 프롬프트에 다시 입력하지 않고 등록된 지침과 검사로 재사용하는 것이 목적이다.
+이 문서는 PRD-10/11의 구현 경계다. 라이브러리나 제품별로 먼저 확인할 질문, 공유 양식, 변환, 검사를 추가할 수 있게 한다. 기능 담당자는 [F07](../features/07-domain-extensions.md)과 [F08](../features/08-reproduction.md)를 함께 읽는다. 제품별 전문성을 매번 긴 프롬프트에 다시 입력하지 않고 등록된 지침과 검사로 재사용하는 것이 목적이다.
 
 ## 1. 확장 종류와 이번 구현
 
@@ -172,7 +172,7 @@ RFC 5737의 문서 예시용 대역인 `192.0.2.0/24`, `198.51.100.0/24`, `203.0
 
 `reproduction_result`는 실행 후 확인하는 최종화 단계의 필요 정보다. 실행 전 공개 선택 게이트에서 아직 없는 결과를 요구하지 않는다. 실행 전에 target/새 입력/공개 결과 schema/필드를 허용하고, 실행 후 해당 정형 결과를 투영해 실제 파일을 검토한다. `goal_variant=reproduction_evidence`는 현재 고정 조건에서 `reproduced`여야 목표 완료이며, 다른 목표의 관찰 문의는 미실행 상태를 정확히 밝히고 진행할 수 있다.
 
-결과가 부족하면 환경/target/입력/관찰을 확인한 뒤 사용자에게 추가 선택 또는 문의 범위 조정을 제안한다. 같은 실패를 반복하면서 자동으로 원문/실제 고객값을 더 넣지 않는다. 구체 판정표와 공개 패키지는 [F08](features/08-reproduction.md)에 정의한다.
+결과가 부족하면 환경/target/입력/관찰을 확인한 뒤 사용자에게 추가 선택 또는 문의 범위 조정을 제안한다. 같은 실패를 반복하면서 자동으로 원문/실제 고객값을 더 넣지 않는다. 구체 판정표와 공개 패키지는 [F08](../features/08-reproduction.md)에 정의한다.
 
 ## 10. 팀이 새 확장을 추가할 때와 카탈로그 CLI
 
@@ -180,7 +180,7 @@ RFC 5737의 문서 예시용 대역인 `192.0.2.0/24`, `198.51.100.0/24`, `203.0
 
 현행 구현에서는 `node tools/pack-register.mjs --root <팩경로> --allowlist <허용목록> --catalog <카탈로그JSON>`으로 `FsSkillPackLoader.load()` 검증을 통과한 팩의 `manifest_sha256`과 `pack_sha256`을 로컬 카탈로그에 고정한다. `toyrecord-repro` 팩은 `assets/reproduction.v1.json`(`toyrecord_reproduction.v1`)과 운영자 설치 핀(`toyrecord_installation.v1`)을 `FsSkillPackLoader.verify()`로 대조한 뒤에만 `tools/oss-repro-smoke.mjs`에서 실행한다.
 
-문서와 도구를 추가해도 `INV-03`, `INV-04`, `INV-07`, `INV-09`, `INV-12-16`은 유지한다. 필요한 권한 변경은 기능 파일에만 숨기지 말고 [spec](spec.md), [API](api.md), [ERD](ERD.md)를 같은 변경으로 갱신한다.
+문서와 도구를 추가해도 `INV-03`, `INV-04`, `INV-07`, `INV-09`, `INV-12-16`은 유지한다. 필요한 권한 변경은 기능 파일에만 숨기지 말고 [spec](spec.md), [API](api.md), [ERD](erd.md)를 같은 변경으로 갱신한다.
 
 ## 근거
 

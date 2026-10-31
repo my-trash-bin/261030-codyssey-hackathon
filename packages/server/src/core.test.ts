@@ -116,7 +116,7 @@ test('server exposes analysis only when an engine is injected, and forwards its 
   }
 });
 
-// Regression for docs/decisions.md's "두 신뢰 경계" entry: /api/sharing, /api/analysis and
+// Regression for docs/product/decisions.md's "두 신뢰 경계" entry: /api/sharing, /api/analysis and
 // /api/documents must share the exact same session/CSRF/Host/Origin boundary as /api/v1/*
 // whenever an operator has turned it on, not stay silently open next to it.
 test('legacy routes share the session boundary once an operator enables it', async () => {

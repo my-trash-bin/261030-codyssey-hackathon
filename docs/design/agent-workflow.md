@@ -1,8 +1,8 @@
 # 에이전트 역할/데이터 계약/실패 처리
 
-문서 버전: 2.0 / 기준일: 2026-10-31 / 상태: 현행 정본 (TypeScript `@safehandoff/core` 및 `@safehandoff/core-interface` 기준) / 연결: [spec.md](spec.md), [api.md](api.md), [F02](features/02-evidence-analysis.md), [F04](features/04-compose-review.md)
+문서 버전: 2.0 / 기준일: 2026-10-31 / 상태: 현행 정본 (TypeScript `@safehandoff/core` 및 `@safehandoff/core-interface` 기준) / 연결: [spec.md](spec.md), [api.md](api.md), [F02](../features/02-evidence-analysis.md), [F04](../features/04-compose-review.md)
 
-같은 사내 모델을 역할별로 순차 호출한다. 아래 역할은 논리적 역할이며 서로 다른 모델을 요구하지 않는다. 권한/공개 선택/파일 생성의 최종 판단은 앱 코드가 한다. 전체 흐름은 [spec](spec.md), 구현 책임은 [F02](features/02-evidence-analysis.md)와 [F04](features/04-compose-review.md).
+같은 사내 모델을 역할별로 순차 호출한다. 아래 역할은 논리적 역할이며 서로 다른 모델을 요구하지 않는다. 권한/공개 선택/파일 생성의 최종 판단은 앱 코드가 한다. 전체 흐름은 [spec](spec.md), 구현 책임은 [F02](../features/02-evidence-analysis.md)와 [F04](../features/04-compose-review.md).
 
 ## 1. 역할별 읽기/쓰기
 
@@ -182,7 +182,7 @@
 
 run마다 mode, provider/model 식별자, prompt 버전, extension digest, 입력 revision, 호출 수, 지연, 오류 코드, 수동 개입, 재현 결과, 출력 해시를 기록한다. 미측정 usage는 null이다. 모델 호출 실패 후 fixture가 응답을 대신하면 성공처럼 보일 수 있으므로 이 대체는 금지한다.
 
-평가는 작성만/작성 중 검토 추가/결정적 검사 추가를 구분할 수 있어야 한다. 같은 모델의 재검토가 실제 도움이 되는지는 별도 측정한다. 자세한 기준은 [QA](qa.md).
+평가는 작성만/작성 중 검토 추가/결정적 검사 추가를 구분할 수 있어야 한다. 같은 모델의 재검토가 실제 도움이 되는지는 별도 측정한다. 자세한 기준은 [QA](../qa/qa.md).
 
 ## 10. 현행 TypeScript 구현 계약 (`groundFacts` / `writeReviewed` / `transcript.v1`)
 

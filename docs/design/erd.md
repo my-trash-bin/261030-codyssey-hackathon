@@ -1,6 +1,6 @@
 # 데이터 모델과 저장 계약 (ERD)
 
-문서 버전: 2.0 / 기준일: 2026-10-31 / 상태: 현행 정본 (TypeScript `node:sqlite` 워크스페이스 기준) / 참조 DDL: [schema.sql](../contracts/schema.sql), [task-schema.ts](../packages/server/src/task-schema.ts) / 공통 enum: [domain-contract.json](../contracts/domain-contract.json)
+문서 버전: 2.0 / 기준일: 2026-10-31 / 상태: 현행 정본 (TypeScript `node:sqlite` 워크스페이스 기준) / 참조 DDL: [schema.sql](../../contracts/schema.sql), [task-schema.ts](../../packages/server/src/task-schema.ts) / 공통 enum: [domain-contract.json](../../contracts/domain-contract.json)
 
 ## 0. 현행 TypeScript SQLite 구현 테이블과 전체 목표 스키마 매핑
 

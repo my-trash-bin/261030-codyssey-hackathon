@@ -1,10 +1,10 @@
 # F05 - 최종 파일 확인/확정/복사/다운로드
 
-상태: P0 구현 기준안 / 기준일: 2026-10-31 / 구현 담당: [plan.md](../plan.md)의 F05 담당
+상태: P0 구현 기준안 / 기준일: 2026-10-31 / 구현 담당: [plan.md](../product/plan.md)의 F05 담당
 
 ## 1. 목적
 
-[PRD-08](../prd.md)에 따라 사용자가 확인한 **현재 선택의 실제 파일**을 그대로 사용할 수 있게 한다. 검사한 초안과 내려받은 첨부가 다르거나, 선택을 바꾼 뒤 이전 자료가 다시 사용되는 일을 앱의 확정/내보내기 경로에서 막는다(INV-07~09).
+[PRD-08](../product/prd.md)에 따라 사용자가 확인한 **현재 선택의 실제 파일**을 그대로 사용할 수 있게 한다. 검사한 초안과 내려받은 첨부가 다르거나, 선택을 바꾼 뒤 이전 자료가 다시 사용되는 일을 앱의 확정/내보내기 경로에서 막는다(INV-07~09).
 
 이 기능은 자료를 외부로 전송하지 않는다. 파일을 확인하고 복사/다운로드하는 사용자 동작을 제공한다. 내부 미리보기를 사용자가 직접 복사하거나 OS의 다른 앱으로 공유하는 행위까지 통제하는 제품은 아니다.
 
@@ -56,7 +56,7 @@ UI-06(`/tasks/{id}/final`)은 UI-03에서 `최종 파일 확인`으로 들어간
 | exports | 이미 확정한 결과 조회 | artifact_set_hash, 저장 ZIP bytes/hash, confirmed_at |
 | events / idempotency_keys | 중복확정/변경 상태 | 확정과 같은 트랜잭션에서 이벤트/응답 저장 |
 
-내부 provenance는 문서/표/인용이 어떤 승인에서 왔는지 검증하는 데 쓴다. 별도 공개 허용 없이 공개 manifest나 첨부에 넣지 않는다. 구체 스키마는 [ERD](../ERD.md)를 따른다.
+내부 provenance는 문서/표/인용이 어떤 승인에서 왔는지 검증하는 데 쓴다. 별도 공개 허용 없이 공개 manifest나 첨부에 넣지 않는다. 구체 스키마는 [ERD](../design/erd.md)를 따른다.
 
 ## 5. 규칙과 파일 구성
 
@@ -64,7 +64,7 @@ UI-06(`/tasks/{id}/final`)은 UI-03에서 `최종 파일 확인`으로 들어간
 
 공유 payload는 현재 DocAST와 승인된 표/원문 슬롯/공개 도구 결과/등록 공개 asset에서만 만든다. 원자료 파일, 모델 request/response, 검토 자유 설명, 도구 stderr, 평가 정답, 공급사 역할 자료, 내부 로그는 자동 첨부 대상이 아니다.
 
-파일 이름은 목적별 고정 allowlist에서 정한다. 사용자 작업 이름/고객이 포함된 원본 파일명을 공개 이름으로 사용하지 않는다. 예시는 `issue.md`, `support-request.md`, `operations-brief.md`, `observations.csv`, 승인된 경우의 `timeline.csv`/설정 예시/재현 폴더다. 최종 목록의 권위는 [spec](../spec.md)와 제품 팩의 허용 asset 목록이다.
+파일 이름은 목적별 고정 allowlist에서 정한다. 사용자 작업 이름/고객이 포함된 원본 파일명을 공개 이름으로 사용하지 않는다. 예시는 `issue.md`, `support-request.md`, `operations-brief.md`, `observations.csv`, 승인된 경우의 `timeline.csv`/설정 예시/재현 폴더다. 최종 목록의 권위는 [spec](../design/spec.md)와 제품 팩의 허용 asset 목록이다.
 
 ### 직렬화
 
@@ -115,7 +115,7 @@ ZIP은 allowlist 파일을 하나씩 추가한다. 절대경로, 상위경로, �
 | `ExportService.GetFile` / `GET /api/v1/exports/{export_id}/files/{file_id}` | 현재 세션, 현재 유효성 | 저장된 동일 파일 bytes |
 | `ExportService.GetArchive` / `GET /api/v1/exports/{export_id}/archive` | 현재 세션, 현재 유효성 | 저장된 동일 ZIP bytes |
 
-F04가 문서/검토 결과를 제공하고 F03/F06이 결정/규칙 유효성을 제공한다. F07은 해당 finding의 맥락 결과만, F08은 고정 재현 결과만 제공한다. F09는 기록/삭제를 담당한다. F10은 응답 no-store/nosniff/Content-Disposition, 안전한 렌더링, 인증을 집행한다. 오류 code/HTTP status와 정확한 DTO는 [api.md](../api.md)에 따른다.
+F04가 문서/검토 결과를 제공하고 F03/F06이 결정/규칙 유효성을 제공한다. F07은 해당 finding의 맥락 결과만, F08은 고정 재현 결과만 제공한다. F09는 기록/삭제를 담당한다. F10은 응답 no-store/nosniff/Content-Disposition, 안전한 렌더링, 인증을 집행한다. 오류 code/HTTP status와 정확한 DTO는 [api.md](../design/api.md)에 따른다.
 
 ## 7. 하지 않을 것
 
@@ -139,7 +139,7 @@ F04가 문서/검토 결과를 제공하고 F03/F06이 결정/규칙 유효성�
 | AC-F05-12 | UI | A/B/C/D 변경의 결과가 실제 파일에 반영되고 복사 실패를 성공처럼 표시하지 않음 |
 | AC-F05-13 | 수신자 | 앱/원자료 없이 공개 파일만 받은 수신자가 해당 사례의 다음 행동 수행 가능 |
 
-대응 시험: [qa.md](../qa.md)의 T02, T06, T16, T19-20, T23, T28, T32, T35, T37, T43, T52, T58-59.
+대응 시험: [qa.md](../qa/qa.md)의 T02, T06, T16, T19-20, T23, T28, T32, T35, T37, T43, T52, T58-59.
 
 ## 9. 확인 필요와 구현 순서
 

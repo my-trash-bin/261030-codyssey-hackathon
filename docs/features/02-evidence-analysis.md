@@ -1,6 +1,6 @@
 # F02 / 근거 추출과 공개 후보 제안
 
-우선순위 P0 / 담당 역할: 데이터/워크플로우 / 상태: 구현 명세 초안. 공통 규칙은 [spec](../spec.md), 역할 응답은 [agent-workflow](../agent-workflow.md), 요청은 [api](../api.md).
+우선순위 P0 / 담당 역할: 데이터/워크플로우 / 상태: 구현 명세 초안. 공통 규칙은 [spec](../design/spec.md), 역할 응답은 [agent-workflow](../design/agent-workflow.md), 요청은 [api](../design/api.md).
 
 ## 1. 목적
 
@@ -89,7 +89,7 @@ API 접두사는 `/api/v1`이며 상세 필드와 오류 코드는 api.md가 권
 | AC-F02-13 | need_keys ID 존재만으로 의미 충족을 단정하지 않고 최종 의미 검토로 연결 |
 | AC-F02-14 | reproduction_result를 실행 전 필수 후보로 요구해 재현 시작을 막지 않음 |
 
-관련 QA: T01, T03-T10, T17-T18, T25, T31-T32, T38-T40, T56. 구체 연결은 [acceptance-map.csv](../acceptance-map.csv).
+관련 QA: T01, T03-T10, T17-T18, T25, T31-T32, T38-T40, T56. 구체 연결은 [acceptance-map.csv](../qa/acceptance-map.csv).
 
 ## 9. 확인 필요
 

@@ -1,6 +1,6 @@
 # SafeHandoff HTTP API 및 코어 인터페이스 계약
 
-문서 버전: 2.0 / 기준일: 2026-10-31 / 상태: 현행 정본 / 연결: [prd.md](prd.md), [architecture.md](architecture.md), [agent-workflow.md](agent-workflow.md), [extensions.md](extensions.md)
+문서 버전: 2.0 / 기준일: 2026-10-31 / 상태: 현행 정본 / 연결: [prd.md](../product/prd.md), [architecture.md](architecture.md), [agent-workflow.md](agent-workflow.md), [extensions.md](extensions.md)
 
 ## 1. 현행 구현된 HTTP 엔드포인트 (`@safehandoff/server`)
 
@@ -71,7 +71,7 @@ HTTP API 계약은 그대로입니다. 연출의 분석과 공개 선택은 브�
    - `SAFEHANDOFF_TRANSCRIPT_DIR` 설정 시 실행별 JSONL(`transcript-<run_id>.jsonl`)을 기록한다.
    - `SAFEHANDOFF_TRANSCRIPT_CONTENT=1`은 명시적 opt-in이며 원자료/API 키/리뷰어 내부 설명은 기록하지 않는다. 세부 이벤트 순서는 [에이전트 역할 계약](agent-workflow.md) 10을 따른다.
 3. **ToyRecord 스킬 팩 스모크**:
-   - `tools/oss-repro-smoke.mjs`는 `--catalog`, `--pack-version`, `--registration`을 받아 `FsSkillPackLoader.verify()`로 팩 지문(`manifest_sha256`, `pack_sha256`)과 컨테이너 이미지 digest를 대조한 뒤 실행한다. 세부 절차는 [도메인 확장 계약](extensions.md) 10 및 [시연 안내](demo.md) 2.3을 따른다.
+   - `tools/oss-repro-smoke.mjs`는 `--catalog`, `--pack-version`, `--registration`을 받아 `FsSkillPackLoader.verify()`로 팩 지문(`manifest_sha256`, `pack_sha256`)과 컨테이너 이미지 digest를 대조한 뒤 실행한다. 세부 절차는 [도메인 확장 계약](extensions.md) 10 및 [시연 안내](../ops/demo.md) 2.3을 따른다.
 
 ---
 
@@ -205,7 +205,7 @@ expires_at은 선택 가능하며 과거 시각은 거부한다. 필수 후보 e
 거부한다. 적용은 revision을 한 번 올린다. 철회도 판본을 올리고 과거 허용으로 복귀하지 않는다.
 
 404 TASK_NOT_FOUND/ANALYSIS_NOT_FOUND와 404 ENDPOINT_NOT_FOUND, 비활성 API의 503을 구분한다.
-미지원 기능은 422다. 서버 API 제공과 task 생성/저장/C 필드 선택/초안/확정/Rule 관리 화면 연결은 구분한다. 후속 UI 접점은 [요청 현황](ui-api-requests.md)에 적는다.
+미지원 기능은 422다. 서버 API 제공과 task 생성/저장/C 필드 선택/초안/확정/Rule 관리 화면 연결은 구분한다. 후속 UI 접점은 [요청 현황](../ops/ui-api-requests.md)에 적는다.
 
 
 ## 초안/파일/규칙/이력 API
