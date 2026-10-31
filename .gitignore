@@ -10,3 +10,6 @@ config.json
 __pycache__/
 
 *.tsbuildinfo
+
+# 실행 중 생성되는 평가 결과. 이미 추적한 과거 기록은 그대로 보존한다.
+/evaluation/results/
