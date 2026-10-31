@@ -1,0 +1,275 @@
+/* SafeHandoff 디자인 토큰
+   레벨 1 프리미티브: 팔레트, 수치 눈금, 서체 크기, 굵기. 직접 쓰지 않는다.
+   레벨 2 시멘틱: 화면에서 쓰는 역할(바탕, 글자, 경계, 간격, 반경, 글자 단위).
+   레벨 3 컴포넌트: 버튼, 입력, 카드, 단계 목록, 표, 초점 고리.
+   값의 구조와 이름 규칙은 KRDS 디자인 토큰 안내를 참고했다. `docs/design-tokens.md` 참조. */
+
+:root {
+  color-scheme: light;
+
+  /* ── 레벨 1: 프리미티브 ─────────────────────────────────────── */
+
+  /* 종이 계열. 0이 가장 밝고 90이 가장 어둡다. */
+  --p-sand-0: #fffcf4;
+  --p-sand-5: #faf6ed;
+  --p-sand-10: #f6f2e9;
+  --p-sand-20: #efe9dc;
+  --p-sand-30: #e5ddcd;
+  --p-sand-40: #d9d1c0;
+  --p-sand-50: #b3a993;
+  --p-sand-60: #8f8472;
+  --p-sand-70: #655f53;
+  --p-sand-80: #423e36;
+  --p-sand-90: #1a1917;
+
+  /* 인주 계열. 결정과 선택 표시에만 쓴다. */
+  --p-accent-10: #f4dcd7;
+  --p-accent-30: #d79a91;
+  --p-accent-50: #9c2b21;
+  --p-accent-70: #6f1d16;
+
+  /* 상태 계열. 성공/주의/위험은 글자와 왼쪽 괘선에만 쓴다. */
+  --p-success-10: #dcebe1;
+  --p-success-50: #1f6b46;
+  --p-warning-10: #f2e5cd;
+  --p-warning-50: #7a5200;
+  --p-danger-10: var(--p-accent-10);
+  --p-danger-50: var(--p-accent-50);
+
+  /* 수치 눈금. 1 = 1px 기준이며 실제 값은 rem으로 쓴다. */
+  --num-1: 0.0625rem;
+  --num-2: 0.125rem;
+  --num-3: 0.25rem;
+  --num-4: 0.375rem;
+  --num-5: 0.5rem;
+  --num-6: 0.625rem;
+  --num-7: 0.75rem;
+  --num-8: 1rem;
+  --num-9: 1.25rem;
+  --num-10: 1.5rem;
+  --num-11: 1.75rem;
+  --num-12: 2rem;
+  --num-13: 2.25rem;
+  --num-14: 2.5rem;
+  --num-15: 2.75rem;
+  --num-16: 3rem;
+  --num-17: 3.5rem;
+  --num-18: 4rem;
+  --num-19: 5rem;
+  --num-20: 6rem;
+
+  /* 글자 크기 눈금. 이 여섯 값 밖의 크기를 만들지 않는다. */
+  --font-size-12: 0.75rem;
+  --font-size-14: 0.875rem;
+  --font-size-16: 1rem;
+  --font-size-20: 1.25rem;
+  --font-size-24: 1.5rem;
+  --font-size-40: 2.5rem;
+
+  /* 줄 높이 */
+  --line-height-tight: 1.2;
+  --line-height-snug: 1.35;
+  --line-height-normal: 1.55;
+  --line-height-relaxed: 1.65;
+
+  /* 굵기 */
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-bold: 600;
+  --font-weight-strong: 700;
+
+  /* 자간 */
+  --letter-spacing-tight: -0.01em;
+  --letter-spacing-normal: 0;
+  --letter-spacing-wide: 0.04em;
+  --letter-spacing-wider: 0.08em;
+
+  /* 반경. 이 화면은 직각이 기본이고 원형 상태 표시만 예외다. */
+  --radius-none: 0;
+  --radius-full: 999px;
+
+  /* 테두리 두께 */
+  --border-width: 1px;
+  --border-width-strong: 2px;
+  --border-width-focus: 3px;
+  --border-width-marker: 3px;
+
+  /* ── 레벨 2: 시멘틱 ─────────────────────────────────────────── */
+
+  /* 표면 */
+  --color-surface-page: var(--p-sand-10);
+  --color-surface-raised: var(--p-sand-0);
+  --color-surface-sunken: var(--p-sand-5);
+  --color-surface-muted: var(--p-sand-20);
+  --color-surface-inverse: var(--p-sand-90);
+  --color-surface-disabled: var(--p-sand-20);
+  --color-surface-accent: var(--p-accent-50);
+  --color-surface-accent-subtle: var(--p-accent-10);
+  --color-surface-success: var(--p-success-10);
+  --color-surface-warning: var(--p-warning-10);
+  --color-surface-danger: var(--p-danger-10);
+
+  /* 글자 */
+  --color-text-primary: var(--p-sand-90);
+  --color-text-secondary: var(--p-sand-80);
+  --color-text-muted: var(--p-sand-70);
+  --color-text-disabled: var(--p-sand-60);
+  --color-text-inverse: var(--p-sand-0);
+  --color-text-accent: var(--p-accent-50);
+  --color-text-on-accent: var(--p-sand-0);
+  --color-text-success: var(--p-success-50);
+  --color-text-warning: var(--p-warning-50);
+  --color-text-danger: var(--p-danger-50);
+
+  /* 경계 */
+  --color-border-subtle: var(--p-sand-40);
+  --color-border-default: var(--p-sand-50);
+  --color-border-strong: var(--p-sand-60);
+  --color-border-inverse: var(--p-sand-0);
+  --color-border-accent: var(--p-accent-50);
+  --color-border-focus: var(--p-sand-90);
+  --color-border-danger: var(--p-danger-50);
+
+  /* 간격. 모든 여백과 간격은 이 눈금에서 고른다. */
+  --space-1: var(--num-2);
+  --space-2: var(--num-3);
+  --space-3: var(--num-5);
+  --space-4: var(--num-7);
+  --space-5: var(--num-8);
+  --space-6: var(--num-9);
+  --space-7: var(--num-10);
+  --space-8: var(--num-12);
+  --space-9: var(--num-14);
+  --space-10: var(--num-16);
+  --space-11: var(--num-18);
+  --space-12: var(--num-19);
+
+  /* 폼 간격. 라벨과 컨트롤, 필드와 필드 사이 값은 한 곳에서 정한다. */
+  --field-gap: var(--space-3);
+  --form-gap: var(--space-5);
+
+  /* 글자 단위. 이름은 쓰임으로 붙인다. */
+  --type-display-size: var(--font-size-40);
+  --type-display-line: var(--line-height-tight);
+  --type-title-size: var(--font-size-24);
+  --type-title-line: var(--line-height-snug);
+  --type-heading-size: var(--font-size-20);
+  --type-heading-line: var(--line-height-snug);
+  --type-subheading-size: var(--font-size-16);
+  --type-subheading-line: var(--line-height-snug);
+  --type-body-size: var(--font-size-16);
+  --type-body-line: var(--line-height-relaxed);
+  --type-body-sm-size: var(--font-size-14);
+  --type-body-sm-line: var(--line-height-normal);
+  --type-label-size: var(--font-size-12);
+  --type-label-line: var(--line-height-snug);
+
+  /* 서체 */
+  --font-body: "Helvetica Neue", Arial, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+  --font-title: "Iowan Old Style", "Palatino Linotype", "AppleMyungjo", "Nanum Myeongjo", Georgia, serif;
+  --font-mono: "SFMono-Regular", "Menlo", "Consolas", monospace;
+
+  /* 초점 고리 */
+  --focus-ring-width: var(--border-width-focus);
+  --focus-ring-offset: var(--space-1);
+  --focus-ring-color: var(--color-border-focus);
+
+  /* 레이아웃 */
+  --layout-measure: 82.5rem;
+  --layout-gutter: var(--space-7);
+  --layout-block-gap: var(--space-10);
+  --layout-rail: 13rem;
+  --layout-inspector: 18rem;
+  --layout-prose: 36rem;
+  --layout-progress-min: 24rem;
+  --layout-mobile-step: 9rem;
+  --layout-rail-number: 1.75rem;
+  --layout-picker-max: 20rem;
+  --breakpoint-rail: 56.25rem;
+  --breakpoint-inspector: 80rem;
+  --breakpoint-narrow: 47.5rem;
+
+  /* ── 레벨 3: 컴포넌트 ───────────────────────────────────────── */
+
+  /* 버튼 */
+  --button-height: var(--num-14);
+  --button-height-small: var(--num-12);
+  --button-height-list: var(--num-13);
+  --button-padding-x: var(--space-4);
+  --button-padding-y: var(--space-3);
+  --button-padding-x-small: var(--space-3);
+  --button-padding-y-small: var(--space-1);
+  --button-font-size: var(--type-body-sm-size);
+  --button-font-size-small: var(--type-label-size);
+  --button-font-weight: var(--font-weight-bold);
+  --button-radius: var(--radius-none);
+  --button-background: var(--color-surface-raised);
+  --button-text: var(--color-text-primary);
+  --button-border: var(--color-border-strong);
+  --button-background-solid: var(--color-surface-inverse);
+  --button-text-solid: var(--color-text-inverse);
+  --button-background-disabled: var(--color-surface-disabled);
+  --button-text-disabled: var(--color-text-muted);
+
+  /* 입력 */
+  --input-height: var(--button-height);
+  --input-padding-x: var(--space-4);
+  --input-padding-y: var(--space-2);
+  --input-font-size: var(--type-body-size);
+  --input-background: var(--color-surface-raised);
+  --input-text: var(--color-text-primary);
+  --input-border: var(--color-border-strong);
+  --input-border-invalid: var(--color-border-danger);
+  --input-placeholder: var(--color-text-muted);
+
+  /* 체크박스, 라디오 */
+  --control-mark-size: var(--num-9);
+  --control-mark-check-size: var(--num-6);
+  --control-mark-dot-size: var(--num-5);
+  --control-mark-background: var(--color-surface-raised);
+  --control-mark-border: var(--color-border-strong);
+  --control-mark-border-hover: var(--color-text-primary);
+  --control-mark-background-checked: var(--color-surface-accent);
+  --control-mark-border-checked: var(--color-border-accent);
+  --control-mark-text-checked: var(--color-text-on-accent);
+
+  /* 셀렉트 목록 */
+  --select-picker-padding: var(--space-2);
+  --select-option-padding-x: var(--space-3);
+  --select-option-padding-y: var(--space-3);
+
+  /* 카드, 패널 */
+  --panel-padding-x: var(--space-8);
+  --panel-padding-y: var(--space-7);
+  --panel-gap: var(--space-5);
+  --panel-background: var(--color-surface-raised);
+  --panel-border: var(--color-border-subtle);
+  --panel-radius: var(--radius-none);
+
+  /* 단계 목록 */
+  --rail-width: var(--layout-rail);
+  --rail-item-padding-y: var(--space-2);
+  --rail-marker-width: var(--border-width-marker);
+
+  /* 진행 막대 */
+  --progress-track: var(--border-width-marker);
+  --progress-gap: var(--space-2);
+
+  /* 표 */
+  --table-cell-padding-x: var(--space-3);
+  --table-cell-padding-y: var(--space-3);
+  --table-border: var(--color-border-subtle);
+  --table-head-text: var(--color-text-secondary);
+
+  /* 칩, 상태 표시 */
+  --chip-padding-x: var(--space-3);
+  --chip-padding-y: var(--space-1);
+  --chip-font-size: var(--type-label-size);
+  --chip-border: var(--color-border-strong);
+  --chip-background: transparent;
+  --chip-text: var(--color-text-muted);
+
+  /* 구역 머리 */
+  --section-heading-gap: var(--space-3);
+  --section-rule: var(--border-width) solid var(--color-border-subtle);
+}

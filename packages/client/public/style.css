@@ -2,30 +2,6 @@
    따뜻한 종이 바탕 / 잉크빛 본문 / 헤어라인은 종이색 회색 / 인주빛 단일 강조.
    제목만 명조 계열, 본문은 산세리프. 직각, 그림자·그라디언트·장식 아이콘 없음. */
 
-:root {
-  color-scheme: light;
-  --paper: #f6f2e9;
-  --surface: #fffcf4;
-  --ink: #1a1917;
-  --ink-muted: #655f53;
-  --rule: #d9d1c0;
-  --rule-strong: #8f8472;
-  --accent: #9c2b21;
-  --measure: 1320px;
-  --gutter: 24px;
-  --block-gap: 48px;
-  --font: "Helvetica Neue", Arial, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
-
-  /* 글자 크기는 여섯 단계만 쓴다. 이 밖의 크기를 새로 만들지 않는다. */
-  --text-xs: 0.75rem;
-  --text-sm: 0.875rem;
-  --text-md: 1rem;
-  --text-lg: 1.25rem;
-  --text-xl: 1.5rem;
-  --control-height: 38px;
-  --control-height-small: 28px;
-  --font-display: "Iowan Old Style", "Palatino Linotype", "AppleMyungjo", "Nanum Myeongjo", Georgia, serif;
-}
 
 *,
 *::before,
@@ -38,29 +14,107 @@
 }
 
 html {
-  background: var(--paper);
+  background: var(--color-surface-page);
 }
 
 /* 브라우저 기본 글꼴을 쓰지 않는다. 버튼은 모두 같은 본문 계열·크기에서 시작한다. */
 button,
 summary {
   font-family: inherit;
-  font-size: var(--text-sm);
+  font-size: var(--type-body-sm-size);
+}
+
+/* 체크박스와 라디오도 토큰으로 그린다. 실제 컨트롤은 그대로 두어 라벨 연결과 키보드 동작을 지킨다. */
+input[type="checkbox"],
+input[type="radio"] {
+  appearance: none;
+  display: inline-grid;
+  flex: none;
+  place-content: center;
+  width: var(--control-mark-size);
+  height: var(--control-mark-size);
+  margin: 0;
+  border: var(--border-width) solid var(--control-mark-border);
+  border-radius: var(--radius-none);
+  background: var(--control-mark-background);
+  cursor: pointer;
+}
+
+input[type="radio"] {
+  border-radius: var(--radius-full);
+}
+
+input[type="checkbox"]::after,
+input[type="radio"]::after {
+  content: "";
+  display: block;
+  transform: scale(0);
+  transition: transform 100ms linear;
+}
+
+input[type="checkbox"]::after {
+  width: var(--control-mark-check-size);
+  height: var(--control-mark-check-size);
+  background: var(--control-mark-text-checked);
+  clip-path: polygon(14% 46%, 0 62%, 38% 100%, 100% 14%, 86% 0, 37% 74%);
+}
+
+input[type="radio"]::after {
+  width: var(--control-mark-dot-size);
+  height: var(--control-mark-dot-size);
+  border-radius: var(--radius-full);
+  background: var(--control-mark-text-checked);
+}
+
+input[type="checkbox"]:checked,
+input[type="radio"]:checked {
+  border-color: var(--control-mark-border-checked);
+  background: var(--control-mark-background-checked);
+}
+
+input[type="checkbox"]:checked::after,
+input[type="radio"]:checked::after {
+  transform: scale(1);
+}
+
+input[type="checkbox"]:focus-visible,
+input[type="radio"]:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--space-1);
+}
+
+input[type="checkbox"]:disabled,
+input[type="radio"]:disabled {
+  border-color: var(--color-border-subtle);
+  background: var(--color-surface-disabled);
+  cursor: not-allowed;
+}
+
+input[type="checkbox"]:disabled::after,
+input[type="radio"]:disabled::after {
+  background: var(--color-text-disabled);
+}
+
+@media (hover: hover) {
+  input[type="checkbox"]:not(:disabled):not(:checked):hover,
+  input[type="radio"]:not(:disabled):not(:checked):hover {
+    border-color: var(--control-mark-border-hover);
+  }
 }
 
 body {
   margin: 0;
-  background: var(--paper);
-  color: var(--ink);
-  font-family: var(--font);
-  font-size: var(--text-md);
-  line-height: 1.55;
+  background: var(--color-surface-page);
+  color: var(--color-text-primary);
+  font-family: var(--font-body);
+  font-size: var(--type-body-size);
+  line-height: var(--line-height-normal);
   overflow-wrap: break-word;
 }
 
 ::selection {
-  background: var(--accent);
-  color: var(--surface);
+  background: var(--color-surface-accent);
+  color: var(--color-text-on-accent);
 }
 
 h1,
@@ -72,7 +126,7 @@ ul {
 }
 
 ul {
-  padding-left: 1.15rem;
+  padding-left: var(--space-5);
 }
 
 fieldset {
@@ -87,95 +141,107 @@ legend {
 }
 
 h1 {
-  font-family: var(--font-display);
-  font-size: clamp(2.125rem, 4vw, 2.75rem);
-  font-weight: 600;
-  letter-spacing: -0.01em;
-  line-height: 1.02;
+  font-family: var(--font-title);
+  font-size: clamp(var(--font-size-24), 4vw, var(--font-size-40));
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--letter-spacing-tight);
+  line-height: var(--line-height-tight);
 }
 
 h2,
 legend {
-  font-family: var(--font-display);
-  font-size: var(--text-lg);
-  font-weight: 600;
-  letter-spacing: -0.005em;
-  line-height: 1.2;
+  font-family: var(--font-title);
+  font-size: var(--type-heading-size);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--letter-spacing-wide);
+  line-height: var(--line-height-tight);
 }
 
 h3 {
-  font-size: var(--text-xs);
-  font-weight: 600;
-  letter-spacing: 0.14em;
-  line-height: 1.4;
-  color: var(--ink-muted);
+  font-size: var(--type-label-size);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--letter-spacing-wider);
+  line-height: var(--line-height-snug);
+  color: var(--color-text-secondary);
 }
 
 a {
-  color: var(--ink);
-  text-decoration-thickness: 1px;
-  text-underline-offset: 3px;
+  color: var(--color-text-primary);
+  text-decoration-thickness: var(--border-width);
+  text-underline-offset: var(--space-1);
   transition: color 100ms linear;
 }
 
 @media (hover: hover) {
   a:hover {
-    color: var(--accent);
+    color: var(--color-text-accent);
   }
 }
 
 a:focus-visible {
-  outline: 3px solid var(--ink);
-  outline-offset: 2px;
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--space-1);
 }
 
 .meta {
-  font-size: var(--text-xs);
-  font-weight: 600;
-  letter-spacing: 0.09em;
+  font-size: var(--type-label-size);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--letter-spacing-wider);
   font-variant-numeric: tabular-nums;
-  color: var(--ink-muted);
+  color: var(--color-text-secondary);
 }
 
 .hint {
   text-wrap: pretty;
-  font-size: var(--text-sm);
-  line-height: 1.5;
-  color: var(--ink-muted);
+  font-size: var(--type-body-sm-size);
+  line-height: var(--line-height-normal);
+  color: var(--color-text-secondary);
   overflow-wrap: anywhere;
 }
 
 .status {
-  font-size: var(--text-sm);
-  line-height: 1.5;
+  font-size: var(--type-body-sm-size);
+  line-height: var(--line-height-normal);
   overflow-wrap: anywhere;
+}
+
+.status--ok {
+  color: var(--color-text-success);
+}
+
+.status--warn {
+  color: var(--color-text-warning);
+}
+
+.status--error {
+  color: var(--color-text-danger);
 }
 
 .skip-link {
   position: absolute;
-  top: -4rem;
-  left: var(--gutter);
+  top: calc(-1 * var(--space-12));
+  left: var(--layout-gutter);
   z-index: 10;
-  padding: 12px 16px;
-  border: 1px solid var(--rule);
-  background: var(--paper);
-  color: var(--ink);
-  font-size: var(--text-sm);
-  font-weight: 600;
+  padding: var(--space-4) var(--space-5);
+  border: var(--border-width) solid var(--color-border-subtle);
+  background: var(--color-surface-page);
+  color: var(--color-text-primary);
+  font-size: var(--type-body-sm-size);
+  font-weight: var(--font-weight-bold);
   text-decoration: none;
 }
 
 .skip-link:focus,
 .skip-link:focus-visible {
-  top: 16px;
-  outline: 3px solid var(--ink);
-  outline-offset: 2px;
+  top: var(--space-5);
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--space-1);
 }
 
 /* 머리말 — 짧은 제목과 항상 보이는 현재 모드 */
 
 .masthead {
-  border-bottom: 3px double var(--rule-strong);
+  border-bottom: var(--border-width-focus) double var(--color-border-strong);
 }
 
 .masthead__inner {
@@ -183,39 +249,39 @@ a:focus-visible {
   flex-wrap: wrap;
   align-items: flex-end;
   justify-content: space-between;
-  gap: 8px var(--gutter);
-  max-width: var(--measure);
+  gap: var(--space-3) var(--layout-gutter);
+  max-width: var(--layout-measure);
   margin: 0 auto;
-  padding: 28px var(--gutter) 18px;
+  padding: var(--space-7) var(--layout-gutter) var(--space-5);
 }
 
 .masthead__brand {
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;
-  gap: 4px 16px;
+  gap: var(--space-2) var(--space-5);
   min-width: 0;
 }
 
 .masthead__tagline {
-  font-size: var(--text-sm);
-  letter-spacing: 0.04em;
-  color: var(--ink-muted);
+  font-size: var(--type-body-sm-size);
+  letter-spacing: var(--letter-spacing-wide);
+  color: var(--color-text-secondary);
 }
 
 #mode-label,
 #session-label,
 #connection-label {
-  font-weight: 700;
+  font-weight: var(--font-weight-strong);
   overflow-wrap: anywhere;
 }
 
 /* 작업 영역 — 12열 그리드, 좁은 화면은 DOM 순서대로 1열 */
 
 .workspace {
-  max-width: var(--measure);
+  max-width: var(--layout-measure);
   margin: 0 auto;
-  padding: 40px var(--gutter) 96px;
+  padding: var(--space-9) var(--layout-gutter) var(--space-12);
 }
 
 .workspace:focus {
@@ -225,8 +291,8 @@ a:focus-visible {
 .workspace:focus-visible,
 #saved-documents:focus-visible,
 #execution-environment:focus-visible {
-  outline: 3px solid var(--ink);
-  outline-offset: 2px;
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--space-1);
 }
 
 .block {
@@ -234,7 +300,7 @@ a:focus-visible {
 }
 
 .block > * + * {
-  margin-top: 16px;
+  margin-top: var(--space-5);
 }
 
 .block__head {
@@ -242,7 +308,7 @@ a:focus-visible {
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: 8px 16px;
+  gap: var(--space-3) var(--space-5);
 }
 
 /* 접이식 영역 */
@@ -252,10 +318,10 @@ a:focus-visible {
 }
 
 .fold > summary {
-  padding: 12px 0;
-  font-size: var(--text-md);
-  font-weight: 600;
-  line-height: 1.4;
+  padding: var(--space-4) 0;
+  font-size: var(--type-body-size);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-snug);
   cursor: pointer;
   overflow-wrap: anywhere;
 }
@@ -270,14 +336,14 @@ a:focus-visible {
 
 .fold > summary:focus-visible,
 .block--fold > summary:focus-visible {
-  outline: 3px solid var(--ink);
-  outline-offset: 2px;
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--space-1);
 }
 
 .fold__body {
   display: grid;
-  gap: 16px;
-  padding-top: 8px;
+  gap: var(--space-5);
+  padding-top: var(--space-3);
   min-width: 0;
 }
 
@@ -285,16 +351,17 @@ a:focus-visible {
 
 .field {
   display: grid;
-  gap: 8px;
+  gap: var(--field-gap);
   min-width: 0;
 }
 
 .field > label {
-  font-size: var(--text-sm);
-  font-weight: 600;
-  letter-spacing: 0.02em;
+  font-size: var(--type-body-sm-size);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--letter-spacing-wide);
 }
 
+/* 입력과 셀렉트는 높이를 고정한다. 글자 크기나 여백이 달라도 컨트롤 높이는 같다. */
 input[type="text"],
 input[type="password"],
 input[type="number"],
@@ -303,32 +370,129 @@ select,
 textarea {
   width: 100%;
   min-width: 0;
-  min-height: var(--control-height);
-  padding: 7px 10px;
-  border: 1px solid var(--rule-strong);
-  background: var(--surface);
-  color: var(--ink);
+  height: var(--input-height);
+  padding: 0 var(--input-padding-x);
+  border: var(--border-width) solid var(--input-border);
+  background: var(--input-background);
+  color: var(--input-text);
   font-family: inherit;
-  font-size: var(--text-md);
-  line-height: 1.5;
+  font-size: var(--input-font-size);
+  line-height: var(--line-height-snug);
 }
 
 textarea {
-  min-height: 6.5rem;
+  height: auto;
+  min-height: var(--space-12);
+  padding: var(--input-padding-y) var(--input-padding-x);
+  line-height: var(--line-height-normal);
   resize: vertical;
+}
+
+/* 브라우저 기본 드롭다운 대신 토큰으로 그린 목록을 쓴다.
+   base-select를 모르는 브라우저는 아래 기본 동작을 그대로 쓴다. */
+@supports (appearance: base-select) {
+  select,
+  select::picker(select) {
+    appearance: base-select;
+  }
+
+  select {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding-inline-end: var(--space-3);
+  }
+
+  select::picker-icon {
+    margin-inline-start: auto;
+    color: var(--color-text-muted);
+    font-size: var(--type-label-size);
+  }
+
+  select::picker(select) {
+    margin-block-start: var(--space-1);
+    padding: var(--select-picker-padding);
+    border: var(--border-width) solid var(--color-border-strong);
+    background: var(--color-surface-raised);
+    color: var(--color-text-primary);
+    max-height: var(--layout-picker-max);
+    overflow-y: auto;
+  }
+
+  select option {
+    padding: var(--select-option-padding-y) var(--select-option-padding-x);
+    font-size: var(--input-font-size);
+    line-height: var(--line-height-snug);
+    border-radius: var(--radius-none);
+  }
+
+  @media (hover: hover) {
+    select option:hover {
+      background: var(--color-surface-muted);
+    }
+  }
+
+  select option:checked {
+    background: var(--color-surface-accent-subtle);
+    color: var(--color-text-accent);
+    font-weight: var(--font-weight-bold);
+  }
+
+  select option::checkmark {
+    content: "✓";
+    margin-inline-start: auto;
+    padding-inline-start: var(--space-3);
+    font-size: var(--type-label-size);
+    color: var(--color-text-accent);
+  }
+
+  select:disabled {
+    background: var(--color-surface-disabled);
+    color: var(--color-text-disabled);
+  }
 }
 
 input[type="file"] {
   width: 100%;
   min-width: 0;
   max-width: 100%;
-  min-height: var(--control-height);
-  padding: 7px 10px;
-  border: 1px dashed var(--ink-muted);
-  background: var(--paper);
-  color: var(--ink-muted);
+  height: var(--input-height);
+  padding: 0 var(--input-padding-x);
+  border: var(--border-width) dashed var(--color-border-default);
+  background: var(--color-surface-page);
+  color: var(--color-text-secondary);
   font-family: inherit;
-  font-size: var(--text-md);
+  font-size: var(--type-body-size);
+}
+
+/* 파일 선택 버튼도 같은 버튼 모양을 쓴다. */
+input[type="file"]::file-selector-button {
+  margin-inline-end: var(--space-3);
+  padding: var(--space-1) var(--space-3);
+  border: var(--border-width) solid var(--color-border-strong);
+  border-radius: var(--radius-none);
+  background: var(--color-surface-raised);
+  color: var(--color-text-primary);
+  font-family: inherit;
+  font-size: var(--type-body-sm-size);
+  font-weight: var(--font-weight-bold);
+  cursor: pointer;
+}
+
+@media (hover: hover) {
+  input[type="file"]::file-selector-button:hover {
+    border-color: var(--color-text-primary);
+  }
+}
+
+/* 움직임을 줄이도록 설정한 사용자에게는 전환을 끈다. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms;
+    animation-duration: 0.01ms;
+  }
 }
 
 input[type="text"]:focus-visible,
@@ -337,31 +501,33 @@ input[type="number"]:focus-visible,
 input[type="datetime-local"]:focus-visible,
 select:focus-visible,
 textarea:focus-visible {
-  outline: 3px solid var(--ink);
-  outline-offset: 2px;
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--space-1);
 }
 
 input[aria-invalid="true"],
+select[aria-invalid="true"],
 textarea[aria-invalid="true"] {
-  border-color: var(--accent);
+  border-color: var(--input-border-invalid);
 }
 
 input[aria-invalid="true"]:focus-visible,
+select[aria-invalid="true"]:focus-visible,
 textarea[aria-invalid="true"]:focus-visible {
-  outline-color: var(--accent);
+  outline-color: var(--color-border-danger);
 }
 
 .form {
   display: grid;
-  gap: 16px;
+  gap: var(--form-gap) var(--space-6);
 }
 
 .actions {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 8px 10px;
-  margin-top: 16px;
+  gap: var(--space-3) var(--space-3);
+  margin-top: var(--space-5);
 }
 
 /* 버튼 */
@@ -370,16 +536,16 @@ textarea[aria-invalid="true"]:focus-visible {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: var(--control-height);
+  min-height: var(--button-height);
   max-width: 100%;
-  padding: 7px 14px;
-  border: 1px solid var(--rule-strong);
-  background: var(--surface);
-  color: var(--ink);
+  padding: var(--space-3) var(--space-4);
+  border: var(--border-width) solid var(--color-border-strong);
+  background: var(--color-surface-raised);
+  color: var(--color-text-primary);
   font-family: inherit;
-  font-size: var(--text-md);
-  font-weight: 600;
-  line-height: 1.4;
+  font-size: var(--type-body-size);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-snug);
   text-align: start;
   overflow-wrap: anywhere;
   cursor: pointer;
@@ -388,50 +554,50 @@ textarea[aria-invalid="true"]:focus-visible {
 @media (hover: hover) {
   .button:hover:not(:disabled) {
     text-decoration: underline;
-    text-underline-offset: 3px;
+    text-underline-offset: var(--space-1);
   }
 }
 
 .button:focus-visible {
-  outline: 3px solid var(--ink);
-  outline-offset: 2px;
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--space-1);
 }
 
 .button:disabled {
   border-style: dashed;
-  border-color: var(--ink-muted);
-  color: var(--ink-muted);
+  border-color: var(--color-border-default);
+  color: var(--color-text-secondary);
   cursor: not-allowed;
 }
 
 .button--solid {
-  background: var(--ink);
-  color: var(--paper);
+  background: var(--color-surface-inverse);
+  color: var(--color-text-inverse);
 }
 
 @media (hover: hover) {
   .button--solid:hover:not(:disabled) {
-    background: var(--paper);
-    color: var(--ink);
+    background: var(--color-surface-page);
+    color: var(--color-text-primary);
     text-decoration: none;
   }
 }
 
 .button--solid:disabled {
-  background: var(--paper);
-  color: var(--ink-muted);
+  background: var(--color-surface-page);
+  color: var(--color-text-secondary);
 }
 
 /* 로컬 접속 — 모든 v1 쓰기의 전제라 작업 그리드 위에 전체 폭으로 둔다 */
 
 .session {
   display: grid;
-  gap: 16px;
+  gap: var(--space-5);
   min-width: 0;
-  margin-bottom: var(--block-gap);
-  padding: 20px 24px;
-  border: 1px solid var(--rule);
-  background: var(--surface);
+  margin-bottom: var(--layout-block-gap);
+  padding: var(--space-6) var(--space-7);
+  border: var(--border-width) solid var(--color-border-subtle);
+  background: var(--color-surface-raised);
 }
 
 .session > p {
@@ -445,17 +611,17 @@ textarea[aria-invalid="true"]:focus-visible {
 .session__form {
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: end;
-  gap: 16px;
+  gap: var(--space-5);
 }
 
 .session__form > .button {
-  min-height: 46px;
+  min-height: var(--button-height);
   justify-content: center;
 }
 
 @media (max-width: 640px) {
   .session {
-    padding: 16px;
+    padding: var(--space-5);
   }
 
   .session__form {
@@ -465,7 +631,7 @@ textarea[aria-invalid="true"]:focus-visible {
 
 .action {
   display: grid;
-  gap: 8px;
+  gap: var(--space-3);
   justify-items: start;
   min-width: 0;
 }
@@ -479,51 +645,40 @@ textarea[aria-invalid="true"]:focus-visible {
 .option {
   display: flex;
   align-items: center;
-  gap: 12px;
-  min-height: 44px;
-  padding: 4px 0;
+  gap: var(--space-4);
+  min-height: var(--button-height);
+  padding: var(--space-2) 0;
   min-width: 0;
-  border-top: 1px solid var(--rule);
+  border-top: var(--border-width) solid var(--color-border-subtle);
 }
 
 .option:first-child {
   border-top: 0;
 }
 
-.option input[type="radio"] {
-  flex: none;
-  width: 24px;
-  height: 24px;
-  margin: 0;
-  accent-color: var(--accent);
-}
-
-.option input[type="radio"]:focus-visible {
-  outline: 3px solid var(--ink);
-  outline-offset: 2px;
-}
+/* 라디오 크기와 초점 고리는 전역 규칙을 쓴다. */
 
 .option > label {
   display: flex;
   align-items: center;
   flex: 1 1 auto;
   min-width: 0;
-  min-height: 44px;
-  font-size: var(--text-md);
-  line-height: 1.5;
+  min-height: var(--button-height);
+  font-size: var(--type-body-size);
+  line-height: var(--line-height-normal);
   cursor: pointer;
   overflow-wrap: anywhere;
 }
 
 .option:has(input:checked) > label {
-  font-weight: 700;
+  font-weight: var(--font-weight-strong);
 }
 
 /* 동의 문장은 한 줄이 길어 같은 크기로 두면 과하게 무겁다. 본문보다 한 단계 작게, 자간은 그대로. */
 .option--consent > label {
-  font-size: var(--text-sm);
-  line-height: 1.6;
-  font-weight: 400;
+  font-size: var(--type-body-sm-size);
+  line-height: var(--line-height-relaxed);
+  font-weight: var(--font-weight-regular);
   /* 46ch는 이 문장(약 60자)에 짧아 마지막 두 글자만 다음 줄로 떨어졌다. 한 줄에 들어갈 폭을 주고,
      어절이 홀로 남지 않도록 줄바꿈 균형을 브라우저에 맡긴다. */
   max-width: 62ch;
@@ -531,16 +686,16 @@ textarea[aria-invalid="true"]:focus-visible {
 }
 
 .option--consent:has(input:checked) > label {
-  font-weight: 500;
+  font-weight: var(--font-weight-medium);
 }
 
 .custom {
-  padding-top: 16px;
-  border-top: 1px solid var(--rule-strong);
+  padding-top: var(--space-5);
+  border-top: var(--border-width) solid var(--color-border-strong);
 }
 
 .custom > * + * {
-  margin-top: 16px;
+  margin-top: var(--space-5);
 }
 
 /* 공유 초안 — 주 영역 */
@@ -550,30 +705,30 @@ textarea[aria-invalid="true"]:focus-visible {
 }
 
 .draft__sheet {
-  margin-top: 16px;
-  padding: 20px 24px;
-  border: 1px solid var(--rule-strong);
-  background: var(--surface);
+  margin-top: var(--space-5);
+  padding: var(--space-6) var(--space-7);
+  border: var(--border-width) solid var(--color-border-strong);
+  background: var(--color-surface-raised);
 }
 
 .draft__empty {
   max-width: 52ch;
-  font-size: var(--text-md);
-  font-weight: 600;
-  line-height: 1.5;
+  font-size: var(--type-body-size);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-normal);
 }
 
 .draft__sheet .hint {
   max-width: 46ch;
-  margin-top: 12px;
+  margin-top: var(--space-4);
 }
 
 .draft__actions {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  gap: 16px;
+  gap: var(--space-5);
   align-items: start;
-  margin-top: 16px;
+  margin-top: var(--space-5);
 }
 
 /* 보관 — 내부 메모와 저장 목록 */
@@ -581,10 +736,10 @@ textarea[aria-invalid="true"]:focus-visible {
 .archive {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  gap: var(--block-gap);
-  margin-top: var(--block-gap);
-  padding-top: 24px;
-  border-top: 1px solid var(--rule-strong);
+  gap: var(--layout-block-gap);
+  margin-top: var(--layout-block-gap);
+  padding-top: var(--space-7);
+  border-top: var(--border-width) solid var(--color-border-strong);
 }
 
 .documents {
@@ -593,24 +748,24 @@ textarea[aria-invalid="true"]:focus-visible {
 
 .documents article {
   min-width: 0;
-  padding: 16px 0;
-  border-top: 1px solid var(--rule);
+  padding: var(--space-5) 0;
+  border-top: var(--border-width) solid var(--color-border-subtle);
 }
 
 .documents time {
   display: block;
-  font-size: var(--text-sm);
-  letter-spacing: 0.02em;
-  color: var(--ink-muted);
+  font-size: var(--type-body-sm-size);
+  letter-spacing: var(--letter-spacing-wide);
+  color: var(--color-text-secondary);
 }
 
 .documents pre {
-  margin: 8px 0 0;
+  margin: var(--space-3) 0 0;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
   font-family: inherit;
-  font-size: var(--text-md);
-  line-height: 1.55;
+  font-size: var(--type-body-size);
+  line-height: var(--line-height-normal);
 }
 
 .documents:empty {
@@ -621,10 +776,10 @@ textarea[aria-invalid="true"]:focus-visible {
 
 .execution {
   display: grid;
-  gap: 16px;
-  margin-top: var(--block-gap);
-  padding-top: 24px;
-  border-top: 1px solid var(--rule-strong);
+  gap: var(--space-5);
+  margin-top: var(--layout-block-gap);
+  padding-top: var(--space-7);
+  border-top: var(--border-width) solid var(--color-border-strong);
 }
 
 .execution__head {
@@ -632,16 +787,16 @@ textarea[aria-invalid="true"]:focus-visible {
   flex-wrap: wrap;
   align-items: baseline;
   justify-content: space-between;
-  gap: 4px var(--gutter);
+  gap: var(--space-2) var(--layout-gutter);
 }
 
 .execution__head .hint {
-  flex: 0 1 36rem;
+  flex: 0 1 var(--layout-prose);
 }
 
 .runtime {
   display: grid;
-  gap: 12px;
+  gap: var(--space-4);
   justify-items: start;
   min-width: 0;
 }
@@ -650,18 +805,18 @@ textarea[aria-invalid="true"]:focus-visible {
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;
-  gap: 4px 12px;
+  gap: var(--space-2) var(--space-4);
   min-width: 0;
 }
 
 .env {
   display: grid;
-  gap: 8px;
+  gap: var(--space-3);
   min-width: 0;
 }
 
 .plain-list {
-  font-size: var(--text-sm);
+  font-size: var(--type-body-sm-size);
 }
 
 .plain-list li {
@@ -669,14 +824,14 @@ textarea[aria-invalid="true"]:focus-visible {
 }
 
 .plain-list li + li {
-  margin-top: 6px;
+  margin-top: var(--space-2);
 }
 
 /* 넓은 화면: 보관소는 두 열로 나눈다. */
 
 @media (min-width: 768px) {
   .draft__sheet {
-    padding: 24px 28px;
+    padding: var(--space-7) var(--space-7);
   }
 
   .archive {

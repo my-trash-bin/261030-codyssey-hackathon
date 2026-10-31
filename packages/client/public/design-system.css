@@ -1,0 +1,296 @@
+/* 디자인 시스템 화면 배치. 값은 모두 tokens.css를 참조한다. */
+
+.ds {
+  display: grid;
+  gap: var(--space-11);
+  max-width: var(--layout-measure);
+  margin: 0 auto;
+  padding: var(--space-10) var(--layout-gutter) var(--space-12);
+}
+
+.ds-hero {
+  display: grid;
+  gap: var(--space-4);
+  padding-bottom: var(--space-7);
+  border-bottom: var(--border-width-strong) solid var(--color-border-strong);
+}
+
+.ds-eyebrow {
+  font-size: var(--type-label-size);
+  line-height: var(--type-label-line);
+  letter-spacing: var(--letter-spacing-wider);
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+}
+
+.ds-hero h1 {
+  font-family: var(--font-title);
+  font-size: var(--type-display-size);
+  line-height: var(--type-display-line);
+  font-weight: var(--font-weight-regular);
+  letter-spacing: var(--letter-spacing-tight);
+}
+
+.ds-lede {
+  max-width: 68ch;
+  font-size: var(--type-body-size);
+  line-height: var(--type-body-line);
+  color: var(--color-text-secondary);
+  text-wrap: pretty;
+}
+
+.ds-lede code,
+.ds-mono {
+  font-family: var(--font-mono);
+  font-size: var(--type-label-size);
+  letter-spacing: var(--letter-spacing-normal);
+}
+
+.ds-rules {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+  padding-left: var(--space-6);
+  max-width: 72ch;
+  font-size: var(--type-body-sm-size);
+  line-height: var(--type-body-sm-line);
+  color: var(--color-text-secondary);
+}
+
+.ds-note {
+  font-size: var(--type-body-sm-size);
+  color: var(--color-text-muted);
+}
+
+.ds-note a {
+  color: var(--color-text-accent);
+}
+
+.ds-section {
+  display: grid;
+  gap: var(--space-5);
+}
+
+.ds-section__head {
+  display: grid;
+  gap: var(--space-2);
+  padding-bottom: var(--space-4);
+  border-bottom: var(--section-rule);
+}
+
+.ds-section__head h2 {
+  font-family: var(--font-title);
+  font-size: var(--type-title-size);
+  line-height: var(--type-title-line);
+  font-weight: var(--font-weight-regular);
+}
+
+.ds-section__lede {
+  max-width: 68ch;
+  font-size: var(--type-body-sm-size);
+  line-height: var(--type-body-sm-line);
+  color: var(--color-text-secondary);
+}
+
+.ds-subhead {
+  font-size: var(--type-label-size);
+  line-height: var(--type-label-line);
+  letter-spacing: var(--letter-spacing-wider);
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+}
+
+.ds-swatches {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(9.5rem, 1fr));
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ds-swatch {
+  display: grid;
+  gap: var(--space-1);
+  min-width: 0;
+  padding: var(--space-3);
+  border: var(--border-width) solid var(--color-border-subtle);
+  background: var(--color-surface-raised);
+}
+
+.ds-swatch__chip {
+  height: var(--num-12);
+  border: var(--border-width) solid var(--color-border-subtle);
+}
+
+.ds-swatch__name {
+  font-family: var(--font-mono);
+  font-size: var(--type-label-size);
+  color: var(--color-text-primary);
+  overflow-wrap: anywhere;
+}
+
+.ds-swatch__value,
+.ds-swatch__label {
+  font-size: var(--type-label-size);
+  line-height: var(--type-label-line);
+  color: var(--color-text-muted);
+}
+
+.ds-type {
+  display: grid;
+  gap: var(--space-5);
+  margin: 0;
+}
+
+.ds-type__row {
+  display: grid;
+  grid-template-columns: minmax(0, 12rem) minmax(0, 1fr);
+  gap: var(--space-5);
+  padding-bottom: var(--space-4);
+  border-bottom: var(--section-rule);
+}
+
+.ds-type__row dt {
+  display: grid;
+  gap: var(--space-1);
+  align-content: start;
+}
+
+.ds-type__meta,
+.ds-type__usage {
+  font-size: var(--type-label-size);
+  line-height: var(--type-label-line);
+  color: var(--color-text-muted);
+}
+
+.ds-type__row dd {
+  margin: 0;
+  display: grid;
+  gap: var(--space-2);
+}
+
+.ds-type__sample--type-display {
+  font-family: var(--font-title);
+  font-size: var(--type-display-size);
+  line-height: var(--type-display-line);
+}
+
+.ds-type__sample--type-title {
+  font-family: var(--font-title);
+  font-size: var(--type-title-size);
+  line-height: var(--type-title-line);
+}
+
+.ds-type__sample--type-heading {
+  font-family: var(--font-title);
+  font-size: var(--type-heading-size);
+  line-height: var(--type-heading-line);
+}
+
+.ds-type__sample--type-subheading {
+  font-size: var(--type-subheading-size);
+  line-height: var(--type-subheading-line);
+  font-weight: var(--font-weight-bold);
+}
+
+.ds-type__sample--type-body {
+  font-size: var(--type-body-size);
+  line-height: var(--type-body-line);
+}
+
+.ds-type__sample--type-body-sm {
+  font-size: var(--type-body-sm-size);
+  line-height: var(--type-body-sm-line);
+}
+
+.ds-type__sample--type-label {
+  font-size: var(--type-label-size);
+  line-height: var(--type-label-line);
+  letter-spacing: var(--letter-spacing-wide);
+  color: var(--color-text-muted);
+}
+
+.ds-space {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ds-space > li {
+  display: grid;
+  grid-template-columns: 6.5rem minmax(0, 1fr) 5rem;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.ds-space__bar {
+  height: var(--num-3);
+  background: var(--color-surface-accent);
+}
+
+.ds-space__value {
+  font-family: var(--font-mono);
+  font-size: var(--type-label-size);
+  color: var(--color-text-muted);
+}
+
+.ds-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.ds-grid-2 {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+  gap: var(--space-5);
+}
+
+.ds-stack {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.ds-inline {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--type-body-sm-size);
+}
+
+.ds-card {
+  padding: var(--panel-padding-y) var(--panel-padding-x);
+  border: var(--border-width) solid var(--color-border-subtle);
+  background: var(--color-surface-raised);
+}
+
+.ds-card__body {
+  font-size: var(--type-body-size);
+  line-height: var(--type-body-line);
+}
+
+.ds-progress {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  gap: var(--progress-gap);
+}
+
+.ds-hint {
+  font-size: var(--type-body-sm-size);
+  color: var(--color-text-muted);
+}
+
+@media (max-width: 47.5rem) {
+  .ds-type__row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .ds-space > li {
+    grid-template-columns: 5.5rem minmax(0, 1fr) 4rem;
+  }
+}

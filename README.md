@@ -17,6 +17,7 @@
 | [docs/architecture.md](docs/architecture.md) / [docs/api.md](docs/api.md) / [docs/ERD.md](docs/ERD.md) | TypeScript 9개 패키지 구조, HTTP/엔진 API 계약, SQLite 스키마 |
 | [docs/decisions.md](docs/decisions.md) / [docs/spec.md](docs/spec.md) / [docs/security.md](docs/security.md) | 설계 결정(`D01-D24`, Go -> TypeScript 전환 경위 포함), 상태/불변조건(`INV-01-16`), 실행 보안 경계 |
 | [docs/agent-workflow.md](docs/agent-workflow.md) / [docs/extensions.md](docs/extensions.md) | 역할별 JSON 계약/`groundFacts`/`transcript.v1` 및 `SkillPack`/내장 변환/Docker 재현 계약 |
+| [docs/design-tokens.md](docs/design-tokens.md) | 디자인 토큰 3단계(프리미티브/시멘틱/컴포넌트), 눈금, KRDS 참고 출처, `/#design-system` 화면 |
 | [docs/IA.md](docs/IA.md) / [docs/uj.md](docs/uj.md) / [docs/demo.md](docs/demo.md) | 화면 구조(`UI-01-10`), 사용자 여정(`UJ-01-07`), 로컬/Docker 시연 절차 |
 | [docs/features/01-task-intake.md](docs/features/01-task-intake.md) - [10-runtime-boundary.md](docs/features/10-runtime-boundary.md) | 기능 단위 명세 (`F01-F10`) |
 | [docs/presentation/ISSUES.md](docs/presentation/ISSUES.md) / [GUIDE.md](docs/presentation/GUIDE.md) | 발표 슬라이드와 실제 코드 사이의 차이 관리(`PRES-01-12`) 및 발표 가이드 |
@@ -163,9 +164,10 @@ provider 확인은 기존 텍스트 경로를 유지합니다.
 실행해 확인했습니다. 세부 결과와 남은 간격은 [docs/UI-구현기준.md](docs/UI-구현기준.md)의 실행 확인
 절에 적습니다. 실제 모델로 같은 흐름을 돌린 기록은 아니며, 그 구분을 유지합니다.
 
-시각 기준은 [docs/UI-구현기준.md](docs/UI-구현기준.md)의 시각 기준 절을 따릅니다. 종이색 바탕과
-직각, 무그림자에 12열 그리드를 쓰고 강조색은 한 색만 쓰며, 제목만 명조 계열이고 나머지는 시스템
-글꼴입니다. 외부 웹폰트를 쓰지 않아 기존 CSP와 외부 자산 미호출 경계를 유지합니다. 미연결 사유는
+시각 기준은 [docs/UI-구현기준.md](docs/UI-구현기준.md)의 시각 기준 절을 따릅니다. 색, 글자, 간격,
+버튼과 입력 크기는 [docs/design-tokens.md](docs/design-tokens.md)의 토큰으로만 정하며, 토큰과 컴포넌트
+상태는 개발 서버에서 `/#design-system` 화면으로 확인합니다. 종이색 바탕과 직각, 무그림자에 12열
+그리드를 쓰고 강조색은 한 색만 쓰며, 제목만 명조 계열이고 나머지는 시스템 글꼴입니다. 외부 웹폰트를 쓰지 않아 기존 CSP와 외부 자산 미호출 경계를 유지합니다. 미연결 사유는
 해당 동작 가까이에 짧게 표시하고, 개발용 예시 모드는 실제 실행과 구분해 표시합니다.
 
 빌드된 작업 화면은 `vite build`가 만든 `packages/client/dist/static`을 Node가 서빙하고 API를

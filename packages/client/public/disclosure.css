@@ -1,9 +1,9 @@
 /* 공개 결정 — 후보별 반복 렌더 */
 
 .decisions {
-  margin-top: var(--block-gap);
-  padding-top: 24px;
-  border-top: 1px solid var(--rule-strong);
+  margin-top: var(--layout-block-gap);
+  padding-top: var(--space-7);
+  border-top: var(--border-width) solid var(--color-border-strong);
 }
 
 .decisions:focus {
@@ -11,22 +11,22 @@
 }
 
 .decisions:focus-visible {
-  outline: 3px solid var(--ink);
-  outline-offset: 2px;
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--space-1);
 }
 
 .disclosures {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  gap: 16px;
+  gap: var(--space-5);
   min-width: 0;
 }
 
 .disclosures__lookup {
   display: grid;
-  gap: 12px;
+  gap: var(--space-4);
   justify-items: start;
-  max-width: 40rem;
+  max-width: var(--layout-prose);
 }
 
 .disclosures__lookup .field {
@@ -35,14 +35,14 @@
 
 .disclosures__summary {
   display: grid;
-  gap: 8px;
+  gap: var(--space-3);
   justify-items: start;
   min-width: 0;
 }
 
 .disclosures__empty {
   display: grid;
-  gap: 8px;
+  gap: var(--space-3);
   min-width: 0;
 }
 
@@ -53,71 +53,71 @@
 
 .candidate {
   min-width: 0;
-  margin-top: 24px;
-  padding: 16px;
-  border: 1px solid var(--rule);
-  background: var(--surface);
+  margin-top: var(--space-7);
+  padding: var(--space-5);
+  border: var(--border-width) solid var(--color-border-subtle);
+  background: var(--color-surface-raised);
 }
 
 .candidate__legend {
-  padding: 0 0 8px;
-  font-size: var(--text-sm);
-  font-weight: 700;
+  padding: 0 0 var(--space-3);
+  font-size: var(--type-body-sm-size);
+  font-weight: var(--font-weight-strong);
 }
 
 .candidate__disposition > legend,
 .candidate__mode > legend {
   padding: 0;
-  font-size: var(--text-sm);
-  font-weight: 700;
+  font-size: var(--type-body-sm-size);
+  font-weight: var(--font-weight-strong);
 }
 
 .candidate > * + * {
-  margin-top: 12px;
+  margin-top: var(--space-4);
 }
 
 .candidate__statement {
-  font-size: var(--text-md);
+  font-size: var(--type-body-size);
   overflow-wrap: anywhere;
 }
 
 .candidate__evidence > * + *,
 .candidate__conflict > * + *,
 .candidate__decisions > * + * {
-  margin-top: 8px;
+  margin-top: var(--space-3);
 }
 
 .evidence-list {
   display: grid;
-  gap: 8px;
+  gap: var(--space-3);
   min-width: 0;
 }
 
 .evidence__meta {
-  font-size: var(--text-sm);
-  line-height: 1.5;
-  color: var(--ink-muted);
+  font-size: var(--type-body-sm-size);
+  line-height: var(--line-height-normal);
+  color: var(--color-text-secondary);
   overflow-wrap: anywhere;
 }
 
 .evidence__excerpt {
-  font-size: var(--text-sm);
+  font-size: var(--type-body-sm-size);
   overflow-wrap: anywhere;
 }
 
 .conflict__side {
-  padding-top: 12px;
-  border-top: 1px solid var(--rule);
+  padding-top: var(--space-4);
+  border-top: var(--border-width) solid var(--color-border-subtle);
 }
 
 .conflict__side-label {
-  font-size: var(--text-sm);
-  font-weight: 700;
-  letter-spacing: 0.02em;
+  font-size: var(--type-body-sm-size);
+  font-weight: var(--font-weight-strong);
+  letter-spacing: var(--letter-spacing-wide);
 }
 
 .conflict__statement {
-  font-size: var(--text-sm);
+  font-size: var(--type-body-sm-size);
   overflow-wrap: anywhere;
 }
 
@@ -127,7 +127,7 @@
 .candidate__reusable > * + *,
 .batch > * + *,
 .decision + .decision {
-  margin-top: 8px;
+  margin-top: var(--space-3);
 }
 
 .candidate__preview {
@@ -136,7 +136,7 @@
 
 .preview {
   display: grid;
-  gap: 8px;
+  gap: var(--space-3);
   min-width: 0;
 }
 
@@ -150,37 +150,26 @@
 .preview__table {
   width: 100%;
   border-collapse: collapse;
-  font-size: var(--text-sm);
+  font-size: var(--type-body-sm-size);
 }
 
 .preview__table th,
 .preview__table td {
-  padding: 8px 12px;
-  border: 1px solid var(--rule);
+  padding: var(--space-3) var(--space-4);
+  border: var(--border-width) solid var(--color-border-subtle);
   text-align: left;
   vertical-align: top;
   white-space: nowrap;
 }
 
 .decision .button {
-  margin-top: 8px;
+  margin-top: var(--space-3);
 }
 
 .batch {
-  margin-top: 24px;
-  padding-top: 16px;
-  border-top: 1px solid var(--rule);
+  margin-top: var(--space-7);
+  padding-top: var(--space-5);
+  border-top: var(--border-width) solid var(--color-border-subtle);
 }
 
-.option input[type="checkbox"] {
-  flex: none;
-  width: 24px;
-  height: 24px;
-  margin: 0;
-  accent-color: var(--accent);
-}
-
-.option input[type="checkbox"]:focus-visible {
-  outline: 3px solid var(--ink);
-  outline-offset: 2px;
-}
+/* 체크박스 크기와 초점 고리는 전역 규칙을 쓴다. */
