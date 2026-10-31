@@ -37,3 +37,7 @@ SAFEHANDOFF_TRANSCRIPT_DIR=.local/transcripts SAFEHANDOFF_TRANSCRIPT_CONTENT=1 \
 새 실행 시작 때 같은 디렉터리의 transcript 파일명과 일치하는 일반 파일 중 수정 후 24시간 지난 파일을 정리한다. 앱이 멈춰 있으면 정리도 멈춘다. 엄격한 24시간 보존이 필요하면 운영 측 타이머가 추가로 필요하다. task 삭제 연동과 상시 만료 타이머는 아직 구현하지 않았다. HTTP 조회 API·데모 재생 UI·원자료 분석/도구 5개의 전체 타임라인도 이번 범위에 포함하지 않는다. OSS 스모크는 Docker 결과를 기존 보고서에, 작성·검토 흐름을 transcript에 남긴다. 라이브러리 소비자는 TranscriptSink를 주입해 별도 저장소에 연결할 수 있다.
 
 OSS 보고서의 transcript_run_ids는 해당 작성·검토 기록의 run_id 목록이다. 파일명에 같은 ID가 들어가므로 동시 실행된 다른 보고서의 기록과 혼동하지 않고 연결할 수 있다. 기록이 꺼져 있으면 빈 목록이다.
+
+ToyRecord catalog 모드에서는 run_started 바로 다음에 pack_selected 이벤트가 나타난다. data는
+OSS 보고서의 selected_pack과 같고 팩 pin·target_pair_id·skill_set_hash를 담는다. role 문서
+본문이나 설치 경로는 포함하지 않는다.

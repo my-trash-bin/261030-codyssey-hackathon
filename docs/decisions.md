@@ -223,3 +223,12 @@ pin을 재검증하고 pack/target/image 등록을 대조하며 tool_ids만으�
 결정적 회귀 검사와 실제 실행 확인을 분리하고 보고서·transcript에 선택한 팩의 지문을 연결한다.
 그다음 큰 후보는 `analyze()`(F02)다. 역할별 프롬프트 연결·공개 결정·최종화·task 변경 무효화는
 별도 간극으로 남는다. 이번 변경은 계획 정리이며 해당 기능 구현은 아직 하지 않았다.
+
+## 2026-10-31 · ToyRecord 팩 catalog 연결 구현
+
+`toyrecord-repro` 1.0.0과 digest에 포함되는 고정 재현 명세 asset을 추가했다. OSS CLI는
+catalog에서 명시적 version을 선택해 pin을 재검증하고 별도 운영자 등록의 pack/target/image와
+대조한다. 팩 선언으로 image나 도구 실행 권한을 승인하지 않는다. 기존 synthetic grant·공개
+결과 승인을 유지했다. scope의 skill_set_hash와 보고서·transcript에 같은 팩 지문을 연결했다.
+결정적 회귀와 [실제 Docker 세 seed 실행](toyrecord-pack-smoke-2026-10-31.md)을 통과했다.
+실제 모델 호출·analyze·프롬프트 지침 주입·task 변경 무효화는 이번 완료 범위에 포함하지 않는다.

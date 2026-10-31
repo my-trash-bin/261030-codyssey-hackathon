@@ -1,14 +1,14 @@
 # 다음 라운드 계획 (2026-10-31 정리)
 
 세 계획 문서(`f07-extensions-plan.md`, `review-grounding-plan.md`, `oss-repro-smoke-plan.md`)에
-흩어져 있던 "이번엔 빼는 것"을 한 곳에 모았다. 구현은 하지 않았다.
+흩어져 있던 "이번엔 빼는 것"을 한 곳에 모았다. 아래 toyrecord 팩 연결은 이후 구현했으며 나머지는 미구현이다.
 
 ## 지금까지 남은 간극 전체 목록
 
 | 항목 | 출처 | 크기/위험 |
 | --- | --- | --- |
 | `roleDocuments` → `RealCore` 프롬프트 연결 (`AnalyzeRequest`/`FactPack`에 팩 문서 자리 없음) | F07 2번 | 작음, 계약 확장 1회 필요 |
-| `toyrecord-repro` 스킬 팩을 실제 catalog로 로딩해 OSS 스모크에 연결 | F07 6번 + OSS 계획 | **중간** — 로더·등록 CLI 재사용, 재현 명세와 운영자 등록 연결 계약 필요 |
+| `toyrecord-repro` 스킬 팩을 실제 catalog로 로딩해 OSS 스모크에 연결 | F07 6번 + OSS 계획 | **연결 완료** — task 변경 무효화는 별도 |
 | `check_doc_ip_context_v1` (`ProcessToolRunner` 첫 구현) | F07 4번 | 큼, 보안 판단 필요 |
 | `scan_candidate_bundle_v1` | F07 5번 | 중간 |
 | 역할×도구 권한 교집합(`resolveToolAccess`) 실제 연결 | F07 7번 | 큼, 실제 registry 없음 |
@@ -16,9 +16,15 @@
 | **`analyze()`(F02, 원자료 → candidate 자동 추출)** | OSS 계획 | **큼** — 지금까지 모든 실행에서 facts를 손으로 구성한 유일한 이유 |
 | server task/decision HTTP API, client UI | round3-scope 이후 계속 미룸 | 큼 |
 
-## 우선 후보: `toyrecord-repro` 스킬 팩을 실제로 로딩하게 연결
+## 구현 완료: `toyrecord-repro` 스킬 팩을 실제로 로딩하게 연결
 
-현재 `fixtures/skills/`에는 `vendorstore-support`만 있고 `toyrecord-repro` 팩은 아직 없다.
+아래 계약과 순서에 따라 `tools/toyrecord-pack.mjs`, 팩 fixture, OSS CLI 연결을 구현했다.
+[설치·실행 안내](toyrecord-pack.md)와 [실제 Docker 세 사례 확인](toyrecord-pack-smoke-2026-10-31.md)을
+참고한다. 기존 `--registration` 경로도 유지하며 모델 의미 판정을 회귀 검사에 넣지 않았다.
+
+### 구현 전 확인한 간극
+
+연결 작업 전 `fixtures/skills/`에는 `vendorstore-support`만 있었고 `toyrecord-repro` 팩이 없었다.
 `contracts/catalog.example.json`의 toyrecord 항목은 설치되지 않은 설명용 예시다. 실제 등록 CLI가
 생성하는 catalog는 `{id, version, manifest_sha256, pack_sha256, root}` 배열이며 image나 target
 참조를 담지 않는다. 두 catalog 형식을 같은 계약으로 취급하지 않는다.

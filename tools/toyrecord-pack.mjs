@@ -35,7 +35,7 @@ export async function selectToyrecordPack({ catalog, version, installation }) {
   requireValue(isDeepStrictEqual(spec, specification), 'TOYRECORD_SPEC_INVALID');
   requireValue(keys(installation) === 'image,pack,schema_version,target_pair_id' &&
     installation.schema_version === 'toyrecord_installation.v1' && isDeepStrictEqual(installation.pack, pin) &&
-    installation.target_pair_id === spec.target_pair_id && /^sha256:[a-f0-9]{64}$/.test(installation.image), 'TOYRECORD_INSTALLATION_MISMATCH');
+    installation.target_pair_id === spec.target_pair_id && typeof installation.image === 'string' && /^sha256:[a-f0-9]{64}$/.test(installation.image), 'TOYRECORD_INSTALLATION_MISMATCH');
   return { pack: pin, specification: spec, image: installation.image,
     skill_set_hash: skillSetHash([pin]) };
 }

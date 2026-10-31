@@ -36,7 +36,7 @@ test('selection rejects missing versions, duplicates, and altered installation b
     await assert.rejects(selectToyrecordPack({ ...options, catalog }), /TOYRECORD_PACK_SELECTION_INVALID/);
   }
   await assert.rejects(selectToyrecordPack({ ...options, version: '2' }), /TOYRECORD_PACK_SELECTION_INVALID/);
-  for (const patch of [{ image: 'latest' }, { target_pair_id: 'other' }, { pack: { ...options.installation.pack, pack_sha256: 'b'.repeat(64) } }, { argv: ['sh'] }]) {
+  for (const patch of [{ image: 'latest' }, { image: [image] }, { target_pair_id: 'other' }, { pack: { ...options.installation.pack, pack_sha256: 'b'.repeat(64) } }, { argv: ['sh'] }]) {
     await assert.rejects(selectToyrecordPack({ ...options, installation: { ...options.installation, ...patch } }), /TOYRECORD_INSTALLATION_MISMATCH/);
   }
 });
