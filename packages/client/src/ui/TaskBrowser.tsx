@@ -73,7 +73,7 @@ export function TaskBrowser(props: TaskBrowserProps): JSX.Element {
               return (
                 <li key={task.id}>
                   <button
-                    className="button"
+                    className="button button--list"
                     type="button"
                     aria-current={isSelected ? 'true' : undefined}
                     disabled={busy}

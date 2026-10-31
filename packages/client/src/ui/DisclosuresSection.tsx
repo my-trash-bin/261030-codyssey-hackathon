@@ -1,7 +1,7 @@
 // 공개 결정 화면. 작업 ID 조회 → 후보별 결정 → 전체 적용 순서로 그린다.
 // 상태·전송은 useDisclosures 훅이 맡고, 이 컴포넌트는 표시와 입력만 담당한다.
 
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { FormEvent, JSX } from 'react';
 
 import type { Snapshot } from '../disclosure-state.ts';
@@ -35,7 +35,7 @@ function Summary(props: { workspace: DisclosuresApi; snapshot: Snapshot }): JSX.
   );
 }
 
-export function DisclosuresSection(props: { workspace: DisclosuresApi }): JSX.Element {
+export function DisclosuresSection(props: { workspace: DisclosuresApi; taskId: string | null }): JSX.Element {
   const { workspace } = props;
   const containerRef = useRef<HTMLDivElement | null>(null);
   // 상태 변경으로 버튼이 사라질 때 되돌릴 초점 key. useFocusFallback이 렌더 뒤 한 번만 쓴다.
@@ -48,7 +48,7 @@ export function DisclosuresSection(props: { workspace: DisclosuresApi }): JSX.El
   });
   // 후보 ID는 임의 문자열이므로 HTML id·radio name에 그대로 쓰지 않고 화면 안에서만 쓰는 토큰으로 바꾼다.
   const candidateTokens = useRef(new Map<string, string>());
-  const [taskId, setTaskId] = useState('');
+  const [taskId, setTaskId] = useState(props.taskId ?? '');
   const [localLookupError, setLocalLookupError] = useState('');
   const inputRef = useRef<HTMLInputElement | null>(null);
 
@@ -73,6 +73,15 @@ export function DisclosuresSection(props: { workspace: DisclosuresApi }): JSX.El
     void workspace.loadTask(id);
   }
 
+  // 작업 흐름에서 이미 고른 작업은 다시 입력받지 않는다. 바뀔 때만 서버에서 읽는다.
+  useEffect(() => {
+    const id = props.taskId;
+    if (id === null || id === '') return;
+    setTaskId(id);
+    if (workspace.snapshot?.id === id) return;
+    void workspace.loadTask(id);
+  }, [props.taskId]);
+
   const message = localLookupError || workspace.message;
   const writeReason = workspace.writeBlockReason;
   const snapshot = workspace.snapshot;
@@ -82,10 +91,13 @@ export function DisclosuresSection(props: { workspace: DisclosuresApi }): JSX.El
   return (
     <div className="block" ref={containerRef}>
       <div className="disclosures">
-        <h2>공개 결정</h2>
+        <h3>후보별 공개 결정</h3>
         <p className="hint">
-          작업 ID로 task 집계를 조회한 뒤 후보마다 결정을 만듭니다. 미리보기와 결정은 서버가 계산·검증하며, 저장 뒤 화면은 task를 다시 조회해 표시합니다.
+          후보마다 허용·제외·보류 중 하나를 고르고 한 번에 저장합니다. 미리보기와 결정은 서버가 계산합니다.
         </p>
+        <details className="fold">
+          <summary>작업 ID로 직접 조회</summary>
+          <div className="fold__body">
         <form
           className="disclosures__lookup"
           noValidate
@@ -118,6 +130,8 @@ export function DisclosuresSection(props: { workspace: DisclosuresApi }): JSX.El
             {'조회는 GET /api/v1/tasks/{id}이며 쓰기 요청이 아닙니다. 응답이 오류면 아래 상태 문구에 그대로 표시합니다.'}
           </p>
         </form>
+          </div>
+        </details>
         <p className="status" role="status" aria-live="polite" data-role="message">
           {message}
         </p>

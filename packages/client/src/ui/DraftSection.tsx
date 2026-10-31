@@ -4,6 +4,7 @@
 import type { JSX } from 'react';
 import type { Evidence, Snapshot } from '../disclosure-contract.ts';
 import type { ArtifactReviewView } from '../artifacts-client.ts';
+import { phaseLabel } from '../task-browser-client.ts';
 import type { ArtifactsApi } from './hooks/useArtifacts.ts';
 
 const JOB_LABELS: Record<string, string> = {
@@ -42,7 +43,9 @@ function reviewLabel(review: ArtifactReviewView | null): string {
   return review === null ? '기록 없음' : REVIEW_LABELS[review.result];
 }
 
-export function DraftSection(props: { workflow: ArtifactsApi }): JSX.Element {
+export type DraftSectionPart = 'compose' | 'review' | 'files';
+
+export function DraftSection(props: { workflow: ArtifactsApi; part: DraftSectionPart }): JSX.Element {
   const workflow = props.workflow;
   const { task, artifact, job, exportInfo, file } = workflow;
   const humanReviewApplies = artifact !== null && artifact.reviewErrorCode !== null &&
@@ -50,12 +53,8 @@ export function DraftSection(props: { workflow: ArtifactsApi }): JSX.Element {
   const alreadyFinalized = exportInfo !== null && artifact !== null && exportInfo.artifactId === artifact.id &&
     exportInfo.artifactSetHash === artifact.artifactSetHash && task !== null && exportInfo.revision === task.revision;
 
-  return (
-    <section className="draft" id="draft-workspace" aria-labelledby="draft-heading">
-      <div className="draft__head">
-        <h2 id="draft-heading">공유 초안</h2>
-      </div>
-
+  if (props.part === 'compose') return (
+    <section className="draft panel" id="draft-workspace">
       <p className="hint">
         승인된 공개 선택으로 서버가 만든 실제 파일만 표시합니다. 파일 payload는 텍스트로만 보여 주며 HTML로 실행하지 않습니다.
       </p>
@@ -66,7 +65,7 @@ export function DraftSection(props: { workflow: ArtifactsApi }): JSX.Element {
         ? <p className="hint">{workflow.taskId === null ? '작업을 먼저 등록하거나 불러오세요.' : '작업 정보를 불러오는 중입니다.'}</p>
         : (
           <p className="meta">
-            작업 {shortId(task.id)} · 판본 {task.revision} · 단계 {task.phase}
+            작업 {shortId(task.id)} · 판본 {task.revision} · 단계 {phaseLabel(task.phase)}
             {artifact === null ? '' : ` · 초안 ${shortId(artifact.id)} (판본 ${artifact.revision})`}
           </p>
         )}
@@ -127,7 +126,13 @@ export function DraftSection(props: { workflow: ArtifactsApi }): JSX.Element {
               </p>
             </div>
           )}
+      </div>
+    </section>
+  );
 
+  if (props.part === 'files') return (
+    <section className="draft panel" id="draft-files">
+      <div className="draft__actions">
         {artifact === null
           ? (
             <>
@@ -188,7 +193,7 @@ export function DraftSection(props: { workflow: ArtifactsApi }): JSX.Element {
                             <td>{shortHash(entry.sha256)}</td>
                             <td>
                               <button
-                                className="button"
+                                className="button button--small"
                                 type="button"
                                 onClick={() => { workflow.openFile(entry.path); }}
                                 disabled={workflow.fileBusy}
@@ -211,7 +216,7 @@ export function DraftSection(props: { workflow: ArtifactsApi }): JSX.Element {
                     <p className="meta">{file.path} · 실제 서버 bytes</p>
                     <div className="documents"><pre>{file.text}</pre></div>
                     <div className="actions">
-                      <button className="button" type="button" onClick={workflow.closeFile}>내용 닫기</button>
+                      <button className="button button--small" type="button" onClick={workflow.closeFile}>내용 닫기</button>
                     </div>
                   </div>
                 )}
@@ -229,6 +234,123 @@ export function DraftSection(props: { workflow: ArtifactsApi }): JSX.Element {
                 </div>
               </details>
 
+              <h3>최종 확인</h3>
+              <p className="hint">
+                확정하면 지금 파일 그대로의 ZIP과 개별 파일을 내려받습니다. 확정 뒤 작업 판본·결정·규칙이 바뀌면 서버가 다운로드를 거부합니다.
+              </p>
+              {alreadyFinalized
+                ? <p className="hint">현재 초안은 이미 확정되었습니다. 아래 내보내기에서 동일 bytes를 다시 내려받을 수 있습니다.</p>
+                : (
+                  <div className="option">
+                    <input
+                      type="checkbox"
+                      id="finalize-confirm"
+                      checked={workflow.finalizeConfirmed}
+                      onChange={(event) => { workflow.setFinalizeConfirmed(event.target.checked); }}
+                    />
+                    <label htmlFor="finalize-confirm">현재 파일 목록과 형식·크기를 확인했고 이 파일들로 확정합니다.</label>
+                  </div>
+                )}
+              <div className="action">
+                <button
+                  className="button"
+                  id="finalize-document"
+                  type="button"
+                  onClick={workflow.finalize}
+                  disabled={workflow.finalizeBlockReason !== '' || alreadyFinalized}
+                  aria-describedby="finalize-document-reason"
+                >
+                  이 파일들로 확정
+                </button>
+                <p className="hint" id="finalize-document-reason">
+                  {alreadyFinalized
+                    ? '이미 이 파일 집합으로 확정했습니다. 새 판본이 필요하면 편집하거나 다시 작성하세요.'
+                    : (workflow.finalizeBlockReason === '' ? '서버 확정 조건을 만족했습니다.' : workflow.finalizeBlockReason)}
+                </p>
+              </div>
+
+              {exportInfo === null
+                ? null
+                : (
+                  <div className="candidate__reusable">
+                    <h3>확정 내보내기</h3>
+                    <p className="meta">
+                      export {shortId(exportInfo.id)} · 판본 {exportInfo.revision} · ZIP SHA-256 {shortHash(exportInfo.archiveSha256)}
+                    </p>
+                    <div className="actions">
+                      <button
+                        className="button"
+                        type="button"
+                        onClick={workflow.downloadArchive}
+                        disabled={workflow.downloadBlockReason !== '' || workflow.downloadBusy !== null}
+                        aria-describedby="download-block-reason"
+                      >
+                        패키지(ZIP) 다운로드
+                      </button>
+                    </div>
+                    {artifact === null || artifact.files.length === 0
+                      ? null
+                      : (
+                        <div className="preview__scroll">
+                          <table className="preview__table">
+                            <thead>
+                              <tr>
+                                <th scope="col">확정 파일</th>
+                                <th scope="col">크기</th>
+                                <th scope="col">다운로드</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {artifact.files.map((entry) => (
+                                <tr key={entry.path}>
+                                  <td>{entry.path}</td>
+                                  <td>{`${entry.size.toLocaleString('ko-KR')} bytes`}</td>
+                                  <td>
+                                    <button
+                                      className="button"
+                                      type="button"
+                                      onClick={() => { workflow.downloadFile(entry.path); }}
+                                      disabled={workflow.downloadBlockReason !== '' || workflow.downloadBusy !== null}
+                                    >
+                                      개별 파일
+                                    </button>
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      )}
+                    <p className="hint" id="download-block-reason">
+                      {workflow.downloadBlockReason === ''
+                        ? '서버가 저장한 확정 bytes를 그대로 내려받습니다. 다시 렌더링하지 않습니다.'
+                        : workflow.downloadBlockReason}
+                    </p>
+                  </div>
+                )}
+            </div>
+          )}
+      </div>
+    </section>
+  );
+
+  return (
+    <section className="draft panel" id="draft-review">
+      {artifact === null
+        ? (
+          <div className="draft__sheet">
+            <h3>검토</h3>
+            <p className="hint">
+              자동 검토와 사람 의미 검토는 공유 초안이 있어야 열립니다. 초안 작성 단계에서 초안을 먼저 만드세요.
+            </p>
+          </div>
+        )
+        : null}
+      <div className="draft__actions">
+        {artifact === null
+          ? null
+          : (
+            <div className="draft__sheet">
               <h3>자동 검토</h3>
               <p className="hint">
                 {artifact.review === null
@@ -383,101 +505,6 @@ export function DraftSection(props: { workflow: ArtifactsApi }): JSX.Element {
                     )}
                 </div>
               )}
-
-              <h3>최종 확인</h3>
-              <p className="hint">
-                확정하면 지금 파일 그대로의 ZIP과 개별 파일을 내려받습니다. 확정 뒤 작업 판본·결정·규칙이 바뀌면 서버가 다운로드를 거부합니다.
-              </p>
-              {alreadyFinalized
-                ? <p className="hint">현재 초안은 이미 확정되었습니다. 아래 내보내기에서 동일 bytes를 다시 내려받을 수 있습니다.</p>
-                : (
-                  <div className="option">
-                    <input
-                      type="checkbox"
-                      id="finalize-confirm"
-                      checked={workflow.finalizeConfirmed}
-                      onChange={(event) => { workflow.setFinalizeConfirmed(event.target.checked); }}
-                    />
-                    <label htmlFor="finalize-confirm">현재 파일 목록과 형식·크기를 확인했고 이 파일들로 확정합니다.</label>
-                  </div>
-                )}
-              <div className="action">
-                <button
-                  className="button"
-                  id="finalize-document"
-                  type="button"
-                  onClick={workflow.finalize}
-                  disabled={workflow.finalizeBlockReason !== '' || alreadyFinalized}
-                  aria-describedby="finalize-document-reason"
-                >
-                  이 파일들로 확정
-                </button>
-                <p className="hint" id="finalize-document-reason">
-                  {alreadyFinalized
-                    ? '이미 이 파일 집합으로 확정했습니다. 새 판본이 필요하면 편집하거나 다시 작성하세요.'
-                    : (workflow.finalizeBlockReason === '' ? '서버 확정 조건을 만족했습니다.' : workflow.finalizeBlockReason)}
-                </p>
-              </div>
-
-              {exportInfo === null
-                ? null
-                : (
-                  <div className="candidate__reusable">
-                    <h3>확정 내보내기</h3>
-                    <p className="meta">
-                      export {shortId(exportInfo.id)} · 판본 {exportInfo.revision} · ZIP SHA-256 {shortHash(exportInfo.archiveSha256)}
-                    </p>
-                    <div className="actions">
-                      <button
-                        className="button"
-                        type="button"
-                        onClick={workflow.downloadArchive}
-                        disabled={workflow.downloadBlockReason !== '' || workflow.downloadBusy !== null}
-                        aria-describedby="download-block-reason"
-                      >
-                        패키지(ZIP) 다운로드
-                      </button>
-                    </div>
-                    {artifact === null || artifact.files.length === 0
-                      ? null
-                      : (
-                        <div className="preview__scroll">
-                          <table className="preview__table">
-                            <thead>
-                              <tr>
-                                <th scope="col">확정 파일</th>
-                                <th scope="col">크기</th>
-                                <th scope="col">다운로드</th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                              {artifact.files.map((entry) => (
-                                <tr key={entry.path}>
-                                  <td>{entry.path}</td>
-                                  <td>{`${entry.size.toLocaleString('ko-KR')} bytes`}</td>
-                                  <td>
-                                    <button
-                                      className="button"
-                                      type="button"
-                                      onClick={() => { workflow.downloadFile(entry.path); }}
-                                      disabled={workflow.downloadBlockReason !== '' || workflow.downloadBusy !== null}
-                                    >
-                                      개별 파일
-                                    </button>
-                                  </td>
-                                </tr>
-                              ))}
-                            </tbody>
-                          </table>
-                        </div>
-                      )}
-                    <p className="hint" id="download-block-reason">
-                      {workflow.downloadBlockReason === ''
-                        ? '서버가 저장한 확정 bytes를 그대로 내려받습니다. 다시 렌더링하지 않습니다.'
-                        : workflow.downloadBlockReason}
-                    </p>
-                  </div>
-                )}
             </div>
           )}
       </div>

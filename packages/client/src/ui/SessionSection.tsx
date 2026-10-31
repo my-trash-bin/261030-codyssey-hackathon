@@ -49,8 +49,10 @@ function environmentLines(session: SessionInfo): string[] {
   return lines;
 }
 
-export function SessionSection(props: { session: SessionApi }): JSX.Element {
+export function SessionSection(props: { session: SessionApi; heading?: 'h2' | 'h3' }): JSX.Element {
   const { session } = props;
+  // 정보 열에 접어 넣을 때는 h2를 쓰지 않는다. 문서 제목 순서를 유지하려고 호출부가 정한다.
+  const Heading = props.heading ?? 'h2';
   const inputRef = useRef<HTMLInputElement | null>(null);
   const logoutRef = useRef<HTMLButtonElement | null>(null);
   const confirmRef = useRef<HTMLButtonElement | null>(null);
@@ -88,7 +90,7 @@ export function SessionSection(props: { session: SessionApi }): JSX.Element {
   if (opened) {
     return (
       <section className="session" id="session" aria-labelledby="session-heading">
-        <h2 id="session-heading">로컬 접속</h2>
+        <Heading id="session-heading">로컬 접속</Heading>
         <p className="hint" id="session-hint">
           세션이 열려 있어 공개 결정 영역의 쓰기가 가능합니다. 세션은 서버가 정한 8시간 고정이며 연장되지 않습니다.
           만료되거나 닫히면 같은 시작 토큰을 다시 쓸 수 없으므로, 계속하려면 서버를 다시 시작해 새로 표시되는
@@ -153,7 +155,7 @@ export function SessionSection(props: { session: SessionApi }): JSX.Element {
 
   return (
     <section className="session" id="session" aria-labelledby="session-heading">
-      <h2 id="session-heading">로컬 접속</h2>
+      <Heading id="session-heading">로컬 접속</Heading>
       <p className="hint" id="session-hint">
         서버를 SAFEHANDOFF_WORKFLOW_ENABLED=1로 시작하면 터미널에 5분 동안 한 번만 쓸 수 있는 시작 토큰이 표시됩니다.
         그 토큰으로 세션을 엽니다. 토큰은 이 화면의 메모리에만 쓰고 저장하지 않습니다. 세션은 8시간 고정이며
