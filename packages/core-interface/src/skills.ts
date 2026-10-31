@@ -44,8 +44,7 @@ export class SkillPackError extends Error {
 // traversal and duplicate normalized paths (extensions.md §2: "각 경로는 팩 루트 아래
 // 상대경로만 허용하고 상위경로·절대경로·심볼릭 링크·중복 이름을 거부한다"). Symlink
 // detection needs an actual filesystem stat and belongs to SkillPackLoader below, not here.
-// Signature only; implemented next round.
-export declare function validatePackLayout(relativePaths: string[]): void;
+export { normalizePackPath, validatePackLayout } from './pack-layout.ts';
 
 // Role-scoped projection: only the files listed for `role` in role_documents, resolved to
 // bytes. This is the boundary that keeps internal-only SKILL.md content out of the writer's
