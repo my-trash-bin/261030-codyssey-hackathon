@@ -1,5 +1,6 @@
 // @ts-check
 import assert from 'node:assert/strict';
+import { spawn } from 'node:child_process';
 import { readFile, mkdir, writeFile } from 'node:fs/promises';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
@@ -86,6 +87,32 @@ function fixtureModel() {
   } };
 }
 export { fixtureModel };
+// Runs the registered image once outside DockerReproRunner's lockdown-but-silent path, so a
+// stale/rebuilt image (wrong entrypoint, missing binary) fails with a clear diagnosis here
+// instead of surfacing as an opaque REPRO_UNAVAILABLE deep inside the real reproduction run.
+// CLI-only: unit tests always pass a runnerFactory and never reach this function.
+function verifyImageSanity(image) {
+  return new Promise((resolvePromise, rejectPromise) => {
+    const fail = () => rejectPromise(new Error('SMOKE_IMAGE_SANITY_FAILED'));
+    const child = spawn('/usr/bin/docker', ['--host=unix:///var/run/docker.sock', '--config=/dev/null',
+      'run', '--rm', '-i', '--network=none', '--read-only', '--user=65532:65532', '--cap-drop=ALL',
+      '--security-opt=no-new-privileges=true', '--tmpfs=/out:rw,noexec,nosuid,nodev,size=32m,mode=1777',
+      '--entrypoint=/repro', image, 'buggy'], { env: { PATH: '/usr/bin:/bin' }, stdio: ['pipe', 'pipe', 'pipe'] });
+    const stdout = [];
+    const timer = setTimeout(() => { child.kill('SIGKILL'); fail(); }, 5000);
+    child.stdout.on('data', chunk => stdout.push(chunk));
+    child.on('error', fail);
+    child.on('close', code => {
+      clearTimeout(timer);
+      try {
+        const parsed = JSON.parse(Buffer.concat(stdout).toString('utf8'));
+        if (code === 0 && parsed.schema_version === 'sandbox_observation.v1' && parsed.result?.status === 'ok') resolvePromise();
+        else fail();
+      } catch { fail(); }
+    });
+    child.stdin.end(JSON.stringify({ value: 'A' }));
+  });
+}
 async function main() {
   const args = process.argv.slice(2);
   const index = args.indexOf('--registration');
@@ -94,6 +121,7 @@ async function main() {
   const installed = JSON.parse(await readFile(resolve(root, args[index + 1]), 'utf8'));
   // Exact local supervisor image identity, not a legacy image tag or arbitrary target argv.
   assert(/^sha256:[a-f0-9]{64}$/.test(installed.image), 'SMOKE_IMAGE_REGISTRATION_REQUIRED');
+  await verifyImageSanity(installed.image);
   const config = loadConfig(root, process.env);
   const model = args.includes('--live-model') ? new OpenAICompatibleModelClient(config.provider) : fixtureModel();
   const report = await runOssReproSmoke({ image: installed.image, model, config, transcripts: configuredTranscripts(root) });
@@ -107,7 +135,8 @@ async function main() {
 }
 if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
   main().catch(error => {
-    const known = new Set(['INVALID_REPRO_MATRIX', 'RAW_FIXTURE_DISCLOSURE', 'SMOKE_ARGUMENTS_REQUIRED', 'SMOKE_IMAGE_REGISTRATION_REQUIRED']);
+    const known = new Set(['INVALID_REPRO_MATRIX', 'RAW_FIXTURE_DISCLOSURE', 'SMOKE_ARGUMENTS_REQUIRED',
+      'SMOKE_IMAGE_REGISTRATION_REQUIRED', 'SMOKE_IMAGE_SANITY_FAILED']);
     console.error(known.has(error.message) ? error.message : 'OSS_SMOKE_FAILED'); process.exitCode = 1;
   });
 }

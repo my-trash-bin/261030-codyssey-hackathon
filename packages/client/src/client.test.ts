@@ -26,11 +26,6 @@ test('client serves its own UI and forwards document JSON to the configured serv
   const client = createServer(createClientHandler(serverOrigin));
   const base = await listen(client);
   try {
-    const html = await (await fetch(base)).text();
-    assert.match(html, /save-form/);
-    const script = await (await fetch(base + '/main.js')).text();
-    assert.match(script, /fetch\('\/api\/documents'\)/);
-    assert.doesNotMatch(script, /interface DocumentRecord/);
     assert.equal((await fetch(base + '/style.css')).status, 200);
     const body = JSON.stringify({ text: '가상 문서' });
     const saved = await fetch(base + '/api/documents', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body });

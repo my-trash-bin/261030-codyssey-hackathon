@@ -200,3 +200,35 @@ Go fixture 의존 시연을 제거하고 pnpm workspace의 fake-app 전용 화�
 
 Linux 전용 팩 로더의 안전한 경로 해석을 macOS용 단순 경로 읽기로 대체하지 않습니다.
 Linux 파일시스템 시험은 해당 플랫폼에서만 실행하고 다른 플랫폼에서는 거부 계약을 검사합니다.
+
+## 2026-10-31 · F07 잔여 항목 일부 정리
+
+사용자 요청에 따라 OSS 재현 스모크를 세 사례(seed 42/7/2026)로 transcript 기록과 함께 재확인했다
+([4차 실행 기록](live-smoke-2026-10-31d.md)). 등록 이미지가 지금 소스와 맞지 않는 낡은 레이아웃이라
+`REPRO_UNAVAILABLE`만 반환하던 문제를 발견해 `oss-repro-smoke.mjs`에 실행 전 sanity-run을 추가했다
+(`SMOKE_IMAGE_SANITY_FAILED`로 원인을 바로 드러냄, CLI 전용이라 단위테스트는 Docker 없이 그대로 통과).
+
+이어서 `docs/f07-extensions-plan.md`의 미완료 항목 중 저위험·기계적인 것부터 정리했다:
+
+- `roleDocuments`(role별 팩 문서 projection)를 core-interface에 실제로 구현했다. `RealCore` 프롬프트
+  연결은 여전히 미구현 — `AnalyzeRequest`/`FactPack`에 팩 문서가 들어갈 자리가 아직 없다.
+- `skillSetHash`는 core-interface가 아니라 `packages/skill-loader`에 구현했다. sha256 계산이
+  필요해 core-interface의 "Node API 없음" 규칙과 맞지 않다는 걸 뒤늦게 발견했고, 죽은
+  `declare function`을 남기지 않기 위해 core-interface에서 완전히 뺐다. 실제 task에 연결하는
+  부분(카탈로그·팩 선택)은 여전히 미구현.
+- `tools/pack-register.mjs`(제출/등록 CLI)를 추가했다. 구조·digest·등록 ID 허용목록을 확인하고
+  로컬 catalog JSON에 pin을 추가한다. 카탈로그를 "읽어서" task에 적용하는 쪽은 별도 작업이다.
+
+`check_doc_ip_context_v1`(ProcessToolRunner 일반화)과 역할×도구 권한 교집합 연결은 이전과 같은
+이유(보안 판단, 실제 registry 부재)로 이번에도 범위에서 뺐다.
+
+## 2026-10-31 · 다음 라운드 계획 정리
+
+세 계획 문서에 흩어진 미완료 항목을 [다음 라운드 계획](next-round-plan.md)으로 모았다.
+우선 후보는 `toyrecord-repro` 팩의 catalog 선택과 OSS 스모크 연결이다. skill-loader와
+pack-register는 재사용하되, 현재 manifest/catalog에 image·target 필드가 없으므로 digest에
+포함되는 재현 명세 asset과 별도 운영자 image 등록의 연결 계약부터 정의한다. 실행 전에 pack
+pin을 재검증하고 pack/target/image 등록을 대조하며 tool_ids만으로 실행 권한을 부여하지 않는다.
+결정적 회귀 검사와 실제 실행 확인을 분리하고 보고서·transcript에 선택한 팩의 지문을 연결한다.
+그다음 큰 후보는 `analyze()`(F02)다. 역할별 프롬프트 연결·공개 결정·최종화·task 변경 무효화는
+별도 간극으로 남는다. 이번 변경은 계획 정리이며 해당 기능 구현은 아직 하지 않았다.
