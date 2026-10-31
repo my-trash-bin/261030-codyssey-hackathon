@@ -48,22 +48,23 @@
   재시도는 `max_attempts_per_step`(예시 2)이다. UI 프록시의 10초 고정 제한으로 정상 분석을
   끊지 않는다.
 
-## 요청 1 — 분석 결과의 task·candidate_set 채택과 조회
+## 요청 1 — 분석 결과 채택의 HTTP 노출과 task 조회
 
 - 대상: `POST /api/analysis`의 응답을 서버가 task revision과 candidate_set으로 채택(CAS)하고, 이후
-  화면이 task 단위로 근거·후보·충돌을 다시 조회하는 경로.
+  화면이 task 단위로 근거·후보·충돌을 다시 조회하는 경로. 내부 채택은 이미 있고 HTTP만 없다.
 - 이미 있는 내부 기능: `RealCore.analyze()`는 형식별 결정적 evidence와 strict 검증된 후보 제안을
-  반환한다. `TaskStore.create`는 문맥·source_set_hash·skill_set_hash로 task를 만들고,
-  `installCandidates`는 candidate_set을 원자적으로 교체하며 revision을 올리고 phase를
-  `needs_decisions`로 바꾸며 snapshot을 남긴다. `TaskStore.get`과 `task-schema` 검증도 있다.
-  이들은 라이브러리와 내부 저장 기능으로 존재하며, 아래 HTTP·채택 접점이 없다는 것과 구분한다.
-- 없는 부분: 분석 응답을 받아 영속 candidate ID를 발급하고 selector·origin·conflict_group을
-  부여해 candidate_set으로 채택하는 서버 경로가 없다. 분석 evidence를 task evidence로 저장하는
-  연결, task 생성·조회·candidate_set 설치를 노출하는 HTTP 라우트, UI가 임시 분석 결과를 task로
-  저장하거나 다시 조회하는 동작도 없다. 분석 응답에는 task나 revision이 실리지 않는다.
+  반환한다. `TaskStore.analysis`의 `replaceSources`·`start`·`complete`·`addManual`과
+  `runTaskAnalysis`는 source 바이트/hash를 검증해 snapshot을 고정하고, 모델 호출 뒤 evidence와
+  영속 candidate ID·서버 conflict group·origin을 저장하며 CAS로 candidate_set에 채택한다.
+  재분석·취소·삭제 뒤 늦은 응답은 거부한다. `TaskStore.get`과 `task-schema` 검증도 있다. 이들은
+  라이브러리와 내부 저장 기능으로 존재하며, 아래 HTTP 접점이 없다는 것과 구분한다.
+- 없는 부분: 위 내부 채택을 노출하는 HTTP 라우트(task 생성·조회, candidate_set·job 상태)가 없다.
+  `/api/analysis`는 여전히 stateless여서 저장 경로를 호출하지 않고, 응답에 task·revision·영속
+  candidate ID가 실리지 않는다. UI가 임시 분석 결과를 task로 저장하거나 다시 조회하는 동작도 없다.
 - 수용 기준:
-  - 같은 분석 결과를 같은 `expected_revision`으로 두 번 채택해도 candidate_set과 revision이
-    중복 생성되지 않는다. revision이 다르면 전체를 거부하고 부분 채택하지 않는다.
+  - 같은 채택을 HTTP로 두 번 요청해도 candidate_set과 revision이 중복 생성되지 않는다
+    (내부 `complete`는 두 번째 호출을 `adopted:false`로 거부한다). revision이 다르면 전체를
+    거부하고 부분 채택하지 않는다.
   - 채택 뒤 task 조회로 evidence·후보·충돌·현재 revision을 복원할 수 있고, 그 과정에서 allow
     결정이나 공개 허가가 자동 생성되지 않는다.
   - 분석 결과의 임시 ID와 영속 candidate ID의 대응을 응답에서 확인할 수 있으며, 다른 task의

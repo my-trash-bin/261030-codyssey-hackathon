@@ -11,7 +11,8 @@
     "test": "pnpm build && pnpm -r test && node --test tools/*.test.mjs",
     "dev:client": "pnpm --filter @safehandoff/client dev",
     "dev:app": "pnpm --filter @safehandoff/app dev",
-    "dev:fake-app": "pnpm --filter @safehandoff/fake-app dev"
+    "dev:fake-app": "pnpm --filter @safehandoff/fake-app dev",
+    "demo:cdp": "node scripts/demo/run.mjs"
   },
   "devDependencies": {
     "@fontsource-variable/noto-sans-kr": "5.3.1",

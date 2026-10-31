@@ -64,6 +64,13 @@ SAFEHANDOFF_TRANSCRIPT_DIR를 설정하면 실제 app과 OSS 스모크의 Engine
 
 기존 HTTP 요청·응답 필드는 그대로이며 transcript 조회 API는 없다. 파일은 로컬 내부 기록이고 녹화 재생은 실제 호출 표시와 구분해야 한다. [이벤트 계약과 보존 제한](transcript.md)을 따른다. 작업 삭제 연동·상시 24시간 만료는 후속 구현이다.
 
+## fake-app CDP 연출 화면
+
+GET `/__presentation`, `/__presentation.js`, `/__presentation.css`는 fake-app만 제공하는 고정 자원입니다.
+기존 `/__demo` 설정 화면과 병행하며 실제 app이나 공통 server에는 추가하지 않습니다.
+연출의 분석·공개 선택은 브라우저 상태이며 새로운 task/decision API가 아닙니다.
+생성·저장·조회는 위 `/api/sharing`, `/api/documents` 계약을 그대로 사용합니다.
+
 ## ToyRecord 팩 스모크
 
 HTTP 필드와 환경 변수는 추가하지 않았다. OSS CLI는 `--catalog`와 `--pack-version`을 함께 받으며 `--registration`의 pack pin·target·정확한 image digest를 대조한다. `--seed`는 기본 42인 unsigned 32-bit 정수다. 기존 catalog 없는 image 등록 경로도 유지한다. 새 bound installation을 catalog 없이 쓰면 거부한다. 보고서 selected_pack과 transcript pack_selected가 같은 팩 지문을 담는다. [명세·실행 절차](toyrecord-pack.md)를 따른다.
@@ -76,8 +83,26 @@ Engine이 없는 앱에서는 503 `CORE_NOT_IMPLEMENTED`를 반환한다. 잘못
 모델 오류는 503으로 반환한다. 연결 종료는 분석 취소 신호로 전달한다.
 
 주입된 Engine의 `analyze({task,sources}, {signal?})`는 base64 원자료·source SHA-256·version·
-included 바인딩을 검사하고 `{evidence,proposals}`를 반환한다. 이 결과는 공개 결정·서버
-candidate_set 채택·의미 정확도 검증 완료가 아니다.
+included 바인딩을 검사하고 `{evidence,proposals}`를 반환한다. 이 응답은 공개 결정이 아니며
+`/api/analysis`는 결과를 저장하지 않는다. 별도 내부 경로 `TaskStore.analysis`·`runTaskAnalysis`가
+source·evidence·job을 저장하고 CAS로 채택하지만 이 라우트와 연결되지 않았다.
 [파서 위치·한도·nullable 정규화·오류 계약](f02-analyze-plan.md)을 따른다. 원자료는 analysis 역할의
 설정된 모델로만 전달하고 writer 세션과 공유하지 않는다. 현재 라이브러리 자체가 프로세스의
 인터넷 차단이나 DB 권한·revision/CAS를 집행하는 것은 아니다. 분석 본문은 transcript에 기록하지 않는다.
+
+
+## F02 내부 저장·채택
+
+새 HTTP 경로·환경 변수는 없다. 기존 `/api/analysis`는 stateless이고 task/decision CRUD와
+job polling API를 추가하지 않았다. TaskStore의 migration v2는 source version/선택, evidence,
+분석 job snapshot, 후보 provenance를 추가하며 기존 문서·후보·결정을 보존한다.
+
+내부 호출 순서는 `store.analysis.replaceSources(id, revision, sources)` 후
+`runTaskAnalysis(store, engine, id, revision, {signal?})`다. 분석 시작은 이전 현재 후보·결정을
+무효화하고 revision을 올린다. 성공 채택도 새 revision이며 오래된 결과는 adopted=false다.
+모델 없는 `analysis.addManual`은 candidate와 evidence_ids 또는 user_note 중 하나를 받는다.
+현재 후보를 새 ID로 복제하되 선택은 옮기지 않으며 revision은 한 번 증가한다.
+
+새 내부 오류는 INVALID_ANALYSIS/ANALYSIS_NOT_FOUND다. 삭제된 job은 다시 만들지 않으며
+취소·실패·stale terminal 상태를 성공으로 복귀시키지 않는다. caller가 내부 job/source 조회 결과를
+일반 로그·공개 응답으로 직렬화하면 안 된다. [전체 내부 범위](f02-analyze-plan.md)를 따른다.

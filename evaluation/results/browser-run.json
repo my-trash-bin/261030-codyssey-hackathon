@@ -1,0 +1,31 @@
+{
+  "status": "pass",
+  "widths": [
+    {
+      "width": 1280,
+      "scroll": 1280
+    },
+    {
+      "width": 1366,
+      "scroll": 1366
+    }
+  ],
+  "errors": [],
+  "download": "safehandoff-public.zip",
+  "multipart_retry": {
+    "attempts": 2,
+    "same_key": true,
+    "same_bytes": true
+  },
+  "checks": [
+    "업로드",
+    "분석",
+    "미리보기 확인 후 개별 공개 선택",
+    "작성 중 검토 및 최종 검사",
+    "두 화면 너비",
+    "확정",
+    "새로고침 복원",
+    "ZIP 다운로드",
+    "작업 기록"
+  ]
+}

@@ -59,3 +59,40 @@ CREATE TRIGGER IF NOT EXISTS workflow_decisions_immutable BEFORE UPDATE ON workf
  BEGIN SELECT RAISE(ABORT,'IMMUTABLE_DECISION'); END;
 INSERT OR IGNORE INTO task_store_migrations(version,applied_at) VALUES(1,strftime('%Y-%m-%dT%H:%M:%fZ','now'));
 `;
+
+// Additive v2: internal F02 persistence, not the full jobs/task wire schema.
+export const analysisSchema = `
+CREATE TABLE IF NOT EXISTS workflow_source_versions(
+ task_id TEXT NOT NULL REFERENCES workflow_tasks(id) ON DELETE CASCADE, id TEXT NOT NULL,
+ payload_json TEXT NOT NULL CHECK(json_valid(payload_json)), PRIMARY KEY(task_id,id)
+);
+CREATE TABLE IF NOT EXISTS workflow_source_selections(
+ task_id TEXT NOT NULL, source_id TEXT NOT NULL, PRIMARY KEY(task_id,source_id),
+ FOREIGN KEY(task_id,source_id) REFERENCES workflow_source_versions(task_id,id) ON DELETE CASCADE
+);
+CREATE TABLE IF NOT EXISTS workflow_evidence(
+ task_id TEXT NOT NULL, id TEXT NOT NULL, source_id TEXT NOT NULL,
+ payload_json TEXT NOT NULL CHECK(json_valid(payload_json)), PRIMARY KEY(task_id,id),
+ FOREIGN KEY(task_id,source_id) REFERENCES workflow_source_versions(task_id,id) ON DELETE CASCADE
+);
+CREATE TABLE IF NOT EXISTS workflow_analysis_jobs(
+ task_id TEXT NOT NULL REFERENCES workflow_tasks(id) ON DELETE CASCADE, id TEXT PRIMARY KEY,
+ revision INTEGER NOT NULL, snapshot_json TEXT NOT NULL CHECK(json_valid(snapshot_json)),
+ status TEXT NOT NULL CHECK(status IN ('running','succeeded','failed','cancelled','stale')),
+ error_code TEXT, result_json TEXT CHECK(result_json IS NULL OR json_valid(result_json))
+);
+CREATE TABLE IF NOT EXISTS workflow_candidate_provenance(
+ task_id TEXT NOT NULL, candidate_id TEXT NOT NULL, payload_json TEXT NOT NULL CHECK(json_valid(payload_json)),
+ PRIMARY KEY(task_id,candidate_id),
+ FOREIGN KEY(task_id,candidate_id) REFERENCES workflow_candidates(task_id,id) ON DELETE CASCADE
+);
+CREATE TRIGGER IF NOT EXISTS workflow_sources_immutable BEFORE UPDATE ON workflow_source_versions
+ BEGIN SELECT RAISE(ABORT,'IMMUTABLE_SOURCE_VERSION'); END;
+CREATE TRIGGER IF NOT EXISTS workflow_evidence_immutable BEFORE UPDATE ON workflow_evidence
+ BEGIN SELECT RAISE(ABORT,'IMMUTABLE_EVIDENCE'); END;
+CREATE TRIGGER IF NOT EXISTS workflow_analysis_snapshot_immutable BEFORE UPDATE ON workflow_analysis_jobs
+ WHEN NEW.id IS NOT OLD.id OR NEW.task_id IS NOT OLD.task_id OR NEW.revision IS NOT OLD.revision
+ OR NEW.snapshot_json IS NOT OLD.snapshot_json
+ BEGIN SELECT RAISE(ABORT,'IMMUTABLE_ANALYSIS_SNAPSHOT'); END;
+INSERT OR IGNORE INTO task_store_migrations(version,applied_at) VALUES(2,strftime('%Y-%m-%dT%H:%M:%fZ','now'));
+`;

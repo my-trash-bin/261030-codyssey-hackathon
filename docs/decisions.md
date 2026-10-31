@@ -192,6 +192,15 @@ OverlayFS 대신 읽기전용 bind mount + tmpfs를 쓰기로 했다(`DockerRepr
 - 사용자 요청에 따라 회귀 시험은 결정적 수치/바이트/hash/참조/정책 상태만 판정한다. 생성 문장 의미의 정규식 검사와 해당 테스트는 제거했다. 모델 검토는 보조이며 문서 최종화와 구분한다.
 - 실제 Docker 네 실행 및 기존 모델 작성·검토의 결과와 앞선 자연어 횟수 오류는 [3차 실행 기록](live-smoke-2026-10-31c.md)에 남겼다. 원자료 분석과 사람 승인은 fixture 가정이며 실제 운영 기능 완료의 근거로 사용하지 않는다.
 
+## 2026-10-31 · 최신 main과 CDP 연출 통합
+
+Go fixture 의존 시연을 제거하고 pnpm workspace의 fake-app 전용 화면으로 전환합니다.
+실제 앱·진짜 코어와 분리하며 분석·선택·최종 확인을 연출로 명시합니다.
+기존 공통 생성·문서 저장 API만 사용하고 자막·탐색·110초 제출 제한을 유지합니다.
+
+Linux 전용 팩 로더의 안전한 경로 해석을 macOS용 단순 경로 읽기로 대체하지 않습니다.
+Linux 파일시스템 시험은 해당 플랫폼에서만 실행하고 다른 플랫폼에서는 거부 계약을 검사합니다.
+
 ## 2026-10-31 · F07 잔여 항목 일부 정리
 
 사용자 요청에 따라 OSS 재현 스모크를 세 사례(seed 42/7/2026)로 transcript 기록과 함께 재확인했다
@@ -307,3 +316,13 @@ F03도 F02와 같은 방식으로 계약·역할·구조를 먼저 정리했다(
 (`deriveSeries`/`renderTimeline`/`renderApprovedExcerpt`)가 F03 preview가 필요로 하는 계산과
 정확히 일치한다는 것도 확인했다 — grant 검사 없이 직접 호출하면 된다. `selected_fields`/
 `exact_value`는 대응하는 함수가 없어 다음 라운드로 남겼다. 로직 구현은 하지 않았다.
+
+
+## 2026-10-31 · F02 내부 snapshot/CAS와 수동 후보
+
+코딩 전 축소 계획 뒤 TaskStore migration v2로 source version/선택·evidence·분석 job·후보
+provenance를 추가했다. 모델 없는 user_note/근거 수동 경로는 새 후보 ID·단일 revision으로
+채택하고 기존 결정은 복제하지 않는다. 모델 호출은 DB lock 밖에서 하고 현재 job·revision·
+source/skill/context 대조 후에만 원자적으로 채택한다. 취소·실패·재분석·삭제 뒤 결과는 되살리지 않는다.
+검증은 임시 DB와 지연된 가상 Engine·로컬 HTTP 모델로 결정적 조건만 검사한다. 새 task HTTP·
+UI·Rule·roleDocuments·verified selector와 실제 모델 출력 예산 변경은 범위에 넣지 않았다.

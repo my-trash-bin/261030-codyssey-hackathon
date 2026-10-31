@@ -16,6 +16,13 @@ test('demo control changes fake copy and connection failures without modifying t
   const generate = () => fetch(base + '/api/sharing', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(input) });
   try {
     assert.equal((await fetch(base + '/__demo')).status, 200);
+    const presentation = await fetch(base + '/__presentation');
+    assert.equal(presentation.status, 200);
+    assert.match(await presentation.text(), /실제 승인 기능이 아닙니다/);
+    for (const suffix of ['js', 'css']) {
+      assert.equal((await fetch(base + '/__presentation.' + suffix)).status, 200);
+    }
+    assert.equal((await fetch(base + '/__presentation/../../config.json')).status, 404);
     const settings = { script: { title: '개선한 연출', opening: '도입', closing: '마무리' }, connection: { delayMs: 0, failuresRemaining: 1 } };
     const changed = await fetch(base + '/api/demo/settings', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(settings) });
     assert.equal(changed.status, 200);

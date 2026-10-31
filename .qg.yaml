@@ -8,6 +8,7 @@ artifacts:
     include:
       - docs/presentation/SafeHandoff_발표자료_통합.html
       - evaluation/**
+      - docs/demo-media/**
       - var/**
       - bin/**
       - contracts/openapi.json
@@ -31,6 +32,7 @@ rules:
   files/max-bytes:
     severity: error
     options:
+      ignoredPaths: [docs/demo-media/SafeHandoff-demo.mp4]
       ignoredDirectories: [.git, .local, .qg, node_modules, dist, var, bin]
   files/max-line-length:
     severity: error
@@ -49,6 +51,10 @@ overrides:
   - files: [docs/presentation/*.pdf]
     rules:
       files/max-bytes: off
+  - files: [docs/presentation/*.html]
+    rules:
+      files/max-line-length: [error, {limit: 1600}]
+
   - files: [docs/traceability.csv]
     rules:
       files/max-line-length: [error, {limit: 650}]

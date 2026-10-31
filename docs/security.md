@@ -120,3 +120,10 @@ F02 Engine 분석은 전달받은 included snapshot을 결정적으로 파싱하
 원자료와 근거를 보낸다. analyst의 도구·파일 조회 경로는 제공하지 않으며 분석과 writer 호출은
 분리한다. 상세 transcript를 켜도 분석 본문은 저장하지 않는다. 호출자 권한·DB snapshot/CAS·
 프로세스 네트워크 격리와 사내 모델의 실제 운영 권한은 이 라이브러리만으로 완성하지 않는다.
+
+
+F02 내부 저장은 서버가 source hash와 snapshot revision을 고정하고, 비동기 Engine 호출 후
+현재 job·revision·source/skill/context를 다시 대조해 채택한다. source version과 job snapshot은
+불변이며 task 삭제 시 source·근거·job/provenance도 cascade로 제거한다. 새 수동 후보는 공개
+결정을 승계하지 않는다. 이는 내부 라이브러리이며 stateless 분석 HTTP·인증·CSRF·원자료 실행
+환경 격리·Rule 철회 전파·전체 artifact/export 제어를 자동 완성한 것은 아니다. selector도 발급하지 않는다.

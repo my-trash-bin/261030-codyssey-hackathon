@@ -3,11 +3,11 @@ import { mkdirSync } from 'node:fs';
 import { dirname } from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
 import type { Candidate, DisclosurePreview, TaskContext } from '@safehandoff/core-interface';
-import { taskSchema } from './task-schema.ts';
+import { AnalysisStore } from './analysis-store.ts';
+import { TaskStoreError } from './task-error.ts';
+export { TaskStoreError } from './task-error.ts';
+import { analysisSchema, taskSchema } from './task-schema.ts';
 
-export class TaskStoreError extends Error {
-  constructor(code: 'INVALID_TASK_INPUT' | 'TASK_NOT_FOUND' | 'REVISION_CONFLICT' | 'INVALID_DECISION' | 'IDEMPOTENCY_CONFLICT') { super(code); }
-}
 export interface StoredTask {
   id: string; revision: number; phase: 'needs_analysis' | 'needs_decisions' | 'ready_to_generate';
   context: TaskContext; source_set_hash: string; skill_set_hash: string; current_candidate_set_id: string | null;
@@ -25,6 +25,7 @@ const text = (value: unknown): value is string => typeof value === 'string' && B
 const fail = (): never => { throw new TaskStoreError('INVALID_TASK_INPUT'); };
 
 export class TaskStore {
+  readonly analysis: AnalysisStore;
   private readonly db: DatabaseSync;
   private readonly clock: () => Date;
   constructor(path: string, clock: () => Date = () => new Date()) {
@@ -34,11 +35,16 @@ export class TaskStore {
     try {
       this.db.exec('PRAGMA foreign_keys=ON; PRAGMA journal_mode=WAL; PRAGMA busy_timeout=3000;');
       const migrated = this.db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='task_store_migrations'").get();
-      if (migrated && Number(this.db.prepare('SELECT max(version) AS version FROM task_store_migrations').get()?.version) > 1) {
+      if (migrated && Number(this.db.prepare('SELECT max(version) AS version FROM task_store_migrations').get()?.version) > 2) {
         throw new Error('UNSUPPORTED_TASK_SCHEMA');
       }
-      this.transaction(() => { this.db.exec(taskSchema); });
+      this.transaction(() => { this.db.exec(taskSchema + analysisSchema); });
     } catch (error) { this.db.close(); throw error; }
+    this.analysis = new AnalysisStore(this.db, {
+      transaction: work => this.transaction(work), current: (id, revision) => this.current(id, revision),
+      get: id => this.get(id), advance: (task, phase) => this.advance(task, phase),
+      adopt: (task, candidates) => this.adoptCandidates(task, candidates),
+    });
   }
   private transaction<T>(work: () => T): T {
     this.db.exec('BEGIN IMMEDIATE');
@@ -80,24 +86,24 @@ export class TaskStore {
     this.snapshot(task.id); return this.get(task.id);
   }
   installCandidates(id: string, revision: number, candidates: Candidate[]): StoredTask {
+    return this.transaction(() => this.adoptCandidates(this.current(id, revision), candidates));
+  }
+  private adoptCandidates(task: StoredTask, candidates: Candidate[]): StoredTask {
     if (!Array.isArray(candidates) || candidates.length > 100) fail();
-    return this.transaction(() => {
-      const task = this.current(id, revision), set = randomUUID();
-      this.db.prepare('INSERT INTO workflow_candidate_sets VALUES(?,?,?)').run(id, set, revision + 1);
-      for (const candidate of candidates) {
-        if (!text(candidate.local_key) || !text(candidate.statement) || !text(candidate.purpose_relevance) ||
-          !['observation', 'constraint', 'hypothesis', 'unknown', 'identifier'].includes(candidate.kind) ||
-          !['observed', 'reported', 'inferred', 'unknown'].includes(candidate.uncertainty) ||
-          !['required', 'optional'].includes(candidate.relevance) || !Array.isArray(candidate.evidence_ids) ||
-          candidate.evidence_ids.length > 100 || !candidate.evidence_ids.every(text) ||
-          Object.keys(candidate).sort().join(',') !== 'evidence_ids,kind,local_key,purpose_relevance,relevance,statement,uncertainty') fail();
-        // Internal caller supplies fresh per-task IDs; duplicates roll back the adoption.
-        this.db.prepare('INSERT INTO workflow_candidates VALUES(?,?,?,?)').run(id, set, candidate.local_key, JSON.stringify(candidate));
-      }
-      this.db.prepare('DELETE FROM workflow_current_decisions WHERE task_id=?').run(id);
-      this.db.prepare('UPDATE workflow_tasks SET current_candidate_set_id=? WHERE id=?').run(set, id);
-      return this.advance(task, 'needs_decisions');
-    });
+    const id = task.id, revision = task.revision, set = randomUUID();
+    this.db.prepare('INSERT INTO workflow_candidate_sets VALUES(?,?,?)').run(id, set, revision + 1);
+    for (const candidate of candidates) {
+      if (!candidate || !text(candidate.local_key) || !text(candidate.statement) || typeof candidate.purpose_relevance !== 'string' ||
+        candidate.purpose_relevance.length > 8192 || !['observation', 'constraint', 'hypothesis', 'unknown', 'identifier'].includes(candidate.kind) ||
+        !['observed', 'reported', 'inferred', 'unknown'].includes(candidate.uncertainty) ||
+        !['required', 'optional'].includes(candidate.relevance) || !Array.isArray(candidate.evidence_ids) ||
+        candidate.evidence_ids.length > 100 || !candidate.evidence_ids.every(text) ||
+        Object.keys(candidate).sort().join(',') !== 'evidence_ids,kind,local_key,purpose_relevance,relevance,statement,uncertainty') fail();
+      this.db.prepare('INSERT INTO workflow_candidates VALUES(?,?,?,?)').run(id, set, candidate.local_key, JSON.stringify(candidate));
+    }
+    this.db.prepare('DELETE FROM workflow_current_decisions WHERE task_id=?').run(id);
+    this.db.prepare('UPDATE workflow_tasks SET current_candidate_set_id=? WHERE id=?').run(set, id);
+    return this.advance(task, 'needs_decisions');
   }
   private candidate(task: StoredTask, candidateId: string): Candidate {
     const row = this.db.prepare('SELECT payload_json FROM workflow_candidates WHERE task_id=? AND id=? AND set_id=?')

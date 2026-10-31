@@ -4,11 +4,12 @@ import type { AddressInfo } from 'node:net';
 import { mkdtemp, readFile, readdir, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import test from 'node:test';
-import { createApp, DocumentStore } from '@safehandoff/server';
+import { createApp, DocumentStore, TaskStore, runTaskAnalysis } from '@safehandoff/server';
 import { configuredCore, configuredTranscripts, loadConfig } from './config.ts';
 
-const root = new URL('../../../', import.meta.url).pathname;
+const root = fileURLToPath(new URL('../../../', import.meta.url));
 test('public config works without private config and invalid config fails safely', async () => {
   const dir = await mkdtemp(join(tmpdir(), 'safehandoff-config-'));
   try {
@@ -96,6 +97,17 @@ test('configured Engine analyze parses sources and uses the actual local HTTP mo
     const result = await core.analyze({ task: { purpose: 'support', recipient: 'vendor' }, sources });
     assert.equal(calls, 1); assert.equal(result.evidence.length, 2);
     assert.deepEqual(result.proposals.candidates[0]!.evidence_ids, result.evidence.map(item => item.id));
+    const tasks = new TaskStore(':memory:');
+    try {
+      const task = tasks.create({ purpose: 'support', recipient: 'vendor' }, 'a'.repeat(64), 'b'.repeat(64));
+      const snapshot = tasks.analysis.replaceSources(task.id, task.revision, sources);
+      const adopted = await runTaskAnalysis(tasks, core, task.id, snapshot.revision);
+      assert.equal(adopted.adopted, true); assert.equal(adopted.job.status, 'succeeded');
+      assert.equal(tasks.analysis.evidence(task.id).length, 2);
+      const candidate = tasks.analysis.candidates(task.id)[0]!;
+      assert.equal(candidate.origin, 'model'); assert.notEqual(candidate.id, candidate.local_key);
+      assert.deepEqual(tasks.decisions(task.id), []); assert.equal(calls, 2);
+    } finally { tasks.close(); }
   } finally {
     endpoint.closeAllConnections(); await new Promise<void>(resolve => endpoint.close(() => resolve()));
     await rm(dir, { recursive: true, force: true });

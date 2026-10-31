@@ -1,0 +1,13 @@
+:root {font:16px/1.65 system-ui,sans-serif;color:#20343b;background:#f4f6f5}
+* {box-sizing:border-box} body {margin:0} header {display:flex;gap:30px;padding:20px 32px;background:white}
+header strong {font-size:26px;color:#17645c} a {color:#17645c} .mode {padding:12px 32px;background:#fff5df}
+main {max-width:1360px;margin:30px auto;padding:0 20px} .narrow {max-width:850px;margin:auto}
+.panel,.card,.file {background:white;padding:24px;border:1px solid #d7e2df;border-radius:12px;margin:14px 0}
+.grid {display:grid;grid-template-columns:1fr 1.2fr;gap:24px}.grid>.panel {max-height:700px;overflow:auto}
+label,input,select,textarea {display:block;width:100%;font:inherit} input,select,textarea {padding:10px;margin:12px 0}
+input[type=checkbox] {display:inline;width:auto} button,.button {font:inherit;padding:10px 16px;border:1px solid #bed4cb;
+border-radius:8px;background:#f8fffc;color:#17645c;cursor:pointer;margin:6px 6px 6px 0;display:inline-block}
+.primary {background:#236d61;color:white} button:disabled {opacity:.4;cursor:default}
+pre {white-space:pre-wrap;overflow-wrap:anywhere;background:#f2f7f5;padding:16px;font-size:15px}
+.status {padding:16px;background:#e7f4ee} .muted {color:#65786f} .badge {color:#17645c}
+#error {color:#9c2626;padding:0 32px} @media(max-width:850px){.grid {grid-template-columns:1fr}}

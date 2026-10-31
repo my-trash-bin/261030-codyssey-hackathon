@@ -94,7 +94,7 @@ candidate 목록 구조(1번)가 생긴 뒤에 그 위에 얹는 게 자연스�
 
 다음은 UI 구조 준비와 구분해야 하는 실제 연결 조건이다.
 
-- F02 분석 응답의 서버 candidate_set 채택과 task·preview·decision·job HTTP 라우트의 실제 제공. `POST /api/analysis`는 작업 화면의 파일 입력과 연결되어 근거·후보 제안을 내부 검토용으로 표시하지만, 응답의 임시 evidence·후보 참조를 task·candidate로 저장하거나 조회·결정 경로로 넘기지는 않는다. 서버의 candidate_set 채택과 task HTTP 조회는 여전히 미연결이다.
+- F02 분석 응답의 서버 candidate_set 채택은 `TaskStore.analysis`·`runTaskAnalysis` 내부 경로로 구현됐고, task·preview·decision·job HTTP 라우트의 실제 제공과 화면 연결이 남았다. `POST /api/analysis`는 작업 화면의 파일 입력과 연결되어 근거·후보 제안을 내부 검토용으로 표시하지만, 응답의 임시 evidence·후보 참조를 task·candidate로 저장하거나 조회·결정 경로로 넘기지는 않는다. task HTTP 조회는 여전히 미연결이다.
 - C의 정의·구현 정리. 보존된 `contracts/core/shared.schema.json`에는 이미 `select_fields.v1`의
   `parameters.fields: string[]`가 있다. 반면 UI 준비 기준으로 삼은 HTTP 스키마에는 `fields`와
   `select_fields.v1`이 없다. 이는 참고 자료 간 불일치이지 실제 서버가 해당 필드를 거부한 관측이 아니다.
@@ -103,13 +103,13 @@ candidate 목록 구조(1번)가 생긴 뒤에 그 위에 얹는 게 자연스�
 - 세션 응답의 CSRF 토큰 필드·획득 방식. `/api/v1/session`의 성공 응답 `data`는 아직 구체화되지 않았다.
 - 후보 전용 조회와 일괄 적용·철회 응답의 구체적인 DTO. 적용·철회 뒤에는 성공 응답을 추정하지 않고 작업 전체를 재조회한다.
 
-임의 필드·인증 응답·성공 결과를 만들지 않는다. UI 동작 확인과 실제 서버 승인·저장은 별도로 보고한다. 분석 결과 채택·결정 HTTP·C 필드의 남은 요청은 [분석 UI 이후 서버 요청](ui-api-requests.md)에 대상·기존 기능·빠진 접점·수용 기준으로 나눠 적었다.
+임의 필드·인증 응답·성공 결과를 만들지 않는다. UI 동작 확인과 실제 서버 승인·저장은 별도로 보고한다. 분석 결과 채택의 HTTP 노출·결정 HTTP·C 필드의 남은 요청은 [분석 UI 이후 서버 요청](ui-api-requests.md)에 대상·기존 기능·빠진 접점·수용 기준으로 나눠 적었다.
 
 ## UI 선행 작업 반영
 
 | 항목 | UI 반영 | 실제 연결 경계 |
 | --- | --- | --- |
-| 1. 후보별 목록 | 작업 전체 응답을 받아 후보별 독립 결정·표현을 렌더링 | F02 결과의 서버 candidate_set 채택과 task HTTP 조회는 미연결 |
+| 1. 후보별 목록 | 작업 전체 응답을 받아 후보별 독립 결정·표현을 렌더링 | F02 결과의 내부 채택은 구현됨. task HTTP 조회와 화면 연결은 미연결 |
 | 2. 미리보기·저장 분리 | 요청 가능한 상태에서 A·B 선택 시 미리보기만 요청하고, 서버 projection·해시를 표시해 allow에만 참조를 결합 | C의 필드 선택·미리보기는 미완료. 토큰 없는 운영 화면은 전송하지 않으며 결정 저장은 전체 적용에서만 수행 |
 | 3. 결정 3종 | 미선택·allow·exclude·defer를 구분 | 미선택을 자동 허용하거나 defer로 바꾸지 않음 |
 | 4. 일괄 적용 | 선택한 결정만 단일 배치로 제출, 미선택은 제외 | optional 전원 선택과 임의 충돌 해소 규칙을 강요하지 않음 |

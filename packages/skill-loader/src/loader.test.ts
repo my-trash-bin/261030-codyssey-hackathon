@@ -14,6 +14,15 @@ const catalog: SkillCatalog = { productIds: ['vendorstore-lab'], purposeIds: ['v
   toolIds: ['derive_series_v1', 'render_timeline_v1', 'make_config_example_v1', 'check_doc_ip_context_v1'], templateIds: ['vendor_support.v1'] };
 const code = (expected: string) => (error: unknown) => error instanceof SkillPackError && error.code === expected && error.message === expected;
 const hash = (bytes: string | Buffer) => createHash('sha256').update(bytes).digest('hex');
+const linuxTest = (name: string, run: () => Promise<void>) => test(name, {
+  skip: process.platform !== 'linux' ? 'Requires Linux descriptor-relative /proc filesystem traversal' : false,
+}, run);
+
+test('unsupported platforms reject pack loading without a weaker filesystem fallback', {
+  skip: process.platform === 'linux' ? 'Non-Linux platform contract' : false,
+}, async () => {
+  await assert.rejects(new FsSkillPackLoader(catalog).load('/unavailable-pack'), code('PACK_MANIFEST_INVALID'));
+});
 async function temporary(run: (root: string, parent: string) => Promise<void>) {
   const parent = await mkdtemp(join(tmpdir(), 'safehandoff-pack-')), root = join(parent, 'pack');
   try { await cp(fixture, root, { recursive: true }); await run(root, parent); }
@@ -26,7 +35,7 @@ async function alter(root: string, mutate: (manifest: Record<string, any>) => vo
 const pin = (pack: Awaited<ReturnType<FsSkillPackLoader['load']>>): SkillPackPin => ({ id: pack.manifest.id, version: pack.manifest.version,
   manifest_sha256: pack.manifest_sha256, pack_sha256: pack.pack_sha256 });
 
-test('real fixture bytes have stable sorted digests and binary-safe base64', async () => {
+linuxTest('real fixture bytes have stable sorted digests and binary-safe base64', async () => {
   await temporary(async root => {
     await writeFile(join(root, 'assets', 'binary.bin'), Buffer.from([0, 255, 13, 10]));
     const loader = new FsSkillPackLoader(catalog), pack = await loader.load(root);
@@ -46,7 +55,7 @@ test('real fixture bytes have stable sorted digests and binary-safe base64', asy
     });
   });
 });
-test('same version changed document asset manifest or added file rejects the registered pin', async () => {
+linuxTest('same version changed document asset manifest or added file rejects the registered pin', async () => {
   for (const path of ['references/analysis.md', 'assets/support-request-template.json', 'manifest.json', 'assets/new.txt']) {
     await temporary(async root => {
       const loader = new FsSkillPackLoader(catalog), installed = await loader.load(root);
@@ -57,7 +66,7 @@ test('same version changed document asset manifest or added file rejects the reg
     });
   }
 });
-test('unknown fields wrong versions duplicate JSON keys and invalid UTF-8 are rejected', async () => {
+linuxTest('unknown fields wrong versions duplicate JSON keys and invalid UTF-8 are rejected', async () => {
   const invalid = [
     '{}', '{', 'null', '[]',
     '{"schema_version":"skill_manifest.v1","schema_version":"skill_manifest.v1"}',
@@ -83,7 +92,7 @@ test('unknown fields wrong versions duplicate JSON keys and invalid UTF-8 are re
     await alter(root, mutate); await assert.rejects(new FsSkillPackLoader(catalog).load(root), code('PACK_MANIFEST_INVALID'));
   });
 });
-test('invalid references and aliases fail; cross-role reuse of one file is valid', async () => {
+linuxTest('invalid references and aliases fail; cross-role reuse of one file is valid', async () => {
   for (const [path, expected] of [['../outside.md', 'PACK_PATH_ESCAPES_ROOT'], ['/etc/passwd', 'PACK_PATH_ABSOLUTE'],
     ['references/missing.md', 'PACK_REFERENCE_MISSING'], ['references', 'PACK_REFERENCE_MISSING'],
     ['./SKILL.md', 'PACK_MANIFEST_INVALID']]) {
@@ -100,7 +109,7 @@ test('invalid references and aliases fail; cross-role reuse of one file is valid
     await assert.rejects(loader.load(root), code('PACK_PATH_DUPLICATE'));
   });
 });
-test('file directory root and parent symlinks are never followed, including unreferenced files', async () => {
+linuxTest('file directory root and parent symlinks are never followed, including unreferenced files', async () => {
   for (const path of ['SKILL.md', 'manifest.json', 'references', 'assets/unreferenced']) {
     await temporary(async (root, parent) => {
       const outside = join(parent, 'outside'); await mkdir(outside); await writeFile(join(outside, 'secret'), 'NEVER READ');
@@ -115,7 +124,7 @@ test('file directory root and parent symlinks are never followed, including unre
     await assert.rejects(loader.load(join(parent, 'alias', 'references')), code('PACK_PATH_SYMLINK'));
   });
 });
-test('hardlinks special files and case aliases are rejected before content reads', async () => {
+linuxTest('hardlinks special files and case aliases are rejected before content reads', async () => {
   await temporary(async (root, parent) => {
     const outside = join(parent, 'outside.txt'); await writeFile(outside, 'private');
     await link(outside, join(root, 'assets', 'hardlink'));
@@ -130,14 +139,14 @@ test('hardlinks special files and case aliases are rejected before content reads
     await assert.rejects(new FsSkillPackLoader(catalog).load(root), code('PACK_PATH_DUPLICATE'));
   });
 });
-test('missing entrypoints and references fail without exposing filesystem paths', async () => {
+linuxTest('missing entrypoints and references fail without exposing filesystem paths', async () => {
   for (const path of ['SKILL.md', 'manifest.json', 'references/analysis.md']) await temporary(async root => {
     await rm(join(root, path));
     await assert.rejects(new FsSkillPackLoader(catalog).load(root), code('PACK_REFERENCE_MISSING'));
   });
   await assert.rejects(new FsSkillPackLoader(catalog).load('/nonexistent-safehandoff-pack'), code('PACK_REFERENCE_MISSING'));
 });
-test('bounded traversal rejects oversized files manifests total bytes depth and file counts', async () => {
+linuxTest('bounded traversal rejects oversized files manifests total bytes depth and file counts', async () => {
   await temporary(async root => {
     await writeFile(join(root, 'assets', 'large'), Buffer.alloc(PACK_LIMITS.fileBytes + 1));
     await assert.rejects(new FsSkillPackLoader(catalog).load(root), code('PACK_LIMIT_EXCEEDED'));
@@ -163,7 +172,7 @@ test('bounded traversal rejects oversized files manifests total bytes depth and 
     await assert.rejects(new FsSkillPackLoader(catalog).load(root), code('PACK_LIMIT_EXCEEDED'));
   });
 });
-test('scripts are only hashed; catalogue is copied and returned objects do not mutate loader state', async () => {
+linuxTest('scripts are only hashed; catalogue is copied and returned objects do not mutate loader state', async () => {
   await temporary(async (root, parent) => {
     await mkdir(join(root, 'scripts')); const marker = join(parent, 'executed');
     await writeFile(join(root, 'scripts', 'example.js'), `import {writeFileSync} from 'node:fs'; writeFileSync(${JSON.stringify(marker)}, 'bad');`);
@@ -176,7 +185,7 @@ test('scripts are only hashed; catalogue is copied and returned objects do not m
   });
 });
 
-test('pins and catalogue validation reject malformed or unregistered identities', async () => {
+linuxTest('pins and catalogue validation reject malformed or unregistered identities', async () => {
   assert.throws(() => new FsSkillPackLoader({ ...catalog, productIds: ['vendorstore-lab', 'vendorstore-lab'] }), code('PACK_MANIFEST_INVALID'));
   await temporary(async root => {
     const loader = new FsSkillPackLoader(catalog), installed = await loader.load(root), pinned = pin(installed);

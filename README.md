@@ -80,7 +80,7 @@ intent.md·제품 설계·contracts·fixtures/demo·과거 evaluation 기록은 
 
 `OpenAICompatibleModelClient(providerConfig, env?)`는 설정에 지정한 환경 변수 이름으로 URL·모델·키를 조회합니다. 환경 변수는 아래 연결 표를 따릅니다. 한 complete 호출은 HTTP 요청 한 번이며 재시도는 Engine이 담당합니다. HTTP 테스트는 로컬 목 서버만 사용합니다.
 
-`RealCore.analyze()`의 결정적 근거 파싱·후보 검증과 `POST /api/analysis`는 구현했고, 작업 화면은 파일 입력을 이 API에 연결해 근거·후보 제안을 표시합니다. 공개 제안·미리보기 계산과 task/decision HTTP API·분석 결과의 서버 candidate_set 채택은 미구현입니다. Docker 실행기와 내부 task/decision 저장은 [3라운드 범위](docs/round3-scope.md)로 구현했습니다. `composeFactPack`은 서버가 범위·원자료·hash를 검증한 현재 결정과 미리보기를 입력받는 순수 변환이며 승인 저장을 대신하지 않습니다.
+`RealCore.analyze()`의 결정적 근거 파싱·후보 검증과 `POST /api/analysis`는 구현했고, 작업 화면은 파일 입력을 이 API에 연결해 근거·후보 제안을 표시합니다. 공개 제안·미리보기 계산과 task/decision HTTP API는 미구현입니다. 분석 결과의 source·evidence·job snapshot 저장과 candidate_set 채택은 `TaskStore.analysis`·`runTaskAnalysis` 내부 경로로 구현했지만 `/api/analysis`를 통한 자동 저장과 화면 연결은 하지 않았습니다. Docker 실행기와 내부 task/decision 저장은 [3라운드 범위](docs/round3-scope.md)로 구현했습니다. `composeFactPack`은 서버가 범위·원자료·hash를 검증한 현재 결정과 미리보기를 입력받는 순수 변환이며 승인 저장을 대신하지 않습니다.
 
 ## 모델·실행기 환경 변수
 
@@ -96,7 +96,7 @@ intent.md·제품 설계·contracts·fixtures/demo·과거 evaluation 기록은 
 
 상대 설정 경로는 저장소 루트 기준입니다. 모델 세 변수가 모두 있어야 ready=true이며 이는 서버 응답이나 의미 정확성을 확인했다는 뜻은 아닙니다. 시작 시 모델을 호출하지 않습니다. TLS가 기본이며 HTTP 예외·기능·호출 제한은 설정 파일의 provider 블록으로 지정합니다. response_mode=text인 서버에는 response_format을 보내지 않고, JSON 출력은 프롬프트와 응답 검증으로 요구합니다. config.json과 .env는 커밋하지 않습니다.
 
-내부 `TaskStore`는 기존 SQLite 파일에 별도 workflow 테이블을 추가합니다. 현재는 앱 HTTP 경로와 연결하지 않았으며 자동으로 문서나 원자료를 작업으로 옮기지 않습니다. 분석 UI도 결과를 이 저장 계층의 task·candidate로 넘기지 않습니다. 필요한 저장·결정 HTTP 접점과 C 필드 요청은 [분석 UI 이후 서버 요청](docs/ui-api-requests.md)에 정리했습니다. Docker 설치·등록·검증 절차는 [실행기 안내](packages/sandbox-runner/image/README.md)를 따릅니다.
+내부 `TaskStore`는 기존 SQLite 파일에 별도 workflow 테이블을 추가합니다. F02 내부 source/job/CAS·수동 후보까지 구현했지만 앱 HTTP 경로와 자동 연결하지 않았으며 문서나 원자료를 자동으로 작업으로 옮기지 않습니다. 분석 UI도 결과를 이 저장 계층의 task·candidate로 넘기지 않습니다. 필요한 저장·결정 HTTP 접점과 C 필드 요청은 [분석 UI 이후 서버 요청](docs/ui-api-requests.md)에 정리했습니다. Docker 설치·등록·검증 절차는 [실행기 안내](packages/sandbox-runner/image/README.md)를 따릅니다.
 
 F07 1번의 파일시스템 로더는 [사용법과 제한](packages/skill-loader/README.md)을 따릅니다. 등록 CLI와 ToyRecord catalog 연결은 구현했습니다. 역할별 프롬프트 연결·앱의 팩 선택 및 변경 무효화는 후속이며 앱 시작 시 팩을 자동으로 읽거나 실행하지 않습니다.
 
@@ -120,6 +120,35 @@ OSS 스모크의 자동 회귀 검사는 실행 행·고정 oracle·수치·hash
 
 실행 transcript는 `SAFEHANDOFF_TRANSCRIPT_DIR=.local/transcripts`로 켠다. 기본은 단계 메타데이터이며 `SAFEHANDOFF_TRANSCRIPT_CONTENT=1`을 함께 설정하면 승인된 모델 입력과 작성 초안도 기록한다. HTTP 응답은 바뀌지 않는다. 데모 연결 형식·권한·보존 제한은 [transcript 문서](docs/transcript.md)를 참고한다.
 
+## CDP 화면 시연
+
+최신 fake-app의 전용 화면 `http://127.0.0.1:8081/__presentation`에서 가상 흐름을 연출합니다.
+하단 의미 자막·6단계 표시·장면 타임라인·이전/다음·일시정지/재생을 제공합니다.
+분석·공개 선택은 브라우저 연출이며 실제 승인 API를 구현한 것으로 표시하지 않습니다.
+문서 생성·저장·조회는 최신 `/api/sharing`, `/api/documents`를 사용합니다.
+실제 앱·코어·모델 연결을 바꾸지 않고 fake-app만 자동 실행합니다.
+
+```bash
+mise exec -- just demo
+# 탐색·일시정지·재생 검증
+mise exec -- just demo-check
+# macOS에서 정상 속도 제출용 MP4 생성 및 110초 제한 검증
+mise exec -- just demo-record
+```
+
+macOS에서는 기본 Chrome, 그 외 환경에서는 `mise run setup-presentation`으로 설치한
+Playwright Chromium을 사용합니다. `CHROME_PATH`로 실행 파일을 지정할 수 있습니다.
+매 실행마다 `var/cdp-demo-*`에 별도 SQLite와 보고서를 만들고 loopback 서버를 사용합니다.
+녹화는 macOS Swift·AVFoundation으로 인코딩합니다. `bin/`·`var/`는 자동 생성됩니다.
+분석·선택·최종 확인은 연출용 상태이고 생성된 문서의 실제 저장만 확인합니다.
+장면 이동은 새 브라우저 시연 상태를 구성한 뒤 해당 장면에서 일시정지합니다.
+110초를 초과한 정상 속도 실행은 실패로 처리합니다. `--fast`는 제출 시간 검증이 아닙니다.
+
+보존 중인 이전 실행: [제출 영상](docs/demo-media/SafeHandoff-demo.mp4) ·
+[미리보기](docs/demo-media/preview.png) · [영상 검증 기록](evaluation/results/cdp-submission-run.json).
+이 묶음의 기준 main은 `3aaf0a4`입니다. 최신 main 통합의 검증 결과와 별도 제출 묶음 위치는
+[CDP 통합 기록](docs/cdp-integration-2026-10-31.md)을 따릅니다.
+
 ToyRecord 팩을 실제 catalog에서 선택해 OSS 스모크로 연결할 수 있다. `--catalog`, `--pack-version`, 운영자 `--registration`을 함께 사용하며 실행 전에 digest를 재검증한다. [설치·실행 절차](docs/toyrecord-pack.md)를 따른다.
 
 
@@ -135,3 +164,10 @@ F02 분석 라이브러리는 [범위·한도·근거 위치 계약](docs/f02-an
 source snapshot을 받아 evidence와 미승인 후보를 반환하며, 저장·공개 허가·writer 실행은 하지 않는다.
 분석 원자료와 후보 본문은 상세 transcript opt-in에도 기록하지 않는다. 로컬 HTTP 통합 시험은
 가상 자료와 목 모델만 사용한다.
+
+
+F02 내부 저장은 `TaskStore.analysis`와 `runTaskAnalysis`를 사용한다. source 바이트/hash를
+검증해 snapshot을 고정하고, 모델 호출은 SQLite transaction 밖에서 수행한다. 결과 채택은 현재
+revision·job·source/skill 바인딩을 대조하며 취소·재분석·삭제 뒤 늦은 응답을 거부한다. 모델 없는
+수동 후보는 현재 근거나 user_note에 묶으며 이전 공개 결정을 복제하지 않는다. task HTTP API는 아직
+없고, 작업 화면은 이 저장 경로 대신 stateless `/api/analysis`를 호출한다. [내부 계약·한도](docs/f02-analyze-plan.md)를 따른다.
