@@ -8,7 +8,8 @@ export function reviewGroundingFixture(pack: FactPack): ReviewGroundingContext {
   const previews = pack.facts.map(fact => {
     const projection = { statement: fact.statement, columns: [], rows: [] };
     return { schema_version: 'disclosure_preview.v1' as const, preview_id: `p-${fact.id}`, candidate_id: fact.id,
-      input_revision: pack.task_revision, representation: { kind: 'fact_summary' as const }, projection, projection_sha256: hash(projection) };
+      input_revision: pack.task_revision, representation: { kind: 'fact_summary' as const }, projection, projection_sha256: hash(projection),
+      raw_grants: [] };
   });
   const sourceSetHash = hash('fictional source');
   return { scope, source_set_hash: sourceSetHash, candidate_selectors: {}, rule_goals: [], approved_tool_results: [], input: {

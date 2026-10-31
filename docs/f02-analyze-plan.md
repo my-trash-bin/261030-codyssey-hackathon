@@ -108,3 +108,26 @@ transcript에 저장하지 않는다. 분석 결과는 자동으로 writer나 �
 결정적 회귀는 UTF-8 byte/hash·CSV/JSON 경계·source 바인딩·후보 예제·참조/중복/한도·재시도·
 호출 예산·취소·원문 로그 비기록을 검사한다. app 통합 시험은 node:http 로컬 목 서버에서 실제
 호환 HTTP adapter까지 연결한다. 실제 외부 모델 호출이나 의미 정확도 평가는 하지 않았다.
+
+## HTTP 라우트 연결 · 2026-10-31
+
+`POST /api/analysis`를 추가했다(`packages/server/src/app.ts`). `/api/sharing`과 같은 패턴
+(동기 호출, `response.close` → `AbortController` 취소, content-type 검사)을 따른다. `createApp`은
+세 번째 선택 인자 `engine?: Engine`을 받는다 — `fake-core`가 `Engine`을 구현하지 않으므로
+`core`(`Core`)와 분리했다. `engine`이 없으면(가짜 앱 등) 503 `CORE_NOT_IMPLEMENTED`를 반환한다.
+`analyze()` 자체가 모델 호출 전 전체 입력을 strict 검증하므로 라우트에서 별도 wire parser를
+만들지 않았다. 요청 본문 상한은 base64 확장(약 4/3배)을 고려해 1.5 MiB로 analyze 전용으로 뗐다
+(다른 라우트는 1 MiB 그대로).
+
+**실제 모델로 라우트를 시험하다가 코드 버그를 하나 발견해 고쳤다**: `analyze()`는 `generate()`와
+달리 `ModelError`를 `CoreError`로 변환하지 않고 그대로 던진다(기존 단위테스트가 이 동작을
+명시적으로 기대함 — `analyze()` 자체는 건드리지 않음). 그런데 `app.ts`의 catch가 `CoreError`만
+인식해서 `ModelError`가 500 `STORAGE_FAILED`로 잘못 매핑됐다. HTTP 경계에 `ModelError` 처리를
+추가해 503과 실제 코드(`MODEL_INVALID_RESPONSE` 등)를 반환하도록 고쳤다.
+
+**별개로 발견한, 고치지 않은 것**: 같은 실제 테스트에서 실제 등록 모델이 analysis 역할에
+`finish_reason=length`로 응답이 끊겼다 — `usage.total_tokens`가 `prompt_tokens+completion_tokens`
+보다 훨씬 크고 `max_output_tokens`(config.json)에 가까워서, 보이지 않는 reasoning 토큰이
+출력 예산을 거의 다 쓴 것으로 보인다. 이건 모델/설정 튜닝 문제이고 공유 `config.json`의
+`provider.max_output_tokens`는 모든 역할(write/review도)에 적용되는 값이라 제가 임의로
+올리지 않았다 — 비용/지연에 영향을 주는 판단이라 확인이 필요하다.

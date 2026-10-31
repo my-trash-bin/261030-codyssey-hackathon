@@ -13,8 +13,8 @@
 | `scan_candidate_bundle_v1` | F07 5번 | 중간 |
 | 역할×도구 권한 교집합(`resolveToolAccess`) 실제 연결 | F07 7번 | 큼, 실제 registry 없음 |
 | F06 본체(서버 `rules` 테이블·scope 매칭·철회/만료 전파) | review-grounding 계획 | 큼, 별도 기능 |
-| `analyze()`(F02) 서버·UI 연결 | [Engine 범위](f02-analyze-plan.md) | **Engine 완료** — job/CAS·수동 후보·HTTP/UI는 후속 |
-| server task/decision HTTP API, client UI | round3-scope 이후 계속 미룸 | 큼 |
+| `analyze()`(F02) 서버·UI 연결 | [Engine 범위](f02-analyze-plan.md) | **Engine + HTTP 라우트 완료** — job/CAS·수동 후보·UI는 후속 |
+| server task/decision HTTP API, client UI | round3-scope 이후 계속 미룸 | `POST /api/analysis`는 생김(동기, task 저장 없음). task/decision CRUD는 여전히 없음 — 큼 |
 
 ## 구현 완료: `toyrecord-repro` 스킬 팩을 실제로 로딩하게 연결
 

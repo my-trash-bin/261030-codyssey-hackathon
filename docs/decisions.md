@@ -284,3 +284,26 @@ F03 착수 전에 현재 클라이언트 UI(전역 A~D 하나, 저장 없는 dis
 사용하고 승인·writer·도구를 실행하지 않는다. 상세 로그를 켜도 분석 본문은 기록하지 않는다.
 기존 호출 예산·재시도·취소를 재사용하고 가상 자료·로컬 HTTP 목 서버로 결정적 조건을 검사했다.
 의미 정확도와 실제 외부 모델 성공은 주장하지 않으며 서버 CAS·HTTP/UI·Rule 연결은 후속이다.
+
+## 2026-10-31 · analyze() HTTP 라우트, 계획 문서 정리, F03 계획
+
+`POST /api/analysis`를 추가했다(`/api/sharing`과 같은 패턴, `createApp`에 선택 인자
+`engine?: Engine` 추가, 없으면 503). 실제 등록 모델로 시험하다가 `analyze()`가 `ModelError`를
+`CoreError`로 변환하지 않고 그대로 던지는데(기존 테스트가 이 동작을 기대함) `app.ts`의 catch가
+`ModelError`를 몰라서 500 `STORAGE_FAILED`로 잘못 매핑되는 버그를 발견해 HTTP 경계에 처리를
+추가했다(지금은 올바르게 503을 반환). 같은 시험에서 실제 모델이 analysis 역할에
+`finish_reason=length`로 끊긴 것도 발견했는데, 보이는 `completion_tokens`보다 `total_tokens`가
+훨씬 커서 숨은 reasoning 토큰이 출력 예산을 다 쓴 것으로 보인다 — 공유 `config.json`의
+`max_output_tokens`는 write/review에도 적용되는 값이라 임의로 올리지 않고 기록만 남겼다.
+상세는 [F02 계획](f02-analyze-plan.md)에 추가했다.
+
+F03도 F02와 같은 방식으로 계약·역할·구조를 먼저 정리했다([F03 계획](f03-plan.md)).
+`DisclosurePreview`에 빠져 있던 필수 필드 `raw_grants`(+`RawGrant`/`ByteRange` 타입)를
+추가하고, `ModelRole`에 `disclosure`를 추가했다. 가장 중요한 수정은 평가 오류다 — 이전에
+"server task/decision 저장은 미구현"이라고 기록했는데 틀렸다. `TaskStore`
+(`packages/server/src/task-store.ts`)에 candidate 설치·미리보기·원자적/멱등 결정 배치·철회가
+이미 구현돼 있었다. 실제로 없는 건 HTTP 라우트와, `TaskStore.preview()`가 `fact_summary`만
+지원하고 다른 representation은 계산하지 못한다는 점뿐이다. F07의 `transforms.ts`
+(`deriveSeries`/`renderTimeline`/`renderApprovedExcerpt`)가 F03 preview가 필요로 하는 계산과
+정확히 일치한다는 것도 확인했다 — grant 검사 없이 직접 호출하면 된다. `selected_fields`/
+`exact_value`는 대응하는 함수가 없어 다음 라운드로 남겼다. 로직 구현은 하지 않았다.
