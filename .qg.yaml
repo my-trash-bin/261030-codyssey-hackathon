@@ -29,6 +29,7 @@ rules:
     severity: error
     options:
       ignoredPaths: [var/**, bin/**]
+      referenceStyle: slash-delimited
   files/max-bytes:
     severity: error
     options:
