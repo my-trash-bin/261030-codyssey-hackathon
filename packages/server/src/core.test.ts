@@ -46,7 +46,7 @@ function unimplementedEngine(analyze: Engine['analyze']): Engine {
   return {
     info: { implementation: 'real', connection: 'direct', ready: true },
     generate: notImplemented, analyze, proposeDisclosure: notImplemented, preview: notImplemented,
-    write: notImplemented, review: notImplemented, reproduce: notImplemented,
+    write: notImplemented, writeReviewed: notImplemented, review: notImplemented, reproduce: notImplemented,
   };
 }
 

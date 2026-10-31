@@ -11,6 +11,7 @@ const FORWARDED_REQUEST_HEADERS = [
   'x-csrf-token',
   'cookie',
   'origin',
+  'last-event-id',
 ] as const;
 
 // 브라우저에 내보내는 모듈은 정확한 이름만 허용한다.
@@ -56,18 +57,19 @@ export function createClientHandler(serverOrigin: string) {
     throw new Error('SERVER_ORIGIN must be an HTTP origin');
   }
   return async (request: IncomingMessage, response: ServerResponse): Promise<void> => {
-    const path = new URL(request.url || '/', 'http://localhost').pathname;
+    const incoming = new URL(request.url || '/', 'http://localhost');
+    const path = incoming.pathname;
     try {
       if (path.startsWith('/api/')) {
         // upstream은 설정된 서버 origin 하나로 고정한다. 경로만 넘기므로 임의 대상 프록시가 아니다.
-        const analysis = path === ANALYSIS_PATH && request.method === 'POST';
+        const analysis = path === ANALYSIS_PATH && request.method === 'POST' || request.method === 'GET' && path.endsWith('/events');
         const controller = new AbortController();
         // 요청 본문이 다 온 뒤에도 request의 'close'는 발생하므로 취소 신호로 쓰지 않는다.
         // 응답이 끝나기 전에 연결이 닫힌 경우에만 분석 호출을 취소하고, 정리도 여기서 한다.
         const cancelUpstream = (): void => { if (!response.writableEnded) controller.abort(); };
         if (analysis) response.once('close', cancelUpstream);
         try {
-          const upstream = await fetch(new URL(path, target), {
+          const upstream = await fetch(new URL(path + incoming.search, target), {
             method: request.method,
             headers: forwardedHeaders(request),
             body: request.method === 'GET' || request.method === 'HEAD' ? undefined : request as unknown as ReadableStream,
@@ -79,10 +81,17 @@ export function createClientHandler(serverOrigin: string) {
             'Content-Type': upstream.headers.get('content-type') ?? 'application/json; charset=utf-8',
             'Cache-Control': 'no-store',
           };
+          const disposition = upstream.headers.get('content-disposition');
+          if (disposition) headers['Content-Disposition'] = disposition;
           const cookies = setUpCookie(upstream.headers);
           if (cookies) headers['Set-Cookie'] = cookies;
           response.writeHead(upstream.status, headers);
-          response.end(await upstream.text());
+          if (upstream.headers.get('content-type')?.startsWith('text/event-stream') && upstream.body) {
+            const reader = upstream.body.getReader();
+            try { while (true) { const chunk = await reader.read(); if (chunk.done) break; response.write(chunk.value); } }
+            finally { reader.releaseLock(); }
+            response.end();
+          } else response.end(Buffer.from(await upstream.arrayBuffer()));
           return;
         } finally {
           // 분석이 아닌 경로는 listener를 붙이지 않았으므로 정리 대상이 없다.

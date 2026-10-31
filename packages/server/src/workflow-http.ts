@@ -1,3 +1,5 @@
+import { extendedWorkflowRoutes } from './workflow-routes.ts';
+import { object, string, revision, body, send } from './workflow-http-utils.ts';
 import { createHash } from 'node:crypto';
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import { CoreError, ModelError } from '@safehandoff/core-interface';
@@ -8,44 +10,21 @@ import { deny, WorkflowHTTPError, WorkflowSessions } from './workflow-session.ts
 import type { WorkflowAccess } from './workflow-session.ts';
 
 const hash = (value: string) => createHash('sha256').update(value).digest('hex');
-function object(value: unknown, required: string[], optional: string[] = []): Record<string, unknown> {
-  if (!value || typeof value !== 'object' || Array.isArray(value)) deny(400, 'INVALID_TASK_INPUT');
-  const v = value as Record<string, unknown>;
-  if (required.some(k => !Object.hasOwn(v, k)) || Object.keys(v).some(k => ![...required, ...optional].includes(k))) deny(400, 'INVALID_TASK_INPUT');
-  return v;
-}
-function string(value: unknown): string {
-  if (typeof value !== 'string' || !value.trim() || value.length > 8192) deny(400, 'INVALID_TASK_INPUT'); return value;
-}
-function revision(value: unknown): number {
-  if (typeof value !== 'number' || !Number.isSafeInteger(value) || value < 1) deny(400, 'INVALID_TASK_INPUT'); return value;
-}
-async function body(request: IncomingMessage): Promise<unknown> {
-  if (request.headers['content-type']?.split(';')[0] !== 'application/json') deny(415, 'JSON_REQUIRED');
-  let size = 0; const buffers: Buffer[] = [];
-  for await (const chunk of request) {
-    const b = Buffer.from(chunk); size += b.length; if (size <= 1536 * 1024) buffers.push(b);
-  }
-  if (size > 1536 * 1024) deny(413, 'BODY_TOO_LARGE');
-  try { return JSON.parse(Buffer.concat(buffers).toString('utf8')); } catch { return deny(400, 'INVALID_TASK_INPUT'); }
-}
-function send(response: ServerResponse, status: number, data: unknown): void {
-  if (response.destroyed || response.writableEnded) return;
-  response.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff' });
-  response.end(JSON.stringify(data));
-}
-function aggregate(store: TaskStore, id: string) {
+function aggregate(store: TaskStore, id: string, controllers?: Map<string, AbortController>, jobTasks?: Map<string, string>) {
   const task = store.get(id), candidates = store.analysis.candidates(id);
+  const ruleBindings = store.workflow.rules.bindings(id);
   const decisions = Object.fromEntries(store.decisions(id).map(d => {
     const preview = d.preview_id ? store.getPreview(id, d.preview_id) : null;
-    return [d.candidate_id, { ...d, representation: preview?.representation ?? { kind: 'fact_summary', transform_id: '', parameters: {} },
+    const bound = ruleBindings.filter(r => r.decision_id === d.id);
+    return [d.candidate_id, { ...d, applied_rule_id: bound[0]?.rule_id ?? '', applied_rule_version: bound[0]?.rule_version ?? 0,
+      applied_rule_refs: bound, representation: preview?.representation ?? { kind: 'fact_summary', transform_id: '', parameters: {} },
       projection_sha256: preview?.projection_sha256 ?? '', revoked: d.revoked_at !== null }];
   }));
-  return { ...task, sources: store.analysis.sources(id), evidence: store.analysis.evidence(id),
-    candidates: candidates.map(c => ({ ...c, required: c.relevance === 'required', conflict_group: c.conflicts[0]?.id ?? '',
+  const cancelling = [...(jobTasks ?? [])].find(([job, taskId]) => taskId === id && controllers?.get(job)?.signal.aborted);
+  return { ...task, sources: store.analysis.sources(id).map(({ raw_bytes: _raw, ...source }) => source), evidence: store.analysis.evidence(id),
+    candidates: candidates.map(c => ({ ...c, selector: store.workflow.rules.selector(id, c), required: c.relevance === 'required', conflict_group: c.conflicts[0]?.id ?? '',
       conflict_reason: c.conflicts.map(g => g.reason).join('\n') })), decisions,
-    scope: { project_id: id, purpose_id: hash(task.context.purpose), recipient_id: hash(task.context.recipient),
-      audience: 'named_external', skill_set_hash: task.skill_set_hash } };
+    ...store.workflow.status(id), ...(cancelling ? { phase: 'processing', current_job_id: cancelling[0], cancellation_requested: true } : {}), intake: store.workflow.rules.intake(id), scope: store.workflow.rules.scope(id) };
 }
 function fieldList(store: TaskStore, id: string, candidateId: string) {
   const candidate = store.analysis.candidates(id).find(c => c.id === candidateId);
@@ -63,12 +42,12 @@ export function createWorkflowHandler(store: TaskStore, engine: Engine, access: 
   const environment = { provider_origin: access.analysisProviderOrigin ?? null,
     approval_status: 'operator_confirmation_required', verified_at: null };
   const sessionData = (data: unknown) => ({ ...(data as Record<string, unknown>), analysis_environment: environment,
-    capabilities: { tasks: true, selected_fields: true, reusable_rules: false, approved_excerpt: false } });
-  const sessions = new WorkflowSessions(access), controllers = new Map<string, AbortController>(), pending = new Set<Promise<void>>();
-  const launch = (jobId: string, work: (signal: AbortSignal) => Promise<void>) => {
-    const controller = new AbortController(); controllers.set(jobId, controller);
-    const promise = work(controller.signal).catch(() => {}).finally(() => { controllers.delete(jobId); pending.delete(promise); });
-    pending.add(promise);
+    capabilities: { tasks: true, selected_fields: true, reusable_rules: true, artifacts: true, exports: true, approved_excerpt: false } });
+  const sessions = new WorkflowSessions(access), controllers = new Map<string, AbortController>(), deletingTasks = new Set<string>(), streams = new Set<ServerResponse>(), pending = new Set<Promise<void>>(), jobTasks = new Map<string, string>(), jobPromises = new Map<string, Promise<void>>();
+  const launch = (jobId: string, taskId: string, work: (signal: AbortSignal) => Promise<void>) => {
+    const controller = new AbortController(); controllers.set(jobId, controller); jobTasks.set(jobId, taskId);
+    const promise = work(controller.signal).catch(() => {}).finally(() => { controllers.delete(jobId); jobTasks.delete(jobId); jobPromises.delete(jobId); pending.delete(promise); });
+    pending.add(promise); jobPromises.set(jobId, promise);
   };
   const handler = async (request: IncomingMessage, response: ServerResponse): Promise<void> => {
     try {
@@ -80,17 +59,26 @@ export function createWorkflowHandler(store: TaskStore, engine: Engine, access: 
           const input = object(await body(request), ['token']); send(response, 200, { data: sessionData(sessions.open(request, response, input.token)) }); return;
         }
         if (request.method === 'GET') { send(response, 200, { data: sessionData(sessions.require(request, false)) }); return; }
+        if (request.method === 'DELETE') {
+          string(request.headers['idempotency-key']); sessions.logout(request, response); send(response, 200, { data: { logged_out: true } }); return;
+        }
         deny(405, 'METHOD_NOT_ALLOWED');
       }
       sessions.require(request, write);
+      if (await extendedWorkflowRoutes({ store, engine, access, launch, controllers, jobTasks, jobPromises, streams, pending, deletingTasks, authorize: () => { sessions.require(request, false); } }, request, response, parts)) return;
       if (request.method === 'GET') {
-        if (parts.length === 2 && parts[0] === 'tasks') send(response, 200, { data: aggregate(store, parts[1]!) });
+        if (parts.length === 2 && parts[0] === 'tasks') send(response, 200, { data: aggregate(store, parts[1]!, controllers, jobTasks) });
         else if (parts.length === 4 && parts[0] === 'tasks' && parts[2] === 'jobs') {
           const { snapshot: _snapshot, ...job } = store.analysis.job(parts[1]!, parts[3]!);
-          send(response, 200, { data: { ...job, kind: 'analyze', input_revision: job.revision } });
+          send(response, 200, { data: { ...job, kind: 'analyze', input_revision: job.revision,
+            status: controllers.get(job.id)?.signal.aborted ? 'cancel_requested' : job.status } });
         } else if (parts.length === 5 && parts[0] === 'tasks' && parts[2] === 'candidates' && parts[4] === 'fields') {
           send(response, 200, { data: fieldList(store, parts[1]!, parts[3]!) });
-        } else if (parts.length === 2 && parts[0] === 'jobs') send(response, 200, { data: store.disclosureJob(parts[1]!) });
+        } else if (parts.length === 2 && parts[0] === 'jobs') {
+          try { send(response, 200, { data: store.disclosureJob(parts[1]!) }); }
+          catch (error) { if (!(error instanceof TaskStoreError) || error.message !== 'ANALYSIS_NOT_FOUND') throw error;
+            const job = store.analysis.summary(parts[1]!); send(response, 200, { data: { ...job, status: controllers.get(job.id)?.signal.aborted ? 'cancel_requested' : job.status } }); }
+        }
         else deny(404, 'ENDPOINT_NOT_FOUND');
         return;
       }
@@ -107,10 +95,22 @@ export function createWorkflowHandler(store: TaskStore, engine: Engine, access: 
       const id = parts[1]!, action = parts.slice(2).join('/');
       // Only known endpoints can consume a mutation key.
       const operation = `${request.method}:${id}:${action}`;
+      if (deletingTasks.has(id) && !(request.method === 'DELETE' && !action)) deny(409, 'TASK_DELETING');
       if (request.method === 'DELETE' && !action) {
-        const v = object(input, ['expected_revision']);
+        const v = object(input, ['expected_revision', 'confirmation', 'acknowledge_saved_rules_retained']);
+        if (v.confirmation !== 'DELETE' || v.acknowledge_saved_rules_retained !== true) deny(400, 'DELETE_CONFIRMATION_REQUIRED');
+        const replay = store.replay(operation, key, input); if (replay) { send(response, 200, { data: replay.result }); return; }
+        store.assertRevision(id, revision(v.expected_revision));
+        deletingTasks.add(id);
+        try {
+        const waits: Promise<void>[] = [];
+        for (const [job, task] of jobTasks) if (task === id) {
+          controllers.get(job)?.abort(); const promise = jobPromises.get(job); if (promise) waits.push(promise);
+        }
+        await Promise.all(waits);
         const result = store.request(operation, key, input, () => { store.delete(id, revision(v.expected_revision)); return { id, deleted: true }; });
         send(response, 200, { data: result.result }); return;
+        } finally { deletingTasks.delete(id); }
       }
       if (request.method === 'PUT' && action === 'sources') {
         const v = object(input, ['expected_revision', 'sources']);
@@ -133,7 +133,7 @@ export function createWorkflowHandler(store: TaskStore, engine: Engine, access: 
           const result = store.request(operation, key, input, () => {
             const job = store.analysis.start(id, rev); const { snapshot: _snapshot, ...summary } = job; return summary;
           });
-          if (!result.replayed) launch(result.result.id, async signal => {
+          if (!result.replayed) launch(result.result.id, id, async signal => {
             const job = store.analysis.job(id, result.result.id);
             try {
               const value = await engine.analyze({ task: job.snapshot.task, sources: job.snapshot.sources }, { signal });
@@ -150,11 +150,11 @@ export function createWorkflowHandler(store: TaskStore, engine: Engine, access: 
           if (!store.analysis.candidates(id).some(c => c.id === candidateId)) deny(400, 'INVALID_CANDIDATE');
           return { id: store.createDisclosureJob(id, rev) };
         });
-        if (!result.replayed) launch(result.result.id, async signal => {
+        if (!result.replayed) launch(result.result.id, id, async signal => {
           try {
             const task = store.assertRevision(id, rev), c = store.analysis.candidates(id).find(c => c.id === candidateId)!;
             const proposal = await engine.proposeDisclosure({ ...c, local_key: c.id }, task.context, { condition, signal });
-            store.finishDisclosureJob(result.result.id, proposal, null);
+            store.finishDisclosureJob(result.result.id, signal.aborted ? null : proposal, signal.aborted ? 'CORE_CANCELLED' : null);
           } catch (error) { store.finishDisclosureJob(result.result.id, null, error instanceof CoreError || error instanceof ModelError ? error.code : 'DISCLOSURE_FAILED'); }
         });
         send(response, 202, { data: store.disclosureJob(result.result.id) }); return;
@@ -162,11 +162,13 @@ export function createWorkflowHandler(store: TaskStore, engine: Engine, access: 
       if (parts.length === 5 && parts[2] === 'jobs' && parts[4] === 'cancel') {
         const v = object(input, ['expected_revision']);
         const result = store.request(operation, key, input, () => { store.assertRevision(id, revision(v.expected_revision));
-          store.analysis.job(id, parts[3]!);
-          const cancelled = store.analysis.cancel(id, parts[3]!);
+          let cancelled: boolean;
+          try { store.analysis.job(id, parts[3]!); cancelled = store.analysis.cancel(id, parts[3]!); }
+          catch (error) { if (!(error instanceof TaskStoreError) || error.message !== 'ANALYSIS_NOT_FOUND') throw error;
+            cancelled = store.cancelDisclosureJob(id, parts[3]!); }
           if (cancelled) controllers.get(parts[3]!)?.abort();
-          return { cancelled }; });
-        send(response, 200, { data: result.result }); return;
+          return { cancel_requested: cancelled, job_id: parts[3]! }; });
+        send(response, 202, { data: result.result }); return;
       }
       if (action === 'disclosure-previews') {
         const v = object(input, ['expected_revision', 'candidate_id', 'representation']);
@@ -193,7 +195,7 @@ export function createWorkflowHandler(store: TaskStore, engine: Engine, access: 
             string(op.candidate_id);
             if (!['allow', 'exclude', 'defer'].includes(String(op.disposition)) || typeof op.disposition !== 'string' ||
               (op.expires_at !== undefined && op.expires_at !== null && typeof op.expires_at !== 'string')) deny(400, 'INVALID_DECISION');
-            if (op.save_reusable_rule !== undefined && op.save_reusable_rule !== false) deny(422, 'RULE_REUSE_NOT_IMPLEMENTED');
+            if (op.save_reusable_rule !== undefined && typeof op.save_reusable_rule !== 'boolean') deny(400, 'INVALID_DECISION');
             if (op.disposition === 'allow') {
               const preview = store.getPreview(id, string(op.preview_id));
               if (preview.candidate_id !== op.candidate_id || JSON.stringify(preview.representation) !== JSON.stringify(op.representation)) deny(400, 'INVALID_DECISION');
@@ -203,7 +205,12 @@ export function createWorkflowHandler(store: TaskStore, engine: Engine, access: 
           });
           const candidates = store.analysis.candidates(id);
           if (!v.accept_scope_reduction && inputs.some(i => i.disposition === 'exclude' && candidates.some(c => c.id === i.candidate_id && c.relevance === 'required'))) deny(400, 'SCOPE_REDUCTION_REQUIRED');
-          return store.applyDecisionBatch(id, rev, inputs, key);
+          const task = store.applyDecisionBatch(id, rev, inputs, key);
+          for (const value of v.operations as Record<string, unknown>[]) if (value.save_reusable_rule === true) {
+            const decision = store.decisions(id).find(d => d.candidate_id === value.candidate_id)!;
+            store.workflow.rules.save(id, task.revision, decision.id);
+          }
+          return task;
         });
         send(response, 200, { data: result.result }); return;
       }
@@ -222,6 +229,6 @@ export function createWorkflowHandler(store: TaskStore, engine: Engine, access: 
       else send(response, 500, { error: 'STORAGE_FAILED' });
     }
   };
-  handler.close = async () => { for (const controller of controllers.values()) controller.abort(); await Promise.all(pending); };
+  handler.close = async () => { for (const stream of streams) stream.end(); for (const controller of controllers.values()) controller.abort(); await Promise.all(pending); };
   return handler;
 }

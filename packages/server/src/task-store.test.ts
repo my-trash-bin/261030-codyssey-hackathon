@@ -85,7 +85,7 @@ test('migration preserves existing documents and decisions survive reopening; de
     assert.throws(() => raw.prepare('UPDATE workflow_decisions SET disposition=? WHERE task_id=?').run('exclude', task.id), /IMMUTABLE/);
     assert.throws(() => raw.prepare('INSERT INTO workflow_current_decisions VALUES(?,?,?)').run(task.id, 'wrong', store.decisions(task.id)[0]!.id), /FOREIGN KEY/);
     assert.equal(raw.prepare('PRAGMA foreign_key_check').all().length, 0);
-    assert.equal(raw.prepare('SELECT count(*) AS n FROM task_store_migrations').get()!.n, 3);
+    assert.equal(raw.prepare('SELECT count(*) AS n FROM task_store_migrations').get()!.n, 4);
     store.delete(task.id, 3); store.close();
     assert.equal(raw.prepare('SELECT count(*) AS n FROM workflow_decisions').get()!.n, 0);
     assert.equal(raw.prepare('SELECT count(*) AS n FROM workflow_previews').get()!.n, 0);

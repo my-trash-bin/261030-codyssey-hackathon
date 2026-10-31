@@ -1,7 +1,11 @@
 import { randomBytes, timingSafeEqual } from 'node:crypto';
 import type { IncomingMessage, ServerResponse } from 'node:http';
 
-export interface WorkflowAccess { token: string; browserOrigin: string; serverOrigin: string; analysisProviderOrigin?: string | null }
+export interface WorkflowCatalog {
+  projects: { id: string; display_name: string }[];
+  recipients: { id: string; display_name: string }[];
+}
+export interface WorkflowAccess { token: string; browserOrigin: string; serverOrigin: string; catalog?: WorkflowCatalog; runtime?: Record<string, unknown>; analysisProviderOrigin?: string | null }
 export class WorkflowHTTPError extends Error {
   readonly status: number;
   constructor(status: number, code: string) { super(code); this.status = status; }
@@ -13,9 +17,11 @@ const equal = (a: string, b: string) => {
 export class WorkflowSessions {
   private readonly sessions = new Map<string, { csrf: string; expires: number }>();
   private readonly access: WorkflowAccess;
+  private readonly bootstrapExpires: number;
+  private bootstrapUsed = false;
   private readonly clock: () => number;
   constructor(access: WorkflowAccess, clock: () => number = Date.now) {
-    this.access = access; this.clock = clock;
+    this.access = access; this.clock = clock; this.bootstrapExpires = clock() + 300000;
     if (access.token.length < 32) throw new Error('WORKFLOW_TOKEN_TOO_SHORT');
     for (const origin of [access.browserOrigin, access.serverOrigin]) {
       const u = new URL(origin);
@@ -32,13 +38,21 @@ export class WorkflowSessions {
   }
   open(request: IncomingMessage, response: ServerResponse, token: unknown): { csrf_token: string; expires_at: string } {
     this.checkBoundary(request, true);
-    if (typeof token !== 'string' || !equal(token, this.access.token)) deny(401, 'AUTH_REQUIRED');
+    if (this.bootstrapUsed || this.clock() >= this.bootstrapExpires || typeof token !== 'string' || !equal(token, this.access.token)) deny(401, 'AUTH_REQUIRED');
     for (const [id, session] of this.sessions) if (session.expires <= this.clock()) this.sessions.delete(id);
     if (this.sessions.size >= 100) deny(429, 'SESSION_LIMIT');
-    const id = randomBytes(32).toString('hex'), csrf = randomBytes(32).toString('hex'), expires = this.clock() + 3600000;
+    this.bootstrapUsed = true;
+    const id = randomBytes(32).toString('hex'), csrf = randomBytes(32).toString('hex'), expires = this.clock() + 28800000;
     this.sessions.set(id, { csrf, expires });
-    response.setHeader('Set-Cookie', `safehandoff_session=${id}; HttpOnly; SameSite=Strict; Path=/api/v1; Max-Age=3600`);
+    response.setHeader('Set-Cookie', `safehandoff_session=${id}; HttpOnly; SameSite=Strict; Path=/; Max-Age=28800`);
     return { csrf_token: csrf, expires_at: new Date(expires).toISOString() };
+  }
+  logout(request: IncomingMessage, response: ServerResponse): void {
+    this.checkBoundary(request, true);
+    const cookie = (request.headers.cookie ?? '').split(';').map(s => s.trim()).find(s => s.startsWith('safehandoff_session='));
+    const id = cookie?.slice('safehandoff_session='.length);
+    if (id && this.sessions.has(id)) { this.require(request, true); this.sessions.delete(id); }
+    response.setHeader('Set-Cookie', 'safehandoff_session=; HttpOnly; SameSite=Strict; Path=/; Max-Age=0');
   }
   require(request: IncomingMessage, write: boolean): { csrf_token: string; expires_at: string } {
     this.checkBoundary(request, write);

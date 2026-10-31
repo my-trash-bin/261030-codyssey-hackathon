@@ -101,7 +101,7 @@ test('late model completion after HTTP cancellation never creates candidates or 
   const started = await f.call(base + '/jobs', 'POST', { expected_revision: 2, kind: 'analyze' });
   const job = started.body.data.id;
   const cancel = await f.call(base + `/jobs/${job}/cancel`, 'POST', { expected_revision: 3 });
-  assert.equal(cancel.status, 200); assert.equal(signal?.aborted, true);
+  assert.equal(cancel.status, 202); assert.equal(signal?.aborted, true);
   resolve(analysis);
   const status = await f.call(base + `/jobs/${job}`);
   assert.equal(status.body.data.status, 'cancelled');
@@ -114,12 +114,32 @@ test('session expiry and duplicate cookies cannot keep authorization alive', asy
   const request = { headers: { host: '127.0.0.1:8080', origin: 'http://127.0.0.1:5173' } } as import('node:http').IncomingMessage;
   const response = { setHeader: (_name: string, value: string) => { cookie = value; } } as unknown as import('node:http').ServerResponse;
   const data = sessions.open(request, response, 'x'.repeat(32));
-  assert.ok(cookie.includes('HttpOnly; SameSite=Strict; Path=/api/v1'));
+  assert.ok(cookie.includes('HttpOnly; SameSite=Strict; Path=/'));
   request.headers.cookie = cookie.split(';')[0];
   request.headers['x-csrf-token'] = data.csrf_token;
   assert.equal(sessions.require(request, true).csrf_token, data.csrf_token);
   request.headers.cookie += '; ' + request.headers.cookie;
   assert.throws(() => sessions.require(request, false), /AUTH_REQUIRED/);
-  request.headers.cookie = cookie.split(';')[0]; now = 3600001;
+  request.headers.cookie = cookie.split(';')[0]; now = 28800001;
   assert.throws(() => sessions.require(request, false), /AUTH_REQUIRED/);
+});
+test('disclosure cancellation and confirmed deletion wait for physical exit and reject new task writes', async t => {
+  let release!: () => void, aborted!: () => void;
+  const waiting = new Promise<void>(r => { release = r; }), stopped = new Promise<void>(r => { aborted = r; });
+  const f = await fixture(t, { proposeDisclosure: async (candidate, _task, options) => {
+    options?.signal?.addEventListener('abort', aborted, { once: true }); await waiting;
+    return { schema_version: 'disclosure_proposal.v1', candidate_id: candidate.local_key, status: 'unsupported', representation: null, requires_clarification: false };
+  } });
+  const task = f.store.create(context, sha('[]'), sha('[]'));
+  const added = f.store.analysis.addManual(task.id, 1, { candidate: { kind: 'observation', statement: 'manual', uncertainty: 'reported', relevance: 'optional', purpose_relevance: 'test' }, user_note: 'note' });
+  const candidate = f.store.analysis.candidates(task.id)[0]!;
+  const startInput = { expected_revision: added.revision, kind: 'interpret_disclosure', arguments: { candidate_id: candidate.id, text: 'fixture' } };
+  const started = await f.call(`/tasks/${task.id}/jobs`, 'POST', startInput); assert.equal(started.status, 202);
+  try {
+    const deletion = f.call(`/tasks/${task.id}`, 'DELETE', { expected_revision: added.revision, confirmation: 'DELETE', acknowledge_saved_rules_retained: true });
+    await stopped; assert.equal(f.store.get(task.id).id, task.id);
+    assert.equal((await f.call(`/tasks/${task.id}/jobs`, 'POST', startInput)).status, 409);
+    release(); assert.equal((await deletion).status, 200);
+    assert.equal((await f.call(`/tasks/${task.id}`)).status, 404);
+  } finally { release(); }
 });

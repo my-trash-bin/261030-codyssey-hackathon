@@ -54,3 +54,5 @@ export * from './reproduction.ts';
 export * from './model.ts';
 export * from './skills.ts';
 export * from './tools.ts';
+export { csvCells } from './csv.ts';
+export type { CSVCell } from './csv.ts';

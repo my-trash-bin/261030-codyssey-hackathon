@@ -1,0 +1,4 @@
+{
+  "projects": [{"id":"fictional-project","display_name":"가상 예제 프로젝트"}],
+  "recipients": [{"id":"fictional-vendor","display_name":"가상 예제 공급사"}]
+}

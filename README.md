@@ -55,7 +55,7 @@ just fake-client  # 가짜 앱 대상 같은 화면 :5174
 
 연출 조절 화면은 **http://127.0.0.1:8081/__demo**입니다. 제목·도입·마무리, 지연, 실패 횟수를 적용하고 승인한 표현으로 재생성해 볼 수 있습니다. 가짜 앱은 실제 모델을 호출하지 않습니다. 실제 앱의 같은 재생성 API는 설정한 모델로 작성·검토하며 실패 시 503 CORE_UNAVAILABLE를 반환합니다.
 
-기본 수신 주소는 0.0.0.0이며 사내 IP에서도 같은 포트로 접속합니다. 각 터미널의 Ctrl-C로 종료합니다. 현재는 단일 사용자 개발용이며 사내 인증은 미구현입니다. 패키지 dev/start는 루트 .env를 자동으로 읽고 기존 환경 변수가 우선합니다.
+실제 앱과 클라이언트의 기본 수신 주소는 127.0.0.1입니다. 다른 주소는 HOST·CLIENT_HOST로 지정합니다. 각 터미널의 Ctrl-C로 종료합니다. 현재는 단일 사용자 개발용이며 사내 인증은 미구현입니다. 패키지 dev/start는 루트 .env를 자동으로 읽고 기존 환경 변수가 우선합니다.
 
 실제 앱 DB는 `.local/data/safehandoff.sqlite`, 가짜 앱은 `.local/data/demo.sqlite`이며 각각 DATABASE_PATH와 DEMO_DATABASE_PATH로 지정합니다. 상대 경로 기준은 저장소 루트입니다. 가짜 연출 설정은 메모리에서 관리하며 재시작하면 초기화합니다.
 
@@ -80,7 +80,7 @@ intent.md·제품 설계·contracts·fixtures/demo·과거 evaluation 기록은 
 
 `OpenAICompatibleModelClient(providerConfig, env?)`는 설정에 지정한 환경 변수 이름으로 URL·모델·키를 조회합니다. 환경 변수는 아래 연결 표를 따릅니다. 한 complete 호출은 HTTP 요청 한 번이며 재시도는 Engine이 담당합니다. HTTP 테스트는 로컬 목 서버만 사용합니다.
 
-`RealCore.analyze()`의 결정적 근거 파싱·후보 검증과 `POST /api/analysis`는 구현했고, 작업 화면은 파일 입력을 이 API에 연결해 근거·후보 제안을 표시합니다. 공개 제안·미리보기 계산과 task/decision HTTP API는 미구현입니다. 분석 결과의 source·evidence·job snapshot 저장과 candidate_set 채택은 `TaskStore.analysis`·`runTaskAnalysis` 내부 경로로 구현했지만 `/api/analysis`를 통한 자동 저장과 화면 연결은 하지 않았습니다. Docker 실행기와 내부 task/decision 저장은 [3라운드 범위](docs/round3-scope.md)로 구현했습니다. `composeFactPack`은 서버가 범위·원자료·hash를 검증한 현재 결정과 미리보기를 입력받는 순수 변환이며 승인 저장을 대신하지 않습니다.
+`RealCore.analyze()`의 결정적 근거 파싱·후보 검증과 `POST /api/analysis`는 구현했고, 작업 화면은 파일 입력을 이 API에 연결해 근거·후보 제안을 표시합니다. 공개 제안·미리보기 계산과 인증된 task/decision HTTP API는 구현했습니다. 분석 결과의 source·evidence·job snapshot 저장과 candidate_set 채택은 `TaskStore.analysis`·`runTaskAnalysis` 내부 경로로 구현했지만 `/api/analysis`를 통한 자동 저장과 화면 연결은 하지 않았습니다. Docker 실행기와 내부 task/decision 저장은 [3라운드 범위](docs/round3-scope.md)로 구현했습니다. `composeFactPack`은 서버가 범위·원자료·hash를 검증한 현재 결정과 미리보기를 입력받는 순수 변환이며 승인 저장을 대신하지 않습니다.
 
 ## 모델·실행기 환경 변수
 
@@ -172,19 +172,22 @@ revision·job·source/skill 바인딩을 대조하며 취소·재분석·삭제 
 수동 후보는 현재 근거나 user_note에 묶으며 이전 공개 결정을 복제하지 않는다. task HTTP API는 아직
 없고, 작업 화면은 이 저장 경로 대신 stateless `/api/analysis`를 호출한다. [내부 계약·한도](docs/f02-analyze-plan.md)를 따른다.
 
-### UI용 task·공개 결정 HTTP
+### UI용 task·공개 결정·초안·확정 HTTP
 
-`SAFEHANDOFF_WORKFLOW_TOKEN`을 32자 이상 비밀로 설정하면 실제 앱에서 인증된 v1 task API를
-사용할 수 있다. 브라우저 origin은 `SAFEHANDOFF_WORKFLOW_BROWSER_ORIGIN`(기본
-http://127.0.0.1:5173), 서버 origin은 `SAFEHANDOFF_WORKFLOW_SERVER_ORIGIN`(기본
-http://127.0.0.1:8080)으로 지정한다. HTTP loopback·단일 운영자 개발용이며 LAN 인증을 대신하지 않는다.
-미설정·fake-app은 WORKFLOW_API_DISABLED다. 기존 stateless API는 그대로 유지된다.
+`SAFEHANDOFF_WORKFLOW_ENABLED=1`로 켜면 시작 토큰을 터미널에 한 번 표시한다(5분·1회).
+세션은 8시간 고정이며 재시작 시 폐기한다. 기존 `SAFEHANDOFF_WORKFLOW_TOKEN`도 같은 정책으로
+지원하지만 출력하지 않는다. browser/server origin은 각각 WORKFLOW_BROWSER_ORIGIN·
+WORKFLOW_SERVER_ORIGIN 설정(접두 SAFEHANDOFF_)을 따르며 기본은 127.0.0.1:5173·:8080이다.
+HTTP loopback·단일 운영자 개발용이고 LAN 운영 인증을 대신하지 않는다. 미설정·fake-app은 v1 비활성이다.
 
-세션 생성/조회, task 생성/조회/삭제·원자료 교체·분석 job/CAS·수동 후보, 후보 필드 목록,
-실제 미리보기·조건 해석 제안·결정 배치·철회를 제공한다. 세션 쿠키·CSRF·Host/Origin·revision·
-멱등 키를 검사한다. C는 검증된 CSV/JSON 근거에서 선택한 값만 계산하고 Rule 저장은 거부한다.
-인증된 세션 응답의 모델 origin은 설정 위치 안내이며 사내 환경 승인이나 연결 성공 판정이 아니다.
+`SAFEHANDOFF_WORKFLOW_CATALOG`는 projects/recipients JSON 경로다. 미설정 시 두 목록은 비어 있다.
+`fixtures/workflow/catalog.json`은 운영자가 명시적으로 고를 수 있는 가상 예제다. 실제 운영 정보가 아니다.
+모델 연결 설정은 기존 것을 사용하며 자동 fake 전환이나 외부 제출은 하지 않는다.
 
-[실제 API·환경 변수·DTO](docs/api.md)와 [UI 연결 잔여 작업](docs/ui-api-requests.md)을 따른다.
-현재 UI의 stateless 분석 결과는 영속 task로 자동 채택되지 않으며 로그인·C 필드 선택 화면도
-후속이다. `/api/analysis` 결과를 공개 결정으로 자동 승격하지 않는다.
+서버는 catalog·작업 목록/원자료/이력/SSE·runtime, 분석/CAS·공개 결정, 초안/파일 검토 job·편집·
+제한된 사람 검토, 불변 파일 확정/다운로드, 숫자 CSV의 방향/지수 규칙 저장/재계산/철회를 제공한다.
+철회·만료·판본 변경은 내보내기를 차단한다. 원문 슬롯·타임라인·재현 증거의 확정 연결은 별도다.
+전체 DTO·수명·한도·지원 표현은 [실제 API](docs/api.md)를 따른다.
+
+브라우저 로그인·세션 복원은 연결돼 있다. task 등록/저장·C 필드 선택·초안/최종 파일·Rule 관리의
+전체 화면 흐름은 후속이며 stateless 분석 결과를 영속 후보나 공개 허가로 자동 승격하지 않는다.

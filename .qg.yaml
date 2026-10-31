@@ -24,12 +24,11 @@ rules:
     options:
       allowedLanguages: [en, ko]
       ignoredPaths: [var/**, bin/**]
-      allowedCharacters: ["·", "→", "–", "‘", "’", "§", "—", "“", "”", "×", "∩", "…"]
+      allowedCharacters: ["·", "→", "↔", "–", "‘", "’", "§", "—", "“", "”", "×", "∩", "…"]
   docs/valid-reference:
     severity: error
     options:
       ignoredPaths: [var/**, bin/**]
-      referenceStyle: slash-delimited
   files/max-bytes:
     severity: error
     options:

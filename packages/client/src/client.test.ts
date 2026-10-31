@@ -55,3 +55,19 @@ test('the client page remains available when the backend is stopped', async () =
     assert.deepEqual(await response.json(), { error: 'SERVER_UNAVAILABLE' });
   } finally { await close(client); }
 });
+
+test('proxy preserves binary download bytes, query cursors and resumable event headers', async () => {
+  const bytes = Buffer.from([0x50, 0x4b, 0, 0xff, 0x80, 0x01]); let seen = '';
+  const backend = createServer((request, response) => {
+    seen = request.url ?? '';
+    assert.equal(request.headers['last-event-id'], '42');
+    response.writeHead(200, { 'Content-Type': 'application/zip', 'Content-Disposition': 'attachment; filename="safehandoff.zip"' }); response.end(bytes);
+  });
+  const origin = await listen(backend), client = createServer(createClientHandler(origin)), base = await listen(client);
+  try {
+    const response = await fetch(base + '/api/v1/tasks?cursor=fixture', { headers: { 'Last-Event-ID': '42' } });
+    assert.equal(seen, '/api/v1/tasks?cursor=fixture');
+    assert.equal(response.headers.get('content-disposition'), 'attachment; filename="safehandoff.zip"');
+    assert.deepEqual(Buffer.from(await response.arrayBuffer()), bytes);
+  } finally { await close(client); await close(backend); }
+});

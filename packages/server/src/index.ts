@@ -8,3 +8,5 @@ export type { AnalysisJob, AnalysisCandidate, AnalysisAdoption, ManualCandidateI
 
 export { createWorkflowHandler } from './workflow-http.ts';
 export type { WorkflowAccess } from './workflow-session.ts';
+
+export { validateCatalog } from './workflow-catalog.ts';

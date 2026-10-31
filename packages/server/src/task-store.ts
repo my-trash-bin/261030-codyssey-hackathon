@@ -3,6 +3,8 @@ import { mkdirSync } from 'node:fs';
 import { dirname } from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
 import type { Candidate, DisclosurePreview, TaskContext } from '@safehandoff/core-interface';
+import { WorkflowStore } from './workflow-store.ts';
+import { lifecycleSchema } from './lifecycle-schema.ts';
 import { AnalysisStore } from './analysis-store.ts';
 import { TaskStoreError } from './task-error.ts';
 export { TaskStoreError } from './task-error.ts';
@@ -26,6 +28,7 @@ const fail = (): never => { throw new TaskStoreError('INVALID_TASK_INPUT'); };
 
 export class TaskStore {
   readonly analysis: AnalysisStore;
+  readonly workflow: WorkflowStore;
   private readonly db: DatabaseSync;
   private readonly clock: () => Date;
   constructor(path: string, clock: () => Date = () => new Date()) {
@@ -35,11 +38,13 @@ export class TaskStore {
     try {
       this.db.exec('PRAGMA foreign_keys=ON; PRAGMA journal_mode=WAL; PRAGMA busy_timeout=3000;');
       const migrated = this.db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='task_store_migrations'").get();
-      if (migrated && Number(this.db.prepare('SELECT max(version) AS version FROM task_store_migrations').get()?.version) > 3) {
+      if (migrated && Number(this.db.prepare('SELECT max(version) AS version FROM task_store_migrations').get()?.version) > 4) {
         throw new Error('UNSUPPORTED_TASK_SCHEMA');
       }
-      this.transaction(() => { this.db.exec(taskSchema + analysisSchema + httpSchema); });
+      this.transaction(() => { this.db.exec(taskSchema + analysisSchema + httpSchema + lifecycleSchema); });
     } catch (error) { this.db.close(); throw error; }
+    this.workflow = new WorkflowStore(this.db, this, { transaction: work => this.transaction(work),
+      advance: task => this.advance(task, 'needs_decisions'), now: () => this.clock().toISOString() });
     this.analysis = new AnalysisStore(this.db, {
       transaction: work => this.transaction(work), current: (id, revision) => this.current(id, revision),
       get: id => this.get(id), advance: (task, phase) => this.advance(task, phase),
@@ -57,7 +62,7 @@ export class TaskStore {
   create(context: TaskContext, sourceSetHash: string, skillSetHash: string): StoredTask {
     if (!text(context.purpose) || !text(context.recipient) || !sha(sourceSetHash) || !sha(skillSetHash) ||
       Object.keys(context).some(key => !['purpose', 'recipient', 'goal_variant', 'output_language'].includes(key)) ||
-      (context.goal_variant !== undefined && !['default', 'observations_only', 'reproduction_evidence'].includes(context.goal_variant)) ||
+      (context.goal_variant !== undefined && !['default', 'observations_only', 'ask_for_diagnostics', 'reproduction_evidence'].includes(context.goal_variant)) ||
       (context.output_language !== undefined && !['ko', 'en'].includes(context.output_language))) fail();
     return this.transaction(() => {
       const id = randomUUID(), now = this.clock().toISOString();
@@ -84,6 +89,9 @@ export class TaskStore {
       JSON.stringify({ ...task, decisions: this.decisions(id) }));
   }
   private advance(task: StoredTask, phase: StoredTask['phase']): StoredTask {
+    this.db.prepare("UPDATE workflow_artifact_jobs SET status='stale' WHERE task_id=? AND status='running'").run(task.id);
+    this.db.prepare("UPDATE workflow_analysis_jobs SET status='stale' WHERE task_id=? AND status='running'").run(task.id);
+    this.db.prepare("UPDATE workflow_disclosure_jobs SET status='stale' WHERE task_id=? AND status='running'").run(task.id);
     this.db.prepare('UPDATE workflow_tasks SET revision=revision+1,phase=?,updated_at=? WHERE id=? AND revision=?')
       .run(phase, this.clock().toISOString(), task.id, task.revision);
     this.snapshot(task.id); return this.get(task.id);
@@ -106,6 +114,7 @@ export class TaskStore {
     }
     this.db.prepare('DELETE FROM workflow_current_decisions WHERE task_id=?').run(id);
     this.db.prepare('UPDATE workflow_tasks SET current_candidate_set_id=? WHERE id=?').run(set, id);
+    this.workflow.rules.autoApply(id, revision + 1);
     return this.advance(task, 'needs_decisions');
   }
   private candidate(task: StoredTask, candidateId: string): Candidate {
@@ -173,8 +182,9 @@ export class TaskStore {
   }
   recoverJobs(): void {
     this.transaction(() => {
-      this.db.prepare("UPDATE workflow_analysis_jobs SET status='failed',error_code='CORE_CANCELLED' WHERE status='running'").run();
-      this.db.prepare("UPDATE workflow_disclosure_jobs SET status='failed',error_code='CORE_CANCELLED' WHERE status='running'").run();
+      this.db.prepare("UPDATE workflow_artifact_jobs SET status='failed',error_code='INTERRUPTED' WHERE status IN ('running','cancel_requested')").run();
+      this.db.prepare("UPDATE workflow_analysis_jobs SET status='failed',error_code='INTERRUPTED' WHERE status='running'").run();
+      this.db.prepare("UPDATE workflow_disclosure_jobs SET status='failed',error_code='INTERRUPTED' WHERE status IN ('running','cancel_requested')").run();
     });
   }
   createDisclosureJob(id: string, revision: number): string {
@@ -183,10 +193,18 @@ export class TaskStore {
   }
   finishDisclosureJob(job: string, result: unknown, error: string | null): void {
     const row = this.db.prepare('SELECT * FROM workflow_disclosure_jobs WHERE id=?').get(job);
-    if (!row || row.status !== 'running') return;
+    if (!row) return;
+    if (row.status === 'cancel_requested') {
+      this.db.prepare("UPDATE workflow_disclosure_jobs SET status='cancelled',result_json=NULL,error_code='CORE_CANCELLED' WHERE id=?").run(job); return;
+    }
+    if (row.status !== 'running') return;
     const stale = this.get(String(row.task_id)).revision !== row.revision;
     this.db.prepare('UPDATE workflow_disclosure_jobs SET status=?,result_json=?,error_code=? WHERE id=?').run(
       stale ? 'stale' : error ? 'failed' : 'succeeded', stale || error ? null : JSON.stringify(result), error, job);
+  }
+  cancelDisclosureJob(task: string, id: string): boolean {
+    const job = this.disclosureJob(id); if (job.task_id !== task) throw new TaskStoreError('ANALYSIS_NOT_FOUND');
+    return Number(this.db.prepare("UPDATE workflow_disclosure_jobs SET status='cancel_requested' WHERE task_id=? AND id=? AND status='running'").run(task, id).changes) > 0;
   }
   disclosureJob(id: string): Record<string, unknown> {
     const row = this.db.prepare('SELECT * FROM workflow_disclosure_jobs WHERE id=?').get(id);
