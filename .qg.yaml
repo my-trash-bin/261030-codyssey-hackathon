@@ -6,6 +6,8 @@ hooks:
 artifacts:
   generated:
     include:
+      - docs/presentation/SafeHandoff_발표자료_통합.html
+      - docs/presentation/SafeHandoff_발표자료_통합.pdf
       - evaluation/**
       - var/**
       - bin/**
@@ -47,6 +49,13 @@ overrides:
   - files: [docs/traceability.csv]
     rules:
       files/max-line-length: [error, {limit: 650}]
+  # 발표 PDF와 통합 HTML은 개별 슬라이드에서 재생성하는 배포 산출물이다.
+  - files: [docs/presentation/SafeHandoff_발표자료_통합.pdf]
+    rules:
+      files/max-bytes: [error, {limit: 6000000}]
+  - files: [docs/presentation/SafeHandoff_발표자료_통합.html]
+    rules:
+      files/max-lines: [error, {limit: 10000}]
 checks:
   - name: TypeScript types
     command: mise

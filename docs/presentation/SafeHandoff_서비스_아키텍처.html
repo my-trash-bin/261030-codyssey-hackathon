@@ -209,14 +209,14 @@ button{font:inherit;cursor:pointer}
   <div class="page-shell" id="sheet-arch">
     <section class="page" id="architecture" aria-labelledby="arch-title">
       <header class="page-header">
-        <h2 id="arch-title">AI 기반 로그 비식별화 및 스킬 공유 서비스 아키텍처</h2>
-        <span class="header-sub">MVC 아키텍처 및 기술 스택 · 로그 분석 → 비식별화(A~D) → 승인 → 스킬 등록 / 기업 간 재사용</span>
+        <h2 id="arch-title">공유 자료 준비 아키텍처 · 현행 기반과 후속 계획</h2>
+        <span class="header-sub">설계 목표·후속 계획 포함 · 현재 완료 범위는 README·ISSUES 참조</span>
       </header>
 
       <figure class="arch-canvas">
         <svg viewBox="0 0 1200 610" role="img" aria-labelledby="arch-svg-title arch-svg-desc">
           <title id="arch-svg-title">SafeHandoff MVC 서비스 아키텍처 및 기술 스택 다이어그램</title>
-          <desc id="arch-svg-desc">Client(View), Server(Controller), Database &amp; Skill Repository(Model), 그리고 AI Engine(Python/LLM API)으로 구성된 MVC 아키텍처 다이어그램입니다.</desc>
+          <desc id="arch-svg-desc">Client(View), Server(Controller), Database &amp; Skill Repository(Model), 그리고 AI Engine(TypeScript/ModelClient)으로 구성된 MVC 아키텍처 다이어그램입니다.</desc>
 
           <defs>
             <marker id="arr-slate" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
@@ -233,26 +233,26 @@ button{font:inherit;cursor:pointer}
             </filter>
           </defs>
 
-          <!-- ==================== 0. 외곽 호스팅 컨테이너 (Front + Server 호스팅) ==================== -->
+          <!--  ==================== 0. 외곽 호스팅 컨테이너 (Front + Server 호스팅) ====================  -->
           <rect x="8" y="20" width="854" height="374" rx="14" fill="none" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="6 4"/>
           <rect x="26" y="6" width="276" height="26" rx="6" fill="#ffffff"/>
-          <!-- Vercel / Cloud 삼각형 심볼 -->
+          <!--  Vercel / Cloud 삼각형 심볼  -->
           <polygon points="40,11 49,26 31,26" fill="#0f172a"/>
-          <text x="56" y="24" fill="#0f172a" font-size="15.5" font-weight="900">On-Prem / Cloud</text>
+          <text x="56" y="24" fill="#0f172a" font-size="15.5" font-weight="900">사내 운영 기준</text>
           <text x="196" y="23" fill="#64748b" font-size="11.5" font-weight="700">Front + Server 호스팅</text>
 
-          <!-- ==================== 1. 좌측: Client (View) — Frontend 웹 대시보드 ==================== -->
+          <!--  ==================== 1. 좌측: Client (View) — Frontend 웹 대시보드 ====================  -->
           <rect x="24" y="48" width="262" height="334" rx="12" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5" stroke-dasharray="5 4"/>
           <rect x="38" y="36" width="136" height="22" rx="4" fill="#ffffff"/>
-          <!-- 모니터 아이콘 -->
+          <!--  모니터 아이콘  -->
           <rect x="44" y="40" width="15" height="11" rx="2" fill="none" stroke="#2563eb" stroke-width="1.8"/>
           <line x1="48" y1="54" x2="55" y2="54" stroke="#2563eb" stroke-width="1.8"/>
           <text x="65" y="52" fill="#2563eb" font-size="14.5" font-weight="900">Client (View)</text>
 
-          <!-- 상단 파란 카드 1: 기업 A (로그 입력 · 결과 확인 · 승인) -->
+          <!--  상단 파란 카드 1: 기업 A (로그 입력 · 결과 확인 · 승인)  -->
           <g transform="translate(38, 66)">
             <rect x="0" y="0" width="110" height="92" rx="10" fill="#2563eb" filter="url(#soft-shadow)"/>
-            <!-- 빌딩 + 문서 아이콘 -->
+            <!--  빌딩 + 문서 아이콘  -->
             <rect x="39" y="16" width="18" height="26" rx="2" fill="none" stroke="#ffffff" stroke-width="1.8"/>
             <line x1="44" y1="22" x2="52" y2="22" stroke="#ffffff" stroke-width="1.8"/>
             <line x1="44" y1="27" x2="52" y2="27" stroke="#ffffff" stroke-width="1.8"/>
@@ -263,22 +263,24 @@ button{font:inherit;cursor:pointer}
           </g>
           <text x="93" y="175" text-anchor="middle" fill="#64748b" font-size="11" font-weight="700">로그 등록 · 결과 확인</text>
 
-          <!-- 상단 파란 카드 2: 기업 B (유사 문제 해결 스킬 재사용) -->
+          <!--  상단 파란 카드 2: 기업 B (유사 문제 해결 스킬 재사용)  -->
           <g transform="translate(160, 66)">
             <rect x="0" y="0" width="110" height="92" rx="10" fill="#2563eb" filter="url(#soft-shadow)"/>
-            <!-- 모니터 + 차트/스킬 아이콘 -->
+            <!--  모니터 + 차트/스킬 아이콘  -->
             <rect x="38" y="16" width="34" height="24" rx="3" fill="none" stroke="#ffffff" stroke-width="1.8"/>
             <line x1="46" y1="32" x2="46" y2="26" stroke="#93c5fd" stroke-width="2.2"/>
             <line x1="53" y1="32" x2="53" y2="22" stroke="#ffffff" stroke-width="2.2"/>
             <line x1="60" y1="32" x2="60" y2="28" stroke="#93c5fd" stroke-width="2.2"/>
             <line x1="49" y1="44" x2="61" y2="44" stroke="#ffffff" stroke-width="1.8"/>
-            <text x="55" y="64" text-anchor="middle" fill="#ffffff" font-size="13.5" font-weight="900">기업 B 대시보드</text>
+            <text x="55" y="64" text-anchor="middle" fill="#ffffff" font-size="13.5" font-weight="900">공개 팩 활용 계획</text>
+      <!-- // TODO: [PRES-03] Rule 저장/매칭은 미구현. SkillPack과 혼용 금지; 공개 팩 공유는 별도 후속. ISSUES.md 참조. -->
             <text x="55" y="80" text-anchor="middle" fill="#dbeafe" font-size="10.5" font-weight="700">해결 스킬 조회·재사용</text>
           </g>
-          <text x="215" y="175" text-anchor="middle" fill="#64748b" font-size="11" font-weight="700">유사 문제 스킬 재사용</text>
+      <!-- // TODO: [PRES-03] Rule 저장/매칭은 미구현. SkillPack과 혼용 금지; 공개 팩 공유는 별도 후속. ISSUES.md 참조. -->
+          <text x="215" y="175" text-anchor="middle" fill="#64748b" font-size="11" font-weight="700">공개 팩 검토·설치 계획</text>
 
-          <!-- 중단 기술 스택 카드 3개 (React / TypeScript / Tailwind SVG) -->
-          <!-- React -->
+          <!--  중단 기술 스택 카드 3개 (DOM / TypeScript / CSS SVG)  -->
+          <!--  DOM  -->
           <g transform="translate(38, 192)">
             <rect x="0" y="0" width="72" height="74" rx="8" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.2"/>
             <g transform="translate(36, 28)">
@@ -287,10 +289,10 @@ button{font:inherit;cursor:pointer}
               <ellipse cx="0" cy="0" rx="14" ry="5.5" fill="none" stroke="#00d8ff" stroke-width="1.5" transform="rotate(60)"/>
               <ellipse cx="0" cy="0" rx="14" ry="5.5" fill="none" stroke="#00d8ff" stroke-width="1.5" transform="rotate(120)"/>
             </g>
-            <text x="36" y="61" text-anchor="middle" fill="#0f172a" font-size="11.5" font-weight="800">React</text>
+            <text x="36" y="61" text-anchor="middle" fill="#0f172a" font-size="11.5" font-weight="800">DOM</text>
           </g>
 
-          <!-- TypeScript -->
+          <!--  TypeScript  -->
           <g transform="translate(119, 192)">
             <rect x="0" y="0" width="72" height="74" rx="8" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.2"/>
             <rect x="22" y="13" width="28" height="28" rx="4" fill="#3178c6"/>
@@ -298,43 +300,47 @@ button{font:inherit;cursor:pointer}
             <text x="36" y="61" text-anchor="middle" fill="#0f172a" font-size="11.5" font-weight="800">TypeScript</text>
           </g>
 
-          <!-- Tailwind (Official Simple Icons SVG) -->
+          <!--  CSS (Official Simple Icons SVG)  -->
           <g transform="translate(200, 192)">
             <rect x="0" y="0" width="70" height="74" rx="8" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.2"/>
             <svg x="21" y="13" width="28" height="28" viewBox="0 0 24 24" aria-hidden="true">
-              <path fill="#06B6D4" d="M12.001 4.8c-3.2 0-5.2 1.6-6 4.8 1.2-1.6 2.6-2.2 4.2-1.8.913.228 1.565.89 2.288 1.624C13.666 10.618 15.027 12 18.001 12c3.2 0 5.2-1.6 6-4.8-1.2 1.6-2.6 2.2-4.2 1.8-.913-.228-1.565-.89-2.288-1.624C16.337 6.182 14.976 4.8 12.001 4.8zm-6 7.2c-3.2 0-5.2 1.6-6 4.8 1.2-1.6 2.6-2.2 4.2-1.8.913.228 1.565.89 2.288 1.624C7.666 17.818 9.027 19.2 12.001 19.2c3.2 0 5.2-1.6 6-4.8-1.2 1.6-2.6 2.2-4.2 1.8-.913-.228-1.565-.89-2.288-1.624C10.337 13.382 8.976 12 6.001 12z"/>
+              <path fill="#06B6D4" d="M12.001 4.8c-3.2 0-5.2 1.6-6 4.8 1.2-1.6 2.6-2.2 4.2-1.8.913.228 1.565.89 2.288 1.624C13.666 10.618 15.027 12 18.001 12c3.2 0 5.2-1.6 6-4.8-1.2 1.6-2.6 2.2-4.2
+1.8-.913-.228-1.565-.89-2.288-1.624C16.337 6.182 14.976 4.8 12.001 4.8zm-6 7.2c-3.2 0-5.2 1.6-6 4.8 1.2-1.6 2.6-2.2 4.2-1.8.913.228 1.565.89 2.288 1.624C7.666 17.818 9.027 19.2
+12.001 19.2c3.2 0 5.2-1.6 6-4.8-1.2 1.6-2.6 2.2-4.2 1.8-.913-.228-1.565-.89-2.288-1.624C10.337 13.382 8.976 12 6.001
+12z"/>
             </svg>
-            <text x="35" y="61" text-anchor="middle" fill="#0f172a" font-size="11.5" font-weight="800">Tailwind</text>
+            <text x="35" y="61" text-anchor="middle" fill="#0f172a" font-size="11.5" font-weight="800">CSS</text>
           </g>
 
-          <!-- Client 하단 설명 -->
+          <!--  Client 하단 설명  -->
           <rect x="38" y="280" width="46" height="18" rx="4" fill="#eff6ff" stroke="#bfdbfe"/>
           <text x="61" y="292.5" text-anchor="middle" fill="#1d4ed8" font-size="9.5" font-weight="900">WEB UI</text>
           <text x="92" y="293" fill="#0f172a" font-size="12.5" font-weight="900">Frontend (웹 대시보드)</text>
           <text x="38" y="315" fill="#64748b" font-size="11" font-weight="600">· 기업 A: 로그 업로드 · 추천 결과 UI · 최종 승인</text>
-          <text x="38" y="333" fill="#64748b" font-size="11" font-weight="600">· 기업 B: 승인된 스킬 조회 · 유사 문제 즉시 적용</text>
+          <text x="38" y="333" fill="#64748b" font-size="11" font-weight="600">· 공개 SkillPack: 검토·설치 후 활용 계획</text>
+      <!-- // TODO: [PRES-06] AI 생성 선택지와 A~D 표시 계약 정리 필요. D는 현행 직접 입력; 비율은 예시. ISSUES.md 참조. -->
           <text x="38" y="351" fill="#0f766e" font-size="11" font-weight="800">· 공개 수준(A~D) 선택 시 본문·표 실시간 미리보기</text>
 
-          <!-- Client <-> Server 요청/응답 화살표 -->
+          <!--  Client <-> Server 요청/응답 화살표  -->
           <text x="312" y="102" text-anchor="middle" fill="#334155" font-size="11" font-weight="800">request</text>
           <line x1="286" y1="110" x2="336" y2="110" stroke="#64748b" stroke-width="1.6" marker-end="url(#arr-slate)"/>
           <line x1="338" y1="132" x2="288" y2="132" stroke="#64748b" stroke-width="1.6" marker-end="url(#arr-slate)"/>
           <text x="312" y="148" text-anchor="middle" fill="#334155" font-size="11" font-weight="800">response</text>
           <text x="312" y="164" text-anchor="middle" fill="#2563eb" font-size="9.8" font-weight="800">HTTP / API</text>
 
-          <!-- ==================== 2. 중앙: Server (Controller) — Backend API 서버 ==================== -->
+          <!--  ==================== 2. 중앙: Server (Controller) — Backend API 서버 ====================  -->
           <rect x="340" y="48" width="506" height="334" rx="12" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5" stroke-dasharray="5 4"/>
           <rect x="356" y="36" width="166" height="22" rx="4" fill="#ffffff"/>
-          <!-- 서버 리스트 아이콘 -->
+          <!--  서버 리스트 아이콘  -->
           <line x1="362" y1="42" x2="374" y2="42" stroke="#2563eb" stroke-width="2"/>
           <line x1="362" y1="47" x2="374" y2="47" stroke="#2563eb" stroke-width="2"/>
           <line x1="362" y1="52" x2="374" y2="52" stroke="#2563eb" stroke-width="2"/>
           <text x="381" y="52" fill="#2563eb" font-size="14.5" font-weight="900">Server (Controller)</text>
 
-          <!-- Controller 3단 박스 1: Route Handler -->
+          <!--  Controller 3단 박스 1: Route Handler  -->
           <g transform="translate(362, 66)">
             <rect x="0" y="0" width="128" height="92" rx="10" fill="#2563eb" filter="url(#soft-shadow)"/>
-            <!-- 분기 화살표 아이콘 -->
+            <!--  분기 화살표 아이콘  -->
             <path d="M64 42 L64 26 M64 26 L52 18 M64 26 L76 18" fill="none" stroke="#ffffff" stroke-width="2.2" stroke-linecap="round"/>
             <polyline points="52 24 52 18 58 18" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round"/>
             <polyline points="70 18 76 18 76 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round"/>
@@ -345,10 +351,10 @@ button{font:inherit;cursor:pointer}
 
           <line x1="490" y1="112" x2="526" y2="112" stroke="#64748b" stroke-width="1.6" marker-end="url(#arr-slate)"/>
 
-          <!-- Controller 3단 박스 2: Service -->
+          <!--  Controller 3단 박스 2: Service  -->
           <g transform="translate(528, 66)">
             <rect x="0" y="0" width="128" height="92" rx="10" fill="#2563eb" filter="url(#soft-shadow)"/>
-            <!-- CPU / 코어 아이콘 -->
+            <!--  CPU / 코어 아이콘  -->
             <rect x="52" y="16" width="24" height="24" rx="3" fill="none" stroke="#ffffff" stroke-width="2"/>
             <rect x="58" y="22" width="12" height="12" rx="1" fill="none" stroke="#93c5fd" stroke-width="1.6"/>
             <line x1="58" y1="12" x2="58" y2="16" stroke="#ffffff" stroke-width="1.8"/>
@@ -356,91 +362,98 @@ button{font:inherit;cursor:pointer}
             <line x1="58" y1="40" x2="58" y2="44" stroke="#ffffff" stroke-width="1.8"/>
             <line x1="70" y1="40" x2="70" y2="44" stroke="#ffffff" stroke-width="1.8"/>
             <text x="64" y="66" text-anchor="middle" fill="#ffffff" font-size="13.5" font-weight="900">Service</text>
+      <!-- // TODO: [PRES-02] 전체 UI/API 연결·본문/표 갱신·근거·내보내기는 미구현. 현재는 메모 저장/조회와 상태 확인. -->
             <text x="64" y="81" text-anchor="middle" fill="#dbeafe" font-size="10.2" font-weight="700">흐름 제어 · 승인 · 동기화</text>
           </g>
           <text x="592" y="175" text-anchor="middle" fill="#64748b" font-size="11" font-weight="700">분석 · 비식별화 · 승인 · 스킬</text>
 
           <line x1="656" y1="112" x2="692" y2="112" stroke="#64748b" stroke-width="1.6" marker-end="url(#arr-slate)"/>
 
-          <!-- Controller 3단 박스 3: Repository -->
+          <!--  Controller 3단 박스 3: Repository  -->
           <g transform="translate(694, 66)">
             <rect x="0" y="0" width="128" height="92" rx="10" fill="#2563eb" filter="url(#soft-shadow)"/>
-            <!-- DB 실린더 아이콘 -->
+            <!--  DB 실린더 아이콘  -->
             <ellipse cx="64" cy="20" rx="13" ry="5" fill="none" stroke="#ffffff" stroke-width="2"/>
             <path d="M51 20v16c0 2.8 5.8 5 13 5s13-2.2 13-5V20" fill="none" stroke="#ffffff" stroke-width="2"/>
             <path d="M51 28c0 2.8 5.8 5 13 5s13-2.2 13-5" fill="none" stroke="#93c5fd" stroke-width="1.6"/>
             <text x="64" y="66" text-anchor="middle" fill="#ffffff" font-size="13.5" font-weight="900">Repository</text>
             <text x="64" y="81" text-anchor="middle" fill="#dbeafe" font-size="10.2" font-weight="700">Data · Skill Access</text>
           </g>
-          <text x="758" y="175" text-anchor="middle" fill="#64748b" font-size="11" font-weight="700">ORM · 저장소 연동</text>
+          <text x="758" y="175" text-anchor="middle" fill="#64748b" font-size="11" font-weight="700">SQLite · 저장소 연동</text>
 
-          <!-- Server 내부 기술 스택 & 자체 개발 규칙 엔진 (SVG 아이콘 + 텍스트) -->
-          <!-- Row 1: FastAPI/Backend, ORM -->
+          <!--  Server 내부 기술 스택 & 자체 개발 규칙 엔진 (SVG 아이콘 + 텍스트)  -->
+          <!--  Row 1: Node HTTP/Backend, ORM  -->
           <g transform="translate(362, 202)">
             <circle cx="12" cy="12" r="12" fill="#0f172a"/>
             <text x="12" y="16.5" text-anchor="middle" fill="#ffffff" font-size="11.5" font-weight="900">B</text>
             <text x="32" y="16.5" fill="#0f172a" font-size="13.5" font-weight="900">Backend API</text>
+      <!-- // TODO: [PRES-05] 앱 인증·전체 원자료 격리·배포는 후속. Docker toy 실행 격리만 완료. ISSUES.md 참조. -->
             <text x="122" y="16.5" fill="#64748b" font-size="11.5" font-weight="600">요청 처리 · 세션 관리</text>
           </g>
 
           <g transform="translate(604, 202)">
-            <!-- Prisma Official Simple Icons SVG -->
+            <!--  node:sqlite Official Simple Icons SVG  -->
             <svg x="1" y="1" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true">
               <path fill="#0f172a" d="M21.807 18.285L13.553.757a1.32 1.32 0 0 0-1.129-.755a1.31 1.31 0 0 0-1.206.626l-8.952 14.5a1.36 1.36 0 0 0 .016 1.455l4.376 6.778a1.41 1.41 0 0 0 1.58.581l12.703-3.757c.389-.115.707-.39.873-.755s.164-.783-.007-1.145m-1.848.752L9.18 22.224a.452.452 0 0 1-.575-.52l3.85-18.438c.072-.345.549-.4.699-.08l7.129 15.138a.515.515 0 0 1-.325.713"/>
             </svg>
-            <text x="30" y="16.5" fill="#0f172a" font-size="13.5" font-weight="900">ORM Layer</text>
+            <text x="30" y="16.5" fill="#0f172a" font-size="13.5" font-weight="900">SQLite Store</text>
             <text x="110" y="16.5" fill="#64748b" font-size="11.5" font-weight="600">스키마 · 이력 관리</text>
           </g>
 
           <g transform="translate(362, 244)">
-            <!-- 문서·표 동시 갱신 아이콘 -->
+            <!--  문서·표 동시 갱신 아이콘  -->
             <rect x="3" y="2" width="18" height="20" rx="3" fill="none" stroke="#0f172a" stroke-width="2"/>
             <line x1="8" y1="8" x2="16" y2="8" stroke="#2563eb" stroke-width="2"/>
             <line x1="8" y1="13" x2="16" y2="13" stroke="#2563eb" stroke-width="2"/>
             <line x1="8" y1="18" x2="13" y2="18" stroke="#2563eb" stroke-width="2"/>
+      <!-- // TODO: [PRES-02] 전체 UI/API 연결·본문/표 갱신·근거·내보내기는 미구현. 현재는 메모 저장/조회와 상태 확인. -->
             <text x="30" y="16.5" fill="#0f172a" font-size="13.5" font-weight="900">문서 · 표 동시 갱신 엔진</text>
+      <!-- // TODO: [PRES-02] 전체 UI/API 연결·본문/표 갱신·근거·내보내기는 미구현. 현재는 메모 저장/조회와 상태 확인. -->
+      <!-- // TODO: [PRES-06] AI 생성 선택지와 A~D 표시 계약 정리 필요. D는 현행 직접 입력; 비율은 예시. ISSUES.md 참조. -->
             <text x="184" y="16.5" fill="#64748b" font-size="11.5" font-weight="600">공개 수준(A~D) 변경 시 본문·표 즉시 동기화</text>
           </g>
 
           <g transform="translate(362, 284)">
-            <!-- 스킬 규칙 엔진 아이콘 -->
+            <!--  스킬 규칙 엔진 아이콘  -->
             <circle cx="12" cy="12" r="10" fill="none" stroke="#0f172a" stroke-width="2"/>
             <polyline points="8 12 11 15 17 9" fill="none" stroke="#10b981" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
             <text x="30" y="16.5" fill="#0f172a" font-size="13.5" font-weight="900">스킬(Skill) 매칭 규칙 엔진</text>
-            <text x="198" y="16.5" fill="#64748b" font-size="11.5" font-weight="600">목적 · 수신처 · 조건 일치 시 기업 B 재사용</text>
+            <text x="198" y="16.5" fill="#64748b" font-size="11.5" font-weight="600">Rule 재사용 / 공개 팩 공유 계획</text>
           </g>
 
-          <!-- Server 하단 5단계 핵심 프로세스 요약 배지 바 -->
+          <!--  Server 하단 5단계 핵심 프로세스 요약 배지 바  -->
           <rect x="356" y="324" width="474" height="44" rx="8" fill="#f8fafc" stroke="#dbe4f0" stroke-width="1.2"/>
           <circle cx="373" cy="346" r="8.5" fill="#0284c7"/><text x="373" y="349.5" text-anchor="middle" fill="#fff" font-size="9.5" font-weight="900">1</text>
-          <text x="385" y="350" fill="#0f172a" font-size="10.4" font-weight="800">기업 A 로그 등록</text>
+          <text x="385" y="350" fill="#0f172a" font-size="10.4" font-weight="800">원자료 입력 계획</text>
           <text x="466" y="350" fill="#94a3b8" font-size="10.5" font-weight="900">→</text>
           <circle cx="486" cy="346" r="8.5" fill="#ea580c"/><text x="486" y="349.5" text-anchor="middle" fill="#fff" font-size="9.5" font-weight="900">2</text>
-          <text x="498" y="350" fill="#0f172a" font-size="10.4" font-weight="800">LLM 비식별·추천</text>
+          <text x="498" y="350" fill="#0f172a" font-size="10.4" font-weight="800">분석·제안 계획</text>
           <text x="581" y="350" fill="#94a3b8" font-size="10.5" font-weight="900">→</text>
           <circle cx="601" cy="346" r="8.5" fill="#7c3aed"/><text x="601" y="349.5" text-anchor="middle" fill="#fff" font-size="9.5" font-weight="900">3</text>
           <text x="613" y="350" fill="#0f172a" font-size="10.4" font-weight="800">확인·승인</text>
           <text x="664" y="350" fill="#94a3b8" font-size="10.5" font-weight="900">→</text>
           <circle cx="684" cy="346" r="8.5" fill="#16a34a"/><text x="684" y="349.5" text-anchor="middle" fill="#fff" font-size="9.5" font-weight="900">4</text>
-          <text x="696" y="350" fill="#0f172a" font-size="10.4" font-weight="800">스킬 등록</text>
+      <!-- // TODO: [PRES-03] Rule 저장/매칭은 미구현. SkillPack과 혼용 금지; 공개 팩 공유는 별도 후속. ISSUES.md 참조. -->
+          <text x="696" y="350" fill="#0f172a" font-size="10.4" font-weight="800">팩 등록 계획</text>
           <text x="745" y="350" fill="#94a3b8" font-size="10.5" font-weight="900">→</text>
           <circle cx="764" cy="346" r="8.5" fill="#2563eb"/><text x="764" y="349.5" text-anchor="middle" fill="#fff" font-size="9.5" font-weight="900">5</text>
-          <text x="776" y="350" fill="#1d4ed8" font-size="10.4" font-weight="900">기업 B 재사용</text>
+      <!-- // TODO: [PRES-03] Rule 저장/매칭은 미구현. SkillPack과 혼용 금지; 공개 팩 공유는 별도 후속. ISSUES.md 참조. -->
+          <text x="776" y="350" fill="#1d4ed8" font-size="10.4" font-weight="900">공개 팩 활용</text>
 
-          <!-- Server <-> Database SQL/Result 화살표 -->
+          <!--  Server <-> Database SQL/Result 화살표  -->
           <text x="879" y="102" text-anchor="middle" fill="#334155" font-size="11" font-weight="800">SQL · 등록</text>
           <line x1="822" y1="110" x2="908" y2="110" stroke="#64748b" stroke-width="1.6" marker-end="url(#arr-slate)"/>
           <line x1="910" y1="132" x2="824" y2="132" stroke="#64748b" stroke-width="1.6" marker-end="url(#arr-slate)"/>
           <text x="879" y="148" text-anchor="middle" fill="#334155" font-size="11" font-weight="800">result · 조회</text>
 
-          <!-- ==================== 3. 우측: Database & Skill Repository (Model) ==================== -->
+          <!--  ==================== 3. 우측: Database & Skill Repository (Model) ====================  -->
           <rect x="912" y="48" width="276" height="334" rx="12" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5" stroke-dasharray="5 4"/>
           <rect x="928" y="36" width="160" height="22" rx="4" fill="#ffffff"/>
           <ellipse cx="939" cy="43" rx="7" ry="3" fill="none" stroke="#2563eb" stroke-width="1.8"/>
           <path d="M932 43v8c0 1.7 3.1 3 7 3s7-1.3 7-3v-8" fill="none" stroke="#2563eb" stroke-width="1.8"/>
           <text x="953" y="52" fill="#2563eb" font-size="14.5" font-weight="900">Database (Model)</text>
 
-          <!-- 3D 그린 실린더 (레퍼런스 스타일) -->
+          <!--  3D 그린 실린더 (레퍼런스 스타일)  -->
           <g transform="translate(1002, 66)">
             <path d="M0 16v22c0 8.8 21.5 16 48 16s48-7.2 48-16V16z" fill="#34d399"/>
             <ellipse cx="48" cy="16" rx="48" ry="14" fill="#10b981"/>
@@ -449,33 +462,33 @@ button{font:inherit;cursor:pointer}
             <path d="M0 38c0 8.8 21.5 16 48 16s48-7.2 48-16" fill="none" stroke="#ffffff" stroke-width="3.5"/>
           </g>
 
-          <!-- Storage 타이틀 로고 (번개 + Storage & Skill Repo) -->
+          <!--  Storage 타이틀 로고 (번개 + Storage & Skill Repo)  -->
           <g transform="translate(970, 158)">
             <polygon points="14,0 4,14 12,14 10,24 22,10 14,10" fill="#10b981"/>
             <text x="30" y="18" fill="#0f172a" font-size="17" font-weight="900">Data &amp; Skill Store</text>
           </g>
 
-          <!-- Model 내부 4대 저장 영역 (공식 SVG 아이콘 적용) -->
-          <!-- 1) PostgreSQL Database (Slonik 코끼리 공식 벡터 아이콘) -->
+          <!--  Model 내부 4대 저장 영역 (공식 SVG 아이콘 적용)  -->
+          <!--  1) SQLite Database (Slonik 코끼리 공식 벡터 아이콘)  -->
           <g transform="translate(930, 204)">
             <svg x="0" y="0" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true">
-              <!-- 왼쪽 큰 귀 -->
+              <!--  왼쪽 큰 귀  -->
               <path d="M9.6 4.4 C4.6 3.3 2.2 5.8 2.6 10.8 C3.0 15.2 5.4 18.2 8.2 17.6 C9.4 17.3 10.1 16.0 10.3 14.2" fill="#dbeafe" stroke="#336791" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round"/>
-              <!-- 오른쪽 귀 -->
+              <!--  오른쪽 귀  -->
               <path d="M15.4 4.6 C19.0 3.6 21.4 6.0 20.8 10.4 C20.2 14.2 18.2 16.2 16.0 15.8" fill="#dbeafe" stroke="#336791" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round"/>
-              <!-- 코끼리 머리 및 코(Trunk) -->
+              <!--  코끼리 머리 및 코(Trunk)  -->
               <path d="M8.8 6.8 C8.8 3.6 16.4 3.6 16.4 6.8 C16.4 9.6 15.6 12.8 15.4 17.6 C15.3 20.0 13.9 21.4 12.3 21.4 C10.7 21.4 10.3 20.0 10.3 17.4 C10.3 14.2 9.8 11.4 8.8 9.4 Z" fill="#eff6ff" stroke="#336791" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round"/>
-              <!-- 오른쪽 상아(Tusk) 곡선 -->
+              <!--  오른쪽 상아(Tusk) 곡선  -->
               <path d="M15.5 15.6 C17.3 16.4 19.3 16.1 20.5 15.0" fill="none" stroke="#336791" stroke-width="1.65" stroke-linecap="round"/>
-              <!-- 눈 -->
+              <!--  눈  -->
               <ellipse cx="10.9" cy="8.9" rx="0.95" ry="1.25" fill="#336791"/>
               <ellipse cx="14.5" cy="8.9" rx="0.95" ry="1.25" fill="#336791"/>
             </svg>
-            <text x="30" y="16.5" fill="#0f172a" font-size="13.5" font-weight="900">PostgreSQL</text>
+            <text x="30" y="16.5" fill="#0f172a" font-size="13.5" font-weight="900">SQLite</text>
             <text x="116" y="16.5" fill="#64748b" font-size="11" font-weight="600">로그 · 승인 내역 · 메타데이터</text>
           </g>
 
-          <!-- 2) Skill Repository (Lucide FileCog 공식 벡터 아이콘) -->
+          <!--  2) Skill Repository (Lucide FileCog 공식 벡터 아이콘)  -->
           <g transform="translate(930, 248)">
             <svg x="0" y="0" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
               <path d="M14 2v4a2 2 0 0 0 2 2h4" fill="#d1fae5"/>
@@ -483,123 +496,157 @@ button{font:inherit;cursor:pointer}
               <circle cx="6" cy="14" r="3" fill="#ecfdf5"/>
               <path d="m4.5 10.5-.4.9M7.5 10.5l.4.9M9.5 12.5l-.9.4M9.5 15.5l-.9-.4M7.5 17.5l.4-.9M4.5 17.5l-.4-.9M2.5 15.5l.9-.4M2.5 12.5l.9.4"/>
             </svg>
+      <!-- // TODO: [PRES-03] Rule 저장/매칭은 미구현. SkillPack과 혼용 금지; 공개 팩 공유는 별도 후속. ISSUES.md 참조. -->
             <text x="30" y="16.5" fill="#0f172a" font-size="13.5" font-weight="900">Skill Repository</text>
-            <text x="150" y="16.5" fill="#0f766e" font-size="10.5" font-weight="800">승인 스킬 저장 · 재사용</text>
+      <!-- // TODO: [PRES-03] Rule 저장/매칭은 미구현. SkillPack과 혼용 금지; 공개 팩 공유는 별도 후속. ISSUES.md 참조. -->
+            <text x="150" y="16.5" fill="#0f766e" font-size="10.5" font-weight="800">Rule 저장 / 팩 공유 계획</text>
           </g>
 
-          <!-- 3) Auth & Tenant (Lucide Key 공식 벡터 아이콘) -->
+          <!--  3) Auth & Tenant (Lucide Key 공식 벡터 아이콘)  -->
           <g transform="translate(930, 292)">
             <svg x="0" y="0" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#b45309" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
               <circle cx="7.5" cy="15.5" r="5.5"/>
               <path d="m21 2-9.6 9.6"/>
               <path d="m15.5 7.5 3 3L22 7l-3-3"/>
             </svg>
+      <!-- // TODO: [PRES-05] 앱 인증·전체 원자료 격리·배포는 후속. Docker toy 실행 격리만 완료. ISSUES.md 참조. -->
             <text x="30" y="16.5" fill="#0f172a" font-size="13.5" font-weight="900">Auth &amp; Tenant</text>
-            <text x="140" y="16.5" fill="#64748b" font-size="11" font-weight="600">기업 A · 기업 B 권한 분리</text>
+            <text x="140" y="16.5" fill="#64748b" font-size="11" font-weight="600">인증·작업 소속 검사 계획</text>
           </g>
 
-          <!-- 4) RLS & 원문 근거 격리 (Lucide ShieldCheck 공식 벡터 아이콘) -->
+          <!--  4) 참고 아이콘 & 원문 근거 격리 (Lucide ShieldCheck 공식 벡터 아이콘)  -->
           <g transform="translate(930, 336)">
             <svg x="0" y="0" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0f172a" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
               <path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/>
               <path d="m9 12 2 2 4-4"/>
             </svg>
-            <text x="30" y="16.5" fill="#0f172a" font-size="13.5" font-weight="900">RLS · 원문 격리</text>
+            <text x="30" y="16.5" fill="#0f172a" font-size="13.5" font-weight="900">작업 격리 계획</text>
+      <!-- // TODO: [PRES-02] 전체 UI/API 연결·본문/표 갱신·근거·내보내기는 미구현. 현재는 메모 저장/조회와 상태 확인. -->
             <text x="138" y="16.5" fill="#64748b" font-size="11" font-weight="600">사내 문서 근거 위치 매핑</text>
           </g>
 
-          <!-- ==================== 4. 좌하단: GitHub CI/CD ==================== -->
-          <!-- GitHub -> Client 점선 화살표 -->
+          <!--  ==================== 4. 좌하단: GitHub CI/CD ====================  -->
+          <!--  GitHub -> Client 점선 화살표  -->
           <line x1="82" y1="454" x2="82" y2="388" stroke="#64748b" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#arr-slate)"/>
 
           <g transform="translate(46, 462)">
-            <!-- GitHub Octocat SVG -->
+            <!--  GitHub Octocat SVG  -->
             <circle cx="36" cy="34" r="32" fill="#0f172a"/>
-            <path d="M36 12c-12.7 0-23 10.3-23 23 0 10.2 6.6 18.8 15.7 21.8 1.1.2 1.6-.5 1.6-1.1v-4c-6.4 1.4-7.7-3.1-7.7-3.1-1-2.6-2.5-3.3-2.5-3.3-2.1-1.4.2-1.4.2-1.4 2.3.2 3.5 2.4 3.5 2.4 2 3.5 5.4 2.5 6.7 1.9.2-1.5.8-2.5 1.5-3.1-5.1-.6-10.5-2.6-10.5-11.4 0-2.5.9-4.6 2.4-6.2-.2-.6-1-2.9.2-6.1 0 0 1.9-.6 6.3 2.4 1.8-.5 3.8-.8 5.8-.8s4 .3 5.8.8c4.4-3 6.3-2.4 6.3-2.4 1.2 3.2.4 5.5.2 6.1 1.5 1.6 2.4 3.7 2.4 6.2 0 8.8-5.4 10.8-10.5 11.4.8.7 1.6 2.1 1.6 4.3v6.3c0 .6.4 1.3 1.6 1.1C52.4 53.8 59 45.2 59 35c0-12.7-10.3-23-23-23z" fill="#ffffff"/>
+            <path d="M36 12c-12.7 0-23 10.3-23 23 0 10.2 6.6 18.8 15.7 21.8 1.1.2 1.6-.5 1.6-1.1v-4c-6.4 1.4-7.7-3.1-7.7-3.1-1-2.6-2.5-3.3-2.5-3.3-2.1-1.4.2-1.4.2-1.4 2.3.2 3.5 2.4 3.5 2.4 2 3.5 5.4
+2.5 6.7 1.9.2-1.5.8-2.5 1.5-3.1-5.1-.6-10.5-2.6-10.5-11.4 0-2.5.9-4.6 2.4-6.2-.2-.6-1-2.9.2-6.1 0 0 1.9-.6 6.3 2.4 1.8-.5 3.8-.8 5.8-.8s4 .3 5.8.8c4.4-3 6.3-2.4 6.3-2.4 1.2 3.2.4
+5.5.2 6.1 1.5 1.6 2.4 3.7 2.4 6.2 0 8.8-5.4 10.8-10.5 11.4.8.7 1.6 2.1 1.6 4.3v6.3c0 .6.4 1.3 1.6 1.1C52.4 53.8 59 45.2 59
+35c0-12.7-10.3-23-23-23z" fill="#ffffff"/>
             <text x="36" y="84" text-anchor="middle" fill="#0f172a" font-size="14" font-weight="900">GitHub</text>
             <text x="36" y="101" text-anchor="middle" fill="#64748b" font-size="11.5" font-weight="700">팀 저장소</text>
           </g>
 
           <g transform="translate(132, 476)">
-            <text x="0" y="14" fill="#0f172a" font-size="13.5" font-weight="900">push → 자동 빌드 · 배포</text>
-            <text x="0" y="34" fill="#64748b" font-size="12" font-weight="600">PR → Preview 검증</text>
-            <text x="0" y="52" fill="#64748b" font-size="12" font-weight="600">main → Production 배포</text>
+            <text x="0" y="14" fill="#0f172a" font-size="13.5" font-weight="900">로컬 QG 검사 / CI 계획</text>
+      <!-- // TODO: [PRES-05] 앱 인증·전체 원자료 격리·배포는 후속. Docker toy 실행 격리만 완료. ISSUES.md 참조. -->
+            <text x="0" y="34" fill="#64748b" font-size="12" font-weight="600">PR Preview 계획</text>
+            <text x="0" y="52" fill="#64748b" font-size="12" font-weight="600">자동 배포 계획</text>
           </g>
 
-          <!-- ==================== 5. 중앙·우하단: AI Engine (TypeScript · LLM API) ==================== -->
-          <!-- Server(외곽 점선 하단 y=394) -> AI Engine(상단 y=444) 화살표 -->
+          <!--  ==================== 5. 중앙·우하단: AI Engine (TypeScript · LLM API) ====================  -->
+          <!--  Server(외곽 점선 하단 y=394) -> AI Engine(상단 y=444) 화살표  -->
           <line x1="592" y1="394" x2="592" y2="440" stroke="#64748b" stroke-width="1.6" marker-end="url(#arr-slate)"/>
+      <!-- // TODO: [PRES-01] analyze()·묶음 질문·공개 제안/미리보기는 미구현. next-round-plan.md의 F02/F03과 연결 필요. -->
+      <!-- // TODO: [PRES-03] Rule 저장/매칭은 미구현. SkillPack과 혼용 금지; 공개 팩 공유는 별도 후속. ISSUES.md 참조. -->
           <text x="604" y="422" fill="#334155" font-size="11.5" font-weight="800">로그 분석 · 스킬 추천 요청</text>
 
-          <!-- AI Engine -> Database (Model) 결과/스킬 저장 화살표 -->
+          <!--  AI Engine -> Database (Model) 결과/스킬 저장 화살표  -->
           <path d="M 920 524 L 1050 524 L 1050 388" fill="none" stroke="#64748b" stroke-width="1.6" marker-end="url(#arr-slate)"/>
+      <!-- // TODO: [PRES-03] Rule 저장/매칭은 미구현. SkillPack과 혼용 금지; 공개 팩 공유는 별도 후속. ISSUES.md 참조. -->
           <text x="1060" y="458" fill="#334155" font-size="11.5" font-weight="800">승인 스킬 · 결과 저장</text>
 
-          <!-- AI Engine 메인 박스 (충분한 우측 여백 확보: width="584") -->
+          <!--  AI Engine 메인 박스 (충분한 우측 여백 확보: width="584")  -->
           <rect x="336" y="444" width="584" height="154" rx="12" fill="#f8fafc" stroke="#2563eb" stroke-width="1.8"/>
           <rect x="352" y="430" width="222" height="26" rx="5" fill="#ffffff"/>
-          <!-- TypeScript 공식 벡터 로고 SVG (viewBox="0 0 24 24") -->
+          <!--  TypeScript 공식 벡터 로고 SVG (viewBox="0 0 24 24")  -->
           <svg x="358" y="432" width="21" height="21" viewBox="0 0 24 24" aria-hidden="true">
             <rect x="0" y="0" width="24" height="24" rx="3.2" fill="#3178C6"/>
-            <path fill="#ffffff" d="M13.758 18.234v1.72c.281.144.619.254 1.015.331.396.077.819.115 1.268.115.432 0 .845-.041 1.239-.124.394-.083.743-.217 1.046-.403.304-.186.544-.432.721-.738.177-.306.265-.685.265-1.137 0-.331-.049-.616-.147-.856a1.83 1.83 0 0 0-.428-.629 3.06 3.06 0 0 0-.695-.474 8.35 8.35 0 0 0-.949-.396c-.26-.102-.487-.197-.681-.284a2.26 2.26 0 0 1-.481-.278.997.997 0 0 1-.279-.318.88.88 0 0 1-.09-.409c0-.165.039-.31.116-.434.077-.124.187-.228.33-.312.143-.084.318-.148.524-.192.206-.044.439-.066.698-.066.212 0 .431.016.657.049.226.033.449.082.669.147.22.065.43.146.63.243.2.097.376.208.528.332v-1.637a4.78 4.78 0 0 0-.968-.298 6.45 6.45 0 0 0-1.262-.11c-.436 0-.847.046-1.233.139-.386.093-.726.235-1.019.427-.293.192-.525.436-.696.732-.171.296-.256.647-.256 1.053 0 .52.15.959.451 1.317.301.358.774.669 1.418.932.253.102.487.199.702.291.215.092.401.189.558.291.157.102.28.215.369.338.089.123.134.269.134.438 0 .16-.036.304-.109.431a.937.937 0 0 1-.325.325c-.144.088-.326.155-.546.201-.22.046-.477.069-.771.069-.342 0-.683-.051-1.023-.153a4.12 4.12 0 0 1-.965-.454zm-4.63-5.691h2.762V10.95H4.632v1.593H7.38v7.697h1.748v-7.697z"/>
+            <path fill="#ffffff" d="M13.758 18.234v1.72c.281.144.619.254 1.015.331.396.077.819.115 1.268.115.432 0 .845-.041 1.239-.124.394-.083.743-.217
+1.046-.403.304-.186.544-.432.721-.738.177-.306.265-.685.265-1.137 0-.331-.049-.616-.147-.856a1.83 1.83 0 0 0-.428-.629 3.06 3.06 0 0 0-.695-.474 8.35 8.35 0 0
+0-.949-.396c-.26-.102-.487-.197-.681-.284a2.26 2.26 0 0 1-.481-.278.997.997 0 0 1-.279-.318.88.88 0 0
+1-.09-.409c0-.165.039-.31.116-.434.077-.124.187-.228.33-.312.143-.084.318-.148.524-.192.206-.044.439-.066.698-.066.212 0
+.431.016.657.049.226.033.449.082.669.147.22.065.43.146.63.243.2.097.376.208.528.332v-1.637a4.78 4.78 0 0 0-.968-.298 6.45 6.45 0 0 0-1.262-.11c-.436
+0-.847.046-1.233.139-.386.093-.726.235-1.019.427-.293.192-.525.436-.696.732-.171.296-.256.647-.256 1.053 0 .52.15.959.451 1.317.301.358.774.669
+1.418.932.253.102.487.199.702.291.215.092.401.189.558.291.157.102.28.215.369.338.089.123.134.269.134.438 0 .16-.036.304-.109.431a.937.937 0 0
+1-.325.325c-.144.088-.326.155-.546.201-.22.046-.477.069-.771.069-.342 0-.683-.051-1.023-.153a4.12 4.12 0 0
+1-.965-.454zm-4.63-5.691h2.762V10.95H4.632v1.593H7.38v7.697h1.748v-7.697z"/>
           </svg>
           <text x="386" y="448" fill="#2563eb" font-size="14.5" font-weight="900">AI Engine (TypeScript)</text>
 
-          <!-- AI Engine 좌측 파란 기능 카드 1: 로그 비식별화 -->
+          <!--  AI Engine 좌측 파란 기능 카드 1: 로그 비식별화  -->
           <g transform="translate(352, 462)">
             <rect x="0" y="0" width="102" height="104" rx="10" fill="#2563eb" filter="url(#soft-shadow)"/>
-            <!-- 브레인/방패 아이콘 -->
+            <!--  브레인/방패 아이콘  -->
             <path d="M51 18L37 24v10c0 9 6 16.5 14 19 8-2.5 14-10 14-19V24L51 18z" fill="none" stroke="#ffffff" stroke-width="2"/>
             <polyline points="45 34 49 38 57 30" fill="none" stroke="#93c5fd" stroke-width="2.2" stroke-linecap="round"/>
+      <!-- // TODO: [PRES-01] analyze()·묶음 질문·공개 제안/미리보기는 미구현. next-round-plan.md의 F02/F03과 연결 필요. -->
             <text x="51" y="76" text-anchor="middle" fill="#ffffff" font-size="13" font-weight="900">로그 비식별화</text>
+      <!-- // TODO: [PRES-06] AI 생성 선택지와 A~D 표시 계약 정리 필요. D는 현행 직접 입력; 비율은 예시. ISSUES.md 참조. -->
             <text x="51" y="92" text-anchor="middle" fill="#dbeafe" font-size="10" font-weight="700">민감정보 가림 (A~D)</text>
           </g>
 
-          <!-- AI Engine 좌측 파란 기능 카드 2: 해결 스킬 추천 -->
+          <!--  AI Engine 좌측 파란 기능 카드 2: 해결 스킬 추천  -->
           <g transform="translate(464, 462)">
             <rect x="0" y="0" width="102" height="104" rx="10" fill="#2563eb" filter="url(#soft-shadow)"/>
-            <!-- 오픈 북 / 스킬 추천 아이콘 -->
+            <!--  오픈 북 / 스킬 추천 아이콘  -->
             <path d="M35 22h13a4 4 0 0 1 4 4v20a3 3 0 0 0-3-3H35z" fill="none" stroke="#ffffff" stroke-width="2"/>
             <path d="M69 22H56a4 4 0 0 0-4 4v20a3 3 0 0 1 3-3h14z" fill="none" stroke="#ffffff" stroke-width="2"/>
+      <!-- // TODO: [PRES-03] Rule 저장/매칭은 미구현. SkillPack과 혼용 금지; 공개 팩 공유는 별도 후속. ISSUES.md 참조. -->
             <text x="51" y="76" text-anchor="middle" fill="#ffffff" font-size="13" font-weight="900">해결 스킬 추천</text>
+      <!-- // TODO: [PRES-04] 전체 원자료 대조/제약 자동 복원은 계획. 현재는 초안·FactPack·grounding 검토. -->
             <text x="51" y="92" text-anchor="middle" fill="#dbeafe" font-size="10" font-weight="700">3자 대조 · 제약 복원</text>
           </g>
 
-          <!-- AI Engine 우측 2x2 AI 모델/서빙 기술 스택 -->
-          <!-- 1) LLM API (Official OpenAI Simple Icons SVG) -->
+          <!--  AI Engine 우측 2x2 AI 모델/서빙 기술 스택  -->
+          <!--  1) LLM API (Official OpenAI Simple Icons SVG)  -->
           <g transform="translate(580, 462)">
             <svg x="1" y="2" width="23" height="23" viewBox="0 0 24 24" aria-hidden="true">
-              <path fill="#0f172a" d="M22.2819 9.8211a5.9847 5.9847 0 0 0-.5157-4.9108 6.0462 6.0462 0 0 0-6.5098-2.9A6.0651 6.0651 0 0 0 4.9807 4.1818a5.9847 5.9847 0 0 0-3.9977 2.9 6.0462 6.0462 0 0 0 .7427 7.0966 5.98 5.98 0 0 0 .511 4.9107 6.051 6.051 0 0 0 6.5146 2.9001A5.9847 5.9847 0 0 0 13.2599 24a6.0557 6.0557 0 0 0 5.7718-4.2058 5.9894 5.9894 0 0 0 3.9977-2.9001 6.0557 6.0557 0 0 0-.7475-7.0729zm-9.022 12.6081a4.4755 4.4755 0 0 1-2.8764-1.0408l.1419-.0804 4.7783-2.7582a.7948.7948 0 0 0 .3927-.6813v-6.7369l2.02 1.1686a.071.071 0 0 1 .038.052v5.5826a4.504 4.504 0 0 1-4.4945 4.4944zm-9.6607-4.1254a4.4708 4.4708 0 0 1-.5346-3.0137l.142.0852 4.783 2.7582a.7712.7712 0 0 0 .7806 0l5.8428-3.3685v2.3324a.0804.0804 0 0 1-.0332.0615L9.74 19.9502a4.4992 4.4992 0 0 1-6.1408-1.6464zM2.3408 7.8956a4.485 4.485 0 0 1 2.3655-1.9728V11.6a.7664.7664 0 0 0 .3879.6765l5.8144 3.3543-2.0201 1.1685a.0757.0757 0 0 1-.071 0l-4.8303-2.7865A4.504 4.504 0 0 1 2.3408 7.872zm16.5963 3.8558L13.1038 8.364 15.1192 7.2a.0757.0757 0 0 1 .071 0l4.8303 2.7913a4.4944 4.4944 0 0 1-.6765 8.1042v-5.6772a.79.79 0 0 0-.407-.667zm2.0107-3.0231l-.142-.0852-4.7735-2.7818a.7759.7759 0 0 0-.7854 0L9.409 9.2297V6.8974a.0662.0662 0 0 1 .0284-.0615l4.8303-2.7866a4.4992 4.4992 0 0 1 6.6802 4.66zM8.3065 12.863l-2.02-1.1638a.0804.0804 0 0 1-.038-.0567V6.0742a4.4992 4.4992 0 0 1 7.3757-3.4537l-.142.0805L8.704 5.459a.7948.7948 0 0 0-.3927.6813zm1.0976-2.3654l2.602-1.4998 2.6069 1.4998v2.9994l-2.5974 1.4997-2.6067-1.4997Z"/>
+              <path fill="#0f172a" d="M22.2819 9.8211a5.9847 5.9847 0 0 0-.5157-4.9108 6.0462 6.0462 0 0 0-6.5098-2.9A6.0651 6.0651 0 0 0 4.9807 4.1818a5.9847 5.9847 0 0 0-3.9977 2.9 6.0462 6.0462 0 0 0 .7427 7.0966
+5.98 5.98 0 0 0 .511 4.9107 6.051 6.051 0 0 0 6.5146 2.9001A5.9847 5.9847 0 0 0 13.2599 24a6.0557 6.0557 0 0 0 5.7718-4.2058 5.9894 5.9894 0 0 0 3.9977-2.9001 6.0557 6.0557 0 0
+0-.7475-7.0729zm-9.022 12.6081a4.4755 4.4755 0 0 1-2.8764-1.0408l.1419-.0804 4.7783-2.7582a.7948.7948 0 0 0 .3927-.6813v-6.7369l2.02 1.1686a.071.071 0 0 1 .038.052v5.5826a4.504
+4.504 0 0 1-4.4945 4.4944zm-9.6607-4.1254a4.4708 4.4708 0 0 1-.5346-3.0137l.142.0852 4.783 2.7582a.7712.7712 0 0 0 .7806 0l5.8428-3.3685v2.3324a.0804.0804 0 0 1-.0332.0615L9.74
+19.9502a4.4992 4.4992 0 0 1-6.1408-1.6464zM2.3408 7.8956a4.485 4.485 0 0 1 2.3655-1.9728V11.6a.7664.7664 0 0 0 .3879.6765l5.8144 3.3543-2.0201 1.1685a.0757.0757 0 0 1-.071
+0l-4.8303-2.7865A4.504 4.504 0 0 1 2.3408 7.872zm16.5963 3.8558L13.1038 8.364 15.1192 7.2a.0757.0757 0 0 1 .071 0l4.8303 2.7913a4.4944 4.4944 0 0 1-.6765 8.1042v-5.6772a.79.79 0 0
+0-.407-.667zm2.0107-3.0231l-.142-.0852-4.7735-2.7818a.7759.7759 0 0 0-.7854 0L9.409 9.2297V6.8974a.0662.0662 0 0 1 .0284-.0615l4.8303-2.7866a4.4992 4.4992 0 0 1 6.6802 4.66zM8.3065
+12.863l-2.02-1.1638a.0804.0804 0 0 1-.038-.0567V6.0742a4.4992 4.4992 0 0 1 7.3757-3.4537l-.142.0805L8.704 5.459a.7948.7948 0 0 0-.3927.6813zm1.0976-2.3654l2.602-1.4998 2.6069
+1.4998v2.9994l-2.5974
+1.4997-2.6067-1.4997Z"/>
             </svg>
             <text x="32" y="15" fill="#0f172a" font-size="13.5" font-weight="900">LLM API</text>
             <text x="32" y="32" fill="#64748b" font-size="10.8" font-weight="600">문맥 분석 · 민감정보 가림</text>
           </g>
 
-          <!-- 2) FastAPI -->
+          <!--  2) Node HTTP  -->
           <g transform="translate(744, 462)">
             <circle cx="13" cy="14" r="11" fill="#05998b"/>
             <polygon points="14,6 8,15 13,15 11,22 18,13 13,13" fill="#ffffff"/>
-            <text x="32" y="15" fill="#0f172a" font-size="13.5" font-weight="900">FastAPI</text>
+            <text x="32" y="15" fill="#0f172a" font-size="13.5" font-weight="900">Node HTTP</text>
             <text x="32" y="32" fill="#64748b" font-size="10.8" font-weight="600">AI 모델 추론 서빙</text>
           </g>
 
-          <!-- 3) Gemini / 사내 sLLM -->
+          <!--  3) 호환 사내 LLM  -->
           <g transform="translate(580, 510)">
             <path d="M13 3 C14.5 9.5, 16.5 11.5, 23 13 C16.5 14.5, 14.5 16.5, 13 23 C11.5 16.5, 9.5 14.5, 3 13 C9.5 11.5, 11.5 9.5, 13 3 Z" fill="#6366f1"/>
-            <text x="32" y="15" fill="#0f172a" font-size="13.5" font-weight="900">Gemini / sLLM</text>
+            <text x="32" y="15" fill="#0f172a" font-size="13.5" font-weight="900">호환 LLM</text>
+      <!-- // TODO: [PRES-03] Rule 저장/매칭은 미구현. SkillPack과 혼용 금지; 공개 팩 공유는 별도 후속. ISSUES.md 참조. -->
             <text x="32" y="32" fill="#64748b" font-size="10.8" font-weight="600">초안 작성 · 해결 스킬 추천</text>
           </g>
 
-          <!-- 4) PyTorch (Official Simple Icons SVG) -->
+          <!--  4) LLM 검토 (Official Simple Icons SVG)  -->
           <g transform="translate(744, 510)">
             <svg x="1" y="2" width="23" height="23" viewBox="0 0 24 24" aria-hidden="true">
               <path fill="#EE4C2C" d="M12.005 0L4.952 7.053a9.865 9.865 0 000 14.022 9.866 9.866 0 0014.022 0c3.984-3.9 3.986-10.205.085-14.023l-1.744 1.743c2.904 2.905 2.904 7.634 0 10.538s-7.634 2.904-10.538 0-2.904-7.634 0-10.538l4.647-4.646.582-.665zm3.568 3.899a1.327 1.327 0 00-1.327 1.327 1.327 1.327 0 001.327 1.328A1.327 1.327 0 0016.9 5.226 1.327 1.327 0 0015.573 3.9z"/>
             </svg>
-            <text x="32" y="15" fill="#0f172a" font-size="13.5" font-weight="900">PyTorch</text>
+            <text x="32" y="15" fill="#0f172a" font-size="13.5" font-weight="900">LLM 검토</text>
+      <!-- // TODO: [PRES-04] 전체 원자료 대조/제약 자동 복원은 계획. 현재는 초안·FactPack·grounding 검토. -->
             <text x="32" y="32" fill="#64748b" font-size="10.8" font-weight="600">유사 문제 분류 · 3자 대조</text>
           </g>
 
-          <!-- AI Engine 하단 보안 문구 (박스 우측 경계 x=920 내부에 여유 있게 배치) -->
+          <!--  AI Engine 하단 보안 문구 (박스 우측 경계 x=920 내부에 여유 있게 배치)  -->
           <text x="580" y="582" fill="#64748b" font-size="10.2" font-weight="700">입력: 사내 격리 공간 원본 로그 · 승인 범위만 반출 (원본 외부 미저장)</text>
         </svg>
       </figure>

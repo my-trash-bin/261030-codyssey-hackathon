@@ -372,12 +372,12 @@ button{font:inherit;cursor:pointer}
       <header class="page-header">
         <div class="header-left">
           <h2 id="team-title">팀원 소개 및 역할 분담</h2>
-          <span class="header-sub">SafeHandoff를 직접 설계·구현한 팀 ‘지피한테물어봐’의 5인 역할 분담 및 기여 내역</span>
+          <span class="header-sub">담당 개발 범위 · 개별 기능 완료는 README·ISSUES 참조</span>
         </div>
         <span class="team-badge">TEAM · 지피한테물어봐</span>
       </header>
 
-      <!-- 공통 아바타 심볼 (첨부 레퍼런스 이미지와 동일한 연보라-블루 스쿼클 + 인물 실루엣) -->
+      <!--  공통 아바타 심볼 (첨부 레퍼런스 이미지와 동일한 연보라-블루 스쿼클 + 인물 실루엣)  -->
       <svg width="0" height="0" style="position:absolute" aria-hidden="true">
         <defs>
           <symbol id="member-avatar" viewBox="0 0 64 64">
@@ -389,18 +389,21 @@ button{font:inherit;cursor:pointer}
       </svg>
 
       <div class="team-grid" contenteditable="true" spellcheck="false" aria-label="5인 팀원별 담당 업무 및 기여 내용">
-        <!-- 1. 김병철 (팀장 · 백엔드) -->
+        <!--  1. 김병철 (팀장 · 백엔드)  -->
         <article class="member-card">
           <div class="avatar-wrap">
             <svg class="avatar-squircle" aria-hidden="true"><use href="#member-avatar"/></svg>
             <span class="role-tag">팀장 · 백엔드</span>
           </div>
           <h3 class="member-name">김병철</h3>
+      <!-- // TODO: [PRES-05] 앱 인증·전체 원자료 격리·배포는 후속. Docker toy 실행 격리만 완료. ISSUES.md 참조. -->
           <div class="member-title">팀 총괄 · 보안 격리 백엔드 설계</div>
-          <div class="contrib-label">담당 업무 및 주요 기여</div>
+          <div class="contrib-label">담당 업무 및 개발 범위</div>
           <ul class="contrib-list">
-            <li><b>프로젝트 총괄 및 아키텍처:</b> 사내 작업 공간 원문 격리(CaMeL) 구조 및 핵심 API 서버 설계·구현</li>
+            <li><b>프로젝트 총괄 및 아키텍처:</b> 사내 작업 공간 원문 처리 경계 구조 및 핵심 API 서버 설계·구현</li>
+      <!-- // TODO: [PRES-02] 전체 UI/API 연결·본문/표 갱신·근거·내보내기는 미구현. 현재는 메모 저장/조회와 상태 확인. -->
             <li><b>사내 근거 매핑 엔진 개발:</b> 반출용 초안 문장과 사내 원본 문서(운영메모.md) 위치 연결 백엔드 구현</li>
+      <!-- // TODO: [PRES-02] 전체 UI/API 연결·본문/표 갱신·근거·내보내기는 미구현. 현재는 메모 저장/조회와 상태 확인. -->
             <li><b>시스템 통합 및 품질 검증:</b> 멀티 에이전트 파이프라인과 백엔드 상태 동기화 총괄</li>
           </ul>
           <div class="stack-box">
@@ -409,7 +412,7 @@ button{font:inherit;cursor:pointer}
           </div>
         </article>
 
-        <!-- 2. 김민성 (AI 서빙) -->
+        <!--  2. 김민성 (AI 서빙)  -->
         <article class="member-card">
           <div class="avatar-wrap">
             <svg class="avatar-squircle" aria-hidden="true"><use href="#member-avatar"/></svg>
@@ -417,10 +420,16 @@ button{font:inherit;cursor:pointer}
           </div>
           <h3 class="member-name">김민성</h3>
           <div class="member-title">멀티 에이전트 · AI 추론 서빙</div>
-          <div class="contrib-label">담당 업무 및 주요 기여</div>
+          <div class="contrib-label">담당 업무 및 개발 범위</div>
           <ul class="contrib-list">
+      <!-- // TODO: [PRES-01] analyze()·묶음 질문·공개 제안/미리보기는 미구현. next-round-plan.md의 F02/F03과 연결 필요. -->
+      <!-- // TODO: [PRES-04] 전체 원자료 대조/제약 자동 복원은 계획. 현재는 초안·FactPack·grounding 검토. -->
             <li><b>3단계 AI 서빙 파이프라인:</b> 분석·작성·검토 에이전트 추론 서빙 및 응답 지연 최적화 구현</li>
+      <!-- // TODO: [PRES-07] 보안 보장/경쟁 비교/효과 수치는 ISSUES.md에서 검토. 현재 보장·측정 완료로 해석하지 않음. -->
             <li><b>모델 교체형 추론 인터페이스:</b> 사내 LLM 및 경량 공개 모델(sLLM) 즉시 연결·교체 서빙 구조 개발</li>
+      <!-- // TODO: [PRES-01] analyze()·묶음 질문·공개 제안/미리보기는 미구현. next-round-plan.md의 F02/F03과 연결 필요. -->
+      <!-- // TODO: [PRES-04] 전체 원자료 대조/제약 자동 복원은 계획. 현재는 초안·FactPack·grounding 검토. -->
+      <!-- // TODO: [PRES-06] AI 생성 선택지와 A~D 표시 계약 정리 필요. D는 현행 직접 입력; 비율은 예시. ISSUES.md 참조. -->
             <li><b>JSON Schema 제어 및 검증:</b> 유사 항목 묶음 질문(A~D) 및 3-Way 의미 대조 추론 안정화</li>
           </ul>
           <div class="stack-box">
@@ -429,18 +438,22 @@ button{font:inherit;cursor:pointer}
           </div>
         </article>
 
-        <!-- 3. 임재홍 (백엔드) -->
+        <!--  3. 임재홍 (백엔드)  -->
         <article class="member-card">
           <div class="avatar-wrap">
             <svg class="avatar-squircle" aria-hidden="true"><use href="#member-avatar"/></svg>
             <span class="role-tag">백엔드</span>
           </div>
           <h3 class="member-name">임재홍</h3>
+      <!-- // TODO: [PRES-03] Rule 저장/매칭은 미구현. SkillPack과 혼용 금지; 공개 팩 공유는 별도 후속. ISSUES.md 참조. -->
           <div class="member-title">비식별 규칙 엔진 · 스킬 저장소 서버</div>
-          <div class="contrib-label">담당 업무 및 주요 기여</div>
+          <div class="contrib-label">담당 업무 및 개발 범위</div>
           <ul class="contrib-list">
+      <!-- // TODO: [PRES-06] AI 생성 선택지와 A~D 표시 계약 정리 필요. D는 현행 직접 입력; 비율은 예시. ISSUES.md 참조. -->
             <li><b>공개 수준(A~D) 변환 엔진 개발:</b> 실제 수치·단가를 선택한 공개 수준(추이·비율·마스킹)으로 안전하게 변환하는 백엔드 구현</li>
+      <!-- // TODO: [PRES-03] Rule 저장/매칭은 미구현. SkillPack과 혼용 금지; 공개 팩 공유는 별도 후속. ISSUES.md 참조. -->
             <li><b>조건부 스킬(Skill) 엔진 구현:</b> 검증된 가림 기준 저장 및 ‘목적·수신처·조건’ 일치 판별 백엔드 개발</li>
+      <!-- // TODO: [PRES-04] 전체 원자료 대조/제약 자동 복원은 계획. 현재는 초안·FactPack·grounding 검토. -->
             <li><b>누락 제약 복원 로직:</b> 필수 업무 제약(“기존 접수 채널 유지”) 자동 탐지 및 복원 처리</li>
           </ul>
           <div class="stack-box">
@@ -449,19 +462,25 @@ button{font:inherit;cursor:pointer}
           </div>
         </article>
 
-        <!-- 4. 맹주영 (풀스택) -->
+        <!--  4. 맹주영 (풀스택)  -->
         <article class="member-card">
           <div class="avatar-wrap">
             <svg class="avatar-squircle" aria-hidden="true"><use href="#member-avatar"/></svg>
             <span class="role-tag">풀스택</span>
           </div>
           <h3 class="member-name">맹주영</h3>
+      <!-- // TODO: [PRES-02] 전체 UI/API 연결·본문/표 갱신·근거·내보내기는 미구현. 현재는 메모 저장/조회와 상태 확인. -->
           <div class="member-title">워크스페이스 UI · 동시 갱신 연동</div>
-          <div class="contrib-label">담당 업무 및 주요 기여</div>
+          <div class="contrib-label">담당 업무 및 개발 범위</div>
           <ul class="contrib-list">
+      <!-- // TODO: [PRES-02] 전체 UI/API 연결·본문/표 갱신·근거·내보내기는 미구현. 현재는 메모 저장/조회와 상태 확인. -->
+      <!-- // TODO: [PRES-06] AI 생성 선택지와 A~D 표시 계약 정리 필요. D는 현행 직접 입력; 비율은 예시. ISSUES.md 참조. -->
             <li><b>5단계 워크스페이스 구현:</b> 자료 입력 → 공개 수준(A~D) 선택 → 직접 입력(D) → 최종 확인 풀스택 개발</li>
+      <!-- // TODO: [PRES-02] 전체 UI/API 연결·본문/표 갱신·근거·내보내기는 미구현. 현재는 메모 저장/조회와 상태 확인. -->
+      <!-- // TODO: [PRES-06] AI 생성 선택지와 A~D 표시 계약 정리 필요. D는 현행 직접 입력; 비율은 예시. ISSUES.md 참조. -->
             <li><b>본문·표·설명 동시 갱신:</b> A~D 선택 변경 시 연결된 문장·표·설명을 실시간 동기화하고 잔존 숫자를 제거</li>
-            <li><b>공유본 반출 인터페이스:</b> 내부 근거 분리 표시 및 최종 결과 복사·다운로드 기능 구현</li>
+      <!-- // TODO: [PRES-02] 전체 UI/API 연결·본문/표 갱신·근거·내보내기는 미구현. 현재는 메모 저장/조회와 상태 확인. -->
+            <li><b>공유본 반출 인터페이스:</b> 내부 근거 분리 표시 및 최종 결과 복사·다운로드 기능 개발 계획</li>
           </ul>
           <div class="stack-box">
             <span class="stack-chip">Full-Stack</span>
@@ -469,7 +488,7 @@ button{font:inherit;cursor:pointer}
           </div>
         </article>
 
-        <!-- 5. 이상혁 (PM) -->
+        <!--  5. 이상혁 (PM)  -->
         <article class="member-card">
           <div class="avatar-wrap">
             <svg class="avatar-squircle" aria-hidden="true"><use href="#member-avatar"/></svg>
@@ -477,9 +496,10 @@ button{font:inherit;cursor:pointer}
           </div>
           <h3 class="member-name">이상혁</h3>
           <div class="member-title">서비스 기획 총괄 · UX 및 시장 전략</div>
-          <div class="contrib-label">담당 업무 및 주요 기여</div>
+          <div class="contrib-label">담당 업무 및 개발 범위</div>
           <ul class="contrib-list">
             <li><b>문제 정의 및 도메인 기획:</b> 기업 보안 사고 사례 조사 및 타겟 페르소나·유즈케이스·요구사항 정의</li>
+      <!-- // TODO: [PRES-06] AI 생성 선택지와 A~D 표시 계약 정리 필요. D는 현행 직접 입력; 비율은 예시. ISSUES.md 참조. -->
             <li><b>공개 수준(A~D) UX 설계:</b> 실무자 친화적 4단계 공개 기준(사실만·추이만·마스킹·비율) 및 플로우 설계</li>
             <li><b>확장 전략 및 스토리라인:</b> 타겟 시장(TAM-SAM-SOM) 로드맵, 서비스 차별점 및 발표 구성 총괄</li>
           </ul>
@@ -493,7 +513,8 @@ button{font:inherit;cursor:pointer}
       <footer class="collab-bar">
         <div class="collab-left">
           <span class="collab-pill">협업 및 직접 개발 원칙</span>
-          <span>서비스 기획(PM)부터 AI 서빙, 보안·스킬 백엔드, 동시 갱신 풀스택 워크스페이스까지 전 과정을 팀원 5인이 직접 분담·구현</span>
+      <!-- // TODO: [PRES-02] 전체 UI/API 연결·본문/표 갱신·근거·내보내기는 미구현. 현재는 메모 저장/조회와 상태 확인. -->
+          <span>서비스 기획(PM)부터 AI 서빙, 보안·스킬 백엔드, 동시 갱신 풀스택 워크스페이스까지 전 과정의 담당 범위이며 항목별 완료 여부는 별도 확인</span>
         </div>
         <span class="collab-right">CODYSSEY HACKATHON · 지피한테물어봐</span>
       </footer>

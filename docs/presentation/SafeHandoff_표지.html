@@ -277,13 +277,13 @@ button{font:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
   <div class="page-shell" id="sheet-cover">
     <section class="page" id="cover" aria-labelledby="cover-title">
 
-      <!-- 상단: Codyssey 로고 + 프로젝트 헤더 -->
+      <!--  상단: Codyssey 로고 + 프로젝트 헤더  -->
       <header class="cover-top">
         <div class="codyssey-logo" aria-hidden="true">
           <svg viewBox="0 0 48 34" fill="none">
-            <!-- 주황 돛 -->
+            <!--  주황 돛  -->
             <path d="M22 4 L10 22 H22 V4 Z" fill="#f59e0b"/>
-            <!-- 파란 파도/배 -->
+            <!--  파란 파도/배  -->
             <path d="M25 9 L37 22 H25 V9 Z" fill="#38bdf8"/>
             <path d="M7 25 C15 29, 31 29, 41 23 C34 31, 16 32, 7 25 Z" fill="#1d4ed8"/>
           </svg>
@@ -292,7 +292,7 @@ button{font:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
         <div class="project-kicker">CODYSSEY HACKATHON TEAM PROJECT</div>
       </header>
 
-      <!-- 중앙 좌측: 메인 타이틀 & 서브카피 -->
+      <!--  중앙 좌측: 메인 타이틀 & 서브카피  -->
       <div class="cover-main">
         <div class="service-tag">SafeHandoff</div>
         <h1 class="hero-title" id="cover-title">
@@ -300,23 +300,25 @@ button{font:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
           민감 정보는 안전하게 가리고
           <span class="accent">필요한 단서만 전달하세요</span>
         </h1>
+<!-- // TODO: [PRES-07] 보안 보장 문구는 ISSUES의 수정 검토 대상이며 실제 안전 보증이 아님. -->
+<p style="font-size:11px;margin:3px 0;color:#475569">제품 목표 소개 · 현재 구현/계획/보장 표현은 README·ISSUES 참조</p>
         <p class="hero-sub">
           공개 수준(A~D) 맞춤 선택부터 작성·검토 AI 이중 검증·스킬 자동화까지,<br>
           원본 유출 걱정 없이 외부 문의·자문 자료를 완성하는 사내 AI 솔루션
         </p>
       </div>
 
-      <!-- 하단: 팀 정보 (클릭하여 팀명/이름 바로 편집 가능) -->
+      <!--  하단: 팀 정보 (클릭하여 팀명/이름 바로 편집 가능)  -->
       <footer class="cover-bottom">
         <span class="team-num" contenteditable="true" spellcheck="false" title="클릭하여 팀명을 수정할 수 있습니다">지피한테물어봐</span>
         <span class="team-members" contenteditable="true" spellcheck="false" title="클릭하여 팀원 이름을 수정할 수 있습니다">김병철 이상혁 맹주영 김민성 임재홍</span>
       </footer>
 
-      <!-- 우측: 사내 문서·로그 속 민감 정보 노출 경보(Red Glow) & SafeHandoff 방어 그래픽 -->
+      <!--  우측: 사내 문서·로그 속 민감 정보 노출 경보(Red Glow) & SafeHandoff 방어 그래픽  -->
       <figure class="hero-graphic" aria-hidden="true">
         <svg viewBox="0 0 680 628">
           <defs>
-            <!-- 레퍼런스 특유의 붉은 경고 광원 필터 -->
+            <!--  레퍼런스 특유의 붉은 경고 광원 필터  -->
             <radialGradient id="red-glow-lg" cx="50%" cy="50%" r="50%">
               <stop offset="0%" stop-color="#ef4444" stop-opacity="0.58"/>
               <stop offset="45%" stop-color="#f87171" stop-opacity="0.26"/>
@@ -340,9 +342,9 @@ button{font:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
             </filter>
           </defs>
 
-          <!-- 배경 실루엣: 사내 문서 · 로그 · 데이터 흐름 레이어 (연한 그레이 톤) -->
+          <!--  배경 실루엣: 사내 문서 · 로그 · 데이터 흐름 레이어 (연한 그레이 톤)  -->
           <g opacity="0.65">
-            <!-- 좌상단 배경 문서 실루엣 -->
+            <!--  좌상단 배경 문서 실루엣  -->
             <rect x="64" y="88" width="240" height="300" rx="16" fill="#eaedf2" stroke="#dde3ec" stroke-width="1.5"/>
             <rect x="88" y="118" width="110" height="12" rx="6" fill="#d8dfe9"/>
             <rect x="88" y="144" width="184" height="9" rx="4.5" fill="#dfe5ee"/>
@@ -352,7 +354,7 @@ button{font:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
             <rect x="88" y="294" width="140" height="9" rx="4.5" fill="#dfe5ee"/>
             <rect x="88" y="314" width="166" height="9" rx="4.5" fill="#dfe5ee"/>
 
-            <!-- 중앙·우측 대형 문서·로그 실루엣 -->
+            <!--  중앙·우측 대형 문서·로그 실루엣  -->
             <rect x="256" y="48" width="388" height="450" rx="20" fill="#e9ecf2" stroke="#dce2ec" stroke-width="1.5"/>
             <rect x="288" y="84" width="150" height="14" rx="7" fill="#d5dce8"/>
             <rect x="288" y="114" width="320" height="10" rx="5" fill="#dde3ee"/>
@@ -362,7 +364,7 @@ button{font:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
             <rect x="288" y="324" width="260" height="10" rx="5" fill="#dde3ee"/>
             <rect x="288" y="360" width="324" height="98" rx="12" fill="#e1e6f0"/>
 
-            <!-- 하단 보조 문서 실루엣 -->
+            <!--  하단 보조 문서 실루엣  -->
             <rect x="136" y="356" width="230" height="210" rx="16" fill="#eaedf2" stroke="#dde3ec" stroke-width="1.5"/>
             <rect x="162" y="386" width="120" height="11" rx="5.5" fill="#d8dfe9"/>
             <rect x="162" y="412" width="176" height="9" rx="4.5" fill="#dfe5ee"/>
@@ -370,30 +372,30 @@ button{font:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
             <rect x="162" y="464" width="176" height="68" rx="8" fill="#e2e7f0"/>
           </g>
 
-          <!-- ==================== 레드 글로우 리스크 핫스팟 (외부 공유 시 사내 정보 유출 지점) ==================== -->
+          <!--  ==================== 레드 글로우 리스크 핫스팟 (외부 공유 시 사내 정보 유출 지점) ====================  -->
 
-          <!-- [핫스팟 1: 우측 메인 고위험 클러스터 - 외부 AI 원본 전송 및 핵심 영업비밀 노출] -->
+          <!--  [핫스팟 1: 우측 메인 고위험 클러스터 - 외부 AI 원본 전송 및 핵심 영업비밀 노출]  -->
           <circle cx="516" cy="232" r="115" fill="url(#red-glow-lg)"/>
           <circle cx="476" cy="258" r="68" fill="url(#red-glow-sm)"/>
           <circle cx="548" cy="216" r="62" fill="url(#red-glow-sm)"/>
-          <!-- 빛나는 코어 점들 -->
+          <!--  빛나는 코어 점들  -->
           <circle cx="468" cy="264" r="7" fill="#ffffff" stroke="#ef4444" stroke-width="3"/>
           <circle cx="536" cy="272" r="5.5" fill="#ffffff" stroke="#ef4444" stroke-width="2.5"/>
           <circle cx="566" cy="236" r="5.5" fill="#ffffff" stroke="#ef4444" stroke-width="2.5"/>
           <circle cx="442" cy="222" r="4" fill="#ffffff" stroke="#ef4444" stroke-width="2"/>
-          <!-- 경고 삼각형 아이콘 1 -->
+          <!--  경고 삼각형 아이콘 1  -->
           <g transform="translate(508, 198)">
             <path d="M0 -15 L15 11 H-15 Z" fill="#dc2626" stroke="#ffffff" stroke-width="1.8" stroke-linejoin="round"/>
             <text x="0" y="8" text-anchor="middle" fill="#ffffff" font-size="13" font-weight="900">!</text>
           </g>
-          <!-- 말풍선 라벨 1 -->
+          <!--  말풍선 라벨 1  -->
           <g transform="translate(432, 118)" filter="url(#pill-shadow)">
             <rect x="0" y="0" width="168" height="32" rx="9" fill="#ffffff" stroke="#fecaca" stroke-width="1.2"/>
             <path d="M76 32 L84 40 L92 32 Z" fill="#ffffff"/>
             <text x="84" y="20.5" text-anchor="middle" fill="#b91c1c" font-size="12.5" font-weight="800">외부 AI 원본 직접 전송 위험</text>
           </g>
 
-          <!-- [핫스팟 2: 중상단 - 오류 로그 속 사내 함수명·로직 노출] -->
+          <!--  [핫스팟 2: 중상단 - 오류 로그 속 사내 함수명·로직 노출]  -->
           <circle cx="316" cy="162" r="56" fill="url(#red-glow-sm)"/>
           <circle cx="290" cy="196" r="4" fill="#ffffff" stroke="#ef4444" stroke-width="2"/>
           <g transform="translate(316, 158)">
@@ -406,7 +408,7 @@ button{font:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
             <text x="86" y="20.5" text-anchor="middle" fill="#b91c1c" font-size="12.5" font-weight="800">오류 로그 속 사내 코드 노출</text>
           </g>
 
-          <!-- [핫스팟 3: 좌중단 - 거래처 단가 · 실제 건수(1,740건) 노출] -->
+          <!--  [핫스팟 3: 좌중단 - 거래처 단가 · 실제 건수(1,740건) 노출]  -->
           <circle cx="118" cy="212" r="54" fill="url(#red-glow-sm)"/>
           <circle cx="152" cy="236" r="4" fill="#ffffff" stroke="#ef4444" stroke-width="2"/>
           <g transform="translate(118, 206)">
@@ -419,7 +421,7 @@ button{font:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
             <text x="82" y="20.5" text-anchor="middle" fill="#b91c1c" font-size="12.5" font-weight="800">실제 거래 단가 · 건수 노출</text>
           </g>
 
-          <!-- [핫스팟 4: 중하단 - 이름 가린 뒤에도 남는 익명 연락 관계 추론] -->
+          <!--  [핫스팟 4: 중하단 - 이름 가린 뒤에도 남는 익명 연락 관계 추론]  -->
           <circle cx="204" cy="442" r="56" fill="url(#red-glow-sm)"/>
           <g transform="translate(204, 438)">
             <path d="M0 -14 L14 10 H-14 Z" fill="#dc2626" stroke="#ffffff" stroke-width="1.5" stroke-linejoin="round"/>
@@ -431,7 +433,7 @@ button{font:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
             <text x="76" y="20.5" text-anchor="middle" fill="#b91c1c" font-size="12.5" font-weight="800">익명 기록 간 관계 추론</text>
           </g>
 
-          <!-- [핫스팟 5: 우하단 - 과도한 삭제로 필수 업무 제약·오류 단서 누락] -->
+          <!--  [핫스팟 5: 우하단 - 과도한 삭제로 필수 업무 제약·오류 단서 누락]  -->
           <circle cx="564" cy="462" r="54" fill="url(#red-glow-sm)"/>
           <g transform="translate(564, 458)">
             <path d="M0 -14 L14 10 H-14 Z" fill="#dc2626" stroke="#ffffff" stroke-width="1.5" stroke-linejoin="round"/>
@@ -442,18 +444,22 @@ button{font:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
             <text x="78" y="20.5" text-anchor="middle" fill="#b91c1c" font-size="12.5" font-weight="800">필수 제약 · 오류 단서 누락</text>
           </g>
 
-          <!-- ==================== 중앙 전면: SafeHandoff 보호·변환 완료 카드 ==================== -->
+          <!--  ==================== 중앙 전면: SafeHandoff 보호·변환 완료 카드 ====================  -->
           <circle cx="388" cy="348" r="110" fill="url(#blue-glow)"/>
           <g transform="translate(262, 292)" filter="url(#card-drop)">
             <rect x="0" y="0" width="256" height="122" rx="14" fill="#ffffff" stroke="#1263fe" stroke-width="2.2"/>
             <rect x="14" y="14" width="96" height="22" rx="6" fill="#1263fe"/>
             <text x="62" y="29" text-anchor="middle" fill="#ffffff" font-size="11" font-weight="900">SafeHandoff 보호</text>
+      <!-- // TODO: [PRES-05] 앱 인증·전체 원자료 격리·배포는 후속. Docker toy 실행 격리만 완료. ISSUES.md 참조. -->
             <text x="120" y="29" fill="#0f766e" font-size="11" font-weight="800">✓ 사내 작업 공간 격리</text>
 
             <rect x="14" y="46" width="228" height="28" rx="6" fill="#f0f6ff" stroke="#bfdbfe"/>
+      <!-- // TODO: [PRES-06] AI 생성 선택지와 A~D 표시 계약 정리 필요. D는 현행 직접 입력; 비율은 예시. ISSUES.md 참조. -->
             <text x="24" y="64" fill="#1e3a8a" font-size="11.5" font-weight="800">공개 수준(A~D): 사실 · 추이 · 마스킹 · 비율 변환</text>
 
             <rect x="14" y="80" width="228" height="28" rx="6" fill="#f0fdf4" stroke="#bbf7d0"/>
+      <!-- // TODO: [PRES-03] Rule 저장/매칭은 미구현. SkillPack과 혼용 금지; 공개 팩 공유는 별도 후속. ISSUES.md 참조. -->
+      <!-- // TODO: [PRES-04] 전체 원자료 대조/제약 자동 복원은 계획. 현재는 초안·FactPack·grounding 검토. -->
             <text x="24" y="98" fill="#15803d" font-size="11.5" font-weight="800">검토 AI: 빠진 제약 복원 · 스킬 자동화 등록</text>
           </g>
         </svg>

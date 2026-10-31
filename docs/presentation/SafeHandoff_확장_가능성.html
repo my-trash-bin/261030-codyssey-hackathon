@@ -357,31 +357,33 @@ button{font:inherit;cursor:pointer}
   <div class="page-shell" id="sheet-expansion">
     <section class="page" id="expansion" aria-labelledby="exp-title">
       <header class="page-header">
-        <h2 id="exp-title">서비스 확장 계획: 타겟 시장(TAM-SAM-SOM) 로드맵</h2>
-        <span class="header-sub">실제 적용 가능성(사내 AI 즉시 연동·전사 확산)과 3단계 추가 개발 방향</span>
+        <!-- // TODO: [PRES-08] 구독 SaaS와 현행 intent의 차이는 ISSUES에서 결정; 공개 SkillPack 공유와 구분. -->
+<h2 id="exp-title">서비스 확장 계획: 타겟 시장(TAM-SAM-SOM) 로드맵</h2>
+        <span class="header-sub">해커톤 시장성 가설 · 확정 BM/로드맵 아님 · ISSUES PRES-08 참조</span>
       </header>
 
       <div class="roadmap-body">
-        <!-- 좌측: 하단 접점 동심원 (TAM - SAM - SOM) -->
+        <!--  좌측: 하단 접점 동심원 (TAM - SAM - SOM)  -->
         <div class="circle-stage" aria-label="TAM SAM SOM 타겟 시장 규모 다이어그램">
           <svg viewBox="0 0 500 500" role="img" aria-label="TAM 약 4.2조 원, SAM 약 3,600억 원, SOM 약 360억 원">
-            <!-- TAM (전체시장): 중심 (250, 250), 반지름 242 -> 하단 접점 y=492 -->
+            <!--  TAM (전체시장): 중심 (250, 250), 반지름 242 -> 하단 접점 y=492  -->
             <circle cx="250" cy="250" r="242" fill="#ffffff" stroke="#1e3a8a" stroke-width="1.4"/>
             <text x="250" y="72" text-anchor="middle" fill="#0f172a" font-size="27" font-weight="900">TAM</text>
             <text x="250" y="96" text-anchor="middle" fill="#64748b" font-size="13">전체시장</text>
             <text x="250" y="114" text-anchor="middle" fill="#64748b" font-size="12.5">(Total Addressable Market)</text>
             <text x="250" y="148" text-anchor="middle" fill="#1e3a8a" font-size="22" font-weight="900">약 4.2조 원</text>
 
-            <!-- SAM (유효시장): 반지름 162, 하단 접점 y=492 -> 중심 cy = 492 - 162 = 330 -->
+            <!--  SAM (유효시장): 반지름 162, 하단 접점 y=492 -> 중심 cy = 492 - 162 = 330  -->
             <circle cx="250" cy="330" r="162" fill="#ffffff" stroke="#1e3a8a" stroke-width="1.4"/>
             <text x="250" y="218" text-anchor="middle" fill="#0f172a" font-size="26" font-weight="900">SAM</text>
             <text x="250" y="241" text-anchor="middle" fill="#64748b" font-size="13">유효시장</text>
             <text x="250" y="259" text-anchor="middle" fill="#64748b" font-size="12.5">(Service Available Market)</text>
             <text x="250" y="291" text-anchor="middle" fill="#1e3a8a" font-size="22" font-weight="900">약 3,600억 원</text>
 
-            <!-- SOM (수익시장): 반지름 86, 하단 접점 y=492 -> 중심 cy = 492 - 86 = 406 -->
+            <!--  SOM (수익시장): 반지름 86, 하단 접점 y=492 -> 중심 cy = 492 - 86 = 406  -->
             <circle cx="250" cy="406" r="86" fill="#ebeef5" stroke="#1e3a8a" stroke-width="1.4"/>
             <text x="250" y="368" text-anchor="middle" fill="#0f172a" font-size="25" font-weight="900">SOM</text>
+      <!-- // TODO: [PRES-07] 보안 보장/경쟁 비교/효과 수치는 ISSUES.md에서 검토. 현재 보장·측정 완료로 해석하지 않음. -->
             <text x="250" y="390" text-anchor="middle" fill="#64748b" font-size="12.5">수익시장</text>
             <text x="250" y="407" text-anchor="middle" fill="#64748b" font-size="11">(Service Obtainable Market)</text>
             <rect x="187" y="418" width="126" height="32" rx="6" fill="#ffffff"/>
@@ -389,22 +391,27 @@ button{font:inherit;cursor:pointer}
           </svg>
         </div>
 
-        <!-- 우측: Phase 1 ~ 3 단계별 시장 진입 및 추가 개발 방향 -->
+        <!--  우측: Phase 1 ~ 3 단계별 시장 진입 및 추가 개발 방향  -->
         <div class="phase-stack">
-          <!-- Phase 1 -->
+          <!--  Phase 1  -->
           <article class="phase-card phase-1">
             <div class="phase-title-row">
               <span class="phase-pill">Phase 1. 단기 (SOM)</span>
+      <!-- // TODO: [PRES-05] 앱 인증·전체 원자료 격리·배포는 후속. Docker toy 실행 격리만 완료. ISSUES.md 참조. -->
               <h3>사내 AI·망분리 환경을 운영 중인 국내 IT·금융 기업</h3>
             </div>
             <div class="phase-size">규모: 360억 원</div>
             <ul class="phase-list">
+      <!-- // TODO: [PRES-07] 보안 보장/경쟁 비교/효과 수치는 ISSUES.md에서 검토. 현재 보장·측정 완료로 해석하지 않음. -->
               <li><b>타겟 및 적용:</b> 기존 사내 AI·경량 공개 모델(sLLM)에 추가 장비 없이 즉시 연결 (약 1.5만 개사)</li>
+      <!-- // TODO: [PRES-03] Rule 저장/매칭은 미구현. SkillPack과 혼용 금지; 공개 팩 공유는 별도 후속. ISSUES.md 참조. -->
+      <!-- // TODO: [PRES-06] AI 생성 선택지와 A~D 표시 계약 정리 필요. D는 현행 직접 입력; 비율은 예시. ISSUES.md 참조. -->
+      <!-- // TODO: [PRES-07] 보안 보장/경쟁 비교/효과 수치는 ISSUES.md에서 검토. 현재 보장·측정 완료로 해석하지 않음. -->
               <li><b>근거 및 개발:</b> 15,000개사 × 연 240만 원 (월 20만 원 구독) · 공개 수준(A~D) 초안·검토·스킬 자동화</li>
             </ul>
           </article>
 
-          <!-- Phase 2 -->
+          <!--  Phase 2  -->
           <article class="phase-card phase-2">
             <div class="phase-title-row">
               <span class="phase-pill">Phase 2. 중기 (SAM)</span>
@@ -417,7 +424,7 @@ button{font:inherit;cursor:pointer}
             </ul>
           </article>
 
-          <!-- Phase 3 -->
+          <!--  Phase 3  -->
           <article class="phase-card phase-3">
             <div class="phase-title-row">
               <span class="phase-pill">Phase 3. 장기 (TAM)</span>
@@ -433,6 +440,7 @@ button{font:inherit;cursor:pointer}
       </div>
 
       <footer class="page-footnote">
+      <!-- // TODO: [PRES-07] 보안 보장/경쟁 비교/효과 수치는 ISSUES.md에서 검토. 현재 보장·측정 완료로 해석하지 않음. -->
         <span>* 시장 규모 추정: 기업용 SaaS 구독료(월 20만 원) 기준 하향식(Bottom-up) 재산출 / 국내 ICT·정보보호 기업 통계 및 글로벌 AI 보안(DLP) 시장 기준</span>
         <span class="footnote-right">확장 원칙: 공개 범위는 항상 사용자가 결정 · 준비된 업무부터 단계적 연결</span>
       </footer>
