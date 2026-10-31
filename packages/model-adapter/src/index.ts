@@ -1,3 +1,4 @@
+import { postJSON } from './transport.ts';
 import { ModelError } from '@safehandoff/core-interface';
 import type { ModelClient, ModelClientInfo, ModelRequest, ModelResponse, ProviderConfig } from '@safehandoff/core-interface';
 
@@ -44,31 +45,9 @@ export class OpenAICompatibleModelClient implements ModelClient {
     const signal = options?.signal ? AbortSignal.any([options.signal, timeout]) : timeout;
     try {
       // Retries belong to Engine so every HTTP call counts against the run budget.
-      const response = await fetch(this.endpoint, {
-        method: 'POST', redirect: 'error', signal,
-        headers: { 'content-type': 'application/json', authorization: `Bearer ${this.apiKey}` }, body,
-      });
-      if (!response.ok) {
-        await response.body?.cancel();
-        throw new ModelError('MODEL_UNAVAILABLE');
-      }
-      // Bound response bytes before parsing; provider bodies never become public errors.
-      const reader = response.body?.getReader();
-      if (!reader) throw new ModelError('MODEL_INVALID_RESPONSE');
-      const chunks: Uint8Array[] = [];
-      let bytes = 0;
-      while (true) {
-        const part = await reader.read();
-        if (part.done) break;
-        bytes += part.value.byteLength;
-        if (bytes > 1024 * 1024) {
-          await reader.cancel();
-          throw new ModelError('MODEL_INVALID_RESPONSE');
-        }
-        chunks.push(part.value);
-      }
+      const response = await postJSON(this.endpoint, body, this.apiKey!, signal);
       let data;
-      try { data = JSON.parse(Buffer.concat(chunks).toString('utf8')); }
+      try { data = JSON.parse(response); }
       catch { throw new ModelError('MODEL_INVALID_RESPONSE'); }
       const text = data?.choices?.[0]?.message?.content;
       if (typeof text !== 'string' || !text.trim() || data.choices[0].finish_reason === 'length') {

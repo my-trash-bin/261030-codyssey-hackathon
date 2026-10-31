@@ -76,3 +76,15 @@ test('plaintext disabled and input limits prevent any network request', async ()
     assert.equal(blocked.info.ready, false);
   }, { max_input_bytes: 1 });
 });
+
+test('redirects never forward model credentials to another endpoint', async () => {
+  const destination = createServer(() => assert.fail('redirect must not be followed'));
+  await new Promise<void>(resolve => destination.listen(0, '127.0.0.1', resolve));
+  try {
+    await mock((_req, res) => {
+      res.writeHead(307, { location: `http://127.0.0.1:${(destination.address() as AddressInfo).port}/stolen` }); res.end();
+    }, async client => {
+      await assert.rejects(client.complete({ role: 'writer', input: 'facts' }), code('MODEL_UNAVAILABLE'));
+    });
+  } finally { destination.closeAllConnections(); await new Promise<void>(resolve => destination.close(() => resolve())); }
+});

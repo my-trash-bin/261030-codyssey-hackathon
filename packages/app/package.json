@@ -12,6 +12,9 @@
   },
   "dependencies": {
     "@safehandoff/server": "workspace:*",
-    "@safehandoff/core": "workspace:*"
+    "@safehandoff/core": "workspace:*",
+    "@safehandoff/core-interface": "workspace:*",
+    "@safehandoff/model-adapter": "workspace:*",
+    "@safehandoff/sandbox-runner": "workspace:*"
   }
 }

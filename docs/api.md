@@ -25,9 +25,9 @@ POST는 application/json을 사용하며 본문 상한은 1 MiB다. 문서 저�
 }
 ```
 
-facts는 호출자가 이번 목적·수신자에게 공개하기로 승인한 표현이다. 원자료 sources나 추가 키를 같이 보내면 400 INVALID_CORE_INPUT이다. 실제 원자료 분석·승인 관리·검토·확정은 이후 구현할 범위이며 이 API가 승인 권한을 자동 생성하지 않는다.
+facts는 호출자가 이번 목적·수신자에게 공개하기로 승인한 표현이다. 원자료 sources나 추가 키를 같이 보내면 400 INVALID_CORE_INPUT이다. 원자료 분석·공개 승인 API·최종 확정은 이후 구현할 범위이며 이 API가 승인 권한을 자동 생성하지 않는다.
 
-성공 응답은 document: title/body와 provenance: implementation/connection/ready다. provenance는 fake/real 코어와 direct/simulated 연결을 구분한다. 구현이 없는 실제 코어는 503 CORE_NOT_IMPLEMENTED, 가짜 연결 실패는 503 CORE_UNAVAILABLE, 취소는 CORE_CANCELLED다. 실제 앱에서 가짜 결과로 대체하지 않는다. 내부 예상밖 오류는 상세 내용을 숨긴 500 오류로 반환한다.
+성공 응답은 document: title/body와 provenance: implementation/connection/ready다. provenance는 fake/real 코어와 direct/simulated 연결을 구분한다. 모델 설정 없음·호출 실패·검토 실패는 503 CORE_UNAVAILABLE, 미구현 기능은 CORE_NOT_IMPLEMENTED, 취소는 CORE_CANCELLED다. 실제 앱에서 가짜 결과로 대체하지 않는다. 내부 예상밖 오류는 상세 내용을 숨긴 500 오류로 반환한다.
 
 ## 연출용 앱 전용 API
 
@@ -37,6 +37,12 @@ fake-app만 GET /__demo, GET /__demo.js, GET /api/demo/settings, PUT /api/demo/s
 
 ## 주입형 Engine 라이브러리
 
-HTTP 필드와 환경 변수는 이번 라운드에서 변경하지 않았다. 앱 진입점은 여전히 모델을 주입하지 않아 503 CORE_NOT_IMPLEMENTED를 반환한다. 모델과 EngineConfig를 주입한 RealCore는 작성·검토를 수행하며, 실패·예산 초과·통과하지 못한 검토는 기존 CORE_UNAVAILABLE로 매핑한다. 취소는 CORE_CANCELLED다.
+HTTP 필드는 변경하지 않았다. 앱 진입점은 설정 파일과 환경 변수에서 모델을 구성해 주입한다. 모델과 EngineConfig를 주입한 RealCore는 작성·검토를 수행하며, 실패·예산 초과·통과하지 못한 검토는 기존 CORE_UNAVAILABLE로 매핑한다. 취소는 CORE_CANCELLED다.
 
 `writeReviewed`의 수정 루프는 라이브러리 전용이다. `/api/sharing`의 `generate`는 작성·검토 한 번만 수행하고 검토 통과 후 기존 title/body 응답을 반환한다. task/decision API나 자동 공개 승인 기능은 추가하지 않았다.
+
+## 연결 설정과 내부 저장
+
+앱은 SAFEHANDOFF_LLM_BASE_URL, SAFEHANDOFF_LLM_MODEL, SAFEHANDOFF_LLM_API_KEY를 provider의 환경 변수 이름 설정으로 조회한다. SAFEHANDOFF_CONFIG는 설정 파일 경로이며 생략하면 config.json, 없으면 config.example.json이다. SAFEHANDOFF_REPRO_REGISTRY는 reproduction.enabled일 때만 읽는 설치 시 등록 파일이다. 상대 경로 기준은 저장소 루트다. 값은 API 응답에 노출하지 않는다.
+
+`TaskStore`의 revision 검사·미리보기 hash 검증·원자적 결정 배치·철회·만료는 내부 라이브러리다. task/decision HTTP 엔드포인트는 추가하지 않았으며 `/api/v1/tasks`는 계속 404다. 인증·CSRF·Host/Origin 검사와 전체 task.v1은 후속 범위다. `/api/sharing`의 facts 입력이 이 저장 계층의 사람 승인을 증명하지는 않는다.

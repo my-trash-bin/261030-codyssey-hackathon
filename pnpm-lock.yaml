@@ -26,6 +26,15 @@ importers:
       '@safehandoff/core':
         specifier: workspace:*
         version: link:../core
+      '@safehandoff/core-interface':
+        specifier: workspace:*
+        version: link:../core-interface
+      '@safehandoff/model-adapter':
+        specifier: workspace:*
+        version: link:../model-adapter
+      '@safehandoff/sandbox-runner':
+        specifier: workspace:*
+        version: link:../sandbox-runner
       '@safehandoff/server':
         specifier: workspace:*
         version: link:../server

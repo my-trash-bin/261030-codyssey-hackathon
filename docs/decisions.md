@@ -134,3 +134,10 @@
 - Strict response validation rejects unknown/duplicate fields and unknown fact/block/slot references. Repair feedback contains only fixed reason codes and validated block/fact IDs, excluding free-form reviewer explanations, actions and candidate IDs.
 - `analyze`, `proposeDisclosure`, and `preview` remain explicitly unimplemented. Reproduction delegates only to an injected runner when enabled; Docker execution remains unimplemented. The app entrypoint still constructs an unconfigured core and makes no external model calls.
 - Round 3 remains separate: Docker implementation requires the requested security review, and server task/decision persistence requires a scoped plan before coding. Neither is implemented in this round.
+
+## 2026-10-31 · 3라운드 연결과 범위 축소
+
+- 사용자 요청에 따라 모델 환경 변수 세 개와 선택 설정/실행기 등록 경로를 .env.example에 추가했다. 기존 예제의 서버·클라이언트 변수는 모두 사용 중이므로 보존했다. 기존 .env와 config.json의 실제 값은 변경하지 않았다.
+- 앱은 ModelClient와 선택 ReproRunner를 조립하며 설정 없는 모델에 가짜 결과를 주입하지 않는다. 모델 HTTP 전송은 환경 프록시·전역 fetch 설정의 영향을 피하는 직접 native HTTP/TLS 요청으로 바꿨다. 모델 통신은 사용자 생성 요청 때만 발생한다.
+- 저장 코딩 전에 round3-scope.md에 축소 범위를 기록했다. 전체 제품 schema 대신 workflow 접두사의 내부 테이블과 migration, fact_summary 미리보기·사람 결정 배치·철회·만료만 구현했다. 인증 없는 task HTTP API는 추가하지 않았다.
+- 실행기는 scratch 이미지 안의 고정 toy target과 supervisor만 실행한다. supervisor가 실제 파일을 관찰하고 호스트가 출력 바이트를 대조한다. 이미지 전체 ID와 요청의 target/input digest를 확인하고 런타임 pull/build·호스트 경로 mount·임의 명령을 허용하지 않는다.
