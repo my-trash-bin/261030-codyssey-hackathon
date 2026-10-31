@@ -45,18 +45,41 @@ API를, 앞으로 구현할 범위는 다음 라운드·기능 계획을 따른�
 정본과 다른 방향이나 사용자 보완이 필요한 부분만 ISSUES에 차이로 기록한다. 원래 문서를
 발표 문구에 맞춰 역으로 바꾸지 않으며, 발표의 실제 문장을 근거로 구현 완료를 판단하지 않는다.
 
-## 재생성
+## 도구 설치와 재생성
+
+처음에는 mise만 있으면 된다. mise 자체 설치는 [공식 설치 안내](https://mise.jdx.dev/getting-started.html)를
+따른다. 저장소 루트에서 실행한다.
 
 ```sh
-python3 docs/presentation/build_combined_deck.py
+mise trust
+mise install
+mise run setup-presentation
+mise exec -- just build-presentation
 ```
 
-위 명령은 통합 HTML만 생성한다. PDF는 같은 통합 HTML의 인쇄 CSS를 사용해 브라우저에서
-1280×720 페이지로 다시 출력한다. HTML 변경 후 PDF도 갱신하고 12쪽·내용 잘림·그림 로드를
-확인한다. 재생성 전에 이전 PDF를 새 내용의 검증 근거로 사용하지 않는다. Python 캐시·가상환경·
-OS 임시 파일은 이 디렉터리의 .gitignore로 제외한다.
+mise가 고정한 Node·pnpm·just·Python을 설치하고, setup-presentation이 잠금 파일의 Playwright·
+한글 글꼴 패키지와 해당 Chromium을 준비한다. mise를 셸에 활성화했다면 마지막 명령은
+`just build-presentation`으로 줄일 수 있다. just가 없어도 `mise install`과 mise task를 먼저 쓸 수 있다.
 
-PDF 출력 환경에는 한글 글꼴이 필요하다. 이번 출력은 공개 [Noto Sans KR](https://github.com/google/fonts/tree/main/ofl/notosanskr)을
-로컬 렌더링에 적용했고 [OFL 라이선스](https://github.com/google/fonts/blob/main/ofl/notosanskr/OFL.txt)를
-확인했다. 내려받은 글꼴·브라우저 임시 파일은 저장소에 추가하지 않는다. PDF에는 렌더링에 필요한
-글꼴을 포함한다. 통합 HTML은 사용 환경의 한글 시스템 글꼴을 사용한다.
+Linux에서 Chromium 시스템 라이브러리가 없으면 별도로 실행한다. 배포판 패키지 설치에는
+관리자 권한이 필요할 수 있다. [Playwright의 공식 설치 절차](https://playwright.dev/docs/browsers#install-system-dependencies)를
+사용하며 일반 빌드에서 OS 패키지를 임의로 설치하지 않는다.
+
+```sh
+mise run setup-presentation-system
+```
+
+`just build-presentation`은 개별 슬라이드 HTML 12개를 읽어 **통합 HTML과 PDF**를 생성한다.
+개별 HTML은 생성 대상이 아니다. 모든 HTML은 제품 정본이 아닌 발표용 파생 자료라는 점은 같다.
+통합 HTML은 현재 저장소 정책대로 추적하며 PDF는 .gitignore로 제외한다. 이미 추적하던 PDF도
+추적 해제했으므로 필요할 때 로컬에서 빌드한다.
+
+설치에는 네트워크가 필요하지만 준비 후 빌드는 로컬 파일·설치한 Chromium·한글 글꼴만 사용한다.
+렌더링 중 외부 요청은 차단한다. Noto Sans KR Variable의 버전과 라이선스는 pnpm 의존성에
+포함하며 시스템 한글 글꼴이나 별도로 받은 .local 글꼴에 의존하지 않는다. 통합 HTML을 일반
+브라우저에서 직접 열 때는 시스템 글꼴을 사용한다.
+
+빌드는 이미지 로딩·12개 슬라이드·PDF 12쪽을 검사하고, 실패하면 이전 PDF를 덮어쓰지 않는다.
+내용 잘림·문구 의미는 발표자가 별도 확인한다. HTML만 만들 필요가 있을 때는
+`mise exec -- python docs/presentation/build_combined_deck.py`를 사용할 수 있다. 브라우저 캐시·
+node_modules·Python 캐시·PDF는 Git에 넣지 않는다.

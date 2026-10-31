@@ -34,7 +34,7 @@
 
 ## 준비
 
-Node 24.21.0·pnpm 10.13.1·just 1.58.0을 mise로 고정합니다.
+Node 24.21.0·pnpm 10.13.1·just 1.58.0·Python 3.13.8을 mise로 고정합니다. mise만 먼저 설치하면 just를 포함한 도구는 `mise install`로 준비할 수 있습니다.
 
 ```bash
 mise trust
@@ -120,3 +120,8 @@ OSS 스모크의 자동 회귀 검사는 실행 행·고정 oracle·수치·hash
 실행 transcript는 `SAFEHANDOFF_TRANSCRIPT_DIR=.local/transcripts`로 켠다. 기본은 단계 메타데이터이며 `SAFEHANDOFF_TRANSCRIPT_CONTENT=1`을 함께 설정하면 승인된 모델 입력과 작성 초안도 기록한다. HTTP 응답은 바뀌지 않는다. 데모 연결 형식·권한·보존 제한은 [transcript 문서](docs/transcript.md)를 참고한다.
 
 ToyRecord 팩을 실제 catalog에서 선택해 OSS 스모크로 연결할 수 있다. `--catalog`, `--pack-version`, 운영자 `--registration`을 함께 사용하며 실행 전에 digest를 재검증한다. [설치·실행 절차](docs/toyrecord-pack.md)를 따른다.
+
+
+발표자료는 최초 `mise run setup-presentation` 후 `mise exec -- just build-presentation`으로 통합
+HTML·PDF를 생성한다. 개별 슬라이드 HTML은 편집용이며 생성 대상이 아니다. PDF는 로컬 산출물로
+Git에서 제외한다. Chromium 시스템 라이브러리 설치와 상세 절차는 [발표 빌드 안내](docs/presentation/README.md)를 따른다.
