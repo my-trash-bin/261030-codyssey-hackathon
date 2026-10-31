@@ -520,8 +520,11 @@ export function EvidencePanel(props: { snapshot: Snapshot | null; workflow: Arti
   if (snapshot !== null) for (const evidence of snapshot.evidence) evidenceById.set(evidence.id, evidence);
 
   return (
-    <details className="block--fold" id="review-evidence">
-      <summary><h2>내부 근거와 검토</h2></summary>
+    <details className="block--fold block--fold--internal" id="review-evidence">
+      <summary>
+        <h2>내부 근거와 검토</h2>
+        <span className="chip chip--internal">내부용</span>
+      </summary>
       <div className="fold__body">
         <p className="hint">
           내부 참고용입니다. 공유 파일에는 포함되지 않습니다. 원자료 발췌문은 서버가 원문 bytes를 내려주지 않아 표시하지 않고 근거 위치만 보여 줍니다.

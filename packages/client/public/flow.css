@@ -369,6 +369,34 @@
   color: var(--color-text-accent);
 }
 
+/* 내부 참고용 영역은 제목을 키우지 않고 인주색 테두리와 '내부용' 표시로 구분한다. */
+.block--fold--internal {
+  border: var(--border-width) solid var(--color-border-accent);
+  padding: 0 var(--space-5) var(--space-4);
+}
+
+.block--fold--internal > summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+  padding-block: var(--space-4);
+}
+
+.block--fold--internal > summary h2 {
+  font-family: var(--font-body);
+  font-size: var(--type-body-sm-size);
+  line-height: var(--type-body-sm-line);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--letter-spacing-normal);
+  color: var(--color-text-secondary);
+}
+
+.chip--internal {
+  border-color: var(--color-border-accent);
+  color: var(--color-text-accent);
+}
+
 /* 목록에서 고르는 버튼은 글자만 강조하고 상자 무게를 줄인다. */
 .button--list {
   min-height: var(--num-13);
