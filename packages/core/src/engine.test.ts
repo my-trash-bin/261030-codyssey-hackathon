@@ -79,7 +79,7 @@ test('unknown and duplicate fields and unapproved IDs cannot pass model output v
     draft.replace('"paragraph"', '"asset_ref"'), '{"schema_version":"draft.v1","blocks":[]}']) {
     await assert.rejects(setup([invalid, invalid]).core.write(pack), code('MODEL_INVALID_RESPONSE'));
   }
-  for (const invalid of [changes().replace('UNCERTAINTY_REMOVED', 'PRIVATE_CODE'), changes().replace('"f_1"', '"private"'),
+  for (const invalid of [JSON.stringify({ result: 'pass', issues: [] }), changes().replace('UNCERTAINTY_REMOVED', 'PRIVATE_CODE'), changes().replace('"f_1"', '"private"'),
     changes().replace('"kind":"document"', '"kind":"block","block_id":"unknown"'), pass.replace('"issues":[]', '"issues":[],"raw":"secret"')]) {
     await assert.rejects(setup([invalid, invalid]).core.review(JSON.parse(draft), pack), code('MODEL_INVALID_RESPONSE'));
   }

@@ -53,7 +53,10 @@ export class RealCore implements Engine {
   private check(draft: Draft, pack: FactPack, run: Run): Promise<Review> {
     validateDraft(draft, pack);
     return this.call({ role: 'reviewer', responseFormat: 'json',
-      systemPrompt: 'Return review.v1 JSON only with result pass/needs_changes/needs_decision/error and issues. ' +
+      systemPrompt: 'Return JSON only with exactly these root keys: schema_version, result, issues. ' +
+        'schema_version must be the literal string review.v1. A passing response is ' +
+        '{"schema_version":"review.v1","result":"pass","issues":[]}. ' +
+        'Other result values are needs_changes/needs_decision/error. Always include schema_version. ' +
         'Each issue requires target {kind:document or block,block_id?}, reason_code, action (string or null), ' +
         'approved_fact_ids, candidate_ids, internal_explanation. Check disclosure, uncertainty, required facts and references. ' +
         'Reason codes: UNAPPROVED_DISCLOSURE, UNSUPPORTED_CAUSAL_CLAIM, MISSING_REQUIRED_FACT, SOURCE_CONFLICT, ' +

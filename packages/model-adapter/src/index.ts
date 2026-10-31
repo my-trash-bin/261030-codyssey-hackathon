@@ -37,7 +37,7 @@ export class OpenAICompatibleModelClient implements ModelClient {
     const body = JSON.stringify({ model: this.info.model, messages,
       [config.output_limit_field]: Math.min(request.maxOutputTokens ?? config.max_output_tokens, config.max_output_tokens),
       ...(config.send_temperature ? { temperature: request.temperature ?? config.temperature } : {}),
-      ...((request.responseFormat ?? config.response_mode) === 'json' ? { response_format: { type: 'json_object' } } : {}),
+      ...(config.response_mode === 'json' && request.responseFormat !== 'text' ? { response_format: { type: 'json_object' } } : {}),
     });
     if (Buffer.byteLength(body) > config.max_input_bytes) throw new ModelError('MODEL_BUDGET_EXCEEDED');
     this.active++;

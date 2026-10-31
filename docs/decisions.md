@@ -143,3 +143,9 @@
 - 실행기는 scratch 이미지 안의 고정 toy target과 supervisor만 실행한다. supervisor가 실제 파일을 관찰하고 호스트가 출력 바이트를 대조한다. 이미지 전체 ID와 요청의 target/input digest를 확인하고 런타임 pull/build·호스트 경로 mount·임의 명령을 허용하지 않는다.
 
 - 3라운드 수동 보안 검토에서 내부 task purpose의 승인 brief 자동 복사를 제거하고 모델 pass에 필수 fact 참조 coverage 검사를 추가했다. 전용 /security-review 실행을 대신했다고 주장하지 않으며 검토 방법·시험·운영 한계는 [검토 기록](round3-security-review.md)에 남겼다.
+
+## 2026-10-31 · 실제 등록 모델 smoke test 후 호환 수정
+
+- 사용자가 명시적으로 승인한 기존 모델에 가상 사실만 전송해 실제 앱 프로세스의 작성·검토 왕복을 실행했다. 최종 HTTP 200과 불확실성 표현 유지를 확인했다. 상세 범위와 첫 실패·수정은 [실행 기록](live-smoke-2026-10-31.md)에 남겼다.
+- provider.response_mode=text는 모델 호출자가 JSON 출력을 원해도 response_format 전송을 금지한다. 작은 호환 서버의 기능 설정을 우선하며 응답은 기존 JSON parser로 엄격하게 검증한다.
+- 검토 프롬프트가 schema_version을 명시하도록 보완했다. 필수 응답 필드를 생략한 모델 출력을 통과시키는 fallback은 추가하지 않았다.

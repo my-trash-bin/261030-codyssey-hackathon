@@ -43,7 +43,7 @@ test('provider capability switches change wire fields', async () => {
     let body = ''; for await (const chunk of req) body += chunk;
     assert.deepEqual(JSON.parse(body), { model: 'mock', messages: [{ role: 'user', content: 'rules\n\nfacts' }], max_completion_tokens: 128 });
     res.end('{"choices":[{"message":{"content":"ok"}}]}');
-  }, async client => { await client.complete({ role: 'writer', systemPrompt: 'rules', input: 'facts' }); },
+  }, async client => { await client.complete({ role: 'writer', systemPrompt: 'rules', input: 'facts', responseFormat: 'json' }); },
   { supports_system_role: false, send_temperature: false, response_mode: 'text', output_limit_field: 'max_completion_tokens' });
 });
 test('HTTP errors malformed responses and oversize bodies fail without disclosing provider text', async () => {

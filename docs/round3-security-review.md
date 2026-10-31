@@ -31,3 +31,5 @@
 Docker 실행은 검토한 고정 toy binary만 대상으로 한다. 임의 제3자 프로그램·악의적인 등록 이미지·침해된 호스트/daemon 방어를 검증한 것은 아니다. 프로세스 강제 종료·호스트 장애 후의 소유권 ledger 기반 자동 회수는 미구현이며 실행기 안내에 운영 한계를 기록했다. Q-LLM/Q-POLICY/Q-DEPLOY/Q-LICENSE의 실제 운영 값을 대신 채우지 않았다.
 
 Docker flag와 네트워크 의미는 [공식 create 문서](https://docs.docker.com/reference/cli/docker/container/create/), [공식 run 문서](https://docs.docker.com/reference/cli/docker/container/run/)와 대조했다. 실제 호스트의 방화벽·운영 권한·모델 보관 정책은 별도 확인 대상이다.
+
+검토 후 사용자 명시 승인으로 기존 모델에 가상 사실만 보내 실제 앱 왕복을 추가 확인했다. 최초 연결 호환 오류와 검토 형식 오류를 수정한 뒤 HTTP 200이었다. [실제 실행 기록](live-smoke-2026-10-31.md)은 이 추가 확인의 범위와 한계를 구분한다.
