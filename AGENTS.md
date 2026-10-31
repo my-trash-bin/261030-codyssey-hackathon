@@ -16,7 +16,7 @@
 
 한국어 문서와 한국어 파일명을 명시적으로 허용한다. 설명 문서는 한국어로 작성할 수 있으며 영어 번역을 필수로 요구하지 않는다. API 필드·enum·명령·코드 식별자는 계약의 표기를 유지한다.
 
-품질 검사는 npm 개발 의존성 `@slop-lab/qg`의 기본 recommended 규칙을 사용한다. `.qg.yaml`의 `markdown/allowed-characters.allowedLanguages`에 `en`, `ko`를 설정한다. `mise exec -- just test` 또는 `mise exec -- npm test`로 전체 규칙과 Go·문서 검사를 실행한다. 규칙 검사만 필요하면 `mise exec -- npm run lint`를 사용한다. Node/npm은 개발·검증 도구이며 앱 런타임에는 필요하지 않다.
+품질 검사는 npm 개발 의존성 `@slop-lab/qg`의 기본 recommended 규칙을 사용한다. `.qg.yaml`의 `markdown/allowed-characters.allowedLanguages`에 `en`, `ko`를 설정한다. `mise exec -- just check`로 QG의 전체 규칙과 연결된 테스트를 실행한다. `npm test`는 Node 테스트만 실행하고 QG가 이를 호출한다. 규칙 검사만 필요하면 `mise exec -- npm run lint`를 사용한다. Node/npm은 개발·검증 도구이며 앱 런타임에는 필요하지 않다.
 
 ## 2. 파일별 역할·입력·다음 문서
 
@@ -51,6 +51,9 @@
 | `docs/검증보고서.md` | 현재 코드의 구현·미완료 및 실제 실행 증거 | 코드·실제 시험·현재 명세 | 후속 구현과 검증 |
 | `.qg.yaml`, `package.json`, `tools/qg.test.mjs` | recommended 품질 규칙·한국어 허용·테스트 실행 | 문서 언어 정책과 기존 시험 | npm/just의 동일 품질 gate |
 | `justfile`, `mise.toml` | 개발·빌드·검증·서버 관리 명령과 도구 버전 | 구현 명령·실행 설정 | 실행·테스트의 공통 진입점 |
+| `tools/lab.py`, `tools/test_lab.py`, `docs/separated-runtime.md` | 분리형 시연·실제 엔진 실행과 프로세스 관리 | 사용자 재구성 요청·regeneration.v1 | 독립 실행·검증 안내 |
+| `internal/regeneration`, `cmd/safehandoff-engine` | stateless 분석·승인 정보 재작성·검토, demo/live 어댑터 | 승인한 표현·지정 모델 | HTTP/CLI 엔진 |
+| `internal/labweb`, `cmd/safehandoff-web` | 웹 작업 공간·고정 엔진 프록시·선택 변경과 결과 무효화 | regeneration.v1 HTTP | 시연/실제 엔진의 동일 UI |
 | `tools/server.py`, `tools/test_server.py` | .local/run 기반 서버 시작·정상 종료·재시작·PID 소유 확인 | 단일 checkout·단일 관리 서버 | 백그라운드 실행·상태·로그 |
 | `docs/implementation-start.md`, `docs/demo.md` | 구현을 어떻게 시작하고 무엇을 보여주는가? | 전체 공통 계약 | 에이전트 인계·팀 시연 |
 

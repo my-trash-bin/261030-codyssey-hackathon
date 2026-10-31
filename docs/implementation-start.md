@@ -41,7 +41,7 @@
 | `just setup` | 고정 Go 모듈·필수 로컬 자원 준비. 사내 모델 설치나 GPU 설정은 강제하지 않음 |
 | `just build` | 서버, fixture 생성기, evaluator, 등록 checker 빌드 |
 | `just fixtures` | 고정 seed의 가상 입력과 공개 예시 검증·생성. 평가 정답은 별도 관리 |
-| `just test` | 사내 endpoint·Docker 없이 가능한 도메인·API·fixture 시험 |
+| `just check` | 사내 endpoint·Docker 없이 가능한 도메인·API·fixture 시험 |
 | `just run-fixture` | 전용 개발 DB와 fixture 표시로 로컬 서버 실행 |
 | `just run` | 설정된 사내 LLM 연결, 실제 endpoint 없으면 명확한 설정 오류 |
 | `just prepare-runners` | toy 대상·checker·실행 이미지를 사전 빌드하고 digest 기록 |
@@ -82,3 +82,7 @@ Provider 설정에는 API root, model ID, 인증 환경 변수 이름, timeout·
 - 알려진 제한과 다음 작업. 시간·호출 수·수정 횟수는 실제 측정값만 기록.
 
 검증 보고 양식은 [report-template.json](../evaluation/results/report-template.json), 시험 목록은 [qa.md](qa.md), 설명 시연은 [demo.md](demo.md)를 사용한다.
+
+## 웹·엔진 분리 시험
+
+새 구현의 진입점은 [독립 실행 계약](separated-runtime.md)이다. `just demo-start`와 `just live-start`를 별도로 실행하고 `just test-engine-live`로 웹 없이 실제 엔진을 시험한다. `just check`는 QG를 직접 호출하며 npm test는 Node 테스트만 담당한다.

@@ -2,7 +2,19 @@
 
 회사 자료를 외부에 공유하기 전에 **목적에 필요한 자료를 준비하는 수고를 줄이는** 사내 실행 오픈소스 PoC입니다. 사용자가 허용한 정보로 문의문·표·예제를 새로 작성합니다. 공개 선택을 바꾸면 이전 본문·첨부·ZIP을 함께 무효화하고, 현재 판본에서 검토한 실제 파일만 확정·다운로드합니다. 자동 메일·외부 제출 기능은 없습니다.
 
-현재 구현은 Go 단일 서버, SQLite, 서버 HTML과 ES modules입니다. 도구 버전은 사용자 요청에 따라 **mise**로 관리합니다. 사내 모델이 없어도 개발용 fixture 모드로 실행합니다. fixture의 고정 검토 응답은 실제 모델의 의미 검토 성능을 증명하지 않습니다. 명세 대비 구현 선택·제한과 실제 미수행 검증은 [검증 보고서](docs/검증보고서.md)에 구분했습니다.
+현재 시험 경로는 **웹 게이트웨이와 공유본 재생성 엔진을 별도 프로세스**로 실행합니다. 시연용 고정 응답과 실제 모델을 같은 UI·API로 각각 시험할 수 있습니다. 실행·계약·제한은 [독립 실행 안내](docs/separated-runtime.md)를 따릅니다. 기존 Go·SQLite 일체형 시제품은 별도 경로로 남아 있으며 새 엔진의 선행 조건이 아닙니다.
+
+## 분리형 시연과 실제 엔진 시작
+
+```bash
+mise exec -- just demo-start
+mise exec -- just live-start
+mise exec -- just check
+```
+
+시연 화면은 **http://127.0.0.1:8081**, 실제 모델 화면은 **http://127.0.0.1:8082**입니다. 사내 IP에서도 같은 포트로 접속할 수 있습니다. 시연은 모델을 호출하지 않으며 실제 엔진은 기존 `.env`와 `config.json`의 provider 설정을 사용합니다. `just demo-stop`과 `just live-stop`으로 각각 종료합니다. 웹 없는 실제 엔진 시험은 `just test-engine-live`입니다.
+
+`npm test`는 Node 테스트만 실행합니다. `just check`는 QG를 직접 실행하며 QG가 Node·Go·문서·서버 관리 테스트를 호출합니다.
 
 ## 구현 기준과 문서 안내
 
@@ -28,7 +40,7 @@ P0는 입력·분석·선택·작성/검토·확정·재사용·복구·실행 �
 
 새 기준의 가상 자료는 `fixtures/reference-pack/`, 현재 코드의 시험 자료는 `fixtures/author/`입니다. 평가자 기대 조건과 수신자 전용 자료를 앱·모델에 제공하지 않습니다. 새 QA 결과는 `not_run`이며 기존 T01–T28의 결과를 번호로 이전하지 않습니다.
 
-## 실행
+## 기존 일체형 시제품 실행
 
 개발·검증 도구는 [mise](https://mise.jdx.dev/)로 관리하는 Go·just·Node.js 24.21.0입니다. `just setup`이 고정 npm 개발 의존성도 설치합니다. 앱 실행 자체에는 Node/npm이 필요하지 않으며 Docker는 합성 재현·외부 checker 시험에 사용합니다.
 
@@ -36,7 +48,7 @@ P0는 입력·분석·선택·작성/검토·확정·재사용·복구·실행 �
 mise trust
 mise install
 mise exec -- just setup
-mise exec -- just test
+mise exec -- just check
 mise exec -- just run-fixture
 ```
 
@@ -138,7 +150,7 @@ GOTOOLCHAIN=local GOPROXY=off go run ./cmd/repro --inputs ./inputs
 ## 문서와 제품 검증
 
 ```bash
-mise exec -- just test
+mise exec -- just check
 # 개별 실행
 mise exec -- npm run lint
 mise exec -- npm run test:qg
@@ -146,7 +158,7 @@ mise exec -- just test-go
 mise exec -- just test-docs
 ```
 
-`just test`와 `npm test`는 `@slop-lab/qg`의 기본 recommended 규칙, QG 정책 회귀시험, Go 단위·통합시험, 문서 검사를 함께 실행합니다. `.qg.yaml`에서 한국어·영어 문서를 허용하고 문서에서 사용하는 기호를 명시했습니다. 한국어 문서를 영어로 바꿀 필요는 없습니다.
+`just check`는 `@slop-lab/qg`의 기본 recommended 규칙과 연결된 전체 테스트를 실행합니다. QG가 호출하는 `npm test`는 QG 정책·화면 판본 등 Node 테스트만 실행합니다. `.qg.yaml`에서 한국어·영어 문서를 허용하고 문서에서 사용하는 기호를 명시했습니다. 한국어 문서를 영어로 바꿀 필요는 없습니다.
 
 생성된 계약·실행 보고서·로컬 빌드 출력은 생성물로 분류합니다. 기존 CSV 행·프롬프트·HTML/JS 템플릿의 긴 줄은 해당 경로에만 유한 한도를 설정했으며 그 밖의 recommended 규칙은 유지합니다. Git hook 자동 설치는 끄고 동일 검사를 npm/just 진입점으로 실행합니다. 파일 길이는 500줄 초과 경고·1000줄 초과 오류를 유지하며, 기존 경고 파일은 책임별로 분할했습니다.
 

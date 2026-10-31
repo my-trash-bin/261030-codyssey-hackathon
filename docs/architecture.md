@@ -2,7 +2,9 @@
 
 이 문서는 PoC의 **구현 기본안**이다. 사용자에게 특정 기술 선택을 이미 승인받았다고 표시하지 않는다. 기능·보안 계약을 바꾸지 않는 라이브러리 선택은 팀이 결정하고 잠금 파일과 [결정 기록](decisions.md)을 함께 갱신한다.
 
-## 1. 가장 작은 실행 구성
+현재 시험 경로는 [웹·엔진 독립 실행](separated-runtime.md)의 두 프로세스 구성이다. 아래 일체형 구성과 workflow·SQLite 설명은 기존 시제품의 구조이며 새 엔진의 필수 의존성이 아니다. 새 웹은 internal/labweb, 엔진은 internal/regeneration으로 분리하고 regeneration.v1 HTTP/CLI로 연결한다.
+
+## 1. 기존 시제품의 실행 구성
 
 | 영역 | 기본 선택 | 이유 / 경계 |
 | --- | --- | --- |
@@ -14,7 +16,7 @@
 | 결정적 도구 | 등록된 Go 함수 | 수치·시간·파일·검사 로직을 모델 계산과 분리 |
 | 별도 실행 | 등록 실행 파일을 제한된 Docker runner로 호출 | 재현·외부 검사기 확장만. 자동 이미지 다운로드·임의 shell 없음 |
 | 테스트 | Go 단위/통합, fixture provider, 브라우저 시나리오, 별도 live 평가 | fixture 통과와 모델 유용성 검증을 분리 |
-| 개발 품질 검사 | npm `@slop-lab/qg` 기본 recommended 규칙, 한국어·영어 문서 허용 | Node 24.21.0을 mise로 고정. `just test`/`npm test`에서 정책 회귀·Go·문서 검사 연결. 앱 런타임에는 불필요 |
+| 개발 품질 검사 | npm `@slop-lab/qg` 기본 recommended 규칙, 한국어·영어 문서 허용 | Node 24.21.0을 mise로 고정. `just check`에서 QG를 직접 호출하고 QG가 npm test의 Node 시험·Go·문서 검사를 실행. 앱 런타임에는 불필요 |
 
 Go의 HTTP 서버/클라이언트와 템플릿 기능은 표준 패키지에서 제공된다.[R1][R2] 여기서 선택한 모듈 구조와 처리 제한은 이 프로젝트의 설계다. 버전 번호는 구현 시작 시 실제 설치·호환성 확인 후 `go.mod`, `go.sum`, 이미지 digest에 고정한다. `latest`로 재현 환경을 운영하지 않는다.
 

@@ -1,5 +1,7 @@
 # SafeHandoff PRD
 
+현재 웹·엔진 분리 시험 경로와 실제 구현 범위는 [독립 실행 계약](separated-runtime.md)을 따른다. 기존 전체 기능 계약과 새 시험 경로의 구현 완료를 구분한다.
+
 문서 버전: 1.0 · 기준일: 2026-10-31 · 상태: 구현 기준안
 
 이 문서는 [intent.md](../intent.md)의 제품 의도 안에서 **무엇을 만들고, 누구의 어떤 일을 줄일지** 정한다. intent 변경 권한은 [AGENTS.md](../AGENTS.md)를 따른다. 동작의 상세 규칙은 [spec.md](spec.md), 공통 데이터와 API는 [ERD.md](ERD.md)와 [api.md](api.md), 화면은 [IA.md](IA.md), 사용자 여정은 [uj.md](uj.md)를 따른다. 각 기능의 구현 범위는 [features](features/01-task-intake.md)에 나누어 둔다.

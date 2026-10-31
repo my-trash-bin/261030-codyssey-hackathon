@@ -1,5 +1,5 @@
 # The CLI enables the language-independent recommended rules by default.
-# Tests run through npm test / just test; hook installation is managed separately.
+# All checks run through just check; npm test runs Node tests only; hook installation is managed separately.
 hooks:
   preCommit:
     installation: off
@@ -57,9 +57,9 @@ overrides:
       files/max-line-length: [error, {limit: 3500}]
 
 checks:
-  - name: QG policy regression tests
-    type: node-test
-    files: [tools/qg.test.mjs]
+  - name: QG policy and interactive workspace regression tests
+    command: mise
+    args: [exec, --, npm, test]
     message: Keep Korean documents allowed and recommended checks enforced.
   - name: Go unit and integration tests
     command: mise
@@ -71,5 +71,5 @@ checks:
     message: Fix documentation contracts, references, or example data.
   - name: Background server lifecycle
     command: python3
-    args: [-m, unittest, discover, -s, tools, -p, test_server.py]
+    args: [-m, unittest, discover, -s, tools, -p, 'test_*.py']
     message: Fix server startup, shutdown, restart, or PID ownership handling.

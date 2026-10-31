@@ -1,0 +1,9 @@
+{
+  "purpose": "가상 공급사 기술지원 문의",
+  "recipient": "지정 가상 공급사",
+  "facts": [
+    {"id": "observation", "text": "첫 API 요청은 응답 대기 timeout, 재시도는 HTTP 200을 관찰한 가상 사례다."},
+    {"id": "uncertainty", "text": "첫 서버 처리 완료와 중복 여부는 모른다."},
+    {"id": "question", "text": "공급사 실행 환경이 없어 재현하지 않았다. 처리 결과와 안전한 재시도 조건을 문의한다."}
+  ]
+}

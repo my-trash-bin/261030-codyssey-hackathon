@@ -1,5 +1,7 @@
 # HTTP·서비스·DTO 계약
 
+현재 웹·엔진 분리 시험 경로와 실제 구현 범위는 [독립 실행 계약](separated-runtime.md)을 따른다. 기존 전체 기능 계약과 새 시험 경로의 구현 완료를 구분한다.
+
 버전: `/api/v1` · 상태: 구현할 계약. 이 문서는 서버/화면 담당자가 함께 사용하는 경계다. 공통 enum과 핵심 JSON Schema는 [domain-contract](../contracts/domain-contract.json), [core.schema](../contracts/core.schema.json)에 있다. JSON Schema로 표현하지 않은 소속·승인·hash·상태 검사는 반드시 서비스 계층에서 수행한다.
 
 ## 1. 공통 규칙

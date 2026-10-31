@@ -25,9 +25,12 @@ fixtures: build
 prepare-runners: build
     ./bin/safehandoff-eval --mode prepare
 
-# QG·정책 회귀·Go·문서·서버 관리 시험
-test:
-    mise exec -- npm test
+# QG에 연결된 전체 품질·테스트 검사
+check:
+    mise exec -- ./node_modules/.bin/qg check --full
+
+# 기존 test 호출도 같은 QG 진입점 사용
+test: check
 
 test-go:
     mise exec -- go test ./...
@@ -40,7 +43,7 @@ test-server:
     python3 -m unittest discover -s tools -p 'test_server.py'
 
 lint:
-    mise exec -- npm run lint
+    mise exec -- ./node_modules/.bin/qg check --full --rules-only
 
 test-extensions: build
     ./bin/safehandoff-eval --mode extensions
@@ -102,3 +105,61 @@ demo-reset:
     if target.is_symlink() or target.resolve() != Path.cwd() / "var/demo":
         raise SystemExit("전용 var/demo 경로만 초기화할 수 있습니다")
     shutil.rmtree(target, ignore_errors=True)
+
+# 분리된 웹·재생성 엔진 빌드
+build-lab:
+    mkdir -p bin
+    mise exec -- go build -buildvcs=false -trimpath -o bin/safehandoff-engine ./cmd/safehandoff-engine
+    mise exec -- go build -buildvcs=false -trimpath -o bin/safehandoff-web ./cmd/safehandoff-web
+
+# 시연용 웹 8081 + 모델 없는 엔진 8091
+demo-start: build-lab
+    python3 tools/lab.py demo start
+
+demo-stop:
+    python3 tools/lab.py demo stop
+
+demo-restart: build-lab
+    python3 tools/lab.py demo restart
+
+demo-status:
+    python3 tools/lab.py demo status
+
+demo-logs component="web":
+    python3 tools/lab.py demo logs --component {{ quote(component) }}
+
+# 실제 모델용 웹 8082 + 엔진 8092
+live-start config="config.json": build-lab
+    python3 tools/lab.py live start --config {{ quote(config) }}
+
+live-stop:
+    python3 tools/lab.py live stop
+
+live-restart config="config.json": build-lab
+    python3 tools/lab.py live restart --config {{ quote(config) }}
+
+live-status:
+    python3 tools/lab.py live status
+
+live-logs component="web":
+    python3 tools/lab.py live logs --component {{ quote(component) }}
+
+# 웹 없이 엔진만 JSON stdin/stdout으로 실행
+engine action input mode="live": build-lab
+    ./bin/safehandoff-engine --mode {{ quote(mode) }} --action {{ quote(action) }} < {{ quote(input) }}
+
+# 네트워크·실제 모델 없이 각 계층의 동작 계약 확인
+test-engine:
+    mise exec -- go test ./internal/regeneration
+
+test-web:
+    mise exec -- go test ./internal/labweb
+    mise exec -- node --test tools/workspace.test.mjs
+
+# 실제 모델 분석 → 공개 선택 → 재생성 → 재검토; 가상 입력만 전송
+test-engine-live: build-lab
+    python3 tools/test_engine_live.py
+
+# 실행 중인 시연 웹을 실제 Chromium으로 조작; CHROMIUM_BIN 필요
+test-demo-browser:
+    mise exec -- node tools/test_lab_browser.mjs

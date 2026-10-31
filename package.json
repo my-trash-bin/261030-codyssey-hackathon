@@ -3,7 +3,7 @@
   "private": true,
   "scripts": {
     "lint": "qg check --full --rules-only",
-    "test": "qg check --full",
+    "test": "node --test tools/qg.test.mjs tools/workspace.test.mjs",
     "test:go": "mise exec -- just test-go",
     "test:docs": "python3 tools/validate_docs.py",
     "test:qg": "node --test tools/qg.test.mjs",

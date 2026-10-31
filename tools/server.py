@@ -123,6 +123,12 @@ class ServerManager:
         connect = "127.0.0.1" if host == "0.0.0.0" else "::1" if host == "::" else host
         return path.resolve(), listen, connect, port
 
+    def launch_args(self, path, fixture):
+        args = [str(self.binary), "--config", str(path)]
+        if fixture:
+            args += ["--fixture", "--data-dir", str(self.root / "var/fixture")]
+        return args
+
     def start(self, config="config.json", fixture=False, timeout=10):
         with self.locked():
             return self._start(config, fixture, timeout)
@@ -141,9 +147,7 @@ class ServerManager:
                 raise RuntimeError("설정 포트가 이미 사용 중입니다; 관리 밖 프로세스는 종료하지 않습니다")
         except (ConnectionError, TimeoutError, OSError):
             pass
-        args = [str(self.binary), "--config", str(path)]
-        if fixture:
-            args += ["--fixture", "--data-dir", str(self.root / "var/fixture")]
+        args = self.launch_args(path, fixture)
         with self.log_path.open("ab") as log:
             process = subprocess.Popen(
                 args, cwd=self.root, stdin=subprocess.DEVNULL,
