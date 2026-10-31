@@ -28,7 +28,7 @@ P0는 입력·분석·선택·작성/검토·확정·재사용·복구·실행 �
 
 ## 실행
 
-준비물은 Linux/macOS 호환 Go 실행 환경과 [mise](https://mise.jdx.dev/)입니다. Docker는 합성 재현·외부 checker 시험에만 필요합니다.
+개발·검증 도구는 [mise](https://mise.jdx.dev/)로 관리하는 Go·Make·Node.js 24.21.0입니다. `make setup`이 고정 npm 개발 의존성도 설치합니다. 앱 실행 자체에는 Node/npm이 필요하지 않으며 Docker는 합성 재현·외부 checker 시험에 사용합니다.
 
 ```bash
 mise trust
@@ -101,8 +101,17 @@ GOTOOLCHAIN=local GOPROXY=off go run ./cmd/repro --inputs ./inputs
 ## 문서와 제품 검증
 
 ```bash
-python3 tools/validate_docs.py
+mise exec -- make test
+# 개별 실행
+mise exec -- npm run lint
+mise exec -- npm run test:qg
+mise exec -- make test-go
+mise exec -- make test-docs
 ```
+
+`make test`와 `npm test`는 `@slop-lab/qg`의 기본 recommended 규칙, QG 정책 회귀시험, Go 단위·통합시험, 문서 검사를 함께 실행합니다. `.qg.yaml`에서 한국어·영어 문서를 허용하고 문서에서 사용하는 기호를 명시했습니다. 한국어 문서를 영어로 바꿀 필요는 없습니다.
+
+생성된 계약·실행 보고서·로컬 빌드 출력은 생성물로 분류합니다. 기존 CSV 행·프롬프트·HTML/JS 템플릿의 긴 줄은 해당 경로에만 유한 한도를 설정했으며 그 밖의 recommended 규칙은 유지합니다. Git hook 자동 설치는 끄고 동일 검사를 npm/Make 진입점으로 실행합니다. 현재 500줄 초과 파일의 경고는 유지되며 오류는 테스트를 실패시킵니다.
 
 문서 링크·AC/QA 연결·가상 자료·참조 SQL을 검사합니다. [문서 검사 결과](validation-report.json)는 제품 시험 결과와 별개입니다. 현재 앱의 실행 증거는 [fixture](evaluation/results/fixture-run.json), [확장](evaluation/results/extensions-run.json), [live 미수행](evaluation/results/live-run.json) 및 [검증보고서](docs/검증보고서.md)를 참고하세요.
 

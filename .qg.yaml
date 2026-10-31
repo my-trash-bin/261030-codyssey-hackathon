@@ -1,0 +1,71 @@
+# The CLI enables the language-independent recommended rules by default.
+# Tests run through npm test / make test; hook installation is managed separately.
+hooks:
+  preCommit:
+    installation: off
+
+artifacts:
+  generated:
+    include:
+      - var/**
+      - bin/**
+      - evaluation/results/**
+      - contracts/openapi.json
+      - contracts/*.v1.schema.json
+
+rules:
+  markdown/allowed-characters:
+    severity: error
+    options:
+      allowedLanguages: [en, ko]
+      # Punctuation, arrows and mathematical notation used in Korean design docs.
+      allowedCharacters: ["·", "→", "–", "‘", "’", "§", "—", "“", "”", "×", "∩", "…"]
+      ignoredPaths: [var/**, bin/**]
+  docs/valid-reference:
+    severity: error
+    options:
+      ignoredPaths: [var/**, bin/**]
+  files/max-bytes:
+    severity: error
+    options:
+      ignoredDirectories: [.git, .local, .qg, node_modules, dist, var, bin]
+      # Vendored font binary; its source and OFL notice are tracked alongside it.
+      ignoredPaths: [web/static/NotoSansKR.ttf]
+  files/max-line-length:
+    severity: error
+    options:
+      ignoredDirectories: [.git, .local, .qg, node_modules, dist, var, bin]
+  files/max-lines:
+    severity: error
+    options:
+      ignoredDirectories: [.git, .local, .qg, node_modules, dist, var, bin]
+  files/max-files-per-directory:
+    severity: error
+    options:
+      ignoredDirectories: [.git, .local, .qg, node_modules, dist, var, bin]
+
+# Existing serialized rows and inline templates retain bounded, path-specific limits.
+overrides:
+  - files: [docs/traceability.csv]
+    rules:
+      files/max-line-length: [error, {limit: 650}]
+  - files: [prompts/*.txt, scripts/generate-contracts.go, scripts/generate-openapi.py, internal/workflow/service.go, web/templates/app.html]
+    rules:
+      files/max-line-length: [error, {limit: 800}]
+  - files: [web/static/app.js]
+    rules:
+      files/max-line-length: [error, {limit: 3500}]
+
+checks:
+  - name: QG policy regression tests
+    type: node-test
+    files: [tools/qg.test.mjs]
+    message: Keep Korean documents allowed and recommended checks enforced.
+  - name: Go unit and integration tests
+    command: mise
+    args: [exec, --, make, test-go]
+    message: Fix the Go tests before accepting the change.
+  - name: Documentation contracts and references
+    command: python3
+    args: [tools/validate_docs.py]
+    message: Fix documentation contracts, references, or example data.

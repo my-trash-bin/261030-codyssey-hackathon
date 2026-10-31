@@ -5,3 +5,4 @@ bin/
 *.db*
 
 config.json
+node_modules/

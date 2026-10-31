@@ -1,9 +1,10 @@
 GO := mise exec -- go
-.PHONY: setup build fixtures prepare-runners test test-extensions run-fixture run seed-demo test-live eval demo-reset
+.PHONY: setup build fixtures prepare-runners test test-go test-docs lint test-extensions run-fixture run seed-demo test-live eval demo-reset
 setup:
 	mise install
 	$(GO) mod download
 	$(GO) mod verify
+	mise exec -- npm ci --ignore-scripts
 build:
 	@mkdir -p bin
 	$(GO) build -buildvcs=false -trimpath -o bin/safehandoff ./cmd/safehandoff
@@ -15,8 +16,14 @@ fixtures: build
 prepare-runners: build
 	mise exec -- ./bin/safehandoff-eval --mode prepare
 test:
+	mise exec -- npm test
+test-go:
 	$(GO) test ./...
 	cd fixtures/public/targets/toyrecord && mise exec -- go test ./...
+test-docs:
+	python3 tools/validate_docs.py
+lint:
+	mise exec -- npm run lint
 test-extensions: build
 	mise exec -- ./bin/safehandoff-eval --mode extensions
 run-fixture: build

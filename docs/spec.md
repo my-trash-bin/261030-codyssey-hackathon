@@ -87,7 +87,8 @@
 
 서로 모순되는 자료는 `conflict_group`으로 함께 표시한다. 한쪽을 조용히 정답으로 채택하지 않는다. 사실을 수정하려면 근거와 후보를 수정·추가하고 필요한 결정을 다시 받는다. 수동 후보도 `origin=human`으로 같은 흐름을 거친다. 모델 장애로 수동 경로에 들어가도 검토 기준은 유지한다.
 
-등록 공개 양식은 목적·goal별 필요한 정보 분류(`need_keys`)를 정한다. 기본 분류는 environment, observation, observed_sequence, expectation, uncertainty, question, diagnostic_question, process, constraints, reproduction_result다. 정확한 조합은 domain-contract의 template_needs다. 모델의 relevance와 need_keys는 제안이며 실제로 필수 의미를 충족하는지는 작성 중·최종 의미 검토에서 확인한다. 같은 분류의 승인 후보가 이미 충분하면 중복 후보 전부를 공개할 필요는 없다. 알려지지 않은 환경은 그 사실을 unknown으로 승인해 설명할 수 있다. 재현 결과는 finalization 단계의 필수 정보이며 실행 전 선택 게이트에서 제외한다. reproduction_evidence의 재현 성공 조건은 unknown으로 충족할 수 없다.
+등록 공개 양식은 목적·goal별 필요한 정보 분류(`need_keys`)를 정한다. 기본 분류는 environment, observation, observed_sequence, expectation, uncertainty, question, diagnostic_question, process, constraints, reproduction_result다. 정확한 조합은 domain-contract의 template_needs다. 모델의 relevance와 need_keys는 제안이며 실제로 필수 의미를 충족하는지는 작성 중·최종 의미 검토에서 확인한다.
+같은 분류의 승인 후보가 이미 충분하면 중복 후보 전부를 공개할 필요는 없다. 알려지지 않은 환경은 그 사실을 unknown으로 승인해 설명할 수 있다. 재현 결과는 finalization 단계의 필수 정보이며 실행 전 선택 게이트에서 제외한다. reproduction_evidence의 재현 성공 조건은 unknown으로 충족할 수 없다.
 
 수동 후보 추가는 새 candidate_set을 만든다. 기존 유효 후보를 검증 후 새 ID로 복제하고 새 후보를 추가하며, user_note가 있으면 같은 트랜잭션에서 source/evidence도 만든다. revision은 한 번 증가하고 needs_decisions가 된다. 이전 후보의 결정은 자동 이전하지 않고 이전 선택을 참고로 보여준다. 이 경로는 모델 재분석 없이도 수동 복구할 수 있어야 한다. 일반 원자료 교체·추가의 needs_analysis와 구분한다.
 
