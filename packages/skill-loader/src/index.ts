@@ -57,3 +57,15 @@ export class FsSkillPackLoader implements SkillPackLoader {
     return pack;
   }
 }
+
+// task_snapshots.skill_set_hash: deterministic over the task's currently active packs' identity
+// only (id/version/pack_sha256), never file bytes directly. Same canonicalization convention as
+// pack_sha256 above: sort, then hash the JSON array -- an empty list hashes like pack_sha256
+// would for zero files, sha256('[]').
+export function skillSetHash(packs: { id: string; version: string; pack_sha256: string }[]): string {
+  if (!Array.isArray(packs) || packs.some(pack => !pack || !identifier(pack.id) ||
+    typeof pack.version !== 'string' || !/^[a-f0-9]{64}$/.test(pack.pack_sha256))) invalid();
+  const tuples = packs.map(pack => JSON.stringify([pack.id, pack.version, pack.pack_sha256]));
+  const sorted = [...tuples].sort((a, b) => a < b ? -1 : a > b ? 1 : 0).map(tuple => JSON.parse(tuple));
+  return sha256(JSON.stringify(sorted));
+}

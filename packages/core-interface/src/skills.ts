@@ -51,12 +51,14 @@ export { normalizePackPath, validatePackLayout } from './pack-layout.ts';
 // Role-scoped projection: only the files listed for `role` in role_documents, resolved to
 // bytes. This is the boundary that keeps internal-only SKILL.md content out of the writer's
 // prompt (extensions.md: "public-writing 문서와 공개 assets는 ... writer에 내부 문서를
-// 대신 넣지 않는다"). Pure given an already-loaded pack; signature only.
-export declare function roleDocuments(pack: SkillPack, role: string): SkillPackFile[];
+// 대신 넣지 않는다"). Pure given an already-loaded pack.
+export { roleDocuments } from './role-documents.ts';
 
-// task_snapshots.skill_set_hash: hash of the sorted (id, version, pack_sha256) list of the
-// task's currently active packs. Pure given already-loaded packs; signature only.
-export declare function skillSetHash(packs: { id: string; version: string; pack_sha256: string }[]): string;
+// task_snapshots.skill_set_hash (hash of the sorted (id, version, pack_sha256) list of a task's
+// active packs) is NOT declared here. Computing it needs a sha256 primitive, which is exactly
+// the Node dependency this package excludes (see SkillPackLoader above) -- it is implemented as
+// `skillSetHash` in packages/skill-loader, next to the sha256 helper that already produces
+// pack_sha256/manifest_sha256.
 
 // The actual filesystem-reading side: resolves a pack root to a digest-pinned SkillPack,
 // following symlinks defensively (reject, never follow) and failing closed on any manifest/
