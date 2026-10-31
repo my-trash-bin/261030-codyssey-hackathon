@@ -120,54 +120,62 @@ export function TaskBrowser(props: TaskBrowserProps): JSX.Element {
           <p className="hint">삭제는 작업을 선택한 뒤에만 열립니다. 기존 작업은 이 화면에서 자동으로 삭제하지 않습니다.</p>
         )
         : (
-          <div className="decision">
-            <h3>선택한 작업 삭제</h3>
-            <p className="hint" id={deleteHintId}>
-              {`작업 ${browser.selectedId}의 원자료·후보·결정·이력·초안이 서버에서 삭제되며 되돌릴 수 없습니다. 값이나 원문이 없는 저장 규칙은 남습니다. 삭제는 실행 중 job이 끝날 때까지 기다립니다.`}
-            </p>
-            <div className="field">
-              <label htmlFor={`${uid}-confirmation`}>확인 문자열</label>
-              <input
-                id={`${uid}-confirmation`}
-                type="text"
-                autoComplete="off"
-                spellCheck={false}
-                value={confirmation}
-                placeholder="DELETE"
-                aria-describedby={deleteHintId}
-                aria-invalid={confirmation !== '' && confirmation !== 'DELETE' ? 'true' : undefined}
-                disabled={busy}
-                onChange={event => { setConfirmation(event.currentTarget.value); }}
-              />
-              <p className="hint">정확히 DELETE를 입력해야 삭제 요청이 열립니다.</p>
-            </div>
-            <div className="option">
-              <input
-                id={`${uid}-retained`}
-                type="checkbox"
-                checked={retainedAck}
-                disabled={busy}
-                aria-describedby={deleteHintId}
-                onChange={event => { setRetainedAck(event.currentTarget.checked); }}
-              />
-              <label htmlFor={`${uid}-retained`}>저장된 재사용 규칙은 남는다는 것을 확인했습니다.</label>
-            </div>
-            <div className="action">
-              <button
-                className="button"
-                type="button"
-                disabled={!deleteReady}
-                aria-busy={browser.busyKey === 'delete' ? 'true' : undefined}
-                onClick={() => { browser.deleteSelected(); }}
-              >
-                작업 삭제
-              </button>
-              <p className="hint">
-                {deleteReady
-                  ? '이 작업만 삭제합니다. 재사용 규칙의 판본과 철회 이력은 저장소에 남습니다.'
-                  : '확인 문자열 DELETE와 재사용 규칙 보존 확인이 모두 있어야 삭제할 수 있습니다.'}
-              </p>
-            </div>
+          <div className="danger-zone">
+            <h3 className="danger-zone__label">위험 구역</h3>
+            <details className="fold fold--danger">
+              <summary>
+                <h4>선택한 작업 삭제</h4>
+                <p className="hint">원자료와 산출물이 서버에서 사라지고 되돌릴 수 없습니다. 열어서 확인 문자열을 입력해야 삭제 요청이 열립니다.</p>
+              </summary>
+              <div className="fold__body">
+                <p className="hint" id={deleteHintId}>
+                  {`작업 ${browser.selectedId}의 원자료·후보·결정·이력·초안이 서버에서 삭제되며 되돌릴 수 없습니다. 값이나 원문이 없는 저장 규칙은 남습니다. 삭제는 실행 중 job이 끝날 때까지 기다립니다.`}
+                </p>
+                <div className="field">
+                  <label htmlFor={`${uid}-confirmation`}>확인 문자열</label>
+                  <input
+                    id={`${uid}-confirmation`}
+                    type="text"
+                    autoComplete="off"
+                    spellCheck={false}
+                    value={confirmation}
+                    placeholder="DELETE"
+                    aria-describedby={deleteHintId}
+                    aria-invalid={confirmation !== '' && confirmation !== 'DELETE' ? 'true' : undefined}
+                    disabled={busy}
+                    onChange={event => { setConfirmation(event.currentTarget.value); }}
+                  />
+                  <p className="hint">정확히 DELETE를 입력해야 삭제 요청이 열립니다.</p>
+                </div>
+                <div className="option">
+                  <input
+                    id={`${uid}-retained`}
+                    type="checkbox"
+                    checked={retainedAck}
+                    disabled={busy}
+                    aria-describedby={deleteHintId}
+                    onChange={event => { setRetainedAck(event.currentTarget.checked); }}
+                  />
+                  <label htmlFor={`${uid}-retained`}>저장된 재사용 규칙은 남는다는 것을 확인했습니다.</label>
+                </div>
+                <div className="action">
+                  <button
+                    className="button"
+                    type="button"
+                    disabled={!deleteReady}
+                    aria-busy={browser.busyKey === 'delete' ? 'true' : undefined}
+                    onClick={() => { browser.deleteSelected(); }}
+                  >
+                    작업 삭제
+                  </button>
+                  <p className="hint">
+                    {deleteReady
+                      ? '이 작업만 삭제합니다. 재사용 규칙의 판본과 철회 이력은 저장소에 남습니다.'
+                      : '확인 문자열 DELETE와 재사용 규칙 보존 확인이 모두 있어야 삭제할 수 있습니다.'}
+                  </p>
+                </div>
+              </div>
+            </details>
           </div>
         )}
     </section>
