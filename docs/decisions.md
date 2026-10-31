@@ -165,3 +165,7 @@ OverlayFS 대신 읽기전용 bind mount + tmpfs를 쓰기로 했다(`DockerRepr
 - Linux descriptor 기준 탐색과 O_NOFOLLOW로 root/상위/하위 symlink를 거부한다. hardlink·특수 파일·중복 경로·변경 중 파일도 거부하며 탐색·파일·전체 바이트에 상한을 둔다. 지원하지 않는 환경에 경로 기반 fallback을 만들지 않았다.
 - manifest.json을 포함한 전체 파일 목록의 exact-byte digest로 팩 지문을 계산한다. scripts는 지문에 포함하지만 실행하지 않는다. verify는 저장한 설치 pin과 id/version/manifest/전체 지문을 대조한다.
 - 실제 가상 VendorStore 팩과 임시 디렉터리 시험으로 검증한다. roleDocuments/skillSetHash, 등록 CLI, 앱·task 연결은 이번 1번의 완료 범위에 넣지 않았다. 구체 제한과 지문 형식은 [로더 안내](../packages/skill-loader/README.md)에 기록했다.
+
+## 2026-10-31 · 실제 등록 모델 재확인과 취소 경로 검증
+
+사용자가 "지금 실 동작 잘 될 걸로 예상되면 실제 테스트 해 봐도 좋다"고 승인한 뒤, 확장보다 실제 동작 확인을 먼저 했다. `.env`/`config.json`이 이미 채워져 있고 1차 live smoke test의 두 차단 버그가 이미 커밋돼 있어 사전 구현 없이 바로 실제 테스트로 진행했다. happy path, 입력 검증, 클라이언트 연결 종료(취소) 세 가지를 확인했고 전부 정상 동작했다 — 상세는 [2차 실행 기록](live-smoke-2026-10-31b.md). Engine 내부 재시도/에러 처리(`packages/core/src/index.ts`)에서 이번 실행으로 드러난 결함은 없어 코드를 변경하지 않았다. 없는 문제를 만들어 고치지 않는다.
