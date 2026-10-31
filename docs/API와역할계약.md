@@ -1,5 +1,7 @@
 # API와 역할 계약
 
+이 문서는 기존 PoC의 **현재 API 사용법**입니다. [api.md](api.md)·`contracts/core.schema.json`은 새 구현 목표이며 현행 API와 바로 호환되지 않습니다. 특히 세션 경로, 결정 batch, 확정 필드가 다릅니다. [문서 정합성 대조](검증보고서.md#기존-문서와-새-문서의-정합성-대조)를 참고하세요.
+
 기본 주소는 `http://127.0.0.1:8080/api/v1`입니다. [실제 라우트 OpenAPI](../contracts/openapi.json)에 구현된 경로를 기록했습니다. 모델 계약은 `contracts/*.schema.json`, 사용자 요청 DTO는 `internal/httpapi`의 별도 구조체입니다.
 
 ## 브라우저와 변경 요청
