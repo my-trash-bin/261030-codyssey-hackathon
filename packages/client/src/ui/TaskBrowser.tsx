@@ -80,7 +80,14 @@ export function TaskBrowser(props: TaskBrowserProps): JSX.Element {
                     aria-describedby={hintId}
                     onClick={() => { browser.select(task.id); }}
                   >
-                    {isSelected ? `선택됨 · ${title}` : title}
+                    {isSelected
+                      ? (
+                        <>
+                          <span className="chip chip--current" aria-hidden="true">선택됨</span>
+                          {title}
+                        </>
+                      )
+                      : title}
                   </button>
                   <p className="meta">
                     {`작업 ${task.id} · revision ${task.revision} · ${phaseLabel(task.phase)} · 수정 ${formatWorkflowTimestamp(task.updatedAt)}`}
