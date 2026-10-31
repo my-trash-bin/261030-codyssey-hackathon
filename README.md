@@ -19,6 +19,8 @@
 
 의존성 경계는 테스트로 강제합니다. server는 Core 인터페이스에만 의존하며 app과 fake-app이 구현을 주입합니다. 가짜 앱의 연출을 고쳐도 실제 앱이나 진짜 코어를 수정할 필요가 없습니다. 현재 구조는 [architecture](docs/architecture.md), 실제 API는 [api](docs/api.md), 독립 개발 계획은 [plan](docs/plan.md)을 따릅니다.
 
+발표자료에 맞춘 UI 작업은 [UI 구현 기준](docs/UI-구현기준.md)을 따릅니다. 화면·승인 흐름의 설계 기준이며, 기능 구현이나 API 연결 완료를 뜻하지 않습니다.
+
 ## 준비
 
 Node 24.21.0·pnpm 10.13.1·just 1.58.0을 mise로 고정합니다.
