@@ -25,7 +25,7 @@
 | `D09` | **무인터넷 Docker 샌드박스 4회 재현과 고정 Oracle**: `DockerReproRunner`는 `--network=none`, `--read-only`, `--cap-drop=ALL`, 비루트 UID로 고정 이미지 digest만 실행하고, ASCII/한글 x buggy/fixed 4회 결과를 코드로 판정한다. | 원래 7글자 고객 문자열을 쓰지 않고도 새 6글자 합성 입력에서 목표 인코딩 오류(`E_ENCODE_SHORT_BUFFER`)가 재현되는지 안전하게 입증한다. | 호스트 셸 직접 실행, LLM이 재현 성공 여부를 자유 해석 |
 | `D10` | **재사용 규칙(`Rule`)의 범위 고정과 정확값 재사용 금지**: `Rule`은 6개 scope 필드와 검증된 `selector`/등록 `transform_id`가 일치할 때만 새 자료에서 다시 계산한다. `exact_value`, `approved_excerpt`, 실제값 `selected_fields`는 재사용을 금지한다. | 지난번에 특정 요청 ID나 원문을 공개했다고 해서 다음 장애의 새 고객 ID/원문이 자동 공개되면 안 된다 (`INV-10`). | 임베딩 유사도 기반 자동 승인, 과거 초안 문장 복사 |
 | `D11` | **Revision CAS와 Stale 무효화**: 입력/목표/공개 결정/지침 팩이 바뀌면 즉시 `revision`을 올리고 이전 초안과 내보내기를 `stale`로 전환한다. 늦게 도착한 이전 작업 결과는 CAS로 버린다. | 선택을 '사실만(A)'으로 낮췄는데 이전 '비율 표(D)' 파일이 다운로드되는 경쟁 상태를 원천 차단한다 (`INV-07`). | 마지막에 끝난 비동기 응답 덮어쓰기 |
-| `D12` | **3자 비교 검증과 정직한 측정 분리**: 결정적 파이프라인 비교(`tools/value-comparison.mjs`: 직접 정규식 가림 vs 미검토 원문 AI vs SafeHandoff)와 사람 스톱워치 실험(`tools/effect-measure.mjs`)을 분리해 기록한다. | 코드로 즉시 재현/검증 가능한 보안/단서 보존 지표와 실제 사람 참여가 필요한 작업 시간 지표를 섞어 과장하지 않기 위함이다 (`INT-11`). | 미수행 상태로 방치하거나 LLM 자기채점 점수로 대체 |
+| `D12` | **3자 비교 검증과 정직한 측정 분리** (2026-10-31 도구 제거, 아래 해당 날짜 항목 참고): 결정적 파이프라인 비교(직접 정규식 가림 vs 미검토 원문 AI vs SafeHandoff)와 사람 스톱워치 실험을 분리해 기록한다는 원칙 자체는 유지하되, 이를 구현했던 `tools/value-comparison.mjs`/`tools/effect-measure.mjs`와 `evaluation/`의 보고 산출물은 제거했다. | 코드로 즉시 재현/검증 가능한 보안/단서 보존 지표와 실제 사람 참여가 필요한 작업 시간 지표를 섞어 과장하지 않기 위함이다 (`INT-11`). | 미수행 상태로 방치하거나 LLM 자기채점 점수로 대체 |
 | `D13` | **입력 한도와 문맥 예산 사전 검사**: 개별 파일 2 MiB, 작업당 10개/5 MiB, 모델 문맥 예산을 사전 확인하고 초과 시 앞부분만 잘라 완료로 위장하지 않는다. | 잘린 입력으로 분석 완료 배지를 띄우면 중요한 오류 근거나 비밀 항목이 누락된다. | 조용한 앞부분 절단(Silent Truncation) |
 | `D14` | **모델 출력 Strict JSON 검증**: 알 수 없는 키, 중복 JSON 키, 스키마 불일치, 비정상 enum, UTF-8 경계 위반 참조를 모두 거부한다. | 작은 사내 모델의 형식 오류나 환각 참조가 승인 데이터로 섞이는 것을 막는다. | 느슨한 정규식 추출 및 누락 필드 임의 보정 |
 | `D15` | **재현 목표(`goal_variant`)와 실행 상태 분리**: `reproduction_evidence`는 `reproduced`여야 완료되지만, `default`/`observations_only` 문의는 Docker 미설치(`not_run / no_environment`) 상태에서도 관찰 문의로 확정할 수 있다. | 재현 환경이 없는 B2B 공급사 문의까지 막히지 않게 하면서도, 재현 성공으로 허위 표시하지 않는다. | 모든 문의에 Docker 필수 강제, 또는 미실행을 성공으로 표시 |
@@ -120,3 +120,19 @@ SDK 중립 스키마를 typia 런타임 API로 검증하고 기존 Engine의 근
 복구용 추가 모델 호출은 단계/전체 예산을 공유하고, 텍스트 대체나 숨은 재시도는 허용하지 않는다.
 공개 조건 해석과 provider 확인은 기존 텍스트 계약을 유지한다. 실제 모델의 도구 지원과 출력
 품질은 로컬 목 서버 검사와 구분하며, 이번 변경에서 외부 모델을 호출하지 않았다.
+
+## 2026-10-31 / 3자 비교 실험 도구와 해커톤 보고 산출물 제거
+
+사용자 승인에 따라 `tools/value-comparison.mjs`/`tools/effect-measure.mjs`(및 각 테스트),
+`docs/presentation/effect-evidence.mjs`, `docs/검증보고서.md`, `evaluation/`(과거 Go 재현
+기록 포함)을 저장소에서 제거했다. 해커톤 심사용 "증거 보고" 자체가 더 이상 필요한 산출물이
+아니라는 판단이다. `D12`가 가리키던 "정직한 측정 분리" 원칙은 `intent.md`의 `INT-11`에 그대로
+남아 있으며, 이 제거는 그 원칙을 평가자가 로컬에서 수행할 과제로 되돌린 것이지 원칙 자체를
+철회한 것은 아니다.
+
+`evaluation/expected/`/`evaluation/heldout/`은 평가자 전용 정답표/held-out 변형이라는 성격이
+보고 산출물과 다르므로 삭제 대신 `fixtures/reference-pack/evaluator/`로 옮겨 접근 제외 목록을
+유지했다(`fixtures/reference-pack/recipient/`와 같은 패턴). `docs/acceptance-map.csv`의
+`AC-F02-05`/`AC-F04-01`/`AC-F10-05`와 `docs/traceability.csv`의 `T60`은 유일한 근거였던
+`tools/value-comparison.test.mjs`가 사라졌으므로 `not_run`/`backlog`로 되돌렸다 - 다른 테스트가
+같은 수준의 writer 입력 캡처를 아직 대신하지 않는다.

@@ -1,6 +1,6 @@
 # 가상 예시 환경과 테스트 데이터
 
-문서 버전: 2.0 / 기준일: 2026-10-31 / 상태: **입력/기대 결과의 정의**. 모든 회사/제품/고객/식별자/사업 정보는 가상이다. 실제 실행 결과는 [검증보고서.md](검증보고서.md)에 별도로 기록한다.
+문서 버전: 2.1 / 기준일: 2026-10-31 / 상태: **입력/기대 결과의 정의**. 모든 회사/제품/고객/식별자/사업 정보는 가상이다. 실제 실행 결과는 로컬 실행 기록으로 보관하며 저장소에 커밋하지 않는다.
 
 화면 시연에 바로 사용할 별도 입력은 [fixtures/demo](../fixtures/demo/README.md)에 있다. 기존 평가 원자료/정답표를 대체하지 않으며 실행 결과로 간주하지 않는다.
 
@@ -13,11 +13,10 @@
 | `fixtures/reference-pack/author/internal-operations/` | 작성자, 사용자가 선택한 앱 작업 | 일반 내부 자료로 외부 자문 요청 |
 | `fixtures/reference-pack/public/` | 앱/등록 도구/수신자 | 공개 제품 계약/toy 입력과 판정 규약. 평가 정답과 구분 |
 | `fixtures/reference-pack/recipient/` | 독립 수신자만 | 공급사 쪽에서만 아는 처리 기록 |
-| `evaluation/expected/` | 평가자만 | 허용/금지/필수 의미의 정답표 |
-| `evaluation/heldout/` | 평가자만, 구현 동결 뒤 공개 | 아직 구현에 사용하지 않은 변형. 현재 패키지에 미공개라고 주장할 사례를 미리 넣지 않음 |
-| `evaluation/results/` | 평가자/팀 내부 | 실제 실행 보고. 현재는 비어 있는 틀만 제공 |
+| `fixtures/reference-pack/evaluator/expected/` | 평가자만 | 허용/금지/필수 의미의 정답표 |
+| `fixtures/reference-pack/evaluator/heldout/` | 평가자만, 구현 동결 뒤 공개 | 아직 구현에 사용하지 않은 변형. 현재 패키지에 미공개라고 주장할 사례를 미리 넣지 않음 |
 
-앱은 선택한 author 자료와 등록 public 자료만 읽는다. `recipient`와 `evaluation`은 앱 mount, 검색 루트, 파일 선택 기본 목록, 도구 입력에서 제외한다. 경로 이름에만 의존하지 않고 실제 접근 목록을 제한한다. 생성 앱과 평가기를 같은 전권 디렉터리에 실행한 뒤 "프롬프트로 안 보라고 했다"는 것은 접근 분리가 아니다.
+앱은 선택한 author 자료와 등록 public 자료만 읽는다. `recipient`와 `evaluator`는 앱 mount, 검색 루트, 파일 선택 기본 목록, 도구 입력에서 제외한다. 경로 이름에만 의존하지 않고 실제 접근 목록을 제한한다. 생성 앱과 평가기를 같은 전권 디렉터리에 실행한 뒤 "프롬프트로 안 보라고 했다"는 것은 접근 분리가 아니다. 실제 실행 보고는 저장소에 두지 않고 로컬에서만 보관한다.
 
 ## 2. 공통 숫자/schema
 
@@ -106,7 +105,7 @@ exit code는 성공0, 예상 도메인 오류2, 예기치 않은 실행 오류3�
 
 수신자는 `issue.md`, 새 입력, 고정 toy 소스/실행 방법/실제 결과만 받는다. 원자료/앱 DB/평가 정답 없이 호환 Go toolchain에서 실행해 네 조건을 확인한다. 일반 지원 환경에서 원본 재현을 수행하지 않았으면 수행했다고 쓰지 않는다.
 
-기대 평가 정의: [oss-baseline.json](../evaluation/expected/oss-baseline.json).
+기대 평가 정의: [oss-baseline.json](../fixtures/reference-pack/evaluator/expected/oss-baseline.json).
 
 ## 4. 사례 B - 재현 환경 없는 B2B 기술지원
 
@@ -146,7 +145,7 @@ ID를 모두 제외하면 구체 공급사 기록을 조회한 것처럼 쓰지 
 
 ID 허용 분기에서는 수신자가 공개 ID로 trace를 찾고 다음 조사/재시도 정책 확인을 제안한다. 생성 앱이 이 결론을 미리 쓰면 평가 정답 누출 또는 근거 없는 추정이다. ID 제외 분기는 조회 불가와 필요한 최소 후속 정보를 설명하면 정상이다.
 
-기대 평가 정의: [b2b-ids-allowed.json](../evaluation/expected/b2b-ids-allowed.json), [b2b-ids-excluded.json](../evaluation/expected/b2b-ids-excluded.json).
+기대 평가 정의: [b2b-ids-allowed.json](../fixtures/reference-pack/evaluator/expected/b2b-ids-allowed.json), [b2b-ids-excluded.json](../fixtures/reference-pack/evaluator/expected/b2b-ids-excluded.json).
 
 ## 5. 사례 C - 일반 내부 운영 자료 공유
 
@@ -164,7 +163,7 @@ A-D를 모두 시도하고 실제 output 전체를 검사한다. D에서 B로 �
 
 수신자는 공개 `operations-brief.md`와 허용된 표만으로 현재 작업과 유지 제약을 이해하고 개선 질문을 제시한다. 제약을 잊고 메일/메신저를 모두 폐쇄하는 요청서가 나오면 유용성 실패다.
 
-기대 평가 정의: [operations-direction.json](../evaluation/expected/operations-direction.json), [operations-index.json](../evaluation/expected/operations-index.json).
+기대 평가 정의: [operations-direction.json](../fixtures/reference-pack/evaluator/expected/operations-direction.json), [operations-index.json](../fixtures/reference-pack/evaluator/expected/operations-index.json).
 
 ## 6. 맥락 예외의 공통 데이터
 

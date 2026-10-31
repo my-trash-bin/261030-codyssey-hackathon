@@ -22,11 +22,11 @@
 - scripts/demo: fake-app 전용 CDP 자막/재생/녹화. 실제 앱의 승인 구현으로 표시하지 않는다.
 - docs/demo-media: 검증 시점이 표시된 제출 영상/미리보기.
 - fixtures/demo: 가상 시연 원자료. 실제 정보가 아니다.
-- evaluation: 이전 실행 기록. 현재 시스템 검증 결과와 구분한다.
+- fixtures/reference-pack/evaluator: 평가자 전용 정답표/held-out 변형. 앱/LLM 입력에서 제외한다.
 
 한국어 문서/파일명을 명시적으로 허용한다. QG의 recommended 규칙과 공식 @slop-lab/qg-rules-js의 js preset을 사용하고 한국어/영어 문서 및 사용하는 기호를 설정한다. just check는 QG를 직접 실행하며 QG가 타입 검사/빌드/pnpm test를 호출한다. pnpm test는 Node 테스트만 실행하며 QG 전체 검사와 순환하지 않는다.
 
-검증은 수정에 맞게 수행하고 현재 코드에 없는 기능을 완료로 보고하지 않는다. 과거 평가 파일/비공개 설정/로컬 DB를 임의로 삭제하거나 커밋하지 않는다. API 필드와 환경 변수 변경은 README와 docs/api.md에 함께 반영한다.
+검증은 수정에 맞게 수행하고 현재 코드에 없는 기능을 완료로 보고하지 않는다. 비공개 설정/로컬 DB를 임의로 삭제하거나 커밋하지 않는다. API 필드와 환경 변수 변경은 README와 docs/api.md에 함께 반영한다.
 
 ## 4. 명시적 승인이 필요한 변경
 

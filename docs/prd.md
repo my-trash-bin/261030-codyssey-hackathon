@@ -17,7 +17,7 @@
 | 새 작성/검토 (`PRD-07/08`, `F04`) | `RealCore.write()` / `review()` / `writeReviewed()` (원문 미전달 `FactPack` 전용 작성, `groundFacts` 기본 거부, `fixed reason code` 1회 자동 수리, `/api/core/generate` HTTP 연결) | DocAST 블록별 수동 편집 UI, `human-review` 체크리스트 API 및 최종 번들 렌더러 |
 | 기준 재사용 (`PRD-09`, `F06`) | `Rule`/`Scope` 계약 및 `groundFacts()` 결정적 검증(`exact_value`/`approved_excerpt` 재사용 차단, 만료/철회/범위 불일치 시 모델 호출 전 차단) | 서버 `rules` 테이블 CRUD/자동 매칭 API 및 UI-08 규칙 관리 화면 |
 | 도메인 확장/재현 (`PRD-10/11`, `F07/F08`) | `FsSkillPackLoader`(manifest/경로/심볼릭링크/SHA-256 지문 검증), `pack-register` CLI, `DockerReproRunner`(`--network=none`, 4회 실행 oracle 판정), `oss-repro-smoke` 종단간 실행 | UI-09 확장 카탈로그 조회 API 및 `check_doc_ip_context_v1` 컨테이너 프로세스 어댑터 |
-| 가치/품질 검증 (`PRD-13`) | 48개 자동 테스트 스위트 통과 + 가상 사례 10건(`cases.json`) 3자 결정적 비교 실험(`tools/value-comparison.mjs`) 완료 | 참여자 스톱워치 기반 사람 작업 시간 측정(`tools/effect-measure.mjs`) |
+| 가치/품질 검증 (`PRD-13`) | 48개 자동 테스트 스위트 통과 | 가상 사례 10건 3자 결정적 비교 실험과 참여자 스톱워치 기반 사람 작업 시간 측정 (해커톤 당시 도구를 만들었으나 2026-10-31 제거, [decisions.md](decisions.md)) |
 
 ---
 
@@ -118,7 +118,7 @@ SafeHandoff는 세 가지 원칙으로 이 문제를 푼다.
 선택 변경 시 revision을 올려 이전 산출물을 즉시 `stale` 처리하고, 실행 단계와 모델 호출 메타데이터를 `transcript.v1` JSONL 및 이벤트로 기록한다. 작업 삭제 시 원자료/초안/결정/이력을 제거하되, 원문을 담지 않는 별도 재사용 규칙(`Rule`)의 보존 여부를 사용자에게 명확히 구분해 안내한다.
 
 ### PRD-13 / 가치 검증과 수용 기준 추적 (`U11`, `D12`)
-1. **3자 비교 검증**: 가상 업무 로그 10건(`evaluation/effect-compare/cases.json`, 금지 항목 43개/필수 단서 32개)에 대해 **직접 단순 마스킹** vs **미검토 원문 AI 생성** vs **SafeHandoff 파이프라인**의 금지 정보 노출/필수 단서 보존/미승인/만료 규칙 차단율을 결정적으로 비교 측정한다 ([검증보고서.md](검증보고서.md) 3). 사람 참여자의 스톱워치 작업 시간 측정(`tools/effect-measure.mjs`)은 별도 실험으로 구분해 기록한다.
+1. **3자 비교 검증**: 가상 업무 로그 10건(금지 항목 43개/필수 단서 32개)에 대해 **직접 단순 마스킹** vs **미검토 원문 AI 생성** vs **SafeHandoff 파이프라인**의 금지 정보 노출/필수 단서 보존/미승인/만료 규칙 차단율을 결정적으로 비교 측정한다. 사람 참여자의 스톱워치 작업 시간 측정은 별도 실험으로 구분해 기록한다. 해커톤 당시 이를 실행하는 도구와 보고서를 만들었으나 2026-10-31에 저장소에서 제거했다 ([decisions.md](decisions.md)) - 이 수용 기준 자체는 남아 있으며 재구현이 필요하다.
 2. **추적성**: `INT-01-12` -> `PRD-01-14` -> `F01-F10` -> 127개 수용 기준(`AC-F01-01-AC-F10-12`)과 60개 품질 시험(`T01-T60`)을 [acceptance-map.csv](acceptance-map.csv) 및 [traceability.csv](traceability.csv)에서 실제 자동 테스트 파일과 연결해 관리한다.
 
 ### PRD-14 / 약속하지 않는 것 (`U12`)
@@ -153,6 +153,6 @@ SafeHandoff는 세 가지 원칙으로 이 문제를 푼다.
 | [docs/agent-workflow.md](agent-workflow.md) / [docs/extensions.md](extensions.md) | 에이전트 역할별 입출력/grounding/transcript 계약 및 `SkillPack`/내장 도구/Docker 재현 명세 |
 | [docs/IA.md](IA.md) / [docs/uj.md](uj.md) / [docs/demo.md](demo.md) | 화면 구조(`UI-01-10`), 사용자 여정(`UJ-01-07`), 로컬/Docker 시연 절차 |
 | [docs/features/01-task-intake.md](features/01-task-intake.md) - [10-runtime-boundary.md](features/10-runtime-boundary.md) | 기능 단위 상세 명세 (`F01-F10`) |
-| [docs/qa.md](qa.md) / [docs/test-data.md](test-data.md) / [docs/검증보고서.md](검증보고서.md) | 시험 기준(`T01-T60`), 가상 데이터 명세, 테스트/비교 실험/스모크 통합 검증 보고서 |
+| [docs/qa.md](qa.md) / [docs/test-data.md](test-data.md) | 시험 기준(`T01-T60`), 가상 데이터 명세 |
 | [docs/acceptance-map.csv](acceptance-map.csv) / [docs/traceability.csv](traceability.csv) | 127개 AC / 해커톤 범위 분류 / 자동화 테스트 연결 / 60개 QA 추적표 |
 | [docs/presentation/ISSUES.md](presentation/ISSUES.md) / [GUIDE.md](presentation/GUIDE.md) | 발표자료와 실제 구현의 차이 관리(`PRES-01-12`) 및 발표 가이드 |

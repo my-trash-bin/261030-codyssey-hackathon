@@ -3,20 +3,20 @@
   "status": "passed",
   "scope": "Documentation, declared contracts, fixture structure, test mappings and reference SQLite constraints.",
   "checks": {
-    "json_files_parsed": 17,
-    "relative_file_links_checked": 245,
+    "json_files_parsed": 16,
+    "relative_file_links_checked": 234,
     "markdown_files_checked": 40,
     "feature_count": 10,
     "acceptance_criteria_mapped": 127,
     "acceptance_status_counts": {
-      "passed": 49,
+      "passed": 46,
       "partial": 13,
-      "not_run": 65
+      "not_run": 68
     },
     "qa_status_counts": {
-      "passed": 14,
+      "passed": 13,
       "partial": 33,
-      "not_run": 13
+      "not_run": 14
     },
     "schema_internal_definitions_checked": 13,
     "model_json_examples_parsed_and_key_checked": 5,

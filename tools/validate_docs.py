@@ -175,7 +175,7 @@ for relative in ['fixtures/reference-pack/author/b2b-timeout/request-summary.csv
     check(index == [100,141,212], 'relative index mismatch')
     check(all(0 <= x <= domain['limits']['max_series_count'] for x in values), 'count beyond documented domain')
 for path in json_files:
-    if path.parent != ROOT/'evaluation/expected':
+    if path.parent != ROOT/'fixtures/reference-pack/evaluator/expected':
         continue
     expected = json_documents[path.relative_to(ROOT).as_posix()]
     purpose = expected.get('purpose_id')

@@ -7,7 +7,6 @@ artifacts:
   generated:
     include:
       - docs/presentation/SafeHandoff_발표자료_통합.html
-      - evaluation/**
       - docs/demo-media/**
       - var/**
       - bin/**

@@ -12,7 +12,6 @@ SafeHandoff는 심사위원과 사용자가 **실제 동작하는 코드**와 **
 | 2. 연출용 앱 (`@safehandoff/fake-app`) | `just fake-app` | `127.0.0.1:8081` | 외부 LLM 없이 고정 시나리오 응답(`FakeCore`)과 상태 제어(`POST /__demo`)를 제공. 실제 모델 추론 완료로 집계하지 않음 |
 | 3. 웹 클라이언트 (`@safehandoff/client`) | `just client` / `just client-fake` | `127.0.0.1:5173` / `:5174` | React 19 + Vite UI. 상단 배지로 코어 준비 상태(`ready`)와 연결 모드를 실시간 표시 |
 | 4. OSS 재현/작성/검토 종단간 스모크 | `node tools/oss-repro-smoke.mjs ...` | CLI | `make_synthetic_inputs_v1` -> `DockerReproRunner`(`--network=none`, 4회 실행) -> `composeFactPack` + `groundFacts` -> `RealCore.writeReviewed()` 실행 |
-| 5. 3자 가치 비교 실험 | `node tools/value-comparison.mjs` | CLI | 가상 로그 10건(`cases.json`)에 대해 직접 정규식 가림 vs 미검토 원문 AI vs SafeHandoff 파이프라인을 결정적으로 비교 측정 |
 
 ---
 
@@ -105,7 +104,7 @@ SAFEHANDOFF_TRANSCRIPT_DIR=.local/transcripts SAFEHANDOFF_TRANSCRIPT_CONTENT=1 \
 
 - **실행 명령**: `mise exec -- just demo` (탐색/재생 검증: `just demo-check`, macOS MP4 녹화: `just demo-record`).
 - **동작 범위**: [진행 코드](../scripts/demo/run.mjs)가 최신 `fake-app`을 별도 SQLite DB/루프백 포트로 실행하고 전용 [연출 화면](../packages/fake-app/presentation.html)(`/__presentation`)을 연다. [자막](../scripts/demo/stage.mjs)/[장면 정의](../scripts/demo/scenes.mjs)/[재생 제어](../scripts/demo/playback.mjs)가 6단계/21개 세부 장면과 일시정지/탐색을 제공한다. 분석/공개 선택은 브라우저 연출 상태이며 문서 생성/저장/조회는 공통 `/api/sharing`/`/api/documents` API를 호출한다.
-- **녹화 및 제출 시간 검증**: [녹화 코드](../scripts/demo/recording.mjs)와 [macOS 인코더](../scripts/demo/encode.swift)가 실제 CDP 프레임을 H.264 MP4로 인코딩한다. 최신 `fake-app` 제출 녹화([저장된 영상](demo-media/SafeHandoff-demo.mp4), [미리보기](demo-media/preview.png), [검증 결과](../evaluation/results/cdp-submission-run.json))의 실제 길이는 **99.988초**로 110초 제한을 통과했다.
+- **녹화 및 제출 시간 검증**: [녹화 코드](../scripts/demo/recording.mjs)와 [macOS 인코더](../scripts/demo/encode.swift)가 실제 CDP 프레임을 H.264 MP4로 인코딩한다. 최신 `fake-app` 제출 녹화([저장된 영상](demo-media/SafeHandoff-demo.mp4), [미리보기](demo-media/preview.png))의 실제 길이는 **99.988초**로 110초 제한을 통과했다. 당시 측정 로그는 저장소에 두지 않는다.
 
 ## 5. 시연 중 실패/질문 대응 기준
 
