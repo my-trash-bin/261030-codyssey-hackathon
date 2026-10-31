@@ -275,3 +275,6 @@ needs_changes/needs_decision을 우회할 수 없다. 주석/원문 슬롯/등�
 취소 응답은 202 cancel_requested이며 worker 종료 전에는 완료로 표시하지 않는다. task 삭제는
 confirmation=DELETE와 acknowledge_saved_rules_retained=true를 요구하고 실행 종료를 기다린 뒤 삭제한다.
 클라이언트 프록시는 query/Last-Event-ID/스트림과 바이너리 바이트를 보존한다.
+
+모델 통신은 Vercel AI SDK의 OpenAI 호환 provider를 사용한다. SDK 자체 재시도는 비활성화하고
+기존 Engine 호출 예산, 직접 전송의 리다이렉트 금지, 크기 제한과 타임아웃을 유지한다.

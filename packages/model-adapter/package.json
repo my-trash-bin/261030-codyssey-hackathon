@@ -16,6 +16,11 @@
     "test": "node --conditions=development --test src/*.test.ts"
   },
   "dependencies": {
-    "@safehandoff/core-interface": "workspace:*"
+    "@ai-sdk/openai-compatible": "3.0.82",
+    "@safehandoff/core-interface": "workspace:*",
+    "@typia/interface": "15.2.2",
+    "@typia/utils": "15.2.2",
+    "@typia/vercel": "15.2.2",
+    "ai": "7.0.159"
   }
 }

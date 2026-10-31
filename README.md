@@ -97,3 +97,6 @@ node tools/oss-repro-smoke.mjs \
 ```
 
 자세한 시연 시나리오/제출 영상(`docs/demo-media/SafeHandoff-demo.mp4`)/과거 영상 참고자료([docs/presentation/video/README.md](docs/presentation/video/README.md))는 [docs/demo.md](docs/demo.md), 검증 수치와 근거는 [docs/검증보고서.md](docs/검증보고서.md)에서 확인할 수 있습니다.
+
+모델 통신은 Vercel AI SDK의 OpenAI 호환 provider를 사용한다. SDK 자체 재시도는 비활성화하고
+기존 Engine 호출 예산, 직접 전송의 리다이렉트 금지, 크기 제한과 타임아웃을 유지한다.

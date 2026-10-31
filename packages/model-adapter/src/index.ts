@@ -1,3 +1,5 @@
+import { APICallError, generateText } from 'ai';
+import { createOpenAICompatible } from '@ai-sdk/openai-compatible';
 import { postJSON } from './transport.ts';
 import { ModelError } from '@safehandoff/core-interface';
 import type { ModelClient, ModelClientInfo, ModelRequest, ModelResponse, ProviderConfig } from '@safehandoff/core-interface';
@@ -31,42 +33,44 @@ export class OpenAICompatibleModelClient implements ModelClient {
     if (!this.info.ready || !this.config || !this.endpoint) throw new ModelError('MODEL_UNAVAILABLE');
     const config = this.config;
     if (this.active >= config.global_concurrency) throw new ModelError('MODEL_BUDGET_EXCEEDED');
-    const messages = request.systemPrompt && config.supports_system_role
-      ? [{ role: 'system', content: request.systemPrompt }, { role: 'user', content: request.input }]
-      : [{ role: 'user', content: [request.systemPrompt, request.input].filter(Boolean).join('\n\n') }];
-    // config.max_output_tokens===null means "no default ceiling": a per-request override
-    // is still honored, but absent that, the limit field is omitted so the provider's own
-    // default applies instead of an arbitrary cap.
-    const limit = config.max_output_tokens === null
-      ? request.maxOutputTokens ?? null
-      : Math.min(request.maxOutputTokens ?? config.max_output_tokens, config.max_output_tokens);
-    const body = JSON.stringify({ model: this.info.model, messages,
-      ...(limit !== null ? { [config.output_limit_field]: limit } : {}),
-      ...(config.send_temperature ? { temperature: request.temperature ?? config.temperature } : {}),
-      ...(config.response_mode === 'json' && request.responseFormat !== 'text' ? { response_format: { type: 'json_object' } } : {}),
-    });
-    if (Buffer.byteLength(body) > config.max_input_bytes) throw new ModelError('MODEL_BUDGET_EXCEEDED');
     this.active++;
     const timeout = AbortSignal.timeout(Math.max(1, Math.ceil(config.request_timeout_seconds * 1000)));
     const signal = options?.signal ? AbortSignal.any([options.signal, timeout]) : timeout;
     try {
-      // Retries belong to Engine so every HTTP call counts against the run budget.
-      const response = await postJSON(this.endpoint, body, this.apiKey!, signal);
-      let data;
-      try { data = JSON.parse(response); }
-      catch { throw new ModelError('MODEL_INVALID_RESPONSE'); }
-      const text = data?.choices?.[0]?.message?.content;
-      if (typeof text !== 'string' || !text.trim() || data.choices[0].finish_reason === 'length') {
-        throw new ModelError('MODEL_INVALID_RESPONSE');
-      }
+      // The SDK owns provider serialization. The native fetch bridge preserves the
+      // existing no-proxy/no-redirect boundary and per-request byte limits.
+      const provider = createOpenAICompatible({ name: 'safehandoff', baseURL: this.endpoint.href.replace(/\/chat\/completions$/, ''),
+        apiKey: this.apiKey!, fetch: async (url, init) => {
+          if (String(url) !== this.endpoint!.href || typeof init?.body !== 'string') throw new ModelError('MODEL_UNAVAILABLE');
+          const body = JSON.parse(init.body);
+          const limit = config.max_output_tokens === null ? request.maxOutputTokens ?? null :
+            Math.min(request.maxOutputTokens ?? config.max_output_tokens, config.max_output_tokens);
+          delete body.max_tokens;
+          if (limit !== null) body[config.output_limit_field] = limit;
+          if (config.response_mode === 'json' && request.responseFormat !== 'text') body.response_format = { type: 'json_object' };
+          const serialized = JSON.stringify(body);
+          if (Buffer.byteLength(serialized) > config.max_input_bytes) throw new ModelError('MODEL_BUDGET_EXCEEDED');
+          const response = await postJSON(this.endpoint!, serialized, this.apiKey!, signal);
+          return new Response(response, { headers: { 'content-type': 'application/json' } });
+        } });
+      const result = await generateText({ model: provider.chatModel(this.info.model),
+        ...(config.supports_system_role && request.systemPrompt ? { system: request.systemPrompt } : {}),
+        prompt: config.supports_system_role ? request.input : [request.systemPrompt, request.input].filter(Boolean).join('\n\n'),
+        ...(config.send_temperature ? { temperature: request.temperature ?? config.temperature } : {}),
+        maxRetries: 0, abortSignal: signal, telemetry: { isEnabled: false } });
+      if (!result.text.trim() || result.finishReason === 'length') throw new ModelError('MODEL_INVALID_RESPONSE');
       const tokens = (value: unknown): number | null =>
         typeof value === 'number' && Number.isInteger(value) && value >= 0 ? value : null;
-      return { text, model: typeof data.model === 'string' ? data.model : this.info.model,
-        usage: { inputTokens: tokens(data.usage?.prompt_tokens), outputTokens: tokens(data.usage?.completion_tokens) } };
+      return { text: result.text, model: result.response.modelId ?? this.info.model,
+        usage: { inputTokens: tokens(result.usage.inputTokens), outputTokens: tokens(result.usage.outputTokens) } };
     } catch (error) {
       if (options?.signal?.aborted) throw new ModelError('MODEL_CANCELLED');
       if (timeout.aborted) throw new ModelError('MODEL_TIMEOUT');
       if (error instanceof ModelError) throw error;
+      if (error instanceof Error && ['AI_JSONParseError', 'AI_TypeValidationError', 'AI_InvalidResponseDataError', 'AI_NoOutputGeneratedError'].includes(error.name)) {
+        throw new ModelError('MODEL_INVALID_RESPONSE');
+      }
+      if (APICallError.isInstance(error) && error.statusCode === 200) throw new ModelError('MODEL_INVALID_RESPONSE');
       throw new ModelError('MODEL_UNAVAILABLE');
     } finally { this.active--; }
   }
