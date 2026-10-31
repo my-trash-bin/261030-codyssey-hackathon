@@ -56,3 +56,11 @@
 
 - 2번 스크립트의 실행 자체가 검증이다(각 단계 상태코드·응답·재현 판정을 기록).
 - 1번 builtin 도구는 단위테스트 + `pnpm typecheck && pnpm test && just check`로 기존 계약 무회귀 확인.
+
+## 구현 상태 · builtin과 스모크
+
+builtin 5개와 tools/oss-repro-smoke.mjs를 구현했다. builtin 실행은 task/revision, 설치자가 검증해 전달한 grant ID와 인수 hash에 묶인다. 변환 자체나 요청 문자열이 공개 결정을 생성하지 않는다. count 지수는 BigInt 유리수 HALF_UP, 인용은 UTF-8 바이트 경계와 원본/렌더 hash를 검증한다.
+
+스모크는 기존 legacy var/runners 등록을 추정하지 않고 현재 sandbox_observation.v1 supervisor 이미지의 전체 ID를 담은 명시적 등록 파일을 요구한다. --live-model이 없으면 fixture 모델임을 기록한다. Docker 실행은 항상 실제 runner이며 mock runner는 자동 테스트에서만 주입한다. reproduction_evidence 목표가 충족되지 않으면 모델을 호출하지 않고 미완료로 끝낸다. 출력은 새 파일만 생성하며 기존 결과를 덮어쓰지 않는다.
+
+기존 등록 모델과 가상 승인 요약으로 첫 실제 실행에서 reproduced/pass를 확인했다. analysis와 decision 단계는 여전히 fixture 가정이며 원자료 문자열·내부 경로·가상 인증 표식은 모델 입력과 결과에서 거부한다. grounding 계획의 추가 검증은 다음 중간 커밋에서 연결한다.

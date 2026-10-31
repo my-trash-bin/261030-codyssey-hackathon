@@ -120,3 +120,6 @@ export class RealCore implements Engine {
     return this.runner.reproduce(request, options);
   }
 }
+
+export { createBuiltinTools, builtinArgumentsHash } from './builtin-tools.ts';
+export type { BuiltinAuthority, BuiltinToolId } from './builtin-tools.ts';
