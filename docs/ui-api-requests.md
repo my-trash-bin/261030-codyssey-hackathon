@@ -78,7 +78,6 @@ operator_confirmation_required, verified_at은 null이다. 운영자가 승인 �
 합성 CSV/JSON과 주입한 fixture 모델로 파싱->서버 채택->C 변환->사람 결정 저장을 실제 loopback
 HTTP에서 확인한다. 중복/판본 충돌/원자성/권한/취소 후 늦은 응답/철회도 검사한다.
 모델 문장 품질은 회귀 판정에 쓰지 않는다. 외부 모델/실자료/Docker/macOS 녹화는 실행하지 않았다.
-기존 UI 분석 실행 기록은 [UI 구현 기준](UI-구현기준.md)의 당시 기록으로 구분한다.
 
 전체 `mise exec -- just check`가 통과했다. 합성 loopback API에 연결한 Playwright Chromium에서
 분리된 UI 모듈/CSS 로드, 공개 결정 영역 렌더, 런타임 오류 없음을 확인했다. 호스트의 sandbox
