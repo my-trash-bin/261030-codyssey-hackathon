@@ -1,5 +1,14 @@
 import { useEffect, useRef, useState } from 'react';
 import { FileField } from '../ui/FileField.tsx';
+import {
+  CandidateSection,
+  EmptySection,
+  FoldSection,
+  InspectorSection,
+  PanelSection,
+  ShellSection,
+  StepSection,
+} from './sections/ScreenSections.tsx';
 import type { JSX, RefObject } from 'react';
 
 /**
@@ -323,6 +332,14 @@ export function DesignSystemPage(): JSX.Element {
           </table>
         </div>
       </section>
+
+      <ShellSection />
+      <StepSection />
+      <CandidateSection />
+      <FoldSection />
+      <EmptySection />
+      <PanelSection />
+      <InspectorSection />
     </div>
   );
 }
