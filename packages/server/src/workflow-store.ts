@@ -46,6 +46,14 @@ export class WorkflowStore {
     const analysis = this.db.prepare('SELECT id,revision,status FROM workflow_analysis_jobs WHERE task_id=? ORDER BY rowid DESC LIMIT 1').get(id);
     const current = [jobs, analysis].find(j => j && j.revision === task.revision && ['running', 'cancel_requested'].includes(String(j.status)));
     let phase: string = current ? 'processing' : [jobs, analysis].some(j => j?.revision === task.revision && j.status === 'failed') ? 'needs_attention' : task.phase;
+    if (!current && phase === 'needs_decisions') {
+      const candidates = this.store.analysis.candidates(id), decisions = this.store.decisions(id);
+      const active = decisions.filter(d => !d.revoked_at && (d.expires_at === null || Date.parse(d.expires_at) > Date.parse(this.now())));
+      if (candidates.length && active.some(d => d.disposition === 'allow') &&
+        candidates.every(c => active.some(d => d.candidate_id === c.id && d.disposition !== 'defer'))) {
+        try { this.rules.validateBindings(id); phase = 'ready_to_generate'; } catch { phase = 'needs_attention'; }
+      }
+    }
     if (!current && artifact?.revision === task.revision) {
       try {
         this.artifacts.guard(artifact);

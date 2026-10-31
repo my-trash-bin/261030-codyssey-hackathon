@@ -67,7 +67,9 @@ async function fixture(t: { after(fn: () => Promise<void>): void }, databasePath
     const r = await call(`/tasks/${task.id}/decision-batches`, 'POST', { expected_revision: task.revision, accept_scope_reduction: false,
       operations: [{ candidate_id: c.id, disposition: 'allow', representation: rep, preview_id: p.preview_id, projection_sha256: p.projection_sha256,
         save_reusable_rule: reusable, ...(expires_at ? { expires_at } : {}) }] });
-    assert.equal(r.status, 200, JSON.stringify(r.body)); return (await call('/tasks/' + task.id)).body.data;
+    assert.equal(r.status, 200, JSON.stringify(r.body));
+    const updated = (await call('/tasks/' + task.id)).body.data;
+    assert.equal(updated.phase, 'ready_to_generate'); return updated;
   };
   const compose = async (task: any) => {
     const start = await call(`/tasks/${task.id}/jobs`, 'POST', { expected_revision: task.revision, kind: 'compose' });
