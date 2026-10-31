@@ -295,7 +295,9 @@
   min-width: 0;
   padding: var(--panel-padding-y) var(--panel-padding-x);
   border: var(--border-width) solid var(--color-border-subtle);
+  border-radius: var(--panel-radius);
   background: var(--color-surface-raised);
+  box-shadow: var(--shadow-panel);
 }
 
 .step:focus,
@@ -352,6 +354,7 @@
 .chip {
   padding: var(--space-1) var(--space-3);
   border: var(--border-width) solid var(--color-border-strong);
+  border-radius: var(--chip-radius);
   font-size: var(--type-label-size);
   letter-spacing: var(--letter-spacing-wide);
   color: var(--color-text-secondary);
@@ -460,7 +463,7 @@
 
 #task-form {
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--space-5) var(--space-6);
+  gap: var(--form-gap) var(--space-6);
 }
 
 #task-form .field--wide,
@@ -514,6 +517,7 @@
   gap: var(--space-1);
   padding: var(--space-3) var(--space-3);
   border: var(--border-width) solid var(--color-border-subtle);
+  border-radius: var(--input-radius);
   min-width: 0;
 }
 

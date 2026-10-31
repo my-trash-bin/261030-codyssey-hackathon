@@ -57,7 +57,9 @@
   padding: var(--space-4) var(--space-5);
   border: 0;
   border-inline-start: var(--border-width-marker) solid var(--color-border-accent);
+  border-radius: var(--panel-radius);
   background: var(--color-surface-raised);
+  box-shadow: var(--shadow-panel);
 }
 
 /* 위쪽 테두리가 없으므로 범례는 카드 안쪽 첫 줄에 그대로 놓인다. */

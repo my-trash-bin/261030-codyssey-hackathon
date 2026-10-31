@@ -391,6 +391,7 @@ textarea {
   height: var(--input-height);
   padding: 0 var(--input-padding-x);
   border: var(--border-width) solid var(--input-border);
+  border-radius: var(--input-radius);
   background: var(--input-background);
   color: var(--input-text);
   font-family: inherit;
@@ -441,7 +442,7 @@ textarea {
     padding: var(--select-option-padding-y) var(--select-option-padding-x);
     font-size: var(--input-font-size);
     line-height: var(--line-height-snug);
-    border-radius: var(--radius-none);
+    border-radius: var(--input-radius);
   }
 
   @media (hover: hover) {
@@ -479,6 +480,7 @@ textarea {
   min-height: var(--input-height);
   padding: 0 var(--input-padding-x);
   border: var(--border-width) solid var(--input-border);
+  border-radius: var(--input-radius);
   background: var(--input-background);
   color: var(--color-text-secondary);
   font-size: var(--type-body-sm-size);
@@ -597,6 +599,7 @@ textarea[aria-invalid="true"]:focus-visible {
   max-width: 100%;
   padding: var(--space-3) var(--space-4);
   border: var(--border-width) solid var(--color-border-strong);
+  border-radius: var(--button-radius);
   background: var(--color-surface-raised);
   color: var(--color-text-primary);
   font-family: inherit;
@@ -654,6 +657,8 @@ textarea[aria-invalid="true"]:focus-visible {
   margin-bottom: var(--layout-block-gap);
   padding: var(--space-6) var(--space-7);
   border: var(--border-width) solid var(--color-border-subtle);
+  border-radius: var(--panel-radius);
+  box-shadow: var(--shadow-panel);
   background: var(--color-surface-raised);
 }
 
@@ -765,7 +770,9 @@ textarea[aria-invalid="true"]:focus-visible {
   margin-top: var(--space-5);
   padding: var(--space-6) var(--space-7);
   border: var(--border-width) solid var(--color-border-strong);
+  border-radius: var(--panel-radius);
   background: var(--color-surface-raised);
+  box-shadow: var(--shadow-panel);
 }
 
 .draft__empty {
