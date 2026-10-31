@@ -40,13 +40,13 @@ fake-app만 GET /__demo, GET /__demo.js, GET /api/demo/settings, PUT /api/demo/s
 
 HTTP 필드는 변경하지 않았다. 앱 진입점은 설정 파일과 환경 변수에서 모델을 구성해 주입한다. 모델과 EngineConfig를 주입한 RealCore는 작성·검토를 수행하며, 실패·예산 초과·통과하지 못한 검토는 기존 CORE_UNAVAILABLE로 매핑한다. 취소는 CORE_CANCELLED다.
 
-`writeReviewed`의 수정 루프는 라이브러리 전용이다. `/api/sharing`의 `generate`는 작성·검토 한 번만 수행하고 검토 통과 후 기존 title/body 응답을 반환한다. task/decision API나 자동 공개 승인 기능은 추가하지 않았다.
+`writeReviewed`의 수정 루프는 라이브러리 전용이다. `/api/sharing`의 `generate`는 작성·검토 한 번만 수행하고 검토 통과 후 기존 title/body 응답을 반환한다. 이 경로에 task/decision API나 자동 공개 승인 기능은 추가하지 않았다. 같은 저장 계층의 task·공개 결정 API는 아래 `인증된 task·공개 결정 API` 절에서 별도로 연다.
 
 ## 연결 설정과 내부 저장
 
 앱은 SAFEHANDOFF_LLM_BASE_URL, SAFEHANDOFF_LLM_MODEL, SAFEHANDOFF_LLM_API_KEY를 provider의 환경 변수 이름 설정으로 조회한다. SAFEHANDOFF_CONFIG는 설정 파일 경로이며 생략하면 config.json, 없으면 config.example.json이다. SAFEHANDOFF_REPRO_REGISTRY는 reproduction.enabled일 때만 읽는 설치 시 등록 파일이다. 상대 경로 기준은 저장소 루트다. 값은 API 응답에 노출하지 않는다.
 
-`TaskStore`의 revision 검사·미리보기 hash 검증·원자적 결정 배치·철회·만료는 내부 라이브러리다. task/decision HTTP 엔드포인트는 추가하지 않았으며 `/api/v1/tasks`는 계속 404다. 인증·CSRF·Host/Origin 검사와 전체 task.v1은 후속 범위다. `/api/sharing`의 facts 입력이 이 저장 계층의 사람 승인을 증명하지는 않는다.
+`TaskStore`의 revision 검사·미리보기 hash 검증·원자적 결정 배치·철회·만료는 내부 라이브러리다. 같은 동작을 아래 `인증된 task·공개 결정 API`가 HTTP로 노출하며, `SAFEHANDOFF_WORKFLOW_TOKEN`을 설정한 단일 운영자 loopback 환경에서만 활성화된다. 미설정·fake-app은 503 `WORKFLOW_API_DISABLED`다. 다중 사용자 인증·LAN 운영·외부 제출과 참고 task.v1 전체 필드는 구현 범위가 아니다. `/api/sharing`의 facts 입력이 이 저장 계층의 사람 승인을 증명하지는 않는다.
 
 provider.response_mode=text이면 모델 호출의 JSON 출력 요청도 HTTP response_format 필드를 추가하지 않는다. JSON 기능 미지원 호환 서버는 프롬프트로 JSON을 생성하고 Engine이 같은 엄격한 응답 검증을 수행한다. response_mode=json일 때만 JSON 응답 형식 필드를 전송한다.
 
@@ -93,8 +93,9 @@ source·evidence·job을 저장하고 CAS로 채택하지만 이 라우트와 �
 
 ## F02 내부 저장·채택
 
-새 HTTP 경로·환경 변수는 없다. 기존 `/api/analysis`는 stateless이고 task/decision CRUD와
-job polling API를 추가하지 않았다. TaskStore의 migration v2는 source version/선택, evidence,
+이 절의 분석 라이브러리는 새 HTTP 경로를 만들지 않는다. 기존 `/api/analysis`는 stateless로
+유지한다. task/decision CRUD와 job polling은 아래 `인증된 task·공개 결정 API` 절에서 별도로
+열며, 그 경로가 이 저장 함수를 호출한다. TaskStore의 migration v2는 source version/선택, evidence,
 분석 job snapshot, 후보 provenance를 추가하며 기존 문서·후보·결정을 보존한다.
 
 내부 호출 순서는 `store.analysis.replaceSources(id, revision, sources)` 후
