@@ -66,3 +66,13 @@ SAFEHANDOFF_TRANSCRIPT_DIR를 설정하면 실제 app과 OSS 스모크의 Engine
 ## ToyRecord 팩 스모크
 
 HTTP 필드와 환경 변수는 추가하지 않았다. OSS CLI는 `--catalog`와 `--pack-version`을 함께 받으며 `--registration`의 pack pin·target·정확한 image digest를 대조한다. `--seed`는 기본 42인 unsigned 32-bit 정수다. 기존 catalog 없는 image 등록 경로도 유지한다. 새 bound installation을 catalog 없이 쓰면 거부한다. 보고서 selected_pack과 transcript pack_selected가 같은 팩 지문을 담는다. [명세·실행 절차](toyrecord-pack.md)를 따른다.
+
+
+## F02 분석 라이브러리
+
+HTTP 경로·환경 변수는 추가하지 않았다. 주입된 Engine의 `analyze({task,sources}, {signal?})`는
+base64 원자료·source SHA-256·version·included 바인딩을 검사하고 `{evidence,proposals}`를
+반환한다. 이 결과는 공개 결정·서버 candidate_set 채택·의미 정확도 검증 완료가 아니다.
+[파서 위치·한도·nullable 정규화·오류 계약](f02-analyze-plan.md)을 따른다. 원자료는 analysis 역할의
+설정된 모델로만 전달하고 writer 세션과 공유하지 않는다. 현재 라이브러리 자체가 프로세스의
+인터넷 차단이나 DB 권한·revision/CAS를 집행하는 것은 아니다. 분석 본문은 transcript에 기록하지 않는다.

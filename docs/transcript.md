@@ -41,3 +41,9 @@ OSS 보고서의 transcript_run_ids는 해당 작성·검토 기록의 run_id �
 ToyRecord catalog 모드에서는 run_started 바로 다음에 pack_selected 이벤트가 나타난다. data는
 OSS 보고서의 selected_pack과 같고 팩 pin·target_pair_id·skill_set_hash를 담는다. role 문서
 본문이나 설치 경로는 포함하지 않는다.
+
+
+F02 analyze는 원자료를 다루므로 내용 기록 옵션과 관계없이 요청·응답 본문을 저장하지 않는다.
+analysis_parsed는 source/evidence 개수, analysis_completed는 candidate/conflict 개수를 담는다.
+기존 model_* 이벤트에는 role/call/attempt/usage/고정 오류 코드만 들어간다. 파서 오류·취소·모델
+실패도 종료 이벤트를 남기며 원자료·파일명·후보 statement는 제외한다.

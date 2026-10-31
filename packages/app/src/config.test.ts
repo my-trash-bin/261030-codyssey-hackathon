@@ -67,3 +67,37 @@ test('transcripts are disabled by default and content requires explicit director
   assert.throws(() => configuredTranscripts(root, { SAFEHANDOFF_TRANSCRIPT_CONTENT: '1' }), /INVALID_TRANSCRIPT_CONFIG/);
   assert.throws(() => configuredTranscripts(root, { SAFEHANDOFF_TRANSCRIPT_CONTENT: 'true' }), /INVALID_TRANSCRIPT_CONFIG/);
 });
+
+test('configured Engine analyze parses sources and uses the actual local HTTP model adapter', async () => {
+  const { createHash } = await import('node:crypto');
+  let calls = 0;
+  const endpoint = createServer(async (req, res) => {
+    let body = ''; for await (const chunk of req) body += chunk;
+    const wire = JSON.parse(body), input = JSON.parse(wire.messages.at(-1).content);
+    calls++;
+    assert.equal(req.url, '/v1/chat/completions');
+    assert.equal(wire.response_format, undefined);
+    assert.deepEqual(input.sources.map((source: { text: string }) => source.text), ['가상 한글 로그', '{"ok":true}']);
+    assert.deepEqual(input.evidence.map((item: { locator: { kind: string } }) => item.locator.kind), ['byte_range', 'json_pointer']);
+    res.end(JSON.stringify({ choices: [{ message: { content: JSON.stringify({ schema_version: 'candidate_proposals.v1',
+      candidates: [{ local_key: 'c1', kind: 'observation', uncertainty: 'observed', statement: 'fixture candidate',
+        evidence_ids: input.evidence.map((item: { id: string }) => item.id), relevance: 'required', purpose_relevance: 'support' }], conflicts: [] }) } }] }));
+  });
+  await new Promise<void>(resolve => endpoint.listen(0, '127.0.0.1', resolve));
+  const dir = await mkdtemp(join(tmpdir(), 'safehandoff-analyze-http-'));
+  try {
+    const config = JSON.parse(await readFile(join(root, 'config.example.json'), 'utf8')); config.provider.allow_plain_http = true;
+    await writeFile(join(dir, 'config.example.json'), JSON.stringify(config));
+    const core = configuredCore(dir, { SAFEHANDOFF_LLM_BASE_URL: `http://127.0.0.1:${(endpoint.address() as AddressInfo).port}/v1`,
+      SAFEHANDOFF_LLM_MODEL: 'local-fixture', SAFEHANDOFF_LLM_API_KEY: 'local-only' });
+    const sources = ['가상 한글 로그', '{"ok":true}'].map((text, index) => ({ id: `version-${index}`, source_id: `source-${index}`,
+      version: 1, source_slot: 'input', display_name: 'fictional', format: index ? 'json' as const : 'log' as const,
+      included: true, raw_bytes: Buffer.from(text).toString('base64'), sha256: createHash('sha256').update(text).digest('hex') }));
+    const result = await core.analyze({ task: { purpose: 'support', recipient: 'vendor' }, sources });
+    assert.equal(calls, 1); assert.equal(result.evidence.length, 2);
+    assert.deepEqual(result.proposals.candidates[0]!.evidence_ids, result.evidence.map(item => item.id));
+  } finally {
+    endpoint.closeAllConnections(); await new Promise<void>(resolve => endpoint.close(() => resolve()));
+    await rm(dir, { recursive: true, force: true });
+  }
+});

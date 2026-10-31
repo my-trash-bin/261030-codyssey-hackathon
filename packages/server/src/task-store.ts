@@ -111,7 +111,8 @@ export class TaskStore {
     return this.transaction(() => {
       const task = this.current(id, revision); this.candidate(task, candidateId);
       const preview: DisclosurePreview = { schema_version: 'disclosure_preview.v1', preview_id: randomUUID(), candidate_id: candidateId,
-        input_revision: revision, representation: { kind: 'fact_summary' }, projection: { statement, columns: [], rows: [] }, projection_sha256: '' };
+        input_revision: revision, representation: { kind: 'fact_summary' }, projection: { statement, columns: [], rows: [] },
+        projection_sha256: '', raw_grants: [] };
       const bytes = Buffer.from(JSON.stringify(preview.projection)); preview.projection_sha256 = hash(bytes);
       this.db.prepare('INSERT INTO workflow_previews VALUES(?,?,?,?,?,?,?,?)').run(id, preview.preview_id, candidateId, revision,
         bytes, preview.projection_sha256, task.source_set_hash, hash(JSON.stringify(task.context)));

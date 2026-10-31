@@ -34,7 +34,7 @@ export async function runOssReproSmoke({ image, runnerFactory, model, config, se
   const runner = runnerFactory ? runnerFactory(registration) : new DockerReproRunner(registration);
   const reproduction = await runner.reproduce(reproductionRequest(registration));
   const baseReport = { schema_version: 'oss_smoke.v1', executed_at: new Date().toISOString(),
-    analysis: 'fixture assertions and manually constructed candidates; analyze() not implemented',
+    analysis: 'fixture assertions and manually constructed candidates; analyze() not invoked',
     decisions: 'fixture-only predefined approvals; no human approval UI',
     model_mode: model.info.provider === 'fake' ? 'fixture' : 'live', runner: runner.info.implementation,
     document_status: 'reviewed_draft_not_finalized', manual_review_required: true,

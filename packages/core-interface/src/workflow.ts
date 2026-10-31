@@ -89,6 +89,20 @@ export interface DisclosureProposal {
   representation: Representation | null;
   requires_clarification: boolean;
 }
+// disclosure_preview.v1's raw_grants is required (nullable in the wire schema; normalized to
+// [] here, same convention as other wire-nullable arrays elsewhere). Only approved_excerpt
+// previews populate it -- F03 §5: a raw-text grant binds source_version_id/source_sha256/a
+// UTF-8-boundary byte range/the rendered output hash/scope/expiry, never the full source.
+export interface ByteRange { start: number; end: number }
+export interface RawGrant {
+  source_version_id: string;
+  source_sha256: string;
+  byte_range: ByteRange;
+  hidden_ranges: ByteRange[];
+  rendered_sha256: string;
+  scope: Scope;
+  expires_at: string | null;
+}
 export interface DisclosurePreview {
   schema_version: 'disclosure_preview.v1';
   preview_id: string;
@@ -97,6 +111,7 @@ export interface DisclosurePreview {
   representation: Representation;
   projection: { statement: string; columns: string[]; rows: string[][]; excerpt?: string };
   projection_sha256: string;
+  raw_grants: RawGrant[];
 }
 // Reduced projection of task.v1's decision ledger: server owns raw_grants/scope/
 // optional binding fields stay internal; review requires them rather than trusting a model to infer approval.

@@ -114,3 +114,9 @@ endpoint·모델 ID·인증 방식은 운영자가 시작 설정으로 제공한
 - [S-SEC-01 Docker: None network driver](https://docs.docker.com/engine/network/drivers/none/) — 2026-10-31 확인. 컨테이너의 `none` 네트워크 동작 참고. SafeHandoff의 나머지 권한·보존·배치 규칙은 본 프로젝트의 설계 결정이다.
 
 현재 구현된 transcript는 [로컬 실행 기록](transcript.md) 범위다. 위 표의 상시 24시간 만료와 task 삭제 연동은 목표이며 아직 완성되지 않았다. 현재는 기록 시작 때 만료 파일을 정리하고 owner 전용 파일에 저장한다. 본문은 별도 opt-in이며 원자료 자동 수집·비밀 자동 제거·공개용 자동 정제는 제공하지 않는다.
+
+
+F02 Engine 분석은 전달받은 included snapshot을 결정적으로 파싱하고 설정된 ModelClient에
+원자료와 근거를 보낸다. analyst의 도구·파일 조회 경로는 제공하지 않으며 분석과 writer 호출은
+분리한다. 상세 transcript를 켜도 분석 본문은 저장하지 않는다. 호출자 권한·DB snapshot/CAS·
+프로세스 네트워크 격리와 사내 모델의 실제 운영 권한은 이 라이브러리만으로 완성하지 않는다.

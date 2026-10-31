@@ -2,7 +2,7 @@
 // replaceable behind an adapter" — core only ever sees this interface, never a concrete
 // SDK. ProviderConfig/WorkflowConfig/ReproductionConfig mirror config.json's
 // provider/workflow/reproduction blocks field-for-field.
-export type ModelRole = 'analysis' | 'writer' | 'reviewer' | 'provider_check';
+export type ModelRole = 'analysis' | 'disclosure' | 'writer' | 'reviewer' | 'provider_check';
 export interface ModelRequest {
   role: ModelRole;
   systemPrompt?: string;

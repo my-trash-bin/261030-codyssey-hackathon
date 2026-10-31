@@ -12,7 +12,8 @@ export function approvedRequestGrounding(input: GenerateRequest, pack: FactPack)
   const previews = input.facts.map(fact => {
     const projection = { statement: fact.text, columns: [], rows: [] };
     return { schema_version: 'disclosure_preview.v1' as const, preview_id: `preview-${fact.id}`, candidate_id: fact.id,
-      input_revision: pack.task_revision, representation: { kind: 'fact_summary' as const }, projection, projection_sha256: hash(projection) };
+      input_revision: pack.task_revision, representation: { kind: 'fact_summary' as const }, projection, projection_sha256: hash(projection),
+      raw_grants: [] };
   });
   return { scope, source_set_hash: sourceSetHash, candidate_selectors: {}, rule_goals: [], approved_tool_results: [], input: {
     task: { purpose: input.purpose, recipient: input.recipient }, task_revision: pack.task_revision,

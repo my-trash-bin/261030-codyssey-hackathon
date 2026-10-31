@@ -80,7 +80,7 @@ intent.md·제품 설계·contracts·fixtures/demo·과거 evaluation 기록은 
 
 `OpenAICompatibleModelClient(providerConfig, env?)`는 설정에 지정한 환경 변수 이름으로 URL·모델·키를 조회합니다. 환경 변수는 아래 연결 표를 따릅니다. 한 complete 호출은 HTTP 요청 한 번이며 재시도는 Engine이 담당합니다. HTTP 테스트는 로컬 목 서버만 사용합니다.
 
-분석·공개 제안·미리보기 계산과 task/decision HTTP API는 미구현입니다. Docker 실행기와 내부 task/decision 저장은 [3라운드 범위](docs/round3-scope.md)로 구현했습니다. `composeFactPack`은 서버가 범위·원자료·hash를 검증한 현재 결정과 미리보기를 입력받는 순수 변환이며 승인 저장을 대신하지 않습니다.
+`RealCore.analyze()`의 결정적 근거 파싱·후보 검증은 구현했습니다. 공개 제안·미리보기 계산과 task/decision HTTP API·분석 UI 연결은 미구현입니다. Docker 실행기와 내부 task/decision 저장은 [3라운드 범위](docs/round3-scope.md)로 구현했습니다. `composeFactPack`은 서버가 범위·원자료·hash를 검증한 현재 결정과 미리보기를 입력받는 순수 변환이며 승인 저장을 대신하지 않습니다.
 
 ## 모델·실행기 환경 변수
 
@@ -129,3 +129,9 @@ Git에서 제외한다. Chromium 시스템 라이브러리 설치와 상세 절�
 
 이전 CDP fixture 녹화와 연출 코드 참고자료는 [영상 안내](docs/presentation/video/README.md)를
 따른다. `mise exec -- just preview-demo-video`로 원본 hash를 검증한 과거 영상을 로컬에서 확인한다.
+
+
+F02 분석 라이브러리는 [범위·한도·근거 위치 계약](docs/f02-analyze-plan.md)을 따른다. 전체 included
+source snapshot을 받아 evidence와 미승인 후보를 반환하며, 저장·공개 허가·writer 실행은 하지 않는다.
+분석 원자료와 후보 본문은 상세 transcript opt-in에도 기록하지 않는다. 로컬 HTTP 통합 시험은
+가상 자료와 목 모델만 사용한다.
