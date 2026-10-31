@@ -199,25 +199,29 @@
   color: var(--color-text-danger);
 }
 
-.danger-zone .fold {
-  border: var(--border-width) solid var(--color-border-subtle);
-  border-radius: var(--panel-radius);
-  background: var(--color-surface-sunken);
-}
-
+/* 상자 없이 화살표만 쓴다. 표시자가 사라지면 눌러서 열린다는 단서도 사라진다. */
 .danger-zone .fold > summary {
-  display: grid;
-  gap: var(--space-2);
-  padding: var(--space-4) var(--space-5);
+  display: list-item;
+  padding: var(--space-4) 0;
+  color: var(--color-text-danger);
 }
 
 .danger-zone .fold > summary > h4 {
   display: inline;
-  color: var(--color-text-danger);
+  font-size: var(--type-body-size);
+}
+
+.danger-zone .fold > summary > p {
+  display: block;
+}
+
+.danger-zone .fold > summary:hover > h4 {
+  text-decoration: underline;
+  text-underline-offset: var(--space-1);
 }
 
 .danger-zone .fold__body {
-  padding: 0 var(--space-5) var(--space-5);
+  padding-bottom: var(--space-2);
 }
 
 .batch {
