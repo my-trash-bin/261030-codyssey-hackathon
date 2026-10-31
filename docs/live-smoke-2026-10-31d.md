@@ -1,6 +1,6 @@
 # transcript 기록 + 세 가지 실제 사례 확인 (4차)
 
-2026-10-31 UTC. 기존 모델 가상 데이터 실행 승인에 따라 로컬 Docker와 기존 `.env`의 등록 모델을 실제로 호출했다. 실제 업무 원자료·새 외부 모델은 쓰지 않았고 모델 주소·ID·키·비공개 설정은 기록하지 않는다.
+2026-10-31 UTC. 기존 모델 가상 데이터 실행 승인에 따라 로컬 Docker와 기존 `.env`의 등록 모델을 실제로 호출했다. 실제 업무 원자료/새 외부 모델은 쓰지 않았고 모델 주소/ID/키/비공개 설정은 기록하지 않는다.
 
 ## 실행 전 발견한 문제: 등록 이미지가 낡음
 
@@ -18,7 +18,7 @@ CGO_ENABLED=0 GOPROXY=off GOTOOLCHAIN=local go build -trimpath -o .local/repro-i
 docker build --pull=false --network=none -t safehandoff-repro:local -f packages/sandbox-runner/image/Dockerfile .local/repro-image
 ```
 
-새 이미지 전체 ID로 `.local/oss-smoke-registration.json`을 갱신했다. 소스 코드는 바뀐 게 없다 —
+새 이미지 전체 ID로 `.local/oss-smoke-registration.json`을 갱신했다. 소스 코드는 바뀐 게 없다 -
 `.local/`은 gitignore 대상이라 낡은 로컬 Docker 상태 문제였다. `var/runners/targets.json`/
 `checker.json`은 어떤 코드에서도 읽지 않는 레거시 파일로 확인됐다(이번엔 손대지 않음).
 
@@ -26,7 +26,7 @@ docker build --pull=false --network=none -t safehandoff-repro:local -f packages/
 
 `node tools/oss-repro-smoke.mjs --registration .local/oss-smoke-registration.json --live-model`을
 `SAFEHANDOFF_TRANSCRIPT_DIR=.local/transcripts SAFEHANDOFF_TRANSCRIPT_CONTENT=1`로 세 번 실행했다
-(seed만 다름 — CLI는 seed=42 고정이라 7, 2026은 라이브러리 함수를 직접 호출).
+(seed만 다름 - CLI는 seed=42 고정이라 7, 2026은 라이브러리 함수를 직접 호출).
 
 | seed | 합성 입력(ascii/한글) | 재현 | 검토 | transcript run_id |
 | --- | --- | --- | --- | --- |
@@ -41,8 +41,8 @@ docker build --pull=false --network=none -t safehandoff-repro:local -f packages/
 ## transcript 확인
 
 `.local/transcripts/transcript-<run_id>.jsonl`을 직접 열어 `docs/transcript.md` 설명과 대조했다.
-`run_started`(model_mode=live) → `model_started`(writer, content에 프롬프트 포함) →
-`model_completed`(writer, content에 검증된 draft.v1 포함) → reviewer 동일 과정 →
+`run_started`(model_mode=live) -> `model_started`(writer, content에 프롬프트 포함) ->
+`model_completed`(writer, content에 검증된 draft.v1 포함) -> reviewer 동일 과정 ->
 `review_completed`가 순서대로 기록됐다. 파일 권한은 0600, 디렉터리는 0700이었다.
 
 ## 범위

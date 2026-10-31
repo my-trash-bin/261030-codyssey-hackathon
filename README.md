@@ -1,41 +1,41 @@
 # SafeHandoff
 
-실제 앱과 연출용 가짜 앱을 독립적으로 개발하기 위한 TypeScript·pnpm 작업 공간입니다. 실제 앱은 문서 저장·조회와 승인 facts 기반 작성·검토를 제공합니다. **앱이 설정과 환경 변수로 모델을 주입하며, 모델 설정이 없으면 생성은 실패합니다**. 가짜 앱은 템플릿·응답 지연·실패를 바꿔 흐름을 반복 개선합니다.
+실제 앱과 연출용 가짜 앱을 독립적으로 개발하기 위한 TypeScript/pnpm 작업 공간입니다. 실제 앱은 문서 저장/조회와 승인 facts 기반 작성/검토를 제공합니다. **앱이 설정과 환경 변수로 모델을 주입하며, 모델 설정이 없으면 생성은 실패합니다**. 가짜 앱은 템플릿/응답 지연/실패를 바꿔 흐름을 반복 개선합니다.
 
 ## 패키지 경계
 
 | 패키지 | 역할 |
 | --- | --- |
 | packages/app | 최종 실제 앱: 서버 껍데기와 진짜 코어 조립 |
-| packages/fake-app | 연출용 가짜 앱: 가짜 코어·연결 연출·조절 화면 |
-| packages/server | 코어 구현을 모르는 공통 HTTP·SQLite 껍데기 |
-| packages/core-interface | 공유 요청·응답·오류와 Core 계약 |
-| packages/core | 모델 주입 기반 작성·검토 Engine. 가짜 구현을 import하지 않음 |
+| packages/fake-app | 연출용 가짜 앱: 가짜 코어/연결 연출/조절 화면 |
+| packages/server | 코어 구현을 모르는 공통 HTTP/SQLite 껍데기 |
+| packages/core-interface | 공유 요청/응답/오류와 Core 계약 |
+| packages/core | 모델 주입 기반 작성/검토 Engine. 가짜 구현을 import하지 않음 |
 | packages/model-adapter | 설정 기반 호환 HTTP 모델 클라이언트 |
 | packages/sandbox-runner | digest 고정 toy 이미지의 격리 실행과 재현 판정 |
-| packages/skill-loader | manifest·파일 경로·digest를 검증하는 F07 파일시스템 로더 |
+| packages/skill-loader | manifest/파일 경로/digest를 검증하는 F07 파일시스템 로더 |
 | packages/fake-core | 연출용 문구와 결과 템플릿 |
-| packages/client | 공개 전 확인 작업 화면·내부 메모 보관과 API 프록시 |
+| packages/client | 공개 전 확인 작업 화면/내부 메모 보관과 API 프록시 |
 
 의존성 경계는 테스트로 강제합니다. server는 Core 인터페이스에만 의존하며 app과 fake-app이 구현을 주입합니다. 가짜 앱의 연출을 고쳐도 실제 앱이나 진짜 코어를 수정할 필요가 없습니다. 현재 구조는 [architecture](docs/architecture.md), 실제 API는 [api](docs/api.md), 독립 개발 계획은 [plan](docs/plan.md)을 따릅니다.
 
-UI 작업은 이 README와 `docs/`의 문서를 기준으로 하며, 화면·승인 흐름의 세부 기준은 [UI 구현 기준](docs/UI-구현기준.md)을 따릅니다. 문서의 설계 기준은 기능 구현이나 API 연결 완료를 뜻하지 않습니다.
+UI 작업은 이 README와 `docs/`의 문서를 기준으로 하며, 화면/승인 흐름의 세부 기준은 [UI 구현 기준](docs/UI-구현기준.md)을 따릅니다. 문서의 설계 기준은 기능 구현이나 API 연결 완료를 뜻하지 않습니다.
 
 ## UI 작업 화면의 현재 범위
 
-- 공개 결정 영역을 후보별 목록으로 바꿨습니다. 후보마다 미선택·허용·제외·보류를 따로 관리하며, 실제 미리보기 확인과 전체 일괄 적용을 분리합니다. 작업 ID로 조회를 시도할 수 있지만 현재 서버에는 task HTTP 경로가 없어 실제 후보가 표시되지는 않습니다.
-- 디자인은 `design-pick`의 `web-swiss-grid`를 유지합니다. 흰 바탕·검정 글자·12열 그리드·직각·무그림자를 적용하고, 전달 조건·공유 초안·접이식 근거 아래에 전체 폭의 공개 결정 목록을 둡니다. 내부 메모와 상세 실행 정보는 작업 영역 뒤에 둡니다.
-- 작업 도구에 맞춰 팩의 홍보용 대형 제목·큰 섹션 간격은 줄였습니다. 외부 웹폰트 대신 시스템 글꼴을 사용해 기존 CSP와 외부 자산 미호출 경계를 유지합니다. 미연결 사유는 동작 가까이에 짧게 표시하고 개발용 예시 모드는 항상 보입니다.
-- 이 화면에서 실제 서버와 연결된 기능은 `GET /api/core`, `GET/POST /api/documents`, `POST /api/analysis`입니다. 분석은 사용자가 목적·수신처·파일을 확인하고 승인된 사내·로컬 분석 환경 확인에 동의한 뒤에만 호출하며, 응답의 근거와 후보 제안은 내부 검토용으로만 표시합니다. 임시 evidence·후보 참조를 task·candidate로 저장하거나 공개 허가로 바꾸지 않습니다. 파일을 고르는 것만으로 전송하지 않고 입력이 바뀌면 동의를 해제합니다. 사내 LAN의 HTTP 접속처럼 `crypto.subtle`을 쓸 수 없는 보안 문맥에서는 요청 전에 오류를 안내합니다. 내부 메모 저장·조회는 공개 승인이나 공유 초안 생성과 별개입니다. 목적·수신처는 서버에 저장하지 않습니다.
-- F03의 후보별 선택·미리보기 표·해석 결과·일괄 적용·철회 UI와 HTTP 전송 경계를 추가했습니다. 운영 화면에는 세션 토큰을 제공하지 않아 모든 쓰기가 차단됩니다. C의 필드 선택은 Core 참고 정의에는 있지만 HTTP 참고 스키마에는 없고, 필드 목록·서버 변환도 미구현이라 비활성입니다. 새 작업 계약이나 API를 신설하지 않고 기존 요구를 사용합니다. 파일 선택과 `POST /api/analysis` 호출은 연결했지만 분석 결과를 task 후보로 저장하거나 공개 결정으로 넘기지 않습니다. 공유 초안 생성·최종 파일 확인·다운로드·스킬 등록은 계속 미연결이며 `/api/sharing`을 호출하지 않습니다. [10개 항목별 반영과 연결 조건](docs/f03-ui-prerequisites.md), [분석 UI 이후 서버 요청](docs/ui-api-requests.md)을 참고하세요.
-- 저장·목록 조회 실패 시 입력과 이전 목록을 보존하고, 저장 전 조회가 진행 중이면 끝난 뒤 저장 이후 목록을 다시 조회합니다. 저장 후 목록 갱신까지 중복 저장을 막습니다.
+- 공개 결정 영역을 후보별 목록으로 바꿨습니다. 후보마다 미선택/허용/제외/보류를 따로 관리하며, 실제 미리보기 확인과 전체 일괄 적용을 분리합니다. 작업 ID로 조회를 시도할 수 있지만 현재 서버에는 task HTTP 경로가 없어 실제 후보가 표시되지는 않습니다.
+- 디자인은 `design-pick`의 `web-swiss-grid`를 유지합니다. 흰 바탕/검정 글자/12열 그리드/직각/무그림자를 적용하고, 전달 조건/공유 초안/접이식 근거 아래에 전체 폭의 공개 결정 목록을 둡니다. 내부 메모와 상세 실행 정보는 작업 영역 뒤에 둡니다.
+- 작업 도구에 맞춰 팩의 홍보용 대형 제목/큰 섹션 간격은 줄였습니다. 외부 웹폰트 대신 시스템 글꼴을 사용해 기존 CSP와 외부 자산 미호출 경계를 유지합니다. 미연결 사유는 동작 가까이에 짧게 표시하고 개발용 예시 모드는 항상 보입니다.
+- 이 화면에서 실제 서버와 연결된 기능은 `GET /api/core`, `GET/POST /api/documents`, `POST /api/analysis`입니다. 분석은 사용자가 목적/수신처/파일을 확인하고 승인된 사내/로컬 분석 환경 확인에 동의한 뒤에만 호출하며, 응답의 근거와 후보 제안은 내부 검토용으로만 표시합니다. 임시 evidence/후보 참조를 task/candidate로 저장하거나 공개 허가로 바꾸지 않습니다. 파일을 고르는 것만으로 전송하지 않고 입력이 바뀌면 동의를 해제합니다. 사내 LAN의 HTTP 접속처럼 `crypto.subtle`을 쓸 수 없는 보안 문맥에서는 요청 전에 오류를 안내합니다. 내부 메모 저장/조회는 공개 승인이나 공유 초안 생성과 별개입니다. 목적/수신처는 서버에 저장하지 않습니다.
+- F03의 후보별 선택/미리보기 표/해석 결과/일괄 적용/철회 UI와 HTTP 전송 경계를 추가했습니다. 운영 화면에는 세션 토큰을 제공하지 않아 모든 쓰기가 차단됩니다. C의 필드 선택은 Core 참고 정의에는 있지만 HTTP 참고 스키마에는 없고, 필드 목록/서버 변환도 미구현이라 비활성입니다. 새 작업 계약이나 API를 신설하지 않고 기존 요구를 사용합니다. 파일 선택과 `POST /api/analysis` 호출은 연결했지만 분석 결과를 task 후보로 저장하거나 공개 결정으로 넘기지 않습니다. 공유 초안 생성/최종 파일 확인/다운로드/스킬 등록은 계속 미연결이며 `/api/sharing`을 호출하지 않습니다. [10개 항목별 반영과 연결 조건](docs/f03-ui-prerequisites.md), [분석 UI 이후 서버 요청](docs/ui-api-requests.md)을 참고하세요.
+- 저장/목록 조회 실패 시 입력과 이전 목록을 보존하고, 저장 전 조회가 진행 중이면 끝난 뒤 저장 이후 목록을 다시 조회합니다. 저장 후 목록 갱신까지 중복 저장을 막습니다.
 - F03 확인: `mise exec -- pnpm --filter @safehandoff/client typecheck` 통과, `mise exec -- node --test packages/client/src/disclosure-state.test.ts` 31개 통과. 기존 클라이언트 검사 2개도 통과했습니다. Node는 mise에 설치된 고정 버전 24.21.0을 사용했습니다.
-- 실제 화면에서 task 조회의 404와 후보 미생성·쓰기 차단을 확인했습니다. 별도 임시 응답기를 사용한 브라우저 검사에서는 후보별 선택, B 표·해시, D의 모호·미지원·지원 분기와 입력 보존, 정확값 재사용 차단, 단일 배치, 철회, 409 재조회와 미리보기 무효화를 확인했습니다. 320px에서 실제 화면과 가상 작업 화면의 문서 폭은 모두 320px였고, 조건 입력 초점과 키보드 이동도 확인했습니다. 이 검사는 실제 분석·인증·모델 호출·서버 승인 저장·전체 F03 종단간 동작을 검증한 것이 아닙니다.
-- 빌드 출력은 저장소 밖 임시 경로에 만들고 실행했습니다. 세 브라우저 모듈이 제공되고 테스트 모듈은 404이며, 작업 조회 프록시가 동작하는 것을 확인했습니다. 검사 전용 응답기·스크립트는 운영 코드에 포함하지 않습니다.
+- 실제 화면에서 task 조회의 404와 후보 미생성/쓰기 차단을 확인했습니다. 별도 임시 응답기를 사용한 브라우저 검사에서는 후보별 선택, B 표/해시, D의 모호/미지원/지원 분기와 입력 보존, 정확값 재사용 차단, 단일 배치, 철회, 409 재조회와 미리보기 무효화를 확인했습니다. 320px에서 실제 화면과 가상 작업 화면의 문서 폭은 모두 320px였고, 조건 입력 초점과 키보드 이동도 확인했습니다. 이 검사는 실제 분석/인증/모델 호출/서버 승인 저장/전체 F03 종단간 동작을 검증한 것이 아닙니다.
+- 빌드 출력은 저장소 밖 임시 경로에 만들고 실행했습니다. 세 브라우저 모듈이 제공되고 테스트 모듈은 404이며, 작업 조회 프록시가 동작하는 것을 확인했습니다. 검사 전용 응답기/스크립트는 운영 코드에 포함하지 않습니다.
 
 ## 준비
 
-Node 24.21.0·pnpm 10.13.1·just 1.58.0·Python 3.13.8을 mise로 고정합니다. mise만 먼저 설치하면 just를 포함한 도구는 `mise install`로 준비할 수 있습니다.
+Node 24.21.0/pnpm 10.13.1/just 1.58.0/Python 3.13.8을 mise로 고정합니다. mise만 먼저 설치하면 just를 포함한 도구는 `mise install`로 준비할 수 있습니다.
 
 ```bash
 mise trust
@@ -49,13 +49,13 @@ cp .env.example .env  # 기존 파일이 있으면 생략
 ```bash
 just app          # 실제 앱 API :8080
 just fake-app     # 연출용 앱 :8081, 별도 터미널
-just client       # 실제 앱 대상 작업 화면·내부 메모 보관 :5173
+just client       # 실제 앱 대상 작업 화면/내부 메모 보관 :5173
 just fake-client  # 가짜 앱 대상 같은 화면 :5174
 ```
 
-연출 조절 화면은 **http://127.0.0.1:8081/__demo**입니다. 제목·도입·마무리, 지연, 실패 횟수를 적용하고 승인한 표현으로 재생성해 볼 수 있습니다. 가짜 앱은 실제 모델을 호출하지 않습니다. 실제 앱의 같은 재생성 API는 설정한 모델로 작성·검토하며 실패 시 503 CORE_UNAVAILABLE를 반환합니다.
+연출 조절 화면은 **http://127.0.0.1:8081/__demo**입니다. 제목/도입/마무리, 지연, 실패 횟수를 적용하고 승인한 표현으로 재생성해 볼 수 있습니다. 가짜 앱은 실제 모델을 호출하지 않습니다. 실제 앱의 같은 재생성 API는 설정한 모델로 작성/검토하며 실패 시 503 CORE_UNAVAILABLE를 반환합니다.
 
-실제 앱과 클라이언트의 기본 수신 주소는 127.0.0.1입니다. 다른 주소는 HOST·CLIENT_HOST로 지정합니다. 각 터미널의 Ctrl-C로 종료합니다. 현재는 단일 사용자 개발용이며 사내 인증은 미구현입니다. 패키지 dev/start는 루트 .env를 자동으로 읽고 기존 환경 변수가 우선합니다.
+실제 앱과 클라이언트의 기본 수신 주소는 127.0.0.1입니다. 다른 주소는 HOST/CLIENT_HOST로 지정합니다. 각 터미널의 Ctrl-C로 종료합니다. 현재는 단일 사용자 개발용이며 사내 인증은 미구현입니다. 패키지 dev/start는 루트 .env를 자동으로 읽고 기존 환경 변수가 우선합니다.
 
 실제 앱 DB는 `.local/data/safehandoff.sqlite`, 가짜 앱은 `.local/data/demo.sqlite`이며 각각 DATABASE_PATH와 DEMO_DATABASE_PATH로 지정합니다. 상대 경로 기준은 저장소 루트입니다. 가짜 연출 설정은 메모리에서 관리하며 재시작하면 초기화합니다.
 
@@ -68,43 +68,43 @@ pnpm typecheck
 pnpm build
 ```
 
-just check는 QG를 직접 실행합니다. QG가 recommended 규칙과 공식 @slop-lab/qg-rules-js의 js preset, 타입·빌드·Node 테스트를 호출합니다. pnpm test에서 QG 전체 검사를 다시 호출하지 않습니다. 한국어 문서·파일명을 허용합니다. 실제 모델 호출은 일반 검사에 포함하지 않습니다.
+just check는 QG를 직접 실행합니다. QG가 recommended 규칙과 공식 @slop-lab/qg-rules-js의 js preset, 타입/빌드/Node 테스트를 호출합니다. pnpm test에서 QG 전체 검사를 다시 호출하지 않습니다. 한국어 문서/파일명을 허용합니다. `mise run setup`은 QG pre-commit 훅도 설치하며, QG 실행 시 누락되거나 오래된 훅을 자동으로 갱신합니다. 실제 모델 호출은 일반 검사에 포함하지 않습니다.
 
 빌드된 앱은 `pnpm --filter @safehandoff/app start`, 가짜 앱은 `pnpm --filter @safehandoff/fake-app start`로 각각 실행합니다. 진짜 코어는 packages/core에서 공통 계약을 구현하면서 독립 시험합니다.
 
-intent.md·제품 설계·contracts·fixtures/demo·과거 evaluation 기록은 보존합니다. 제품 전체 기능의 구현 완료와 시연 템플릿 동작을 구분합니다.
+intent.md/제품 설계/contracts/fixtures/demo/과거 evaluation 기록은 보존합니다. 제품 전체 기능의 구현 완료와 시연 템플릿 동작을 구분합니다.
 
 ## 코어 라이브러리의 현재 범위
 
-`RealCore(modelClient, engineConfig, reproRunner?)`에 설정과 모델을 주입하면 `write`·`review`를 사용할 수 있습니다. `writeReviewed`는 단계별 재시도, 전체 모델 호출 수, 검토 수정 횟수 상한을 함께 지킵니다. `generate`는 기존 승인 facts 계약으로 작성·검토 한 번만 수행하며 검토 실패 시 문서를 반환하지 않습니다.
+`RealCore(modelClient, engineConfig, reproRunner?)`에 설정과 모델을 주입하면 `write`/`review`를 사용할 수 있습니다. `writeReviewed`는 단계별 재시도, 전체 모델 호출 수, 검토 수정 횟수 상한을 함께 지킵니다. `generate`는 기존 승인 facts 계약으로 작성/검토 한 번만 수행하며 검토 실패 시 문서를 반환하지 않습니다.
 
-`OpenAICompatibleModelClient(providerConfig, env?)`는 설정에 지정한 환경 변수 이름으로 URL·모델·키를 조회합니다. 환경 변수는 아래 연결 표를 따릅니다. 한 complete 호출은 HTTP 요청 한 번이며 재시도는 Engine이 담당합니다. HTTP 테스트는 로컬 목 서버만 사용합니다.
+`OpenAICompatibleModelClient(providerConfig, env?)`는 설정에 지정한 환경 변수 이름으로 URL/모델/키를 조회합니다. 환경 변수는 아래 연결 표를 따릅니다. 한 complete 호출은 HTTP 요청 한 번이며 재시도는 Engine이 담당합니다. HTTP 테스트는 로컬 목 서버만 사용합니다.
 
-`RealCore.analyze()`의 결정적 근거 파싱·후보 검증과 `POST /api/analysis`는 구현했고, 작업 화면은 파일 입력을 이 API에 연결해 근거·후보 제안을 표시합니다. 공개 제안·미리보기 계산과 인증된 task/decision HTTP API는 구현했습니다. 분석 결과의 source·evidence·job snapshot 저장과 candidate_set 채택은 `TaskStore.analysis`·`runTaskAnalysis` 내부 경로로 구현했지만 `/api/analysis`를 통한 자동 저장과 화면 연결은 하지 않았습니다. Docker 실행기와 내부 task/decision 저장은 [3라운드 범위](docs/round3-scope.md)로 구현했습니다. `composeFactPack`은 서버가 범위·원자료·hash를 검증한 현재 결정과 미리보기를 입력받는 순수 변환이며 승인 저장을 대신하지 않습니다.
+`RealCore.analyze()`의 결정적 근거 파싱/후보 검증과 `POST /api/analysis`는 구현했고, 작업 화면은 파일 입력을 이 API에 연결해 근거/후보 제안을 표시합니다. 공개 제안/미리보기 계산과 인증된 task/decision HTTP API는 구현했습니다. 분석 결과의 source/evidence/job snapshot 저장과 candidate_set 채택은 `TaskStore.analysis`/`runTaskAnalysis` 내부 경로로 구현했지만 `/api/analysis`를 통한 자동 저장과 화면 연결은 하지 않았습니다. Docker 실행기와 내부 task/decision 저장은 [3라운드 범위](docs/round3-scope.md)로 구현했습니다. `composeFactPack`은 서버가 범위/원자료/hash를 검증한 현재 결정과 미리보기를 입력받는 순수 변환이며 승인 저장을 대신하지 않습니다.
 
-## 모델·실행기 환경 변수
+## 모델/실행기 환경 변수
 
-`.env.example`의 기존 서버·클라이언트·가짜 앱 변수는 모두 현재 코드에서 사용합니다. 아래 변수를 추가했으며 `.env`의 기존 비공개 값은 그대로 사용합니다.
+`.env.example`의 기존 서버/클라이언트/가짜 앱 변수는 모두 현재 코드에서 사용합니다. 아래 변수를 추가했으며 `.env`의 기존 비공개 값은 그대로 사용합니다.
 
 | 변수 | 용도 |
 | --- | --- |
 | SAFEHANDOFF_LLM_BASE_URL | 호환 모델의 기본 URL. 앱이 `/chat/completions`를 붙임 |
 | SAFEHANDOFF_LLM_MODEL | 요청 모델 ID |
-| SAFEHANDOFF_LLM_API_KEY | Authorization Bearer 키. 로그·컨테이너에 전달하지 않음 |
+| SAFEHANDOFF_LLM_API_KEY | Authorization Bearer 키. 로그/컨테이너에 전달하지 않음 |
 | SAFEHANDOFF_CONFIG | 선택 설정 파일 경로. 생략하면 config.json, 없으면 config.example.json |
 | SAFEHANDOFF_REPRO_REGISTRY | 선택 Docker 등록 파일 경로. reproduction.enabled=true일 때 사용 |
 
-상대 설정 경로는 저장소 루트 기준입니다. 모델 세 변수가 모두 있어야 ready=true이며 이는 서버 응답이나 의미 정확성을 확인했다는 뜻은 아닙니다. 시작 시 모델을 호출하지 않습니다. TLS가 기본이며 HTTP 예외·기능·호출 제한은 설정 파일의 provider 블록으로 지정합니다. response_mode=text인 서버에는 response_format을 보내지 않고, JSON 출력은 프롬프트와 응답 검증으로 요구합니다. config.json과 .env는 커밋하지 않습니다.
+상대 설정 경로는 저장소 루트 기준입니다. 모델 세 변수가 모두 있어야 ready=true이며 이는 서버 응답이나 의미 정확성을 확인했다는 뜻은 아닙니다. 시작 시 모델을 호출하지 않습니다. TLS가 기본이며 HTTP 예외/기능/호출 제한은 설정 파일의 provider 블록으로 지정합니다. response_mode=text인 서버에는 response_format을 보내지 않고, JSON 출력은 프롬프트와 응답 검증으로 요구합니다. config.json과 .env는 커밋하지 않습니다.
 
-내부 `TaskStore`는 기존 SQLite 파일에 별도 workflow 테이블을 추가합니다. F02 내부 source/job/CAS·수동 후보까지 구현했지만 앱 HTTP 경로와 자동 연결하지 않았으며 문서나 원자료를 자동으로 작업으로 옮기지 않습니다. 분석 UI도 결과를 이 저장 계층의 task·candidate로 넘기지 않습니다. 필요한 저장·결정 HTTP 접점과 C 필드 요청은 [분석 UI 이후 서버 요청](docs/ui-api-requests.md)에 정리했습니다. Docker 설치·등록·검증 절차는 [실행기 안내](packages/sandbox-runner/image/README.md)를 따릅니다.
+내부 `TaskStore`는 기존 SQLite 파일에 별도 workflow 테이블을 추가합니다. F02 내부 source/job/CAS/수동 후보까지 구현했지만 앱 HTTP 경로와 자동 연결하지 않았으며 문서나 원자료를 자동으로 작업으로 옮기지 않습니다. 분석 UI도 결과를 이 저장 계층의 task/candidate로 넘기지 않습니다. 필요한 저장/결정 HTTP 접점과 C 필드 요청은 [분석 UI 이후 서버 요청](docs/ui-api-requests.md)에 정리했습니다. Docker 설치/등록/검증 절차는 [실행기 안내](packages/sandbox-runner/image/README.md)를 따릅니다.
 
-F07 1번의 파일시스템 로더는 [사용법과 제한](packages/skill-loader/README.md)을 따릅니다. 등록 CLI와 ToyRecord catalog 연결은 구현했습니다. 역할별 프롬프트 연결·앱의 팩 선택 및 변경 무효화는 후속이며 앱 시작 시 팩을 자동으로 읽거나 실행하지 않습니다.
+F07 1번의 파일시스템 로더는 [사용법과 제한](packages/skill-loader/README.md)을 따릅니다. 등록 CLI와 ToyRecord catalog 연결은 구현했습니다. 역할별 프롬프트 연결/앱의 팩 선택 및 변경 무효화는 후속이며 앱 시작 시 팩을 자동으로 읽거나 실행하지 않습니다.
 
 ## builtin과 근거 검토
 
-core의 `createBuiltinTools`는 현재 task/revision과 서버가 검증한 grant·인수 SHA-256을 받아 builtin 5개를 만든다. 순수 변환은 승인이나 도구 권한을 새로 만들지 않는다. 시간·입력 길이·원문 인용·정확값 공개는 승인된 인수에 묶는다.
+core의 `createBuiltinTools`는 현재 task/revision과 서버가 검증한 grant/인수 SHA-256을 받아 builtin 5개를 만든다. 순수 변환은 승인이나 도구 권한을 새로 만들지 않는다. 시간/입력 길이/원문 인용/정확값 공개는 승인된 인수에 묶는다.
 
-`review(draft, pack, grounding)`와 `writeReviewed(pack, { grounding })`에는 현재 결정·미리보기·scope·원자료 집합·규칙 판본의 effective snapshot이 필요하다. 없거나 유효하지 않으면 모델 호출 전에 needs_decision이다. 기존 `/api/sharing`의 승인 facts 입력은 그 요청의 새 승인으로만 연결하며, F06 Rule 저장·자동 매칭·승인 UI는 구현하지 않았다. 상세 계약은 [grounding 계획과 구현 상태](docs/review-grounding-plan.md)를 따른다.
+`review(draft, pack, grounding)`와 `writeReviewed(pack, { grounding })`에는 현재 결정/미리보기/scope/원자료 집합/규칙 판본의 effective snapshot이 필요하다. 없거나 유효하지 않으면 모델 호출 전에 needs_decision이다. 기존 `/api/sharing`의 승인 facts 입력은 그 요청의 새 승인으로만 연결하며, F06 Rule 저장/자동 매칭/승인 UI는 구현하지 않았다. 상세 계약은 [grounding 계획과 구현 상태](docs/review-grounding-plan.md)를 따른다.
 
 OSS 가상 재현은 빌드 후 아래 명령으로 실행한다. 등록 파일에는 설치자가 확인한 현재 `/repro` supervisor 이미지의 전체 image ID가 있어야 한다. legacy 이미지 tag/digest가 존재하는 것만으로 호환된다고 가정하지 않는다.
 
@@ -114,23 +114,23 @@ node --env-file-if-exists=.env tools/oss-repro-smoke.mjs \
   --output .local/oss-repro-smoke-new.json
 ```
 
---live-model을 생략하면 모델은 fixture이고 Docker는 실제 실행한다. 자동 테스트에서는 fake runner 주입을 명시적으로 표시한다. 실행 중 pull/build는 하지 않는다. 새 결과 파일만 쓰며 기존 결과를 덮어쓰지 않는다. 원자료 분석·승인은 fixture 가정이고 실제 구현한 분석·승인 제품 흐름으로 표시하지 않는다. 전체 호스트의 인터넷 차단이나 실제 OSS 결함 발견을 검증한 시험도 아니다.
+--live-model을 생략하면 모델은 fixture이고 Docker는 실제 실행한다. 자동 테스트에서는 fake runner 주입을 명시적으로 표시한다. 실행 중 pull/build는 하지 않는다. 새 결과 파일만 쓰며 기존 결과를 덮어쓰지 않는다. 원자료 분석/승인은 fixture 가정이고 실제 구현한 분석/승인 제품 흐름으로 표시하지 않는다. 전체 호스트의 인터넷 차단이나 실제 OSS 결함 발견을 검증한 시험도 아니다.
 
-OSS 스모크의 자동 회귀 검사는 실행 행·고정 oracle·수치·hash·참조·정책 상태만 판정합니다. 생성 문장 의미를 정규식으로 통과시키지 않습니다. 보고서의 execution_summary가 실제 실행 수치이며, 문서는 reviewed_draft_not_finalized와 manual_review_required=true로 표시합니다. 모델 pass는 사람의 최종 확인을 대신하지 않습니다.
+OSS 스모크의 자동 회귀 검사는 실행 행/고정 oracle/수치/hash/참조/정책 상태만 판정합니다. 생성 문장 의미를 정규식으로 통과시키지 않습니다. 보고서의 execution_summary가 실제 실행 수치이며, 문서는 reviewed_draft_not_finalized와 manual_review_required=true로 표시합니다. 모델 pass는 사람의 최종 확인을 대신하지 않습니다.
 
-실행 transcript는 `SAFEHANDOFF_TRANSCRIPT_DIR=.local/transcripts`로 켠다. 기본은 단계 메타데이터이며 `SAFEHANDOFF_TRANSCRIPT_CONTENT=1`을 함께 설정하면 승인된 모델 입력과 작성 초안도 기록한다. HTTP 응답은 바뀌지 않는다. 데모 연결 형식·권한·보존 제한은 [transcript 문서](docs/transcript.md)를 참고한다.
+실행 transcript는 `SAFEHANDOFF_TRANSCRIPT_DIR=.local/transcripts`로 켠다. 기본은 단계 메타데이터이며 `SAFEHANDOFF_TRANSCRIPT_CONTENT=1`을 함께 설정하면 승인된 모델 입력과 작성 초안도 기록한다. HTTP 응답은 바뀌지 않는다. 데모 연결 형식/권한/보존 제한은 [transcript 문서](docs/transcript.md)를 참고한다.
 
 ## CDP 화면 시연
 
 최신 fake-app의 전용 화면 `http://127.0.0.1:8081/__presentation`에서 가상 흐름을 연출합니다.
-하단 의미 자막·6단계 표시·장면 타임라인·이전/다음·일시정지/재생을 제공합니다.
-분석·공개 선택은 브라우저 연출이며 실제 승인 API를 구현한 것으로 표시하지 않습니다.
-문서 생성·저장·조회는 최신 `/api/sharing`, `/api/documents`를 사용합니다.
-실제 앱·코어·모델 연결을 바꾸지 않고 fake-app만 자동 실행합니다.
+하단 의미 자막/6단계 표시/장면 타임라인/이전/다음/일시정지/재생을 제공합니다.
+분석/공개 선택은 브라우저 연출이며 실제 승인 API를 구현한 것으로 표시하지 않습니다.
+문서 생성/저장/조회는 최신 `/api/sharing`, `/api/documents`를 사용합니다.
+실제 앱/코어/모델 연결을 바꾸지 않고 fake-app만 자동 실행합니다.
 
 ```bash
 mise exec -- just demo
-# 탐색·일시정지·재생 검증
+# 탐색/일시정지/재생 검증
 mise exec -- just demo-check
 # macOS에서 정상 속도 제출용 MP4 생성 및 110초 제한 검증
 mise exec -- just demo-record
@@ -139,55 +139,55 @@ mise exec -- just demo-record
 macOS에서는 기본 Chrome, 그 외 환경에서는 `mise run setup-presentation`으로 설치한
 Playwright Chromium을 사용합니다. `CHROME_PATH`로 실행 파일을 지정할 수 있습니다.
 매 실행마다 `var/cdp-demo-*`에 별도 SQLite와 보고서를 만들고 loopback 서버를 사용합니다.
-녹화는 macOS Swift·AVFoundation으로 인코딩합니다. `bin/`·`var/`는 자동 생성됩니다.
-분석·선택·최종 확인은 연출용 상태이고 생성된 문서의 실제 저장만 확인합니다.
+녹화는 macOS Swift/AVFoundation으로 인코딩합니다. `bin/`/`var/`는 자동 생성됩니다.
+분석/선택/최종 확인은 연출용 상태이고 생성된 문서의 실제 저장만 확인합니다.
 장면 이동은 새 브라우저 시연 상태를 구성한 뒤 해당 장면에서 일시정지합니다.
 110초를 초과한 정상 속도 실행은 실패로 처리합니다. `--fast`는 제출 시간 검증이 아닙니다.
 
-보존 중인 이전 실행: [제출 영상](docs/demo-media/SafeHandoff-demo.mp4) ·
-[미리보기](docs/demo-media/preview.png) · [영상 검증 기록](evaluation/results/cdp-submission-run.json).
+보존 중인 이전 실행: [제출 영상](docs/demo-media/SafeHandoff-demo.mp4) /
+[미리보기](docs/demo-media/preview.png) / [영상 검증 기록](evaluation/results/cdp-submission-run.json).
 이 묶음의 기준 main은 `3aaf0a4`입니다. 최신 main 통합의 검증 결과와 별도 제출 묶음 위치는
 [CDP 통합 기록](docs/cdp-integration-2026-10-31.md)을 따릅니다.
 
-ToyRecord 팩을 실제 catalog에서 선택해 OSS 스모크로 연결할 수 있다. `--catalog`, `--pack-version`, 운영자 `--registration`을 함께 사용하며 실행 전에 digest를 재검증한다. [설치·실행 절차](docs/toyrecord-pack.md)를 따른다.
+ToyRecord 팩을 실제 catalog에서 선택해 OSS 스모크로 연결할 수 있다. `--catalog`, `--pack-version`, 운영자 `--registration`을 함께 사용하며 실행 전에 digest를 재검증한다. [설치/실행 절차](docs/toyrecord-pack.md)를 따른다.
 
 
 발표자료는 최초 `mise run setup-presentation` 후 `mise exec -- just build-presentation`으로 통합
-HTML·PDF를 생성한다. 개별 슬라이드 HTML은 편집용이며 생성 대상이 아니다. PDF는 로컬 산출물로
+HTML/PDF를 생성한다. 개별 슬라이드 HTML은 편집용이며 생성 대상이 아니다. PDF는 로컬 산출물로
 Git에서 제외한다. Chromium 시스템 라이브러리 설치와 상세 절차는 [발표 빌드 안내](docs/presentation/README.md)를 따른다.
 
 이전 CDP fixture 녹화와 연출 코드 참고자료는 [영상 안내](docs/presentation/video/README.md)를
 따른다. `mise exec -- just preview-demo-video`로 원본 hash를 검증한 과거 영상을 로컬에서 확인한다.
 
 
-F02 분석 라이브러리는 [범위·한도·근거 위치 계약](docs/f02-analyze-plan.md)을 따른다. 전체 included
-source snapshot을 받아 evidence와 미승인 후보를 반환하며, 저장·공개 허가·writer 실행은 하지 않는다.
+F02 분석 라이브러리는 [범위/한도/근거 위치 계약](docs/f02-analyze-plan.md)을 따른다. 전체 included
+source snapshot을 받아 evidence와 미승인 후보를 반환하며, 저장/공개 허가/writer 실행은 하지 않는다.
 분석 원자료와 후보 본문은 상세 transcript opt-in에도 기록하지 않는다. 로컬 HTTP 통합 시험은
 가상 자료와 목 모델만 사용한다.
 
 
 F02 내부 저장은 `TaskStore.analysis`와 `runTaskAnalysis`를 사용한다. source 바이트/hash를
 검증해 snapshot을 고정하고, 모델 호출은 SQLite transaction 밖에서 수행한다. 결과 채택은 현재
-revision·job·source/skill 바인딩을 대조하며 취소·재분석·삭제 뒤 늦은 응답을 거부한다. 모델 없는
+revision/job/source/skill 바인딩을 대조하며 취소/재분석/삭제 뒤 늦은 응답을 거부한다. 모델 없는
 수동 후보는 현재 근거나 user_note에 묶으며 이전 공개 결정을 복제하지 않는다. task HTTP API는 아직
-없고, 작업 화면은 이 저장 경로 대신 stateless `/api/analysis`를 호출한다. [내부 계약·한도](docs/f02-analyze-plan.md)를 따른다.
+없고, 작업 화면은 이 저장 경로 대신 stateless `/api/analysis`를 호출한다. [내부 계약/한도](docs/f02-analyze-plan.md)를 따른다.
 
-### UI용 task·공개 결정·초안·확정 HTTP
+### UI용 task/공개 결정/초안/확정 HTTP
 
-`SAFEHANDOFF_WORKFLOW_ENABLED=1`로 켜면 시작 토큰을 터미널에 한 번 표시한다(5분·1회).
+`SAFEHANDOFF_WORKFLOW_ENABLED=1`로 켜면 시작 토큰을 터미널에 한 번 표시한다(5분/1회).
 세션은 8시간 고정이며 재시작 시 폐기한다. 기존 `SAFEHANDOFF_WORKFLOW_TOKEN`도 같은 정책으로
-지원하지만 출력하지 않는다. browser/server origin은 각각 WORKFLOW_BROWSER_ORIGIN·
-WORKFLOW_SERVER_ORIGIN 설정(접두 SAFEHANDOFF_)을 따르며 기본은 127.0.0.1:5173·:8080이다.
-HTTP loopback·단일 운영자 개발용이고 LAN 운영 인증을 대신하지 않는다. 미설정·fake-app은 v1 비활성이다.
+지원하지만 출력하지 않는다. browser/server origin은 각각 WORKFLOW_BROWSER_ORIGIN/
+WORKFLOW_SERVER_ORIGIN 설정(접두 SAFEHANDOFF_)을 따르며 기본은 127.0.0.1:5173/:8080이다.
+HTTP loopback/단일 운영자 개발용이고 LAN 운영 인증을 대신하지 않는다. 미설정/fake-app은 v1 비활성이다.
 
 `SAFEHANDOFF_WORKFLOW_CATALOG`는 projects/recipients JSON 경로다. 미설정 시 두 목록은 비어 있다.
 `fixtures/workflow/catalog.json`은 운영자가 명시적으로 고를 수 있는 가상 예제다. 실제 운영 정보가 아니다.
 모델 연결 설정은 기존 것을 사용하며 자동 fake 전환이나 외부 제출은 하지 않는다.
 
-서버는 catalog·작업 목록/원자료/이력/SSE·runtime, 분석/CAS·공개 결정, 초안/파일 검토 job·편집·
+서버는 catalog/작업 목록/원자료/이력/SSE/runtime, 분석/CAS/공개 결정, 초안/파일 검토 job/편집/
 제한된 사람 검토, 불변 파일 확정/다운로드, 숫자 CSV의 방향/지수 규칙 저장/재계산/철회를 제공한다.
-철회·만료·판본 변경은 내보내기를 차단한다. 원문 슬롯·타임라인·재현 증거의 확정 연결은 별도다.
-전체 DTO·수명·한도·지원 표현은 [실제 API](docs/api.md)를 따른다.
+철회/만료/판본 변경은 내보내기를 차단한다. 원문 슬롯/타임라인/재현 증거의 확정 연결은 별도다.
+전체 DTO/수명/한도/지원 표현은 [실제 API](docs/api.md)를 따른다.
 
-브라우저 로그인·세션 복원은 연결돼 있다. task 등록/저장·C 필드 선택·초안/최종 파일·Rule 관리의
+브라우저 로그인/세션 복원은 연결돼 있다. task 등록/저장/C 필드 선택/초안/최종 파일/Rule 관리의
 전체 화면 흐름은 후속이며 stateless 분석 결과를 영속 후보나 공개 허가로 자동 승격하지 않는다.
