@@ -1,67 +1,53 @@
 # API와 역할 계약
 
-이 문서는 기존 PoC의 **현재 API 사용법**입니다. [api.md](api.md)·`contracts/core.schema.json`은 새 구현 목표이며 현행 API와 바로 호환되지 않습니다. 특히 세션 경로, 결정 batch, 확정 필드가 다릅니다. [문서 정합성 대조](검증보고서.md#기존-문서와-새-문서의-정합성-대조)를 참고하세요.
+API의 단일 기준은 [api.md](api.md), 모델 역할의 단일 기준은 [agent-workflow.md](agent-workflow.md)입니다. 이 문서는 두 계약의 읽기 안내입니다. 아래는 구현할 계약이며 현재 서버의 모든 경로가 이를 지원한다는 뜻은 아닙니다. 구현 상태는 [검증보고서](검증보고서.md)를 따릅니다.
 
-기본 주소는 `http://127.0.0.1:8080/api/v1`입니다. [실제 라우트 OpenAPI](../contracts/openapi.json)에 구현된 경로를 기록했습니다. 모델 계약은 `contracts/*.schema.json`, 사용자 요청 DTO는 `internal/httpapi`의 별도 구조체입니다.
+## 접속과 변경 요청
 
-## 브라우저와 변경 요청
+기본 주소는 `http://127.0.0.1:8080/api/v1`입니다. 시작 시 터미널에 표시한 5분 일회용 토큰을 `/connect`에서 입력하고 `POST /auth/session`으로 8시간 세션을 엽니다. `GET /session` 무인증 발급은 새 계약에 사용하지 않습니다. 세션 폐기는 `DELETE /auth/session`입니다. Host·Origin·세션·CSRF를 검사하고 외부 CORS를 허용하지 않습니다.
 
-먼저 `GET /session`으로 `csrf_token`과 HttpOnly 세션 쿠키를 얻습니다. 변경 요청은 `X-CSRF-Token`, `Idempotency-Key`, `expected_revision`을 보냅니다. 생성·provider check·rule version은 각자의 생성·판본 계약을 씁니다. 쿠키·Host·Origin 검사가 실패하면 403, 낡은 판본·해시·멱등 키 충돌은 409입니다. 외부 CORS를 허용하지 않습니다.
+일반 변경 요청에는 `X-CSRF-Token`, `Idempotency-Key`, `expected_revision`을 사용합니다. 생성·인증·규칙 판본 관리의 예외는 [API 공통 규칙](api.md)을 따릅니다. 같은 요청 재전송은 동일 키와 바이트를 유지합니다.
 
-1. `POST /tasks`: 목적은 `oss_issue`, `vendor_support`, `operations_advice`; 범위는 `public`, `named_external`입니다. 기본 내장 제품 팩을 쓰며 `skill_ids`의 임의 선택은 거부합니다.
-2. `POST /tasks/{id}/source-batches`: multipart `meta` JSON과 `client_key` 이름의 파일 필드. 일괄 파싱·크기 확인 후 한 번의 revision 증가로 저장합니다. 붙여넣기도 파일 한 개입니다.
-3. `POST /tasks/{id}/jobs`: `analyze`, `interpret_disclosure`, `compose`, `review`, `reproduce`. 접수는 202이며 실제 결과는 `/jobs/{id}`에 기록합니다. `reproduce`는 별도로 승인한 합성 입력 후보가 있어야 실행합니다.
-4. `POST /disclosure-previews`: 현재 후보와 표현에서 실제 공개 투영·해시·preview ID를 받습니다.
-5. `POST /decision-batches`: `allow/exclude/defer`. allow는 서버 미리보기와 동일한 해시·표현·grant가 필요합니다. 선택을 바꿀 때마다 새 미리보기를 만듭니다. 필수 후보를 제외하면 `scope_reduced=true`의 명시적 PATCH 또는 batch의 `accept_scope_reduction=true` 확인이 있어야 작성할 수 있습니다.
-6. `POST /artifacts/{id}/finalize`: `expected_revision`, `expected_artifact_set_hash`, `confirmed=true`. 확정 후 export 파일과 archive를 받을 수 있습니다.
+## 작업과 공개 결정
 
-`GET /tasks/{id}/events`는 Last-Event-ID 이후 이벤트를 재생하는 SSE입니다. 자료·모델 출력 토큰은 보내지 않습니다. 화면은 작업 중 polling으로도 복구합니다. 내부 run trace는 DB와 evaluator 내부 보고서에만 있으며 공개 ZIP에는 들어가지 않습니다.
+작업 생성에는 목적·수신자·범위·언어·등록 지침 외에 `goal_variant`가 필요합니다. scope는 `project_id`, `purpose_id`, `goal_variant`, `recipient_id`, `audience`, `skill_set_hash`로 구성합니다. 목표별 허용 조합과 필수 정보는 [공통 계약](../contracts/domain-contract.json)을 따릅니다. 프로젝트·수신자 카탈로그는 로컬 설정으로 관리합니다.
 
-## 원문 승인
+자료 추가는 `POST /tasks/{id}/source-batches`의 multipart `meta.items`와 파일로 처리합니다. 업로드 자체는 공개 승인이 아닙니다. `POST /tasks/{id}/jobs`는 분석·조건 해석·작성·검토·재현을 접수하고, 결과는 job 상태로 확인합니다.
 
-`approved_excerpt`는 일반 사실 승인과 별개입니다. preview와 decision operation의 `raw_grants`에 단일 원문 grant를 전달합니다.
+미리보기는 `POST /tasks/{id}/disclosure-previews`, 결정은 `POST /tasks/{id}/decision-batches`입니다. 결정 batch는 `operations` 대신 `items`를 사용합니다.
 
 ```json
 {
-  "source_version_id": "srcv_실제ID",
-  "source_sha256": "원본바이트SHA256",
-  "byte_range": {"start": 0, "end": 20},
-  "hidden_ranges": [],
-  "rendered_sha256": "실제렌더링바이트SHA256",
-  "scope": {
-    "project_id": "project_demo",
-    "purpose_id": "oss_issue",
-    "recipient_id": "public",
-    "audience": "public",
-    "skill_set_hash": "현재작업해시"
-  },
-  "expires_at": null
+  "expected_revision": 8,
+  "items": [
+    {
+      "candidate_id": "cand_volume",
+      "disposition": "allow",
+      "preview_id": "preview_direction",
+      "approved_projection_sha256": "<실제 64자리 SHA-256>",
+      "expires_at": null,
+      "save_rule": true
+    }
+  ]
 }
 ```
 
-범위는 원본 UTF-8의 반열린 바이트 구간이며 후보 근거 안에 있어야 합니다. 숨김 구간은 `[비공개]`로 대체한 **실제 바이트** 해시를 사용합니다. UTF-8 문자 경계를 나누거나 source 판본·hash·scope·expiry가 달라지면 거부합니다. writer에는 슬롯 ID만 주고, 파일 구성기가 `approved-excerpt.txt`를 삽입합니다. 브라우저의 원문 구간 선택에서 근거·시작·끝·숨김 범위를 지정하고 실제 렌더링 미리보기 후 적용할 수 있습니다. API 통합시험과 고급 브라우저 시험으로 검증합니다.
+허용은 현재 미리보기와 해시가 필요합니다. source·scope·정확값/원문 grant는 서버의 preview binding에서 구성하며 클라이언트가 별도 권한으로 보내지 않습니다. exclude/defer에는 preview·grant를 넣지 않습니다. 필수 정보가 부족하면 goal을 명시적으로 바꾸고 재분석·재결정하며 `scope_reduced`로 목표 계약을 대체하지 않습니다.
 
-## 모델 역할
+## 원문·재사용·확정
 
-| 역할 | 입력 | 출력 |
-| --- | --- | --- |
-| analyst | 선택한 원자료의 UTF-8 내용, 앱 evidence ID, 목적, 내부 제품 지침 | 근거 있는 후보·불확실성·충돌 |
-| writer | 새 messages의 승인팩, 공개 작성 지침 | 제한된 DocAST |
-| reviewer | 원자료, 현재 결정, 승인팩, 현재 문서 또는 실제 파일 텍스트·hash | 정형 검토 지적 |
-| disclosure | 직접 입력 조건·현재 후보·등록 변환 | 권한이 아닌 구조화 제안 |
-| check | 비민감 고정 연결 확인 | `{"ok":true}` |
+원문 표현은 `approved_excerpt.parameters`의 source_version_id·start·end·hidden_ranges로 지정합니다. UTF-8 절대 바이트 범위, 원자료 판본, 실제 렌더링 해시를 검사하며 숨김 표식은 `[가림]`입니다. 작성기는 excerpt 슬롯만 받고 앱이 승인 바이트를 삽입합니다. 과거 `[비공개]` 바이트의 승인을 새 해시로 자동 이전하지 않습니다.
 
-텍스트 HTTP 응답은 단일 JSON만 받습니다. 중복·알 수 없는 키·키 대소문자 변형·후행 JSON·형식 오류·잘림을 거부합니다. 전체를 감싼 단일 json fence만 제거할 수 있습니다. 문서 fact ID·슬롯·필수 사실·새 숫자는 앱이 별도로 검사합니다. 형식 복구는 기본 두 번, 전체 호출은 12번, 작성 수정은 두 번으로 제한합니다.
+저장 기준은 정확한 scope·schema/version·selector·transform/version에 맞을 때 새 자료로 재계산합니다. 정확값·원문은 재사용하지 않습니다. 명시적 적용은 `POST /tasks/{id}/rules/apply`입니다.
 
-API `human-review`는 실제 파일을 확인한 사유와 현재 hash에 mode=human을 기록합니다. 의미 검토와 모델 성공 통계를 구분하며, 미승인·만료·낡은 판본·파일 오류·추가 공개 결정 요구를 우회하지 않습니다.
+확정은 `POST /artifacts/{id}/finalize`에 `expected_revision`, `expected_artifact_set_hash`, `confirm=true`를 보냅니다. `confirmed`는 새 계약에 사용하지 않습니다. 사람 검토는 target_kind·target_hash·checklist·fallback_reason으로 기록하며 hard gate를 우회하지 못합니다. 다운로드는 확정 저장 바이트를 반환합니다.
 
-## 계약 파일 갱신
+작업 삭제는 `DELETE /tasks/{id}`에서 revision, `confirmation="DELETE"`, `acknowledge_saved_rules_retained=true`를 확인합니다. 입력 제외·규칙 철회와 구분하며 저장 기준은 별도로 남습니다.
 
-```bash
-mise exec -- go run ./scripts/generate-contracts.go
-python3 scripts/generate-openapi.py
-```
+## 역할과 기록
 
-Python은 계약 문서 재생성에만 사용하며 앱 실행에는 필요하지 않습니다. 모델 정상/오류 corpus는 `contracts/examples`와 Go 시험이 공유합니다. 모든 계약의 완전한 JSON Schema 런타임 검증과 동일 corpus 전수 검증까지 구현된 것은 아닙니다. 현재 실제 강제는 strict decoder·역할별 검증기·도메인 교차 참조 검사입니다.
+분석기·검토기는 원자료를 읽을 수 있지만 작성기는 현재 승인팩과 공개 지침만 받습니다. 검토의 자유 설명·원문 오류·stderr는 writer에 전달하지 않습니다. 직접 입력 해석은 권한이 아닌 제안입니다. 필수 정보는 등록 template needs와 의미 검토로 판단하며 모델의 required 추천만으로 공개를 강제하지 않습니다.
 
-고정 공개 repro 코드는 앱이 digest를 검증한 뒤 최종 검토 입력에는 파일명·hash와 `registered_public_asset=true`만 전달합니다. 새 본문·표·원문·설정·실행 결과는 실제 텍스트를 검토합니다. writer에는 불확실성 메타데이터를 보존한 승인팩만 전달합니다.
+모델 요청/응답 본문은 기본 미저장, 명시적 debug 기록은 최대 24시간입니다. 역할별 호출 메타데이터와 fixture/live/사람 검토를 구분합니다. SSE에는 상태만 보냅니다.
+
+정확한 DTO·오류·경계값은 [api.md](api.md), [core.schema.json](../contracts/core.schema.json), [agent-workflow.md](agent-workflow.md)를 함께 따릅니다. 기존 `scripts/generate-openapi.py`·`scripts/generate-contracts.go`는 현재 코드 계약을 생성하므로 새 명세를 적용하는 도구로 간주하지 않습니다.

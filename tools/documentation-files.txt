@@ -4,6 +4,7 @@ contracts/catalog.example.json
 contracts/core.schema.json
 contracts/domain-contract.json
 contracts/schema.sql
+docs/API와역할계약.md
 docs/ERD.md
 docs/IA.md
 docs/acceptance-map.csv
@@ -33,6 +34,9 @@ docs/spec.md
 docs/test-data.md
 docs/traceability.csv
 docs/uj.md
+docs/검증보고서.md
+docs/구조와설계.md
+docs/시연안내.md
 evaluation/expected/b2b-ids-allowed.json
 evaluation/expected/b2b-ids-excluded.json
 evaluation/expected/operations-direction.json
