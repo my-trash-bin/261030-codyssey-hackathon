@@ -94,3 +94,13 @@ test('cancellation does not retry and concurrent runs have independent budgets',
   const results = await Promise.all([concurrent.core.writeReviewed(pack), concurrent.core.writeReviewed(pack)]);
   assert(results.every(result => result.review.result === 'pass'));
 });
+
+test('a model pass cannot bypass deterministic required fact coverage', async () => {
+  const noReferences = JSON.stringify({ schema_version: 'draft.v1', blocks: [{ type: 'paragraph', text: 'unsupported' }] });
+  const { core, requests } = setup([noReferences, pass, draft, pass]);
+  const result = await core.writeReviewed(pack);
+  assert.equal(result.review.result, 'pass');
+  assert.equal(JSON.parse(requests[2]!.input).feedback[0].reason_code, 'MISSING_REQUIRED_FACT');
+  const rejected = setup([noReferences, pass]);
+  await assert.rejects(rejected.core.generate({ purpose: 'support', recipient: 'vendor', facts: [{ id: 'f_1', text: 'required' }] }), code('CORE_UNAVAILABLE'));
+});

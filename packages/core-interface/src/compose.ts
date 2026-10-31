@@ -8,10 +8,11 @@ export function composeFactPack(input: ComposeFactPackInput, now?: number): Fact
   const candidates = new Map(input.candidates.map(candidate => [candidate.local_key, candidate]));
   if (candidates.size !== input.candidates.length || !Number.isInteger(input.task_revision)) invalid();
   const seen = new Set<string>();
+  // Task purpose is internal context, not an approved public brief.
   const pack: FactPack = {
     schema_version: 'fact_pack.v1', task_revision: input.task_revision,
     template_id: input.template_id, audience_type: input.audience_type,
-    output_language: input.task.output_language ?? 'ko', approved_brief: input.task.purpose,
+    output_language: input.task.output_language ?? 'ko', approved_brief: '',
     facts: [], required_fact_ids: [], tables: [], excerpt_slots: [], asset_slots: [], public_tool_results: [],
   };
   for (const decision of input.decisions) {

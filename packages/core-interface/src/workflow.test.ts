@@ -20,6 +20,9 @@ test('example candidates become only approved preview facts compatible with the 
   assert.deepEqual(pack.required_fact_ids, draft.blocks[0].fact_ids);
   assert.equal(pack.facts[0]!.statement, draft.blocks[0].text);
   assert.equal(JSON.stringify(pack).includes('ev_example'), false);
+  assert.equal(pack.approved_brief, '');
+  const internal = input(); internal.task.purpose = 'PRIVATE PURPOSE';
+  assert.equal(JSON.stringify(composeFactPack(internal)).includes('PRIVATE PURPOSE'), false);
   assert.equal(JSON.stringify(pack).includes(proposals.candidates[0]!.statement), false);
   assert.deepEqual(composeFactPack(input()), pack);
 });

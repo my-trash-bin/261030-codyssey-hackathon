@@ -37,6 +37,7 @@ export function validateDraft(value: unknown, pack: FactPack): Draft {
   const root = object(value, ['schema_version', 'blocks']);
   if (root.schema_version !== 'draft.v1' || !Array.isArray(root.blocks) || !root.blocks.length || root.blocks.length > 60) invalid();
   const facts = new Set(pack.facts.map(fact => fact.id));
+  if (facts.size !== pack.facts.length || pack.required_fact_ids.some(id => !facts.has(id))) invalid();
   const blocks = new Set<string>();
   for (const value of root.blocks) {
     const block = object(value, ['type'], ['block_id', 'text', 'level', 'items', 'table_id', 'excerpt_id', 'asset_id', 'fact_ids']);
@@ -94,6 +95,15 @@ export function parseReview(input: string, draft: Draft, pack: FactPack): Review
       if (!text(target.block_id) || !draft.blocks.some(block => block.block_id === target.block_id)) invalid();
     } else if (target.kind !== 'document' || target.block_id !== undefined) invalid();
     if (target.artifact_file_id !== undefined) invalid();
+  }
+  if (root.result === 'pass') {
+    const covered = new Set(draft.blocks.flatMap(block => [...(block.fact_ids ?? []),
+      ...(block.items ?? []).flatMap(item => item.fact_ids)]));
+    const missing = pack.required_fact_ids.filter(id => !covered.has(id));
+    if (missing.length) return { schema_version: 'review.v1', result: 'needs_changes', issues: [{
+      target: { kind: 'document' }, reason_code: 'MISSING_REQUIRED_FACT', action: null,
+      approved_fact_ids: missing, candidate_ids: [], internal_explanation: 'Required approved fact references are missing.',
+    }] };
   }
   return root as unknown as Review;
 }

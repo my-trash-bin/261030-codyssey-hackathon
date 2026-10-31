@@ -141,3 +141,5 @@
 - 앱은 ModelClient와 선택 ReproRunner를 조립하며 설정 없는 모델에 가짜 결과를 주입하지 않는다. 모델 HTTP 전송은 환경 프록시·전역 fetch 설정의 영향을 피하는 직접 native HTTP/TLS 요청으로 바꿨다. 모델 통신은 사용자 생성 요청 때만 발생한다.
 - 저장 코딩 전에 round3-scope.md에 축소 범위를 기록했다. 전체 제품 schema 대신 workflow 접두사의 내부 테이블과 migration, fact_summary 미리보기·사람 결정 배치·철회·만료만 구현했다. 인증 없는 task HTTP API는 추가하지 않았다.
 - 실행기는 scratch 이미지 안의 고정 toy target과 supervisor만 실행한다. supervisor가 실제 파일을 관찰하고 호스트가 출력 바이트를 대조한다. 이미지 전체 ID와 요청의 target/input digest를 확인하고 런타임 pull/build·호스트 경로 mount·임의 명령을 허용하지 않는다.
+
+- 3라운드 수동 보안 검토에서 내부 task purpose의 승인 brief 자동 복사를 제거하고 모델 pass에 필수 fact 참조 coverage 검사를 추가했다. 전용 /security-review 실행을 대신했다고 주장하지 않으며 검토 방법·시험·운영 한계는 [검토 기록](round3-security-review.md)에 남겼다.
