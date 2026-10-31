@@ -26,7 +26,7 @@ UI 작업은 이 README와 `docs/`의 문서를 기준으로 하며, 화면·승
 - 공개 결정 영역을 후보별 목록으로 바꿨습니다. 후보마다 미선택·허용·제외·보류를 따로 관리하며, 실제 미리보기 확인과 전체 일괄 적용을 분리합니다. 작업 ID로 조회를 시도할 수 있지만 현재 서버에는 task HTTP 경로가 없어 실제 후보가 표시되지는 않습니다.
 - 디자인은 `design-pick`의 `web-swiss-grid`를 유지합니다. 흰 바탕·검정 글자·12열 그리드·직각·무그림자를 적용하고, 전달 조건·공유 초안·접이식 근거 아래에 전체 폭의 공개 결정 목록을 둡니다. 내부 메모와 상세 실행 정보는 작업 영역 뒤에 둡니다.
 - 작업 도구에 맞춰 팩의 홍보용 대형 제목·큰 섹션 간격은 줄였습니다. 외부 웹폰트 대신 시스템 글꼴을 사용해 기존 CSP와 외부 자산 미호출 경계를 유지합니다. 미연결 사유는 동작 가까이에 짧게 표시하고 개발용 예시 모드는 항상 보입니다.
-- 실제 서버에 연결된 기능은 `GET /api/core`와 `GET/POST /api/documents`입니다. 내부 메모 저장·조회는 공개 승인이나 공유 초안 생성과 별개입니다. 목적·수신처는 서버에 저장하지 않습니다.
+- 이 화면에서 실제 서버와 연결된 기능은 `GET /api/core`와 `GET/POST /api/documents`입니다. 서버에는 `POST /api/analysis`도 있지만 분석 UI와 연결되지는 않았습니다. 내부 메모 저장·조회는 공개 승인이나 공유 초안 생성과 별개입니다. 목적·수신처는 서버에 저장하지 않습니다.
 - F03의 후보별 선택·미리보기 표·해석 결과·일괄 적용·철회 UI와 HTTP 전송 경계를 추가했습니다. 운영 화면에는 세션 토큰을 제공하지 않아 모든 쓰기가 차단됩니다. C의 필드 선택은 Core 참고 정의에는 있지만 HTTP 참고 스키마에는 없고, 필드 목록·서버 변환도 미구현이라 비활성입니다. 새 작업 계약이나 API를 신설하지 않고 기존 요구를 사용합니다. 파일 첨부·분석·공유 초안 생성·최종 파일 확인·다운로드·스킬 등록은 계속 미연결이며 `/api/sharing`을 호출하지 않습니다. [10개 항목별 반영과 연결 조건](docs/f03-ui-prerequisites.md)을 참고하세요.
 - 저장·목록 조회 실패 시 입력과 이전 목록을 보존하고, 저장 전 조회가 진행 중이면 끝난 뒤 저장 이후 목록을 다시 조회합니다. 저장 후 목록 갱신까지 중복 저장을 막습니다.
 - F03 확인: `mise exec -- pnpm --filter @safehandoff/client typecheck` 통과, `mise exec -- node --test packages/client/src/disclosure-state.test.ts` 31개 통과. 기존 클라이언트 검사 2개도 통과했습니다. Node는 mise에 설치된 고정 버전 24.21.0을 사용했습니다.
@@ -80,7 +80,7 @@ intent.md·제품 설계·contracts·fixtures/demo·과거 evaluation 기록은 
 
 `OpenAICompatibleModelClient(providerConfig, env?)`는 설정에 지정한 환경 변수 이름으로 URL·모델·키를 조회합니다. 환경 변수는 아래 연결 표를 따릅니다. 한 complete 호출은 HTTP 요청 한 번이며 재시도는 Engine이 담당합니다. HTTP 테스트는 로컬 목 서버만 사용합니다.
 
-`RealCore.analyze()`의 결정적 근거 파싱·후보 검증은 구현했습니다. 공개 제안·미리보기 계산과 task/decision HTTP API·분석 UI 연결은 미구현입니다. Docker 실행기와 내부 task/decision 저장은 [3라운드 범위](docs/round3-scope.md)로 구현했습니다. `composeFactPack`은 서버가 범위·원자료·hash를 검증한 현재 결정과 미리보기를 입력받는 순수 변환이며 승인 저장을 대신하지 않습니다.
+`RealCore.analyze()`의 결정적 근거 파싱·후보 검증과 `POST /api/analysis`는 구현했습니다. 공개 제안·미리보기 계산과 task/decision HTTP API·분석 UI 연결은 미구현입니다. Docker 실행기와 내부 task/decision 저장은 [3라운드 범위](docs/round3-scope.md)로 구현했습니다. `composeFactPack`은 서버가 범위·원자료·hash를 검증한 현재 결정과 미리보기를 입력받는 순수 변환이며 승인 저장을 대신하지 않습니다.
 
 ## 모델·실행기 환경 변수
 

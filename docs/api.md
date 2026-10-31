@@ -9,8 +9,9 @@
 | POST | /api/documents | `{"text":"내용"}` 저장 |
 | GET | /api/core | implementation, connection, ready 조회 |
 | POST | /api/sharing | 승인한 facts로 주입된 Core 호출 |
+| POST | /api/analysis | 주입된 Engine으로 원자료를 분석해 근거와 후보 제안을 반환 |
 
-POST는 application/json을 사용하며 본문 상한은 1 MiB다. 문서 저장 응답은 201과 document, 목록은 200과 documents다. 빈 텍스트·불필요 필드는 400, JSON 이외 Content-Type은 415다.
+POST는 application/json을 사용하며 본문 상한은 기본 1 MiB, `/api/analysis`만 1.5 MiB다. 문서 저장 응답은 201과 document, 목록은 200과 documents다. 빈 텍스트·불필요 필드는 400, JSON 이외 Content-Type은 415다.
 
 ## 코어 계약
 
@@ -70,9 +71,13 @@ HTTP 필드와 환경 변수는 추가하지 않았다. OSS CLI는 `--catalog`�
 
 ## F02 분석 라이브러리
 
-HTTP 경로·환경 변수는 추가하지 않았다. 주입된 Engine의 `analyze({task,sources}, {signal?})`는
-base64 원자료·source SHA-256·version·included 바인딩을 검사하고 `{evidence,proposals}`를
-반환한다. 이 결과는 공개 결정·서버 candidate_set 채택·의미 정확도 검증 완료가 아니다.
+`POST /api/analysis`를 추가했으며 환경 변수는 추가하지 않았다. 실제 앱은 Engine을 주입하고,
+Engine이 없는 앱에서는 503 `CORE_NOT_IMPLEMENTED`를 반환한다. 잘못된 분석 입력은 400,
+모델 오류는 503으로 반환한다. 연결 종료는 분석 취소 신호로 전달한다.
+
+주입된 Engine의 `analyze({task,sources}, {signal?})`는 base64 원자료·source SHA-256·version·
+included 바인딩을 검사하고 `{evidence,proposals}`를 반환한다. 이 결과는 공개 결정·서버
+candidate_set 채택·의미 정확도 검증 완료가 아니다.
 [파서 위치·한도·nullable 정규화·오류 계약](f02-analyze-plan.md)을 따른다. 원자료는 analysis 역할의
 설정된 모델로만 전달하고 writer 세션과 공유하지 않는다. 현재 라이브러리 자체가 프로세스의
 인터넷 차단이나 DB 권한·revision/CAS를 집행하는 것은 아니다. 분석 본문은 transcript에 기록하지 않는다.

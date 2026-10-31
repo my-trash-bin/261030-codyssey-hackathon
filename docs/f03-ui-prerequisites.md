@@ -94,7 +94,7 @@ candidate 목록 구조(1번)가 생긴 뒤에 그 위에 얹는 게 자연스�
 
 다음은 UI 구조 준비와 구분해야 하는 실제 연결 조건이다.
 
-- F02 분석 결과와 task·preview·decision·job HTTP 라우트의 실제 제공.
+- F02 분석 응답의 서버 candidate_set 채택과 task·preview·decision·job HTTP 라우트의 실제 제공. `POST /api/analysis`는 추가됐지만 이 저장·조회·결정 경로와 연결되지는 않았다.
 - C의 정의·구현 정리. 보존된 `contracts/core/shared.schema.json`에는 이미 `select_fields.v1`의
   `parameters.fields: string[]`가 있다. 반면 UI 준비 기준으로 삼은 HTTP 스키마에는 `fields`와
   `select_fields.v1`이 없다. 이는 참고 자료 간 불일치이지 실제 서버가 해당 필드를 거부한 관측이 아니다.
@@ -109,11 +109,11 @@ candidate 목록 구조(1번)가 생긴 뒤에 그 위에 얹는 게 자연스�
 
 | 항목 | UI 반영 | 실제 연결 경계 |
 | --- | --- | --- |
-| 1. 후보별 목록 | 작업 전체 응답을 받아 후보별 독립 결정·표현을 렌더링 | F02 후보 생성과 task HTTP 조회는 아직 미제공 |
+| 1. 후보별 목록 | 작업 전체 응답을 받아 후보별 독립 결정·표현을 렌더링 | F02 결과의 서버 candidate_set 채택과 task HTTP 조회는 미연결 |
 | 2. 미리보기·저장 분리 | 요청 가능한 상태에서 A·B 선택 시 미리보기만 요청하고, 서버 projection·해시를 표시해 allow에만 참조를 결합 | C의 필드 선택·미리보기는 미완료. 토큰 없는 운영 화면은 전송하지 않으며 결정 저장은 전체 적용에서만 수행 |
 | 3. 결정 3종 | 미선택·allow·exclude·defer를 구분 | 미선택을 자동 허용하거나 defer로 바꾸지 않음 |
 | 4. 일괄 적용 | 선택한 결정만 단일 배치로 제출, 미선택은 제외 | optional 전원 선택과 임의 충돌 해소 규칙을 강요하지 않음 |
-| 5. 판본·동시성 | 현재 revision 캐시, expected_revision·Idempotency-Key, 409 재조회, 오래된 응답 폐기 | 서버의 원자적 저장·동시성 검사는 별도 구현 필요 |
+| 5. 판본·동시성 | 현재 revision 캐시, expected_revision·Idempotency-Key, 409 재조회, 오래된 응답 폐기 | 내부 TaskStore의 원자적 저장·멱등 검사는 구현됨. UI와의 HTTP 통합은 미연결 |
 | 6. 필수성·빈 결과 | 현재 목적·제외되는 실제 정보·제외 취소·범위 축소 동의 대상 목록을 표시, 빈 결과 조건 미충족 안내 | 부분 결정 저장과 최종 확정을 구분. 필수 선정의 구체적 사유는 응답에 없으며 초안 생성 자체는 미연결 |
 | 7. 직접 입력 | supported·ambiguous·unsupported 분기, 입력 유지, 진행 중 해석 단건 조회 | interpret_disclosure의 실제 실행은 미연결 |
 | 8. 실제 출력 | 서버가 반환한 문장·표·원문 인용·해시를 렌더링 | B는 series_direction_only.v1. C의 실제 필드 선택·값 확인 흐름은 참고 정의 불일치와 필드 목록·서버 변환 미구현으로 미완료 |
@@ -147,3 +147,15 @@ candidate 목록 구조(1번)가 생긴 뒤에 그 위에 얹는 게 자연스�
 - 320px에서 문서 폭 320px, 제외 라디오와 동의 체크박스의 설명 연결, HTML 모양의 후보 문장을 텍스트로 표시하는 것을 확인했다. 새 확인 탭의 브라우저 오류 기록은 0개였다.
 - axe-core 4.13.0은 위반 0개·미확인 1개를 집계했다. 도구가 미확인 세부 항목을 반환하지 않아 전체 접근성 통과로 판단하지 않으며, 화면 읽기 도구 실사용도 확인하지 않았다.
 - 이번 보완은 6번 UI 동작과 잘못된 계약 설명을 바로잡은 것이다. 2·8번의 C 필드 선택·실제 미리보기와 서버 연결은 여전히 미완료다.
+
+### 최신 main 병합 후 확인
+
+- `origin/main`의 `ad07b07`을 작업 브랜치에 병합했다. `DisclosurePreview.raw_grants` 추가는 UI가 소비하는 기존 필드를 바꾸지 않았고 task·decision HTTP 라우트는 여전히 제공되지 않는다.
+- 병합 커밋의 저장소 밖 임시 사본에서 `mise exec -- pnpm typecheck`로 전체 패키지 빌드·타입 검사를 통과했다. 다음 영향 범위 검사 63개가 통과했고 실패·건너뜀은 0개였다.
+
+```bash
+mise exec -- node --conditions=development --test packages/client/src/*.test.ts packages/core/src/analyze.test.ts packages/core/src/evidence-parser.test.ts packages/server/src/*.test.ts packages/app/src/app.test.ts packages/app/src/config.test.ts packages/core-interface/src/workflow.test.ts
+```
+
+- 같은 사본의 실제 앱·클라이언트를 실행해 브라우저의 내부 메모 저장 201·목록 갱신 200, task 조회 404 안내·쓰기 차단, 320px 문서 폭 320px·자바스크립트 오류 0개를 확인했다. 새 분석 API에 `{}`를 보내 400 `INVALID_CORE_INPUT`도 확인했으며 외부 모델은 호출하지 않았다.
+- 이는 전체 테스트 묶음이나 실제 모델을 통한 분석·공개 결정의 종단간 확인이 아니다. 실행용 임시 사본·DB·서버·브라우저 탭은 정리했다.
