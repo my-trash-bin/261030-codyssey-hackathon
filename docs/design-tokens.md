@@ -145,9 +145,23 @@ shadcn/ui는 기존 Vite 프로젝트에 넣을 때 Tailwind CSS(`@import "tailw
 <https://ui.shadcn.com/docs/installation/vite>). 이 앱은 UI 의존성 없이 `react`만 쓰고 토큰 CSS 3장으로
 화면을 그리므로, 도입하면 Preflight 초기화, 이중 서체, 인주 팔레트를 Tailwind 쪽으로 다시 옮겨야 한다.
 
-Radix Primitives는 WAI-ARIA 패턴, 키보드, 포커스를 직접 구현해 준다
-(<https://www.radix-ui.com/primitives/docs/overview/accessibility>). 다만 지금 필요한 위젯(입력, 라디오, 체크박스, 셀렉트, 접이식)은 네이티브 요소로 이미 같은 동작을 얻고 있어서, 모달, 콤보박스, 토스트 같은 복합 위젯이 생길 때
-스타일 없는 Radix 조각만 골라 쓰는 쪽이 비용이 낮다.
+스타일을 강제하지 않는 대체 라이브러리를 npm 레지스트리 기준으로 비교했다(확인일 2026-11-01).
+
+| 후보 | 스타일 | 라이선스 | 패키지 의존 | React | 메모 |
+| --- | --- | --- | --- | --- | --- |
+| Base UI `@base-ui/react` 1.9.0 | 없음(className) | MIT | 5 | 17 이상 | Radix, MUI, Floating UI 만든 팀. WAI-ARIA 패턴 |
+| React Aria `react-aria-components` 1.22.1 | 없음(className) | Apache-2.0 | 8 | 19 포함 | Adobe. 동작 훅 중심, 접근성 기준이 가장 촘촘 |
+| Ariakit `@ariakit/react` 0.4.42 | 없음 | MIT | 1 | 17~19 | 네이티브 요소 우선, 의존 최소 |
+| Headless UI 2.2.10 | 없음 | MIT | 5 | 18, 19 | Dialog, Combobox, Menu 등 좁은 세트 |
+| Ark UI `@ark-ui/react` 5.40.0 | 없음 | MIT | 69 | 18 이상 | 상태 머신 기반, 의존이 많다 |
+| Radix `radix-ui` 1.8.1 | 없음 | MIT | 55 | 19 포함 | 검증된 조합이지만 메타 패키지 의존이 많다 |
+| shadcn/ui | Tailwind 클래스 | MIT | 프로젝트에 복사 | 19 | Base UI, Radix, React Aria 세 기반 중 선택. Tailwind 전제 |
+| KRDS-React `krds-react` 1.1.1 | Tailwind | ISC | 0 | 18.2 이상 | Typography와 Tailwind 플러그인만 있어 컴포넌트 세트가 아니다 |
+| dak-krds 1.0.15 | MUI 6, Emotion | MIT | 14 | 19 | KRDS 55종을 제공하지만 MUI 테마로 갈아타야 한다 |
+
+지금 필요한 위젯(입력, 라디오, 체크박스, 셀렉트, 접이식)은 네이티브 요소로 같은 동작과 키보드 조작을 이미 얻는다.
+셀렉트는 `appearance: base-select`가 Chrome에만 있어 다른 브라우저에서는 네이티브로 보인다. 이 차이를 없애야 하거나
+모달, 콤보박스, 토스트가 생기면 Base UI나 React Aria에서 그 조각만 가져오는 쪽이 비용이 가장 낮다.
 
 ## 토큰을 고칠 때
 
