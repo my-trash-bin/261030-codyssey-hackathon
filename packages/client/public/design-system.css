@@ -5,7 +5,7 @@
   gap: var(--space-11);
   max-width: var(--layout-measure);
   margin: 0 auto;
-  padding: var(--space-11) var(--layout-gutter);
+  padding: var(--layout-page-top) var(--layout-gutter) var(--layout-page-bottom);
 }
 
 .ds-hero {

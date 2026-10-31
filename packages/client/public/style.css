@@ -303,7 +303,13 @@ a:focus-visible {
 }
 
 .block > * + * {
-  margin-top: var(--space-5);
+  margin-top: var(--space-6);
+}
+
+/* 긴 문단은 본문 폭까지만 늘린다. 한 줄이 너무 길면 눈이 다음 줄을 놓친다. */
+.step__body p,
+.draft__sheet p {
+  max-width: var(--layout-prose-measure);
 }
 
 .block__head {

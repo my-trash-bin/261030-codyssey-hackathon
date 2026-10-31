@@ -181,6 +181,9 @@
   --layout-rail: 13rem;
   --layout-inspector: 18rem;
   --layout-prose: 36rem;
+  --layout-prose-measure: 40rem;
+  --layout-page-top: var(--space-8);
+  --layout-page-bottom: var(--space-11);
   --layout-progress-min: 24rem;
   --layout-mobile-step: 9rem;
   --layout-rail-number: 1.75rem;

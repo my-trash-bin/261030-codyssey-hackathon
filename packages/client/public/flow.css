@@ -11,7 +11,7 @@
   align-items: start;
   max-width: var(--layout-measure);
   margin: 0 auto;
-  padding: var(--space-7) var(--layout-gutter) var(--space-12);
+  padding: var(--layout-page-top) var(--layout-gutter) var(--layout-page-bottom);
 }
 
 @media (min-width: 900px) {
@@ -291,9 +291,9 @@
 .step,
 .screen {
   display: grid;
-  gap: var(--space-6);
+  gap: var(--space-7);
   min-width: 0;
-  padding: var(--space-7) var(--space-7);
+  padding: var(--panel-padding-y) var(--panel-padding-x);
   border: var(--border-width) solid var(--color-border-subtle);
   background: var(--color-surface-raised);
 }
@@ -313,7 +313,7 @@
 .screen__head {
   display: grid;
   gap: var(--space-3);
-  padding-bottom: var(--space-5);
+  padding-bottom: var(--space-6);
   border-bottom: var(--border-width) solid var(--color-border-subtle);
 }
 
