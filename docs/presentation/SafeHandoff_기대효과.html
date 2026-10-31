@@ -185,9 +185,9 @@ button{font:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
 </style></head><body>
 <header class="toolbar"><div class="toolbar-inner"><a class="brand" href="#effect"><span class="brand-badge">S</span>SafeHandoff <small>9 · EXPECTED EFFECTS</small></a><div class="tools"><a class="tool-button" href="SafeHandoff_외부_자원.html">‹ 8. 외부 자원</a><a class="tool-button" href="SafeHandoff_확장_가능성.html">10. 확장 가능성 ›</a><a class="tool-button" href="../spec.md">제품 설계</a><a class="tool-button" href="../../README.md">실제 구현</a><button class="tool-button" id="print-document" type="button">인쇄 / PDF 저장</button></div></div></header>
 <main class="reader" aria-label="SafeHandoff 기대효과"><div class="page-shell" id="sheet-effect"><section class="page" id="effect" aria-labelledby="effect-title"><header class="page-header"><h2 id="effect-title">기대효과</h2><span class="header-sub">박지훈의 사용 전후 · 시간·비용 가정과 코드 검증 구분</span></header><div class="effect-grid"><article class="effect-col">
-<section class="now-card"><span class="state-tag now">지금</span><h3>수작업 의존</h3><p class="state-sub">민감 값을 지우고 문의문을 다시 씀</p><div class="jihoon-art" role="img" aria-label="쌓인 문서를 직접 지우며 지친 박지훈"><div class="pose-crop"><img class="pose-sheet" src="effect_jihun_before_after_v2.png" style="--col:0;--row:0" alt=""></div></div></section>
+<section class="now-card"><span class="state-tag now">지금</span><h3>수작업 의존</h3><p class="state-sub">민감 값을 지우고 문의문을 다시 씀</p><div class="jihoon-art" role="img" aria-label="쌓인 문서를 직접 지우며 지친 박지훈"><div class="pose-crop"><img class="pose-sheet" src="effect_jihun_before_after_v2.webp" style="--col:0;--row:0" alt=""></div></div></section>
 <div class="flow-arrow" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3v17m-6-6 6 6 6-6"/></svg></div>
-<section class="after-card"><span class="state-tag after">SafeHandoff</span><h3>선택·검토에 집중</h3><p class="state-sub">고른 사실로 AI가 문의문 작성</p><div class="jihoon-art" role="img" aria-label="AI가 작성한 문의문을 선택하고 검토하는 박지훈"><div class="pose-crop"><img class="pose-sheet" src="effect_jihun_before_after_v2.png" style="--col:0;--row:1" alt=""></div></div><!-- EFFECT:time:start -->
+<section class="after-card"><span class="state-tag after">SafeHandoff</span><h3>선택·검토에 집중</h3><p class="state-sub">고른 사실로 AI가 문의문 작성</p><div class="jihoon-art" role="img" aria-label="AI가 작성한 문의문을 선택하고 검토하는 박지훈"><div class="pose-crop"><img class="pose-sheet" src="effect_jihun_before_after_v2.webp" style="--col:0;--row:1" alt=""></div></div><!-- EFFECT:time:start -->
             <div class="metric-compare">
               <p class="metric-kind assumed">시간·비용 계산 예시 · 실측 아님</p>
               <p class="metric-value">50% <small>작업 시간 감소</small></p>
@@ -195,9 +195,9 @@ button{font:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
             </div>
             <!-- EFFECT:time:end --></section>
 </article><article class="effect-col">
-<section class="now-card"><span class="state-tag now">지금</span><h3>민감 단서 잔존</h3><p class="state-sub">가려도 남는 고객 정보·내부 수치</p><div class="jihoon-art" role="img" aria-label="민감 정보가 담긴 문서를 보내기 전에 고민하는 박지훈"><div class="pose-crop"><img class="pose-sheet" src="effect_jihun_before_after_v2.png" style="--col:1;--row:0" alt=""></div></div></section>
+<section class="now-card"><span class="state-tag now">지금</span><h3>민감 단서 잔존</h3><p class="state-sub">가려도 남는 고객 정보·내부 수치</p><div class="jihoon-art" role="img" aria-label="민감 정보가 담긴 문서를 보내기 전에 고민하는 박지훈"><div class="pose-crop"><img class="pose-sheet" src="effect_jihun_before_after_v2.webp" style="--col:1;--row:0" alt=""></div></div></section>
 <div class="flow-arrow" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3v17m-6-6 6 6 6-6"/></svg></div>
-<section class="after-card"><span class="state-tag after">SafeHandoff</span><h3>승인한 사실만 공개</h3><p class="state-sub">원본은 사내에 두고 공유본을 새로 작성</p><div class="jihoon-art" role="img" aria-label="사내 원본과 승인된 공유 문서를 구분하는 박지훈"><div class="pose-crop"><img class="pose-sheet" src="effect_jihun_before_after_v2.png" style="--col:1;--row:1" alt=""></div></div><!-- EFFECT:leak:start -->
+<section class="after-card"><span class="state-tag after">SafeHandoff</span><h3>승인한 사실만 공개</h3><p class="state-sub">원본은 사내에 두고 공유본을 새로 작성</p><div class="jihoon-art" role="img" aria-label="사내 원본과 승인된 공유 문서를 구분하는 박지훈"><div class="pose-crop"><img class="pose-sheet" src="effect_jihun_before_after_v2.webp" style="--col:1;--row:1" alt=""></div></div><!-- EFFECT:leak:start -->
             <div class="metric-compare">
               <p class="metric-kind">코드 검증 · 가상 10건 · 고정 응답</p>
               <p class="metric-value">41개 → 0개</p>
@@ -205,9 +205,9 @@ button{font:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
             </div>
             <!-- EFFECT:leak:end --></section>
 </article><article class="effect-col">
-<section class="now-card"><span class="state-tag now">지금</span><h3>빠진 단서로 재작성</h3><p class="state-sub">필수 정보가 빠져 문의를 다시 준비</p><div class="jihoon-art" role="img" aria-label="누락된 단서 때문에 문서를 다시 비교하는 박지훈"><div class="pose-crop"><img class="pose-sheet" src="effect_jihun_before_after_v2.png" style="--col:2;--row:0" alt=""></div></div></section>
+<section class="now-card"><span class="state-tag now">지금</span><h3>빠진 단서로 재작성</h3><p class="state-sub">필수 정보가 빠져 문의를 다시 준비</p><div class="jihoon-art" role="img" aria-label="누락된 단서 때문에 문서를 다시 비교하는 박지훈"><div class="pose-crop"><img class="pose-sheet" src="effect_jihun_before_after_v2.webp" style="--col:2;--row:0" alt=""></div></div></section>
 <div class="flow-arrow" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3v17m-6-6 6 6 6-6"/></svg></div>
-<section class="after-card"><span class="state-tag after">SafeHandoff</span><h3>필수 단서 대조</h3><p class="state-sub">승인 사실과 초안을 대조해 누락을 확인</p><div class="jihoon-art" role="img" aria-label="필수 단서가 담겼는지 문서와 체크리스트를 확인하는 박지훈"><div class="pose-crop"><img class="pose-sheet" src="effect_jihun_before_after_v2.png" style="--col:2;--row:1" alt=""></div></div><!-- EFFECT:clue:start -->
+<section class="after-card"><span class="state-tag after">SafeHandoff</span><h3>필수 단서 대조</h3><p class="state-sub">승인 사실과 초안을 대조해 누락을 확인</p><div class="jihoon-art" role="img" aria-label="필수 단서가 담겼는지 문서와 체크리스트를 확인하는 박지훈"><div class="pose-crop"><img class="pose-sheet" src="effect_jihun_before_after_v2.webp" style="--col:2;--row:1" alt=""></div></div><!-- EFFECT:clue:start -->
             <div class="metric-compare">
               <p class="metric-kind">코드 검증 · 가상 10건 · 고정 응답</p>
               <p class="metric-value">32 / 32개 <small>100% 보존</small></p>

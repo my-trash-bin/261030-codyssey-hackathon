@@ -1,3 +1,4 @@
+// @ts-check
 // Local presentation evidence. Uses fixed model responses and synthetic cases; never calls an API.
 import assert from 'node:assert/strict';
 import { readFile, writeFile } from 'node:fs/promises';

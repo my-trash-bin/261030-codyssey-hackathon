@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+// @ts-check
 // LLM 모델에 입력된 내용을 transcript(JSONL)에서 읽어 보여 주는 도구.
 // 모델 호출마다 두 가지 입력을 나눠 출력한다.
 //   - System Prompt : 모델에 주는 역할·규칙 지시문 (system 메시지)
