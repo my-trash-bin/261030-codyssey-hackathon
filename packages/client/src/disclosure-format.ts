@@ -1,26 +1,8 @@
-import { DisclosureWorkspace } from './disclosure-state.js';
-import type {
-  Candidate,
-  Disposition,
-  Draft,
-  Evidence,
-  Mode,
-  Preview,
-  Representation,
-  SavedDecision,
-  Scope,
-  Snapshot,
-  Source,
-} from './disclosure-state.js';
+// 공개 결정 화면의 표시 전용 포맷 규칙.
+// 상태·전송 경계는 disclosure-state.ts가 맡고, 이 모듈은 라벨·요약·차단 사유 문구만 만든다.
+// DOM을 만들지 않는다.
 
-export type MountOptions = { csrfToken?: string; fetch?: typeof fetch };
-
-export type FocusState = {
-  key: string;
-  node: HTMLElement | null;
-  start: number | null;
-  end: number | null;
-};
+import type { Disposition, Draft, Mode, Representation, Scope } from './disclosure-state.ts';
 
 export const MODE_LABELS: Record<Mode, string> = {
   A: 'A. 사실 요약 — 구체적인 값 없이 사실만 문장으로',
@@ -68,24 +50,6 @@ export const REUSABLE_FORBIDDEN: readonly Representation['kind'][] = [
   'approved_excerpt',
   'selected_fields',
 ];
-
-
-
-export function make<K extends keyof HTMLElementTagNameMap>(tag: K, className?: string): HTMLElementTagNameMap[K] {
-  const node = document.createElement(tag);
-  if (className) node.className = className;
-  return node;
-}
-
-export function line<K extends keyof HTMLElementTagNameMap>(
-  tag: K,
-  value: string,
-  className?: string,
-): HTMLElementTagNameMap[K] {
-  const node = make(tag, className);
-  node.textContent = value;
-  return node;
-}
 
 export function shortId(value: string): string {
   return value.length > 18 ? `${value.slice(0, 15)}…` : value;
@@ -179,16 +143,18 @@ export function emptyDraft(): Draft {
   };
 }
 
-export function isEditable(node: Element | null): node is HTMLInputElement | HTMLTextAreaElement {
-  if (node instanceof HTMLTextAreaElement) return true;
-  if (node instanceof HTMLInputElement) return ['text', 'search', 'url', 'email'].includes(node.type);
-  return false;
+export function writeNoteText(reason: string): string {
+  return reason
+    ? `쓰기 차단: ${reason}`
+    : '쓰기 차단 사유 없음(토큰 제공됨). 실제 API 응답을 확인한 뒤 상태를 갱신합니다.';
 }
 
-export function findFocusable(scope: ParentNode, key: string): HTMLElement | null {
-  for (const node of Array.from(scope.querySelectorAll<HTMLElement>('[data-focus-key]'))) {
-    if (node.dataset.focusKey === key) return node;
+export function previewBlockReason(draft: Draft, writeReason: string, busy: boolean): string | null {
+  if (writeReason) return `쓰기 차단: ${writeReason}`;
+  if (busy) return '다른 요청이 진행 중입니다. 끝난 뒤 다시 시도하세요.';
+  if (!draft.representation) return '표현 방식을 먼저 고르세요.';
+  if (draft.mode === 'D' && draft.interpretation !== 'supported') {
+    return 'D는 조건 해석이 지원됨으로 끝나야 미리보기를 만들 수 있습니다.';
   }
   return null;
 }
-

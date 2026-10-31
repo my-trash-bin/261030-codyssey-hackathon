@@ -84,7 +84,7 @@ export interface AnalysisProblem {
 const MAX_FILES = 100;
 const MAX_FILE_BYTES = 262144;
 const MAX_TOTAL_BYTES = 1048576;
-const MAX_BODY_BYTES = 1572864;
+export const MAX_BODY_BYTES = 1572864;
 const MAX_TASK_TEXT = 8192;
 const MAX_EVIDENCE = 100;
 const MAX_CANDIDATES = 30;
@@ -98,11 +98,11 @@ const CANDIDATE_KINDS: Record<string, true> = {
 const UNCERTAINTIES: Record<string, true> = { observed: true, reported: true, inferred: true, unknown: true };
 const RELEVANCES: Record<string, true> = { required: true, optional: true };
 
-const NO_SUBTLE_MESSAGE =
+export const NO_SUBTLE_MESSAGE =
   '이 주소에서는 암호화 API(crypto.subtle)를 쓸 수 없어 파일 SHA256을 계산할 수 없습니다. ' +
   'HTTPS 또는 localhost 주소에서 다시 시도하세요. LAN의 HTTP 주소에서는 분석을 실행할 수 없습니다.';
-const NETWORK_MESSAGE = '분석 요청을 보내지 못했습니다. 서버 연결을 확인하세요. 자동으로 다시 시도하지 않았습니다.';
-const INVALID_RESPONSE_MESSAGE =
+export const NETWORK_MESSAGE = '분석 요청을 보내지 못했습니다. 서버 연결을 확인하세요. 자동으로 다시 시도하지 않았습니다.';
+export const INVALID_RESPONSE_MESSAGE =
   '분석 응답을 해석할 수 없어 성공으로 처리하지 않았습니다. 서버 응답 형식이 계약과 다릅니다.';
 const CONSENT_MESSAGE =
   '설정된 분석 모델이 승인된 사내·로컬 분석 환경인지 운영 설정에서 확인한 뒤 동의에 체크해야 분석할 수 있습니다. ' +
@@ -173,7 +173,7 @@ async function sha256Hex(bytes: Uint8Array<ArrayBuffer>, subtle: SubtleCrypto): 
   return hex;
 }
 
-async function readSources(files: readonly File[], subtle: SubtleCrypto): Promise<AnalysisSource[]> {
+export async function readSources(files: readonly File[], subtle: SubtleCrypto): Promise<AnalysisSource[]> {
   const sources: AnalysisSource[] = [];
   for (let index = 0; index < files.length; index++) {
     const file = files[index]!;
@@ -209,7 +209,7 @@ export interface WireSource {
   included: true;
 }
 
-function toWireSource(source: AnalysisSource, index: number): WireSource {
+export function toWireSource(source: AnalysisSource, index: number): WireSource {
   return {
     id: source.id,
     source_id: `local_source_${index + 1}`,
@@ -236,7 +236,7 @@ export async function toWireSources(files: readonly File[], subtle: SubtleCrypto
   return (await readSources(files, subtle)).map(toWireSource);
 }
 
-function serverErrorCode(body: unknown): string {
+export function serverErrorCode(body: unknown): string {
   const code = asRecord(body)?.error;
   return typeof code === 'string' && code !== '' ? ` ${code}` : '';
 }
@@ -343,7 +343,7 @@ function parseConflicts(value: unknown, candidateKeys: Set<string>): AnalysisCon
   return conflicts;
 }
 
-function parseResult(
+export function parseResult(
   body: unknown,
   task: { purpose: string; recipient: string },
   sources: readonly AnalysisSource[],
@@ -364,281 +364,60 @@ function parseResult(
   };
 }
 
-export class AnalysisWorkspace {
-  purpose = '';
-  recipient = '';
-  consent = false;
-  busy = false;
-  message = '';
-  problem: AnalysisProblem | null = null;
-  result: AnalysisResult | null = null;
+// run()이 실제 전송 전에 확인하는 입력 조건. 서버 검증을 대신하지 않고 화면 차단 사유만 만든다.
+export interface AnalysisInput {
+  files: readonly File[];
+  purpose: string;
+  recipient: string;
+  consent: boolean;
+}
 
-  private selectedFiles: File[] = [];
-  private onChange: () => void;
-  private fetchFn: typeof globalThis.fetch;
-  private requestSeq = 0;
-  private controller: AbortController | null = null;
-  private inputSeq = 0;
-  private resultInputSeq = -1;
-
-  constructor(onChange: () => void, options?: { fetch?: typeof globalThis.fetch }) {
-    this.onChange = onChange;
-    // 브라우저의 window.fetch는 receiver를 요구하므로 클래스 필드로 옮겨 호출하면 Illegal invocation이 난다.
-    const source = options?.fetch ?? globalThis.fetch;
-    this.fetchFn = source.bind(globalThis);
+export function validateAnalysisInput(input: AnalysisInput): AnalysisProblem | null {
+  const { files, purpose, recipient, consent } = input;
+  if (files.length === 0) {
+    return { field: 'files', message: '분석할 파일을 선택하세요. 파일을 고르는 것만으로는 전송되지 않습니다.' };
   }
-
-  get files(): readonly File[] {
-    return this.selectedFiles;
+  if (files.length > MAX_FILES) {
+    return { field: 'files', message: '한 번에 100개까지만 분석할 수 있습니다. 파일 수를 줄이세요.' };
   }
-
-  get resultIsCurrent(): boolean {
-    return this.result !== null && this.resultInputSeq === this.inputSeq;
+  let total = 0;
+  for (const file of files) {
+    if (formatOf(file.name) === null) {
+      return { field: 'files', message: `지원하지 않는 파일 형식입니다: ${file.name}. txt·log·md·csv·json만 보낼 수 있습니다.` };
+    }
+    if (file.size > MAX_FILE_BYTES) {
+      return { field: 'files', message: `파일 하나가 256KiB를 넘습니다: ${file.name}.` };
+    }
+    total += file.size;
   }
-
-  setFiles(files: readonly File[]): void {
-    const next = [...files];
-    if (next.length === this.selectedFiles.length && next.every((file, index) => file === this.selectedFiles[index])) return;
-    this.selectedFiles = next;
-    this.inputSeq += 1;
-    this.consent = false;
-    this.problem = null;
-    this.cancelledMessage('입력 파일이 바뀌어 진행 중인 분석을 취소했습니다.');
-    this.notify();
+  if (total > MAX_TOTAL_BYTES) {
+    return { field: 'files', message: '선택한 파일의 합계가 1MiB를 넘습니다. 파일 수나 크기를 줄이세요.' };
   }
+  if (purpose.trim() === '') return { field: 'purpose', message: '분석 목적을 입력하세요.' };
+  if (purpose.length > MAX_TASK_TEXT) return { field: 'purpose', message: '분석 목적은 8192자 이하여야 합니다.' };
+  if (recipient.trim() === '') return { field: 'recipient', message: '수신처를 입력하세요.' };
+  if (recipient.length > MAX_TASK_TEXT) return { field: 'recipient', message: '수신처는 8192자 이하여야 합니다.' };
+  if (!consent) return { field: 'consent', message: CONSENT_MESSAGE };
+  return null;
+}
 
-  setContext(purpose: string, recipient: string): void {
-    if (purpose === this.purpose && recipient === this.recipient) return;
-    this.purpose = purpose;
-    this.recipient = recipient;
-    this.inputSeq += 1;
-    this.consent = false;
-    this.problem = null;
-    this.cancelledMessage('목적·수신처가 바뀌어 진행 중인 분석을 취소했습니다.');
-    this.notify();
+export function analysisHttpFailure(status: number, code: string): string {
+  if (status === 400) {
+    return `서버가 분석 입력을 거부했습니다(400${code}). 원인을 특정할 수 없으므로 파일 형식·크기·개수·내용과 ` +
+      '목적·수신처를 확인하세요. 자동으로 다시 시도하지 않았습니다.';
   }
-
-  setConsent(consent: boolean): void {
-    if (consent === this.consent) return;
-    this.consent = consent;
-    if (!consent) {
-      this.problem = null;
-      this.cancelledMessage('동의를 해제해 진행 중인 분석을 취소했습니다.');
-    }
-    this.notify();
+  if (status === 413) {
+    return `분석 요청 본문이 서버 한도를 넘었습니다(413${code}). 파일 수나 크기를 줄이세요.`;
   }
-
-  cancel(): void {
-    // 진행 중인 요청이 없으면 이미 표시 중인 결과·메시지를 지우지 않는다.
-    if (!this.busy) return;
-    this.requestSeq += 1;
-    this.controller?.abort();
-    this.controller = null;
-    this.busy = false;
-    this.problem = null;
-    this.message = this.withPreviousResult('분석을 취소했습니다.');
-    this.notify();
+  if (status === 415) {
+    return `분석 요청이 JSON으로 전달되지 않았다는 오류입니다(415${code}). 화면 문제로 보이니 운영 담당자에게 알리세요.`;
   }
-
-  async run(): Promise<void> {
-    if (this.busy) {
-      this.message = '이미 분석을 진행 중입니다. 끝나거나 취소된 뒤 다시 시도하세요.';
-      this.notify();
-      return;
-    }
-    const invalid = this.validateInput();
-    if (invalid) {
-      this.problem = invalid;
-      this.message = invalid.message;
-      this.notify();
-      return;
-    }
-    const subtle = globalThis.crypto?.subtle;
-    if (!subtle) {
-      this.problem = { field: 'request', message: NO_SUBTLE_MESSAGE };
-      this.message = NO_SUBTLE_MESSAGE;
-      this.notify();
-      return;
-    }
-    const files = [...this.selectedFiles];
-    const purpose = this.purpose;
-    const recipient = this.recipient;
-    const inputSeq = this.inputSeq;
-    const owner = this.beginRequest();
-    this.problem = null;
-    this.message = '파일을 읽고 분석을 요청하는 중입니다.';
-    this.notify();
-
-    let sources: AnalysisSource[];
-    try {
-      sources = await readSources(files, subtle);
-    } catch (error) {
-      if (!this.ownsRequest(owner)) return;
-      this.endRequest(owner);
-      const candidate = error instanceof Error ? error.message : '파일을 읽지 못했습니다.';
-      const hasFileDetail = candidate.startsWith('지원하지 않는') || candidate.startsWith('파일을 읽지') ||
-        candidate.startsWith('UTF-8');
-      const message = hasFileDetail ? candidate : `파일을 읽지 못했습니다: ${candidate}`;
-      this.problem = { field: 'files', message };
-      this.message = message;
-      this.notify();
-      return;
-    }
-    if (!this.ownsRequest(owner)) return;
-
-    const wire = sources.map(toWireSource);
-    const serialized = JSON.stringify({ task: { purpose, recipient }, sources: wire });
-    if (new TextEncoder().encode(serialized).length > MAX_BODY_BYTES) {
-      this.endRequest(owner);
-      this.problem = { field: 'files', message: '선택한 파일의 전송 본문이 1.5MiB를 넘습니다. 파일 수나 크기를 줄이세요.' };
-      this.message = this.problem.message;
-      this.notify();
-      return;
-    }
-
-    const controller = new AbortController();
-    this.controller = controller;
-    let response: Response;
-    try {
-      response = await this.fetchFn('/api/analysis', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-        credentials: 'same-origin',
-        body: serialized,
-        signal: controller.signal,
-      });
-    } catch {
-      if (!this.ownsRequest(owner)) return;
-      this.endRequest(owner);
-      this.releaseController(controller);
-      this.failRequest(NETWORK_MESSAGE);
-      return;
-    }
-    let body: unknown = null;
-    try {
-      body = (await response.json()) as unknown;
-    } catch {
-      body = null;
-    }
-    if (!this.ownsRequest(owner)) return;
-    this.endRequest(owner);
-    this.releaseController(controller);
-    if (!response.ok) {
-      this.failRequest(this.httpFailure(response.status, serverErrorCode(body)));
-      return;
-    }
-    let result: AnalysisResult;
-    try {
-      result = parseResult(body, { purpose, recipient }, sources);
-    } catch {
-      this.failRequest(INVALID_RESPONSE_MESSAGE);
-      return;
-    }
-    this.result = result;
-    this.resultInputSeq = inputSeq;
-    this.problem = null;
-    this.message =
-      `분석을 마쳤습니다: 근거 ${result.evidence.length}개, 후보 ${result.proposals.candidates.length}개, ` +
-      `충돌 ${result.proposals.conflicts.length}개. 후보의 required는 모델 추천이며 확정 필수나 공개 허가가 아닙니다.`;
-    this.notify();
+  if (status === 503 && code.trim() === 'MODEL_BUDGET_EXCEEDED') {
+    return '모델 입력 예산을 넘었습니다(503 MODEL_BUDGET_EXCEEDED). 파일 단순 크기 한도와 별개인 모델 제공자 ' +
+      '설정 예산 문제이므로 자동 재시도하지 않습니다. 운영 담당자에게 문의하세요.';
   }
-
-  private validateInput(): AnalysisProblem | null {
-    const files = this.selectedFiles;
-    if (files.length === 0) {
-      return { field: 'files', message: '분석할 파일을 선택하세요. 파일을 고르는 것만으로는 전송되지 않습니다.' };
-    }
-    if (files.length > MAX_FILES) {
-      return { field: 'files', message: '한 번에 100개까지만 분석할 수 있습니다. 파일 수를 줄이세요.' };
-    }
-    let total = 0;
-    for (const file of files) {
-      if (formatOf(file.name) === null) {
-        return { field: 'files', message: `지원하지 않는 파일 형식입니다: ${file.name}. txt·log·md·csv·json만 보낼 수 있습니다.` };
-      }
-      if (file.size > MAX_FILE_BYTES) {
-        return { field: 'files', message: `파일 하나가 256KiB를 넘습니다: ${file.name}.` };
-      }
-      total += file.size;
-    }
-    if (total > MAX_TOTAL_BYTES) {
-      return { field: 'files', message: '선택한 파일의 합계가 1MiB를 넘습니다. 파일 수나 크기를 줄이세요.' };
-    }
-    if (this.purpose.trim() === '') return { field: 'purpose', message: '분석 목적을 입력하세요.' };
-    if (this.purpose.length > MAX_TASK_TEXT) return { field: 'purpose', message: '분석 목적은 8192자 이하여야 합니다.' };
-    if (this.recipient.trim() === '') return { field: 'recipient', message: '수신처를 입력하세요.' };
-    if (this.recipient.length > MAX_TASK_TEXT) return { field: 'recipient', message: '수신처는 8192자 이하여야 합니다.' };
-    if (!this.consent) return { field: 'consent', message: CONSENT_MESSAGE };
-    return null;
+  if (status === 503) {
+    return `분석 모델·엔진을 사용할 수 없습니다(503${code}). 자동으로 다시 시도하지 않았습니다.`;
   }
-
-  private httpFailure(status: number, code: string): string {
-    if (status === 400) {
-      return `서버가 분석 입력을 거부했습니다(400${code}). 원인을 특정할 수 없으므로 파일 형식·크기·개수·내용과 ` +
-        '목적·수신처를 확인하세요. 자동으로 다시 시도하지 않았습니다.';
-    }
-    if (status === 413) {
-      return `분석 요청 본문이 서버 한도를 넘었습니다(413${code}). 파일 수나 크기를 줄이세요.`;
-    }
-    if (status === 415) {
-      return `분석 요청이 JSON으로 전달되지 않았다는 오류입니다(415${code}). 화면 문제로 보이니 운영 담당자에게 알리세요.`;
-    }
-    if (status === 503 && code.trim() === 'MODEL_BUDGET_EXCEEDED') {
-      return '모델 입력 예산을 넘었습니다(503 MODEL_BUDGET_EXCEEDED). 파일 단순 크기 한도와 별개인 모델 제공자 ' +
-        '설정 예산 문제이므로 자동 재시도하지 않습니다. 운영 담당자에게 문의하세요.';
-    }
-    if (status === 503) {
-      return `분석 모델·엔진을 사용할 수 없습니다(503${code}). 자동으로 다시 시도하지 않았습니다.`;
-    }
-    return `분석에 실패했습니다(${status}${code}). 자동으로 다시 시도하지 않았습니다.`;
-  }
-
-  private failRequest(message: string): void {
-    this.problem = { field: 'request', message };
-    this.message = this.withPreviousResult(message);
-    this.notify();
-  }
-
-  private cancelledMessage(reason: string): void {
-    if (!this.busy) return;
-    this.requestSeq += 1;
-    this.controller?.abort();
-    this.controller = null;
-    this.busy = false;
-    this.message = this.withPreviousResult(reason);
-  }
-
-  private withPreviousResult(message: string): string {
-    if (this.result === null) return message;
-    return this.resultIsCurrent
-      ? `${message} 직전 분석 결과는 그대로 유지합니다.`
-      : `${message} 이전 분석 결과는 이전 입력 기준으로 유지합니다.`;
-  }
-
-  private releaseController(controller: AbortController): void {
-    if (this.controller === controller) this.controller = null;
-  }
-
-  private notify(): void {
-    try {
-      this.onChange();
-    } catch {
-      // 화면 콜백 오류는 상태 전이를 막지 않는다.
-    }
-  }
-
-  // 비동기 요청 소유권. 가장 최근에 시작한 요청만 busy/message/result를 바꾼다.
-  private beginRequest(): number {
-    const owner = ++this.requestSeq;
-    this.busy = true;
-    return owner;
-  }
-
-  private ownsRequest(owner: number): boolean {
-    return this.requestSeq === owner;
-  }
-
-  private endRequest(owner: number): void {
-    if (this.requestSeq === owner) this.busy = false;
-  }
+  return `분석에 실패했습니다(${status}${code}). 자동으로 다시 시도하지 않았습니다.`;
 }

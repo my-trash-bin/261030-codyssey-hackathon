@@ -23,7 +23,7 @@
 
 | 영역 | 요청 | 병합 뒤 서버 | 남은 것 |
 | --- | --- | --- | --- |
-| 세션·CSRF | 요청 0 | 구현됨. `POST`·`GET /api/v1/session`, `Path=/api/v1` 쿠키(`docs/api.md` `:125-129`) | 화면이 토큰을 받지 않아 쓰기는 여전히 차단 |
+| 세션·CSRF | 요청 0 | 구현됨. `POST`·`GET /api/v1/session`, `Path=/api/v1` 쿠키(`docs/api.md` `:125-129`) | 화면 연결도 완료. `useSession`이 받은 CSRF 토큰을 `useDisclosures({ csrfToken })`로 넘겨 쓰기 헤더에 실린다. 남은 것은 만료·로그아웃 뒤 재확인과 세션을 열 수 없는 환경의 차단 안내 |
 | 작업 생성·원자료 | 요청 1 | 생성·조회·`PUT /tasks/{id}/sources` 구현(`docs/api.md` `:150-152`) | catalog·자료 삭제·자료 한도 결정 |
 | 미리보기·결정(1편) | 1편 요청 2·3 | previews·fields·decision-batches·revoke·해석 job 구현(`docs/api.md` `:157-162`) | 실제 모델 입력으로 A~D 확인 |
 | 초안 작성·검토 | 요청 2 | 미구현 | job·artifact 저장·렌더·사람 검토 |
@@ -32,10 +32,14 @@
 | 이력·취소·삭제 | 요청 5 | 부분. task 삭제·job 취소·job 조회(`docs/api.md` `:155`, `:163`) | 목록·이벤트·삭제 확인 문자열 |
 | 실행 환경 | 요청 6 | 부분. 세션 응답의 `analysis_environment`·`capabilities`(`workflow-http.ts:64-66`) | `/api/v1/runtime`·앱 버전·디버그 정책 |
 
-화면은 아직 세션을 호출하지 않는다. `packages/client/src/main.ts:39`는 공개 결정 영역을 토큰 없이
-마운트하고, 클라이언트는 "운영 화면에 인증된 세션의 CSRF 토큰이 제공되지 않았습니다"라는 사유로
-쓰기를 막는다(`packages/client/src/disclosure-contract.ts:502-504`). 서버 구현과 화면 연결 사이에
-남은 간격이 이것이다.
+화면은 `useSession`이 마운트에서 `restoreSession`으로 `GET /api/v1/session`을 조회하고, `connect`가
+`openSession`으로 `POST /api/v1/session`에 토큰을 교환한다(`packages/client/src/session-client.ts`).
+받은 CSRF 토큰은 `App`의 `csrfToken` 상태로 내려가 `useDisclosures({ csrfToken })`가 쓰기 헤더에
+싣는다. 토큰이 없으면 공개 결정 쓰기는 "운영 화면에 인증된 세션의 CSRF 토큰이 제공되지
+않았습니다"라는 사유로 막힌다(`packages/client/src/disclosure-contract.ts`의 `NO_TOKEN_REASON`,
+`packages/client/src/disclosure-selectors.ts`의 `writeBlockReason`). 세션 획득과 쓰기 헤더 연결은
+화면에 있으므로, 남는 간격은 서버가 세션을 열지 못하는 환경에서 토큰이 비어 쓰기가 계속 차단되는
+경우와 만료 뒤 재확인이 없는 점이다.
 
 ## 작성 시점 상태
 
@@ -62,7 +66,7 @@
 
 | 항목 | 1편의 위치 | 병합 뒤 상태 |
 | --- | --- | --- |
-| 세션·CSRF | 요청 2의 수용 기준 1번 | 서버 구현됨. 화면의 토큰 획득만 남음 |
+| 세션·CSRF | 요청 2의 수용 기준 1번 | 서버 구현됨. 화면도 `GET`·`POST /api/v1/session` 호출과 CSRF 헤더 연결까지 완료 |
 | task 생성·조회 | 요청 1 | 구현됨 |
 | 분석 채택·job | 요청 1 | 구현됨 |
 | 미리보기·결정 배치·철회·C 필드 | 요청 2·3 | 구현됨 |
@@ -73,26 +77,34 @@
 ## 요청 0 — 세션·CSRF 계약
 
 - 대상: 쓰기 요청의 세션·CSRF·Host/Origin·멱등 키 계약.
-- 현재 상태: 병합된 원격 main이 `POST`·`GET /api/v1/session`을 구현했다(`docs/api.md` `:125-129`).
-  남은 것은 화면이 세션에서 토큰을 받아 쓰기 경로에 넣는 일이다. 이 문서의 세션 요청은 그 연결과
-  쿠키 수명·재시작 폐기 정책이 구현과 맞는지 확인하는 데 쓴다.
+- 현재 상태: 병합된 원격 main이 `POST`·`GET /api/v1/session`을 구현했고(`docs/api.md` `:125-129`),
+  화면도 세션에서 받은 CSRF 토큰을 쓰기 경로에 넣는 데까지 연결됐다(`App`의 `csrfToken` →
+  `useDisclosures({ csrfToken })`, `useTaskFlow({ csrfToken })`). 이 문서의 세션 요청은 그 연결과
+  쿠키 수명·재시작 폐기 정책이 구현과 맞는지, 만료·로그아웃 뒤 재확인을 어떻게 둘지 확인하는 데 쓴다.
 - 문서 요구: 시작 토큰은 암호학적 난수로 터미널에만 표시하고 5분·1회 사용, 세션은 8시간 고정,
   쿠키는 `HttpOnly`·`SameSite=Strict`·`Path=/`, 재시작 시 폐기, 로그아웃 경로 제공, 쓰기 요청은
   세션·CSRF·`Idempotency-Key`를 함께 검사, Origin은 실제 Host와 정확 비교, 외부 CORS 금지
   ([실행 경계](features/10-runtime-boundary.md) `:57`, `:59`, `:61`, `:91-93`).
-- 이미 있는 부분: 클라이언트가 `X-CSRF-Token`·`Idempotency-Key`를 붙이고
-  (`packages/client/src/disclosure-state.ts:325-326`, `:655-656`), 토큰이 없으면 쓰기를 보내지
-  않는다(`packages/client/src/disclosure-contract.ts:502-504`). 서버는 병합된 main에서
-  `POST`·`GET /api/v1/session`과 세션 쿠키 검사를 제공한다(`docs/api.md` `:125-129`).
-- 없는 부분: 화면이 세션을 호출해 토큰을 받는 경로가 없다. `packages/client/src/main.ts:39`는
-  토큰 없이 공개 결정 영역을 마운트하므로, 서버가 열려도 운영 화면의 쓰기는 막힌다.
+- 이미 있는 부분: `useDisclosures`의 `preview`·`interpret`·`apply`·`revoke`가 `X-CSRF-Token`과
+  `Idempotency-Key`를 붙이고(`packages/client/src/ui/hooks/useDisclosures.ts`), 작업 생성·원자료
+  등록은 `createTask`·`replaceSources`가 같은 헤더를 붙인다(`packages/client/src/task-client.ts`).
+  공개 결정 배치는 같은 작업·같은 본문을 다시 보내면 직전 멱등 키를 재사용한다(`apply`의
+  `lastBatchRef`). 토큰이 없으면 쓰기 요청을 만들지 않고, 사유는 `writeBlockReason`이 정한다
+  (`packages/client/src/disclosure-selectors.ts`). 서버는 병합된 main에서 `POST`·`GET
+  /api/v1/session`과 세션 쿠키 검사를 제공한다(`docs/api.md` `:125-129`).
+- 없는 부분: 세션 복원·토큰 교환은 `useSession`이 `restoreSession`·`openSession`
+  (`packages/client/src/session-client.ts`)으로 수행하므로 획득 자체는 화면에 있다. 남은 것은
+  만료·로그아웃 뒤 상태를 다시 확인하는 경로와, 서버가 세션을 열지 못하는 환경(503
+  `WORKFLOW_API_DISABLED` 등)에서 토큰이 비어 쓰기가 계속 차단되는 경우의 안내다. 이때도 화면은
+  사유만 표시하고 쓰기를 보내지 않는다(`writeBlockReason`).
 - 수용 기준:
   - 토큰 없는 쓰기는 401/403으로 거부하고, 성공·실패 모두 응답에 토큰이나 세션 비밀을 싣지 않는다.
   - 다른 Host·Origin에서 온 쓰기는 거부하고, 거부 사유를 클라이언트가 표시할 수 있는 코드로 준다.
   - 같은 `Idempotency-Key` 재전송은 첫 응답을 재현하고 부수 효과를 두 번 만들지 않는다(INV-16).
   - 재시작 뒤 기존 세션 쿠키는 무효다.
-- UI 접속점: 모든 쓰기 버튼의 사전 차단을 해제하는 지점. 현재 화면은 토큰이 없다는 사유만
-  표시한다(`packages/client/src/disclosure-contract.ts:502-504`).
+- UI 접속점: 모든 쓰기 버튼의 사전 차단을 해제하는 지점. 현재 화면은 토큰이 없으면
+  `writeBlockReason`이 돌려준 사유를 표시하고 쓰기 버튼을 비활성으로 둔다
+  (`packages/client/src/disclosure-selectors.ts`).
 
 ## 요청 1 — 작업 생성과 원자료 등록
 
@@ -108,7 +120,7 @@
   (`:34-39`).
 - 없는 부분: `GET /api/v1/catalog`과 `DELETE /api/v1/tasks/{id}/sources/{source_id}`가 없다.
   화면에도 작업 이름·프로젝트·수신자 목록을 고르는 등록 폼이 없고, 목적·수신처는 자유 입력 두
-  칸뿐이다(`packages/client/public/index.html:41`, `:46`).
+  칸뿐이다(`packages/client/src/ui/TaskSection.tsx`).
 - 문서와 구현의 차이(결정 필요):
   - `TaskContext`는 `purpose`·`recipient`·`goal_variant`·`output_language` 네 필드뿐이라
     `internal_title`·`project_id`·`audience`·`skill_ids`를 받을 자리가 없다
@@ -125,8 +137,10 @@
   - 등록한 자료의 `sha256`·바이트를 목록에서 확인할 수 있고, 원문을 화면 응답에 그대로 되돌려
     주지 않는다.
   - catalog는 프로젝트·목적·수신자 목록을 서버가 제공하고, 화면은 그 목록 밖 값을 만들지 않는다.
-- UI 접속점: 지금의 목적·수신처 자유 입력과 파일 선택을 등록 폼으로 대체하는 자리. 파일은
-  아직 `/api/analysis` 요청 본문으로만 쓰이고 저장되지 않는다(`docs/api.md:96-97`).
+- UI 접속점: 지금의 목적·수신처 자유 입력과 파일 선택을 등록 폼으로 대체하는 자리. 파일 등록은
+  이미 연결됐다. `useTaskFlow`(`packages/client/src/ui/hooks/useTaskFlow.ts`)가 `createTask` →
+  `replaceSources` 순서로 작업을 만들고 원자료를 저장한 뒤 `startAnalysis`로 분석 job을 시작한다
+  (`packages/client/src/task-client.ts`). 남은 화면 몫은 catalog로 고르는 등록 폼과 자료 삭제다.
 
 ## 요청 2 — 초안 작성·검토 job
 
@@ -158,8 +172,8 @@
   - 사람 검토는 기계적 hard gate를 우회하지 못하고, 검토 대상 해시에 묶인다(INV-08, INV-14).
   - 초안 생성 성공과 편집·검토 재실행이 서로 다른 revision을 만든다.
 - UI 접속점: 작업 공간의 초안 영역과 `공유 초안 생성`, 하단 주 동작의 `검토 다시 실행`. 지금은
-  두 버튼 모두 코드에서 강제 비활성이고(`packages/client/src/main.ts:35-37`), 화면은
-  "연결되지 않았습니다" 문구만 보여 준다(`packages/client/public/index.html:69-70`).
+  두 버튼 모두 화면에서 강제 비활성이고(`packages/client/src/ui/DraftSection.tsx`의
+  `#generate-document`·`#finalize-document`), 사유 문구만 보여 준다.
 
 ## 요청 3 — 최종 파일·확정·내보내기
 
@@ -181,9 +195,9 @@
   - 패키지는 allowlist 파일만 담고 절대경로·상위경로·역슬래시·중복 이름·심볼릭 링크를 거부하며,
     고정 시각·권한을 쓴다([최종 확인·내보내기 계획](features/05-export.md) `:81`).
   - 확정 후 편집은 새 revision과 재검토를 요구한다.
-- UI 접속점: `최종 파일 확인`과 확정 후 복사·다운로드. 지금 `finalize-document`는 비활성이고
-  (`packages/client/public/index.html:73-74`, `main.ts:35-37`), 클라이언트에 artifact·export를
-  부르는 코드가 0건이다.
+- UI 접속점: `최종 파일 확인`과 확정 후 복사·다운로드. 지금 `#finalize-document`는 비활성이고
+  (`packages/client/src/ui/DraftSection.tsx`), 클라이언트에 artifact·export를 부르는 코드가
+  0건이다.
 
 ## 요청 4 — 재사용 규칙 저장·적용·철회
 
@@ -198,8 +212,9 @@
   있으면 `fact_summary`·`derived_table`만 허용한다(`compose.ts:24-26`).
 - 없는 부분: 규칙 저장 테이블·저장 API·매칭·후보 선정·변환 재계산·목록·새 판본·철회가 모두 없다.
   `Rule` 타입(`workflow.ts:135-138`)은 입력 검증용 스냅샷일 뿐이다. 클라이언트는 결정 배치에
-  `save_reusable_rule`을 실어 보내지만(`disclosure-state.ts:1141-1151`), 내부 배치는 허용 필드
-  화이트리스트로 그 필드를 거부한다(`packages/server/src/task-store.ts:141`).
+  `save_reusable_rule`을 실어 보내지만(`planApply`의 배치 본문,
+  `packages/client/src/disclosure-selectors.ts`), 내부 배치는 허용 필드 화이트리스트로 그 필드를
+  거부한다(`packages/server/src/task-store.ts:141`).
 - 수용 기준:
   - 규칙 저장은 결정 배치의 일부인지 별도 호출인지 하나로 정하고, 클라이언트가 이미 보내는 필드
     이름과 합의한다.
@@ -212,8 +227,9 @@
     `:67`, `:69`).
   - 최신 판본을 쓸 수 없다고 과거 판본으로 자동 fallback하지 않는다.
   - 철회·만료는 전 판본에 적용되고, 확정·다운로드 시점에 다시 검사한다.
-- UI 접속점: 공개 결정의 `재사용 기준으로 저장` 체크박스(`disclosure-view.ts:1106-1136`)와
-  `스킬로 등록` 버튼(비활성, `index.html:94-95`).
+- UI 접속점: 공개 결정의 `재사용 기준으로 저장` 체크박스(`packages/client/src/ui/CandidateReusable.tsx`,
+  값은 `useDisclosures`의 `setReusable`·`candidate__reusable` 클래스)와 `스킬로 등록` 버튼(비활성,
+  `packages/client/src/ui/DraftSection.tsx`의 `#register-skill`).
 
 ## 요청 5 — 작업 목록·이력·취소·삭제
 
@@ -236,7 +252,7 @@
   - 취소는 서버 상태를 먼저 바꾸고, 물리 종료 전에 완료로 표시하지 않는다.
   - 삭제는 진행 job을 취소하고, 남는 재사용 규칙을 고지하며, 같은 요청 재전송에 같은 결과를 준다.
 - UI 접속점: 화면에 영역 자체가 없어 새로 만들어야 한다. 현재의 `저장된 내부 문서` 목록은
-  `/api/documents`이고 작업 목록이 아니다(`packages/client/src/main.ts:114-145`).
+  `/api/documents`이고 작업 목록이 아니다(`packages/client/src/ui/hooks/useDocuments.ts`).
 
 ## 요청 6 — 실행 환경 조회
 
@@ -250,7 +266,8 @@
   금지도 함께 요구된다(`docs/IA.md:181`, INV-15).
 - 이미 있는 부분: `GET /api/core`가 `implementation`·`connection`·`ready` 세 값만 준다
   (`packages/server/src/app.ts:39-40`, `packages/core-interface/src/model.ts:14-18`). 화면은 이
-  값으로 `실제 모델`/`개발용 예시 응답` 라벨을 만든다(`packages/client/src/main.ts:225-237`).
+  값으로 `실제 모델`/`개발용 예시 응답` 라벨을 만든다(`useRuntimeInfo`의 `check`,
+  `packages/client/src/ui/hooks/useRuntimeInfo.ts`).
 - 없는 부분: 모델 식별자(`ModelClientInfo.model`은 있으나 응답에 없음), 앱 버전, 확장·검사기·
   재현 상태, 디버그 본문 기록 여부·보존 정책이 응답에 없다. `/api/v1/runtime`은 404다.
 - 결정 필요: `/api/core`를 확장할지 `/api/v1/runtime`을 새로 만들지, 그리고 확장 시 응답 필드가
@@ -258,7 +275,8 @@
 - 수용 기준:
   - 응답에 endpoint URL·자격 증명·토큰이 들어가지 않는다([실행 경계](features/10-runtime-boundary.md) `:65`).
   - fixture와 live가 화면에서 구분되고, 자동 전환은 일어나지 않는다.
-- UI 접속점: `실행 정보` 접이식 영역(`index.html:150-198`).
+- UI 접속점: `실행 정보` 접이식 영역(`packages/client/src/ui/ExecutionSection.tsx`의
+  `#execution-environment`).
 
 ## 구현된 미리보기 엔진(preview·interpret)
 
@@ -269,8 +287,10 @@
 
 - 남은 확인: 실제 모델 입력으로 A~D 결과가 문서의 표현 정의와 일치하는지, 계산할 수 없는 표현이
   거부되는지는 이 문서를 쓰면서 실행으로 확인하지 않았다.
-- UI 접속점: 공개 결정 영역의 미리보기 표. 화면은 서버 응답만 그린다
-  (`packages/client/src/disclosure-state.ts:320`).
+- UI 접속점: 공개 결정 영역의 미리보기 표. 화면은 서버 응답만 그린다. `useDisclosures`의
+  `preview`가 `planPreview`(`packages/client/src/disclosure-selectors.ts`)가 만든 요청을 보내고,
+  `PreviewBlock`(`packages/client/src/ui/PreviewBlock.tsx`)이 응답의 표·발췌·해시를 계산 없이
+  표시한다.
 
 ## 관련 요청 — 문서·계약 정리
 

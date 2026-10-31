@@ -1,27 +1,28 @@
-import { readFile } from 'node:fs/promises';
 import type { RequestListener } from 'node:http';
 import type { FakeCore, FakeCoreScript } from '@safehandoff/fake-core';
 import type { SimulatedConnection, ConnectionPlan } from './connection.ts';
+import type { DemoAssets } from './assets.ts';
 
-export function createDemoHandler(base: RequestListener, core: FakeCore, connector: SimulatedConnection): RequestListener {
+export type { DemoAssets } from './assets.ts';
+
+// 연출 화면 HTML·번들은 주입한 assets가 맡는다. 화면 경로는 정적 파일 경로로 바꿔 넘기고,
+// assets가 담당하지 않으면 base(404 포함)로 넘긴다.
+export function createDemoHandler(
+  base: RequestListener,
+  core: FakeCore,
+  connector: SimulatedConnection,
+  assets?: DemoAssets,
+): RequestListener {
   return async (request, response) => {
     const path = new URL(request.url || '/', 'http://localhost').pathname;
-    const presentationFiles: Record<string, [string, string]> = {
-      '/__presentation': ['presentation.html', 'text/html; charset=utf-8'],
-      '/__presentation.js': ['presentation.js', 'text/javascript'],
-      '/__presentation.css': ['presentation.css', 'text/css'],
-    };
-    if (request.method === 'GET' && Object.hasOwn(presentationFiles, path)) {
-      const [name, type] = presentationFiles[path]!;
-      response.setHeader('Content-Type', type);
-      response.setHeader('Cache-Control', 'no-store');
-      response.end(await readFile(new URL('../public/' + name, import.meta.url))); return;
-    }
-    if (request.method === 'GET' && (path === '/__demo' || path === '/__demo.js')) {
-      const name = path === '/__demo' ? 'index.html' : 'controls.js';
-      response.setHeader('Content-Type', name.endsWith('.html') ? 'text/html; charset=utf-8' : 'text/javascript');
-      response.setHeader('Cache-Control', 'no-store');
-      response.end(await readFile(new URL('../public/' + name, import.meta.url))); return;
+    if (!path.startsWith('/api/')) {
+      if (!assets) { base(request, response); return; }
+      if (request.method === 'GET' || request.method === 'HEAD') {
+        if (path === '/__demo') request.url = '/index.html';
+        else if (path === '/__presentation') request.url = '/presentation.html';
+      }
+      assets(request, response, () => base(request, response));
+      return;
     }
     if (path !== '/api/demo/settings') { base(request, response); return; }
     response.setHeader('Content-Type', 'application/json');

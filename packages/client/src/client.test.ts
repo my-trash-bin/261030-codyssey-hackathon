@@ -1,8 +1,12 @@
 import assert from 'node:assert/strict';
+import { mkdtemp, mkdir, writeFile } from 'node:fs/promises';
 import { createServer } from 'node:http';
 import type { Server } from 'node:http';
 import type { AddressInfo } from 'node:net';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import test from 'node:test';
+import { createStaticAssets } from './assets.ts';
 import { createClientHandler } from './server.ts';
 
 async function listen(server: Server): Promise<string> {
@@ -13,7 +17,38 @@ async function close(server: Server): Promise<void> {
   await new Promise<void>((resolve, reject) => server.close(error => error ? reject(error) : resolve()));
 }
 
-test('client serves its own UI and forwards document JSON to the configured server', async () => {
+async function uiRoot(): Promise<string> {
+  const root = await mkdtemp(join(tmpdir(), 'safehandoff-client-'));
+  await mkdir(join(root, 'assets'));
+  await writeFile(join(root, 'index.html'), '<!doctype html><title>SafeHandoff</title>');
+  await writeFile(join(root, 'style.css'), 'body { margin: 0; }');
+  await writeFile(join(root, 'assets', 'app.js'), 'export const ready = true;');
+  return root;
+}
+
+test('static assets serve the built UI from the root and refuse to leave it', async () => {
+  const root = await uiRoot();
+  const server = createServer(createClientHandler('http://127.0.0.1:1', createStaticAssets(root)));
+  const base = await listen(server);
+  try {
+    const index = await fetch(base + '/');
+    assert.equal(index.status, 200);
+    assert.match(index.headers.get('content-type') ?? '', /^text\/html/);
+    assert.equal(index.headers.get('x-content-type-options'), 'nosniff');
+    assert.equal(index.headers.get('cache-control'), 'no-store');
+    assert.match(index.headers.get('content-security-policy') ?? '', /script-src 'self'/);
+    assert.equal((await fetch(base + '/style.css')).status, 200);
+    const script = await fetch(base + '/assets/app.js');
+    assert.equal(script.status, 200);
+    assert.match(script.headers.get('content-type') ?? '', /^text\/javascript/);
+    assert.equal((await fetch(base + '/assets/missing.js')).status, 404);
+    // 인코딩을 풀기 전 경로로 루트를 벗어나려는 시도는 정규화 뒤 거부한다.
+    assert.equal((await fetch(base + '/assets/..%2fserver.ts')).status, 404);
+    assert.equal((await fetch(base + '/assets/..%2f..%2fserver.ts')).status, 404);
+  } finally { await close(server); }
+});
+
+test('client forwards document JSON to the configured server', async () => {
   const forwarded: { method?: string; path?: string; body?: string }[] = [];
   const backend = createServer(async (request, response) => {
     const chunks = [];
@@ -23,16 +58,11 @@ test('client serves its own UI and forwards document JSON to the configured serv
     response.end('{"documents":[]}');
   });
   const serverOrigin = await listen(backend);
-  const client = createServer(createClientHandler(serverOrigin));
+  const root = await uiRoot();
+  const client = createServer(createClientHandler(serverOrigin, createStaticAssets(root)));
   const base = await listen(client);
   try {
     assert.equal((await fetch(base + '/style.css')).status, 200);
-    for (const path of ['/disclosure.css', '/disclosure-contract.js', '/disclosure-dom.js', '/disclosure-evidence.js', '/session-client.js']) {
-      assert.equal((await fetch(base + path)).status, 200, path);
-    }
-    const stateModule = await (await fetch(base + '/disclosure-state.js')).text();
-    assert.ok(stateModule.includes("from './disclosure-contract.js'"));
-    assert.ok(!stateModule.includes("from './disclosure-contract.ts'"));
     const body = JSON.stringify({ text: '가상 문서' });
     const saved = await fetch(base + '/api/documents', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body });
     assert.equal(saved.status, 201);
@@ -47,7 +77,9 @@ test('client serves its own UI and forwards document JSON to the configured serv
 
 test('the client page remains available when the backend is stopped', async () => {
   const backend = createServer(); const serverOrigin = await listen(backend); await close(backend);
-  const client = createServer(createClientHandler(serverOrigin)); const base = await listen(client);
+  const root = await uiRoot();
+  const client = createServer(createClientHandler(serverOrigin, createStaticAssets(root)));
+  const base = await listen(client);
   try {
     assert.equal((await fetch(base)).status, 200);
     const response = await fetch(base + '/api/documents');

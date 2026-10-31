@@ -66,7 +66,7 @@ SAFEHANDOFF_TRANSCRIPT_DIR를 설정하면 실제 app과 OSS 스모크의 Engine
 
 ## fake-app CDP 연출 화면
 
-GET `/__presentation`, `/__presentation.js`, `/__presentation.css`는 fake-app만 제공하는 고정 자원입니다.
+GET `/__presentation`·`/__demo`는 fake-app만 제공하는 연출 화면이고, 그 화면의 스크립트와 스타일은 빌드된 Vite 번들(`/assets/*.js`)과 `/presentation.css`로 제공됩니다. 서버가 정적 자산을 내보내는 경로만 바뀌었고 HTTP API는 그대로입니다.
 기존 `/__demo` 설정 화면과 병행하며 실제 app이나 공통 server에는 추가하지 않습니다.
 연출의 분석·공개 선택은 브라우저 상태이며 새로운 task/decision API가 아닙니다.
 생성·저장·조회는 위 `/api/sharing`, `/api/documents` 계약을 그대로 사용합니다.

@@ -25,7 +25,7 @@ async function sourceFiles(directory) {
   const entries = await readdir(directory, { withFileTypes: true });
   const lists = await Promise.all(entries.map(entry => {
     const path = resolve(directory, entry.name);
-    return entry.isDirectory() ? sourceFiles(path) : Promise.resolve(path.endsWith('.ts') ? [path] : []);
+    return entry.isDirectory() ? sourceFiles(path) : Promise.resolve(path.endsWith('.ts') || path.endsWith('.tsx') ? [path] : []);
   }));
   return lists.flat();
 }

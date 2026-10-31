@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "tsc -p tsconfig.json",
+    "build": "vite build && tsc -p tsconfig.server.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "node --conditions=development --test src/*.test.ts",
     "dev": "node --conditions=development --env-file-if-exists=../../.env --watch src/main.ts",
@@ -13,6 +13,13 @@
   "dependencies": {
     "@safehandoff/core-interface": "workspace:*",
     "@safehandoff/server": "workspace:*",
-    "@safehandoff/fake-core": "workspace:*"
+    "@safehandoff/fake-core": "workspace:*",
+    "react": "19.3.1",
+    "react-dom": "19.3.1"
+  },
+  "devDependencies": {
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "vite": "7.3.7"
   }
 }

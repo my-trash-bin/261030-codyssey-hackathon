@@ -7,7 +7,7 @@
 - 적용 대상: `feat/hackathon-ui`의 `packages/client` 작업 화면.
 - 목표: 사내 원자료에서 사용자가 공개를 허용한 정보로 문의 본문·표·첨부를 함께 작성하고, 검토·확정 후 직접 복사·다운로드하게 한다.
 - 포함: 목적·수신처·자료 입력, A~D 공개 선택과 미리보기·적용, D 조건 확인, 본문·표·설명·첨부 동시 갱신, 내부 근거·검토, 최종 파일 확인, 스킬 등록·재사용 흐름.
-- 제외: 원본의 외부 AI 전송, 외부 자동 제출, 기술 스택 교체, 모델·인증·실행 환경의 자동 설치나 변경. 커밋·푸시는 별도 승인 전 수행하지 않는다.
+- 제외: 원본의 외부 AI 전송, 외부 자동 제출, 모델·인증·실행 환경의 자동 설치나 변경. 커밋·푸시는 별도 승인 전 수행하지 않는다.
 - 기존 문서 저장·조회 기능은 유지한다. 새 작업 화면을 만든다는 이유로 현재 기능이나 API 계약을 제거하지 않는다.
 
 ## 기준 문서와 관계
@@ -122,13 +122,23 @@ observed_at,request_count
 - 앞선 대화의 시간 분 단위 내림, 천 단위 요청량 구간화는 확정 규칙이 아니다. 사용자 예시의 `1000 미만`·`20000 이상`도 B의 기본 변환으로 고정하지 않는다. 별도 규칙이 필요하면 기존 등록 변환의 지원 여부와 공개 의미를 확인하고 합의한다.
 - 완전 익명이나 유출 위험 제거를 보장하지 않는다. 선택한 표현이 남기는 관측 순서·패턴·규모 단서를 미리보기에서 설명한다.
 
+## 상태 계층과 훅 계약
+
+작업 화면은 React 함수 컴포넌트다. 상태 소유자는 클래스나 어댑터 객체가 아니라 `packages/client/src`의 순수 reducer와, 그 reducer를 `useReducer`로 붙인 훅이다.
+
+- 상태 소유: `analysisReducer`(`analysis-reducer.ts`)와 `disclosuresReducer`(`disclosure-state.ts`)가 화면 상태의 단일 원천이다. 파생 값과 명령 계획은 `disclosure-selectors.ts`가 현재 상태와 입력만으로 계산하고 상태를 바꾸지 않는다. 컴포넌트는 reducer가 만든 상태와 selector 결과만 읽는다.
+- 불변 갱신: 모든 전이는 기존 상태를 고치지 않고 새 객체·새 `Map`으로 만든다. 같은 상태를 여러 곳에서 고치는 공유 가변 컨테이너를 두지 않는다.
+- 훅의 책임: `useAnalysis`·`useDisclosures`·`useTaskFlow`·`useSession`·`useDocuments`·`useRuntimeInfo`는 요청 수명(요청 세대 번호, `AbortController`, 진행 중 점유)만 `useRef`로 다루고 화면 상태를 복제하지 않는다. `useSession`이 받은 CSRF 토큰은 `App`의 상태로 올려 `useDisclosures({ csrfToken })`·`useTaskFlow({ csrfToken })`가 같은 값으로 쓰기 헤더를 만든다.
+- 늦은 응답: 요청을 시작할 때 세대 번호를 올려 소유자를 잡고, 응답을 처리하기 전에 세대가 같은지 확인한다. 다른 요청이 시작됐거나 언마운트됐으면 응답을 버리고 상태를 바꾸지 않는다. 공개 결정 배치가 409를 받으면 reducer가 재조회 요청을 만들고 훅의 효과가 그것을 한 번만 소비한다.
+- 검사 도구: 요청 계약(메서드·경로·헤더·멱등 키)은 `session-client.test.ts`·`task-client.test.ts`가 스텁 fetch로 확인한다. 훅 동작은 `disclosure-state.test.ts`·`analysis-state.test.ts`가 `test-helpers/react-hook.ts`의 `renderHook`으로 실제 React root에 훅을 mount하고, 명령 호출을 `React act` 안에서 수행해 확인한다. 상태는 렌더마다 snapshot이므로 매번 `result.current`에서 읽는다.
+
 ## 구현·연결 상태와 수용 기준
 
 작업 화면은 이번에 목적·수신처·지원 형식 파일을 읽어 `POST /api/analysis`를 호출하고, 응답의 로컬 바이트 범위 근거와 후보 제안·충돌을 내부 검토용 영역에 표시하는 데까지 연결했다. 응답의 evidence·후보 참조는 임시 값이며 task·candidate 저장, 공개 허가, 공유 초안, 결정 저장이 아니다. 내부 저장 경로(`TaskStore.analysis`)는 따로 있으나 화면이 호출하지 않는다. 파일을 고르는 것만으로 전송하지 않고 승인된 사내·로컬 분석 환경 확인에 동의해야 호출하며, 입력이 바뀌면 동의를 해제한다. `GET /api/core`는 모델 주소를 제공하지 않으므로 화면이 실제 호스트의 사내 여부를 검증하거나 자동 차단한다고 표시하지 않는다. 사내 LAN의 HTTP처럼 `crypto.subtle`을 쓸 수 없는 보안 문맥에서는 요청 전에 오류를 안내하고 해시를 생략하지 않는다.
 
 파일 크기 검사를 통과해도 근거 최대 100개를 넘기면 분석할 수 없다. 화면은 이 한도와 `INVALID_CORE_INPUT`의 원인을 추측하지 않는 표시, 파일 크기와 무관한 `MODEL_BUDGET_EXCEEDED`를 구분해 안내한다. 전체 조건은 [분석 UI 이후 서버 요청](ui-api-requests.md)에 적었다.
 
-공개 제안·미리보기 계산과 task/decision HTTP API·C 필드 선택은 아직 전체 작업 화면과 연결되지 않았다. 분석 결과의 서버 채택은 `TaskStore.analysis`·`runTaskAnalysis` 내부 경로로 구현됐지만 HTTP 노출과 화면 연결은 없다. 현재 문서 저장·조회와 분석 결과 표시가 위 공개 결정 흐름을 구현했다는 뜻은 아니다.
+공개 결정 영역은 이제 `useDisclosures`가 `GET /api/v1/tasks/{id}` 조회와 미리보기·해석 요청·결정 배치·철회를 HTTP로 호출하고, 작업 생성과 원자료 등록·분석 job은 `useTaskFlow`가 `createTask` → `replaceSources` → `startAnalysis` → `readAnalysisJob` 순서로 호출한다(`packages/client/src/ui/hooks/`, `packages/client/src/task-client.ts`). 세션 CSRF 토큰이 없으면 쓰기는 사유만 표시하고 전송하지 않는다. 이 연결은 코드 배선으로 확인한 것이며, 실제 서버·브라우저에서 통과했다는 실행 확인은 [분석 연결 실행 확인](#분석-연결-실행-확인) 범위 밖이고 이번 전환에서 새로 실행하지 않았다. 초안·최종 파일·재사용 규칙 저장은 서버 API가 없어 화면에서 계속 비활성이다.
 
 아래는 실제 화면과 결과로 확인할 수용 기준이다. 문서에 적혀 있다는 이유로 통과나 구현 완료로 표시하지 않는다.
 

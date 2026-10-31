@@ -1,6 +1,5 @@
-import { readFile } from 'node:fs/promises';
-import { stripTypeScriptTypes } from 'node:module';
 import type { IncomingMessage, ServerResponse } from 'node:http';
+import type { ClientAssets } from './assets.ts';
 
 // F03 쓰기 요청이 실제로 쓰는 헤더만 upstream으로 전달한다.
 // 이 화면은 authorization 계열 자격 증명을 만들지 않으므로 전달하지 않는다.
@@ -12,20 +11,6 @@ const FORWARDED_REQUEST_HEADERS = [
   'cookie',
   'origin',
 ] as const;
-
-// 브라우저에 내보내는 모듈은 정확한 이름만 허용한다.
-const MODULES: Record<string, string> = {
-  '/main.js': 'main',
-  '/analysis-view.js': 'analysis-view',
-  '/analysis-state.js': 'analysis-state',
-  '/disclosure-view.js': 'disclosure-view',
-  '/disclosure-state.js': 'disclosure-state',
-  '/disclosure-contract.js': 'disclosure-contract',
-  '/disclosure-dom.js': 'disclosure-dom',
-  '/disclosure-evidence.js': 'disclosure-evidence',
-  '/session-client.js': 'session-client',
-  '/task-client.js': 'task-client',
-};
 
 // 다른 API는 기존 10초 제한을 유지한다. 분석은 모델 응답이 그보다 오래 걸릴 수 있으므로
 // Engine/ModelClient의 bounded timeout·call budget에 맡기고, 브라우저 연결이 요청 도중
@@ -51,7 +36,12 @@ function setUpCookie(headers: Headers): string[] | null {
   return values.length > 0 ? values : null;
 }
 
-export function createClientHandler(serverOrigin: string) {
+// UI 자산은 assets 미들웨어가 맡는다. 빌드 산출물을 Node가 직접 읽지 않고,
+// 개발 실행에서는 Vite 미들웨어가 같은 자리에 들어온다.
+export function createClientHandler(
+  serverOrigin: string,
+  assets?: ClientAssets,
+): (request: IncomingMessage, response: ServerResponse) => Promise<void> {
   const target = new URL(serverOrigin);
   if (target.protocol !== 'http:' || target.username || target.password || target.pathname !== '/') {
     throw new Error('SERVER_ORIGIN must be an HTTP origin');
@@ -93,25 +83,8 @@ export function createClientHandler(serverOrigin: string) {
       if (request.method !== 'GET' && request.method !== 'HEAD') {
         response.writeHead(405); response.end(); return;
       }
-      let body: string, type: string;
-      if (path === '/') {
-        body = await readFile(new URL('../public/index.html', import.meta.url), 'utf8'); type = 'text/html';
-      } else if (path === '/style.css' || path === '/disclosure.css') {
-        body = await readFile(new URL('../public' + path, import.meta.url), 'utf8'); type = 'text/css';
-      } else if (Object.hasOwn(MODULES, path)) {
-        // 소스 실행은 .ts를 타입 제거해 그대로, 빌드 실행은 컴파일된 .js를 서빙한다.
-        const name = MODULES[path] ?? '';
-        const sourceMode = import.meta.url.endsWith('.ts');
-        body = await readFile(new URL(sourceMode ? `./${name}.ts` : `./${name}.js`, import.meta.url), 'utf8');
-        if (sourceMode) body = stripTypeScriptTypes(body).replace(/(from\s+['"]\.\/[^'"]+)\.ts(['"])/g, '$1.js$2');
-        type = 'text/javascript';
-      } else { response.writeHead(404); response.end(); return; }
-      response.writeHead(200, {
-        'Content-Type': `${type}; charset=utf-8`, 'Cache-Control': 'no-store',
-        'X-Content-Type-Options': 'nosniff',
-        'Content-Security-Policy': "default-src 'self'; script-src 'self'; style-src 'self'; frame-ancestors 'none'",
-      });
-      response.end(body);
+      if (!assets) { response.writeHead(404); response.end(); return; }
+      assets(request, response, () => { response.writeHead(404); response.end(); });
     } catch {
       // 브라우저가 끊긴 뒤에는 응답을 쓸 수 없다. 분석 취소로 생긴 오류를 502 응답으로 덧쓰지 않는다.
       if (response.headersSent || response.writableEnded || response.destroyed) {

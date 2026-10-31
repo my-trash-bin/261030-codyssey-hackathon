@@ -3,12 +3,18 @@
   "compilerOptions": {
     "rootDir": "src",
     "outDir": "dist",
+    "lib": [
+      "ES2023",
+      "DOM"
+    ],
     "types": [
       "node"
     ],
+    "jsx": "react-jsx",
     "tsBuildInfoFile": "dist/tsconfig.tsbuildinfo"
   },
   "include": [
-    "src/**/*.ts"
+    "src/**/*.ts",
+    "src/**/*.tsx"
   ]
 }
