@@ -129,8 +129,7 @@ export interface ComposeFactPackInput {
   decisions: Decision[];
   previews: DisclosurePreview[];
 }
-// Signature only, same tier as parseGenerateRequest: a pure transform. Implemented next round.
-export declare function composeFactPack(input: ComposeFactPackInput): FactPack;
+export { composeFactPack } from './compose.ts';
 
 // -- writer (draft.v1): receives only the approved fact pack, never raw sources --
 export type DocBlockType = 'heading' | 'paragraph' | 'list' | 'table_ref' | 'excerpt_ref' | 'asset_ref';

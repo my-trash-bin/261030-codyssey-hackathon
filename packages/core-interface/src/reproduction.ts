@@ -53,10 +53,7 @@ export interface ReproduceResult {
   runs: ReproRun[];
 }
 
-// Fixed verdict logic, signature only: implemented alongside the actual sandbox runner.
-export declare function judgeReproduction(
-  runs: ReproRun[],
-): { status: ReproductionStatus; reason_code: string };
+export { judgeReproduction } from './judge.ts';
 
 export interface ReproRunnerInfo { implementation: 'docker' | 'fake'; ready: boolean }
 export interface ReproRunner {

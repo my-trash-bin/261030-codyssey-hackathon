@@ -117,3 +117,11 @@
 - D: 신규 타입(`CandidateProposals`, `FactPack`, `Draft`, `Review`, `ReproduceRequest/Result`, `TargetRun`, `ModelClient`, `ProviderConfig` 등)의 필드명은 contracts/*.v1.schema.json과 config.json을 직접 읽어 1:1로 맞췄다. task.v1 전체(서버측 영속 집계, scope/jobs/artifacts/events 포함)는 core-interface에 들여오지 않고, core가 실제로 쓰는 필드만 축소판으로 뽑았다(예: `Decision`은 `raw_grants`/`scope`/`applied_rule_*` 같은 서버 감사 필드를 뺀 `candidate_id/disposition/representation/expires_at/revoked`만).
 - D: `DockerReproRunner`/`OpenAICompatibleModelClient`는 `RealCore`와 같은 "명시적 미구현 seam" 패턴(가짜로 대체하지 않고 `REPRO_UNAVAILABLE`/`MODEL_UNAVAILABLE`을 던짐)으로만 스캐폴드했다.
 - 다음 라운드로 미룬 범위: `composeFactPack`/`judgeReproduction`의 실제 로직, `RealCore`의 analyze/write/review 오케스트레이션과 `ModelClient`/`ReproRunner` 실제 주입, `DockerReproRunner`의 실제 dockerode 컨테이너 실행(네트워크 차단·digest 검증·리소스 제한), `OpenAICompatibleModelClient`의 실제 HTTP 호출, server의 task/decision 저장 스키마. F07 `context_check`는 부차적이라 이번 라운드와 다음 라운드 모두에서 제외했다.
+
+## 2026-10-31 · 2a deterministic transforms and HTTP transport
+
+- `composeFactPack` consumes the server-validated current decision set and preview projections. Candidate IDs are `local_key`; fact/table/slot IDs are decision IDs. Duplicate current decisions and ambiguous/stale previews fail closed. The server remains responsible for scope, source and projection hash verification before calling this reduced interface.
+- Expiring decisions require an explicit `now` epoch-millisecond argument; expired/revoked/non-allow decisions contribute nothing. Excerpts remain renderer references. The output language defaults to `ko`.
+- `judgeReproduction` checks the `buggy/fixed × ascii/multibyte` matrix, exit/stdout consistency and runner-observed output flags before applying F08's oracle. Timeout exit codes 124/137 produce `error/REPRO_TIMEOUT`.
+- `OpenAICompatibleModelClient` resolves provider environment names at construction, rejects unapproved plaintext URLs and redirects, bounds input/response size and in-flight calls, and supports cancellation/timeouts. One `complete` call makes one HTTP attempt; Engine owns retry and aggregate call budgets.
+- Tests use contract examples and a local Node HTTP server only. No external model or real source data is used. Docker execution and server task/decision persistence remain separate work.
