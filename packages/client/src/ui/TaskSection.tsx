@@ -6,6 +6,7 @@ import type { ChangeEvent, FormEvent, JSX } from 'react';
 import type { SessionInfo } from '../session-client.ts';
 import { CANDIDATE_KINDS, CANDIDATE_RELEVANCES, CANDIDATE_UNCERTAINTIES } from '../task-client.ts';
 import type { CatalogOption } from '../task-client.ts';
+import { FileField } from './FileField.tsx';
 import type { TaskFlowApi } from './hooks/useTaskFlow.ts';
 
 const KIND_LABELS: Record<string, string> = {
@@ -361,18 +362,14 @@ export function TaskSection(props: {
             )}
             <div className="field">
               <label htmlFor="task-files">원자료 파일</label>
-              <input
+              <FileField
                 id="task-files"
-                name="files"
-                type="file"
+                inputRef={filesRef}
                 multiple
                 accept=".txt,.log,.md,.csv,.json"
-                ref={filesRef}
-                aria-invalid={task.invalidField === 'files' ? 'true' : undefined}
-                aria-describedby="task-create-hint task-files-note task-status"
-                onChange={(event: ChangeEvent<HTMLInputElement>): void => {
-                  task.setFiles(Array.from(event.currentTarget.files ?? []));
-                }}
+                invalid={task.invalidField === 'files'}
+                describedBy="task-create-hint task-files-note task-status"
+                onFiles={task.setFiles}
               />
               <p className="hint" id="task-files-note">
                 새 작업은 이 파일들로 첫 원자료 판본을 만듭니다. 선택 작업이 있으면 아래의 원자료 교체에도 같은 선택을 씁니다.
@@ -435,16 +432,13 @@ export function TaskSection(props: {
                 >{task.replaceBusy ? '교체 중…' : '위에서 고른 파일로 원자료 교체'}</button>
                 <div className="field">
                   <label htmlFor="task-add-files">추가할 원자료 파일</label>
-                  <input
+                  <FileField
                     id="task-add-files"
-                    type="file"
+                    inputRef={addFilesRef}
                     multiple
                     accept=".txt,.log,.md,.csv,.json"
-                    ref={addFilesRef}
-                    aria-describedby="task-add-note task-status"
-                    onChange={(event: ChangeEvent<HTMLInputElement>): void => {
-                      task.setAddFiles(Array.from(event.currentTarget.files ?? []));
-                    }}
+                    describedBy="task-add-note task-status"
+                    onFiles={task.setAddFiles}
                   />
                   <p className="hint" id="task-add-note">
                     추가는 기존 원자료를 그대로 둔 채 새 파일을 덧붙입니다. 서버가 원자료 원문을 다시 내려주지 않으므로

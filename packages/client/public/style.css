@@ -452,37 +452,62 @@ textarea {
   }
 }
 
-input[type="file"] {
-  width: 100%;
-  min-width: 0;
-  max-width: 100%;
-  height: var(--input-height);
+/* 파일 선택은 입력과 같은 상자 안에 버튼과 파일 이름을 놓는다. */
+.file-field {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: var(--input-height);
   padding: 0 var(--input-padding-x);
-  border: var(--border-width) dashed var(--color-border-default);
-  background: var(--color-surface-page);
+  border: var(--border-width) solid var(--input-border);
+  background: var(--input-background);
   color: var(--color-text-secondary);
-  font-family: inherit;
-  font-size: var(--type-body-size);
+  font-size: var(--type-body-sm-size);
 }
 
-/* 파일 선택 버튼도 같은 버튼 모양을 쓴다. */
-input[type="file"]::file-selector-button {
-  margin-inline-end: var(--space-3);
-  padding: var(--space-1) var(--space-3);
-  border: var(--border-width) solid var(--color-border-strong);
-  border-radius: var(--radius-none);
-  background: var(--color-surface-raised);
-  color: var(--color-text-primary);
-  font-family: inherit;
-  font-size: var(--type-body-sm-size);
-  font-weight: var(--font-weight-bold);
+.file-field[data-invalid="true"] {
+  border-color: var(--input-border-invalid);
+}
+
+.file-field[data-disabled="true"] {
+  border-color: var(--color-border-subtle);
+  background: var(--color-surface-disabled);
+  color: var(--color-text-disabled);
+}
+
+.file-field__trigger {
+  display: inline-flex;
+  flex: none;
   cursor: pointer;
 }
 
-@media (hover: hover) {
-  input[type="file"]::file-selector-button:hover {
-    border-color: var(--color-text-primary);
-  }
+.file-field__trigger:focus-within {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--space-1);
+}
+
+.file-field__button {
+  pointer-events: none;
+}
+
+.file-field__input {
+  position: absolute;
+  width: var(--border-width);
+  height: var(--border-width);
+  margin: calc(-1 * var(--border-width));
+  padding: 0;
+  border: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.file-field__name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* 움직임을 줄이도록 설정한 사용자에게는 전환을 끈다. */
@@ -645,7 +670,7 @@ textarea[aria-invalid="true"]:focus-visible {
 .option {
   display: flex;
   align-items: center;
-  gap: var(--space-4);
+  gap: var(--control-mark-gap);
   min-height: var(--button-height);
   padding: var(--space-2) 0;
   min-width: 0;

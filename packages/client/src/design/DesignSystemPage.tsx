@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { FileField } from '../ui/FileField.tsx';
 import type { JSX, RefObject } from 'react';
 
 /**
@@ -251,8 +252,8 @@ export function DesignSystemPage(): JSX.Element {
         </div>
         <div className="field">
           <label htmlFor="ds-file">파일</label>
-          <input id="ds-file" type="file" />
-          <p className="hint">파일 선택 버튼도 같은 테두리와 글자 크기를 쓴다.</p>
+          <FileField id="ds-file" onFiles={() => undefined} />
+          <p className="hint">입력과 같은 상자 안에 버튼과 고른 파일 이름이 들어간다.</p>
         </div>
         <div className="ds-row">
           <button className="button" type="button" ref={refs.button}>기본 버튼</button>

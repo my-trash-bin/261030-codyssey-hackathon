@@ -227,6 +227,7 @@
   --control-mark-check-size: var(--num-6);
   --control-mark-dot-size: var(--num-5);
   --control-mark-background: var(--color-surface-raised);
+  --control-mark-gap: var(--space-3);
   --control-mark-border: var(--color-border-strong);
   --control-mark-border-hover: var(--color-text-primary);
   --control-mark-background-checked: var(--color-surface-accent);
