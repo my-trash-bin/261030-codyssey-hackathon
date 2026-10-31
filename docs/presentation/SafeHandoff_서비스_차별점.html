@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#163172">
-<meta name="description" content="SafeHandoff 07. 서비스 차별점 - 대분류 비교 매트릭스">
-<title>SafeHandoff · 07. 서비스 차별점</title>
+<meta name="description" content="SafeHandoff 4. 서비스 차별점 - 승인 기반 재작성과 근거 대조 비교">
+<title>SafeHandoff · 4. 서비스 차별점</title>
 <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -145,152 +145,28 @@ button{font:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
   padding-bottom:2px;
 }
 
-/* 레퍼런스 이미지 완벽 대응: 5열 대분류 비교 그리드 */
-.matrix-wrap{
-  flex:1;
-  min-height:0;
-  display:grid;
-  grid-template-columns:168px 1fr 1fr 1fr 1.24fr;
-  column-gap:12px;
-  align-items:stretch;
-}
 
-.matrix-col{
-  display:grid;
-  grid-template-rows:68px repeat(7, minmax(0, 1fr));
-  min-height:0;
-}
-
-/* 상단 컬럼 헤더 박스 */
-.col-head{
-  background:var(--dark-pill);
-  color:#ffffff;
-  border-radius:10px;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  justify-content:center;
-  text-align:center;
-  padding:8px 10px;
-}
-.col-head strong{
-  font-size:15.5px;
-  font-weight:800;
-  letter-spacing:-.025em;
-  line-height:1.25;
-}
-.col-head span{
-  font-size:11px;
-  font-weight:600;
-  color:#cbd5e1;
-  margin-top:3px;
-  letter-spacing:-.01em;
-}
-
-/* 우측 우리 서비스(SafeHandoff) 강조 컬럼 */
-.matrix-col.ours .col-head{
-  background:var(--blue);
-  border-radius:10px 10px 4px 4px;
-  box-shadow:0 4px 14px rgba(37,99,235,0.22);
-}
-.matrix-col.ours .col-head strong{
-  font-size:19px;
-  font-weight:900;
-}
-.matrix-col.ours .col-head span{
-  color:#dbeafe;
-  font-size:11.5px;
-  font-weight:700;
-}
-
-/* 각 셀 공통 */
-.m-cell{
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  justify-content:center;
-  text-align:center;
-  padding:6px 10px;
-  border-bottom:1px solid #e2e8f0;
-  font-size:13.2px;
-  font-weight:600;
-  color:#64748b;
-  line-height:1.38;
-}
-.matrix-col .m-cell:last-child{
-  border-bottom:0;
-}
-
-/* 1열(구분) 스타일 */
-.matrix-col.label-col .m-cell{
-  align-items:flex-start;
-  text-align:left;
-  padding-left:6px;
-  font-size:14.5px;
-  font-weight:800;
-  color:#334155;
-  flex-direction:row;
-  justify-content:flex-start;
-  gap:7px;
-}
-.star-icon{
-  width:17px;
-  height:17px;
-  flex-shrink:0;
-  fill:#f59e0b;
-}
-
-/* 5열(SafeHandoff) 본문 박스 스타일 */
-.matrix-col.ours .m-cell{
-  background:#f2f7ff;
-  border-left:2.2px solid var(--blue);
-  border-right:2.2px solid var(--blue);
-  border-bottom:1px solid #dbeafe;
-  color:#111827;
-  font-size:13.8px;
-  font-weight:800;
-  padding:6px 14px;
-}
-.matrix-col.ours .m-cell:nth-child(2){
-  padding-top:8px;
-}
-.matrix-col.ours .m-cell:last-child{
-  border-bottom:2.2px solid var(--blue);
-  border-radius:0 0 10px 10px;
-}
-.matrix-col.ours .m-cell.highlight{
-  color:var(--blue);
-  font-weight:900;
-}
-
+.page-header{margin-bottom:12px;padding-bottom:11px}.page-header h2{font-size:31px}.header-sub{font-size:12px}
+.diff-lead{flex-shrink:0;margin-bottom:12px;font-size:16px;line-height:1.4;font-weight:800;color:#163172;letter-spacing:-.02em}
+.comparison{flex:1;min-height:0;margin-left:-8px;margin-right:-8px}.diff-table{width:100%;height:100%;table-layout:fixed;border-collapse:separate;border-spacing:8px 0}
+.diff-table thead th{height:65px;padding:9px 8px;border-radius:10px;background:#223042;text-align:center;color:#fff;font-weight:900;vertical-align:middle}.diff-table thead strong{font-size:15px;line-height:1.25;letter-spacing:-.025em}.diff-table thead span{display:block;margin-top:4px;font-size:10px;line-height:1.3;font-weight:600;color:#cbd5e1;white-space:nowrap}.diff-table thead th.ours{background:#2563eb;border-radius:10px 10px 0 0}.diff-table thead th.ours strong{font-size:21px}.diff-table thead th.ours span{color:#dbeafe;font-size:11px}
+.diff-table tbody th,.diff-table tbody td{padding:6px 8px;border-bottom:1px solid #dce4f0;vertical-align:middle;line-height:1.35;letter-spacing:-.02em}.diff-table tbody th{font-size:13.5px;font-weight:900;color:#334155;text-align:left;white-space:nowrap}.diff-table tbody td{font-size:12.5px;font-weight:600;color:#64748b;text-align:center}.diff-table tbody td.ours{padding:6px 10px;border-left:2px solid #2563eb;border-right:2px solid #2563eb;border-bottom-color:#dbeafe;background:#f2f7ff;color:#111827;font-size:13.5px;font-weight:800}.diff-table tbody tr.key-row td.ours{color:#2563eb;font-weight:900}.diff-table tbody tr:last-child th,.diff-table tbody tr:last-child td{border-bottom:0}.diff-table tbody tr:last-child td.ours{border-bottom:2px solid #2563eb;border-radius:0 0 10px 10px}
+.row-star,.star-space{display:inline-block;width:14px;height:14px;margin-right:4px;vertical-align:-2px;fill:#f59e0b}.comparison-note{flex-shrink:0;margin-top:8px;font-size:10px;line-height:1.4;color:#64748b;font-weight:600}.comparison-note p+p{margin-top:1px}.comparison-note a{text-decoration:underline;text-underline-offset:2px}
 @media(max-width:760px){
-  .toolbar-inner{width:calc(100% - 24px)}
-  .reader{padding:16px 0 25px}
-  .page-shell{width:calc(100% - 24px)!important;height:auto!important;margin-bottom:16px}
-  .page{width:100%;height:auto;padding:20px 16px;transform:none!important;overflow:visible}
-  .matrix-wrap{overflow-x:auto;min-width:900px}
+ .toolbar-inner{width:calc(100% - 24px)}.reader{padding:16px 0 25px}.page-shell{width:calc(100% - 24px)!important;height:auto!important;margin-bottom:16px}.page{width:100%;height:auto;padding:20px 16px;transform:none!important;overflow:visible}.page-header{flex-direction:column;align-items:flex-start;gap:6px}.comparison{overflow-x:auto}.diff-table{min-width:1100px;height:520px}
 }
-
 @media print{
-  @page{size:1280px 720px;margin:0}
-  body{background:#fff;margin:0;-webkit-print-color-adjust:exact;print-color-adjust:exact}
-  .toolbar{display:none!important}
-  .reader{padding:0;margin:0}
-  .page-shell{width:1280px!important;height:720px!important;margin:0!important}
-  .page{width:1280px!important;height:720px!important;transform:none!important;box-shadow:none!important;overflow:hidden!important}
+ @page{size:1280px 720px;margin:0}body{background:#fff;margin:0;-webkit-print-color-adjust:exact;print-color-adjust:exact}.toolbar{display:none!important}.reader{padding:0;margin:0}.page-shell{width:1280px!important;height:720px!important;margin:0!important}.page{width:1280px!important;height:720px!important;transform:none!important;box-shadow:none!important;overflow:hidden!important}
 }
 </style>
 </head>
 <body>
 <header class="toolbar">
   <div class="toolbar-inner">
-    <a class="brand" href="#diff"><span class="brand-badge">S</span>SafeHandoff <small>07 · DIFFERENTIATION</small></a>
+    <a class="brand" href="#diff"><span class="brand-badge">S</span>SafeHandoff <small>4 · DIFFERENTIATION</small></a>
     <div class="tools">
-      <a class="tool-button" href="SafeHandoff_목차.html">00. 목차</a>
-      <a class="tool-button" href="SafeHandoff_서비스_플로우.html">04. 유저 플로우</a>
-      <a class="tool-button" href="SafeHandoff_서비스_시연_영상.html">05. 시연 영상</a>
-      <a class="tool-button" href="SafeHandoff_서비스_아키텍처.html">‹ 06. 아키텍처</a>
-      <a class="tool-button" href="SafeHandoff_기대효과.html">08. 기대효과 ›</a>
+      <a class="tool-button" href="SafeHandoff_전후_비교.html">‹ 3. 솔루션·유저 플로우</a>
+      <a class="tool-button" href="SafeHandoff_직접_개발_범위.html">5. AI 기술·직접 개발 범위 ›</a>
       <a class="tool-button" href="../spec.md">제품 설계</a>
       <a class="tool-button" href="../../README.md">실제 구현</a>
       <button class="tool-button" id="print-document" type="button">인쇄 / PDF 저장</button>
@@ -298,108 +174,10 @@ button{font:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
   </div>
 </header>
 
-<main class="reader" aria-label="SafeHandoff 서비스 차별점">
-  <div class="page-shell" id="sheet-diff">
-    <section class="page" id="diff" aria-labelledby="diff-title">
-      <header class="page-header">
-        <h2 id="diff-title">서비스 차별점</h2>
-        <span class="header-sub">설계 목표·후속 계획 포함 · 현재 완료 범위는 <a href="../../README.md">실제 구현</a> · <a href="ISSUES.md">발표 이슈</a> 참조</span>
-      </header>
-
-      <div class="matrix-wrap" role="table" aria-label="기존 대분류 솔루션 대비 SafeHandoff 차별점 비교">
-
-        <!--  1열: 구분  -->
-        <div class="matrix-col label-col" role="rowgroup">
-          <div class="col-head" role="columnheader">
-            <strong>구분</strong>
-          </div>
-          <div class="m-cell" role="rowheader">주 대상 자료</div>
-          <div class="m-cell" role="rowheader">공개 범위 설정</div>
-          <div class="m-cell" role="rowheader">원본 처리 방식</div>
-          <div class="m-cell" role="rowheader">
-            <svg class="star-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-            조건 변경 시
-          </div>
-          <div class="m-cell" role="rowheader">
-            <svg class="star-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-            단서 · 제약 보존
-          </div>
-          <div class="m-cell" role="rowheader">
-            <svg class="star-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-            판단 근거 확인
-          </div>
-          <div class="m-cell" role="rowheader">반복 작업 부담</div>
-        </div>
-
-        <!--  2열: 대분류 1 (개인정보 마스킹 · 보안 통제)  -->
-        <div class="matrix-col" role="rowgroup">
-          <div class="col-head" role="columnheader">
-            <strong>개인정보 마스킹 · 보안 통제</strong>
-            <span>Limina · Private AI · MS Purview</span>
-          </div>
-          <div class="m-cell">개인정보 항목 · 보안 라벨 문서</div>
-          <div class="m-cell">고정 항목 마스킹<br>또는 외부 접근 차단</div>
-          <div class="m-cell">원문 속 단어만 치환<br>(업무 맥락·함수명 잔존)</div>
-          <div class="m-cell">단어 치환만 수행<br>(문장·표 연동 없음)</div>
-          <div class="m-cell">일괄 삭제로<br>문제 해결 단서 손실</div>
-          <div class="m-cell">탐지된 항목만 표시<br>(블랙박스 필터링)</div>
-          <div class="m-cell">고정 탐지 규칙만 적용<br>(목적별 조정은 수작업)</div>
-        </div>
-
-        <!--  3열: 대분류 2 (합성 데이터 · 버그 리포팅)  -->
-        <div class="matrix-col" role="rowgroup">
-          <div class="col-head" role="columnheader">
-            <strong>합성 데이터 · 기술지원 도구</strong>
-            <span>Tonic · Jam · StepStitch · Cloudflare</span>
-          </div>
-          <div class="m-cell">DB 테이블 · 브라우저 버그 기록</div>
-          <div class="m-cell">합성 데이터 생성<br>또는 로그 표식 정리</div>
-          <div class="m-cell">데이터·화면만 별도 추출<br>(문의 본문과 분리됨)</div>
-          <div class="m-cell">예제·로그만 따로 재생성</div>
-          <div class="m-cell">버그 기록 위주<br>(일반 자문·업무 제약 미지원)</div>
-          <div class="m-cell">실행 로그 · 증거 묶음만 제공</div>
-          <div class="m-cell">수정 사례 참고만 가능</div>
-        </div>
-
-        <!--  4열: 대분류 3 (일반 AI + 실무자 수작업)  -->
-        <div class="matrix-col" role="rowgroup">
-          <div class="col-head" role="columnheader">
-            <strong>일반 AI + 실무자 수작업</strong>
-            <span>프롬프트 지시 + 직접 가림 · 대조</span>
-          </div>
-          <div class="m-cell">사내 로그 · 운영 표 · 문의 초안</div>
-          <div class="m-cell">매번 지시문 작성<br>+ 사람이 직접 삭제</div>
-      <!-- // TODO: [PRES-07] 보안 보장/경쟁 비교/효과 수치는 ISSUES.md에서 검토. 현재 보장·측정 완료로 해석하지 않음. -->
-          <div class="m-cell">외부 AI에 원본 먼저 전송<br>(유출 위험 발생)</div>
-          <div class="m-cell">본문·표의 숫자를<br>사람이 일일이 다시 수정</div>
-          <div class="m-cell">빠진 조건과 오류 여부를<br>담당자가 눈으로 대조</div>
-          <div class="m-cell">담당자 기억과 수동 비교</div>
-          <div class="m-cell">문의 때마다 처음부터 반복</div>
-        </div>
-
-        <!--  5열: 우리 서비스 (SafeHandoff)  -->
-        <div class="matrix-col ours" role="rowgroup">
-          <div class="col-head" role="columnheader">
-            <strong>SafeHandoff</strong>
-            <span>우리 서비스</span>
-          </div>
-          <div class="m-cell">기술 문의(오류·정산)부터<br>일반 내부 자료(자문·운영)까지</div>
-      <!-- // TODO: [PRES-06] AI 생성 선택지와 A~D 표시 계약 정리 필요. D는 현행 직접 입력; 비율은 예시. ISSUES.md 참조. -->
-          <div class="m-cell">공개 수준(A~D) 4단계 선택<br>(사실만 · 추이만 · 마스킹 · 비율)</div>
-          <div class="m-cell">인터넷 차단 사내 공간 +<br>허용 범위로만 새 초안 작성</div>
-          <div class="m-cell highlight">선택 변경 시 관련된<br>본문 · 표 · 설명 동시 자동 갱신</div>
-      <!-- // TODO: [PRES-04] 전체 원자료 대조/제약 자동 복원은 계획. 현재는 초안·FactPack·grounding 검토. -->
-          <div class="m-cell highlight">검토 AI가 빠진 제약 복원 +<br>새 예제 오류 재현까지 확인</div>
-      <!-- // TODO: [PRES-02] 전체 UI/API 연결·본문/표 갱신·근거·내보내기는 미구현. 현재는 메모 저장/조회와 상태 확인. -->
-          <div class="m-cell highlight">문장별 원문 근거 위치 연결<br>+ 공개 이유 문장 제시</div>
-      <!-- // TODO: [PRES-03] Rule 저장/매칭은 미구현. SkillPack과 혼용 금지; 공개 팩 공유는 별도 후속. ISSUES.md 참조. -->
-          <div class="m-cell">검증된 기준을 스킬(Skill)로 등록<br>조건 일치 시 자동 재사용</div>
-        </div>
-
-      </div>
-    </section>
-  </div>
-</main>
+<main class="reader" aria-label="SafeHandoff 서비스 차별점"><div class="page-shell" id="sheet-diff"><section class="page" id="diff" aria-labelledby="diff-title"><header class="page-header"><h2 id="diff-title">서비스 차별점</h2><span class="header-sub">제품 유형별 자료 준비 방식 비교</span></header>
+<p class="diff-lead">사람이 승인한 사실로 새 문의문을 만들고, 근거와 누락을 함께 확인합니다.</p>
+<div class="comparison"><table class="diff-table"><colgroup><col style="width:14%"><col style="width:20%"><col style="width:20%"><col style="width:20%"><col style="width:26%"></colgroup><thead><tr><th scope="col" class=""><strong>구분</strong></th><th scope="col" class=""><strong>개인정보 마스킹<br>보안 통제</strong><span>Limina · Microsoft Purview</span></th><th scope="col" class=""><strong>합성 데이터<br>기술지원 도구</strong><span>Tonic · Jam</span></th><th scope="col" class=""><strong>일반 AI + 사람 검토</strong><span>지시문·저장 규칙·수동 확인</span></th><th scope="col" class="ours"><strong>SafeHandoff</strong><span>승인 기반 공유 자료 준비</span></th></tr></thead><tbody><tr><th scope="row"><span class="star-space"></span>주 대상 자료</th><td class="">개인정보 항목<br>보안 라벨 문서</td><td class="">DB·문서 데이터<br>화면·버그 기록</td><td class="">사용자가 제공한<br>업무 자료·문의 초안</td><td class="ours">사내 로그·운영 표<br>외부 기술 문의·업무 설명</td></tr><tr class="key-row"><th scope="row"><svg class="row-star" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>공개 범위 결정</th><td class="">민감 항목 탐지·변환<br>라벨·정책으로 공유 통제</td><td class="">생성 조건·기록 범위<br>데이터·제품별 설정</td><td class="">지시문·저장 규칙으로<br>공개 조건을 직접 관리</td><td class="ours">AI가 제안해도 공개 허용은<br>사람이 미리보기로 확정</td></tr><tr class="key-row"><th scope="row"><svg class="row-star" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>공유 문서 작성</th><td class="">원본의 민감 요소를<br>가리거나 대체 정보로 변환</td><td class="">합성 데이터·버그 기록<br>필요한 결과물 생성</td><td class="">사용자 지시로 작성 후<br>사람이 결과를 수정</td><td class="ours">승인한 사실만 작성에 사용<br>문의문 전체를 새로 작성</td></tr><tr><th scope="row"><span class="star-space"></span>상황·산업별 기준</th><td class="">유형·라벨·정책을<br>업무에 맞게 설정</td><td class="">생성 규칙·기록 범위를<br>데이터·제품에 맞게 조정</td><td class="">회사·산업 조건을<br>지시문·규칙에 반영</td><td class="ours">업종별 스킬·회사별 프로필로<br>민감 기준을 분리 적용</td></tr><tr class="key-row"><th scope="row"><svg class="row-star" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>자동 검수·대조</th><td class="">민감 정보 탐지·정책과<br>변환 결과를 기준으로 확인</td><td class="">합성 데이터·기록 맥락과<br>재현 자료의 품질 확인</td><td class="">사람이 누락·오류를<br>직접 검토·보완</td><td class="ours">공개 승인·필수 단서·불확실성<br>규칙 검사와 LLM 대조</td></tr><tr><th scope="row"><span class="star-space"></span>판단 근거 확인</th><td class="">탐지 결과·라벨·정책을<br>기준으로 결과 확인</td><td class="">기록·재현 단계·로그로<br>문제 맥락 확인</td><td class="">지시문·대화·원문을<br>사람이 비교</td><td class="ours">문장과 승인 근거를 연결<br>누락·불일치 이유 확인</td></tr><tr><th scope="row"><span class="star-space"></span>조건 변경·반복</th><td class="">탐지·정책 설정을<br>같은 자료 유형에 재사용</td><td class="">생성·기록 설정을<br>제품별 작업에 활용</td><td class="">지시문·템플릿·대화 이력<br>다음 작업에 재사용</td><td class="ours">목적·수신처·조건이 맞을 때<br>검토한 기준·스킬 재사용</td></tr></tbody></table></div>
+<footer class="comparison-note"><p>SafeHandoff 열은 전체 서비스 방향입니다. 현재 동작 범위와 추가 개발은 5쪽에서 구분합니다.</p><p>대표 제품 공식 자료: <a href="https://www.getlimina.ai/en">Limina</a> · <a href="https://learn.microsoft.com/en-us/purview/ai-microsoft-purview">Microsoft Purview</a> · <a href="https://www.tonic.ai/faqs">Tonic</a> · <a href="https://jam.dev/">Jam</a></p></footer></section></div></main>
 
 <script>
 (() => {

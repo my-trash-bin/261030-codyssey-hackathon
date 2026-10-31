@@ -4,7 +4,7 @@
   "scope": "Documentation, declared contracts, fixture structure, test mappings and reference SQLite constraints.",
   "checks": {
     "json_files_parsed": 17,
-    "relative_file_links_checked": 239,
+    "relative_file_links_checked": 245,
     "markdown_files_checked": 40,
     "feature_count": 10,
     "acceptance_criteria_mapped": 127,

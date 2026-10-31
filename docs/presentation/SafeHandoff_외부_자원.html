@@ -1,0 +1,270 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#163172">
+<meta name="description" content="SafeHandoff 8. 외부 자원 활용 내역 - 오픈소스, 외부 API, 사전 보유 코드, 기타">
+<title>SafeHandoff · 8. 외부 자원 활용 내역</title>
+<link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --blue:#2563eb;
+  --navy:#163172;
+  --ink:#111827;
+  --body:#334155;
+  --muted:#64748b;
+  --line:#dce4f0;
+  --paper:#ffffff;
+}
+*{box-sizing:border-box}
+html{
+  scroll-behavior:smooth;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+}
+body{
+  margin:0;
+  background:#e8edf5;
+  color:var(--ink);
+  font-family:"Pretendard Variable",Pretendard,"Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+  font-size:14px;
+  font-weight:600;
+  line-height:1.45;
+  word-break:keep-all;
+  overflow-wrap:break-word;
+}
+h1,h2,h3,h4,p,figure,ul{margin:0}
+a{color:inherit;text-decoration:none}
+button{font:inherit;cursor:pointer}
+
+.toolbar{
+  height:64px;
+  position:sticky;
+  top:0;
+  z-index:30;
+  background:#fffffff7;
+  border-bottom:1px solid var(--line);
+  backdrop-filter:blur(12px);
+}
+.toolbar-inner{
+  height:100%;
+  width:min(1280px,calc(100% - 40px));
+  margin:auto;
+  display:flex;
+  justify-content:space-between;
+  gap:20px;
+  align-items:center;
+}
+.brand{
+  font-size:19px;
+  font-weight:900;
+  color:var(--navy);
+  white-space:nowrap;
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+.brand-badge{
+  display:inline-grid;
+  place-items:center;
+  width:26px;
+  height:26px;
+  border-radius:7px;
+  background:#0f9f90;
+  color:#fff;
+  font-size:14px;
+  font-weight:900;
+}
+.brand small{
+  font-size:11px;
+  letter-spacing:.08em;
+  font-weight:700;
+  margin-left:4px;
+  color:var(--muted);
+}
+.tools{display:flex;gap:8px;align-items:center}
+.tool-button{
+  font-size:12px;
+  font-weight:700;
+  color:var(--navy);
+  background:#fff;
+  border:1.5px solid var(--line);
+  border-radius:8px;
+  padding:7px 13px;
+  line-height:1.5;
+}
+.tool-button:hover{background:#f0f5ff}
+
+.reader{padding:28px 0 42px}
+.page-shell{
+  position:relative;
+  margin:0 auto 28px;
+  width:1280px;
+  height:720px;
+}
+.page{
+  position:relative;
+  width:1280px;
+  height:720px;
+  padding:28px 46px 24px;
+  background:var(--paper);
+  box-shadow:0 6px 28px #16317212;
+  transform-origin:top left;
+  overflow:hidden;
+  display:flex;
+  flex-direction:column;
+}
+.page-header{
+  border-bottom:2px solid var(--navy);
+  padding-bottom:12px;
+  margin-bottom:18px;
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-end;
+  gap:16px;
+  flex-shrink:0;
+}
+.page-header h2{
+  font-size:30px;
+  color:var(--ink);
+  font-weight:900;
+  letter-spacing:-.04em;
+}
+.header-sub{
+  font-size:13px;
+  font-weight:700;
+  color:var(--muted);
+  white-space:nowrap;
+}
+
+.resource-table{
+  width:100%;
+  border-collapse:collapse;
+  font-size:13.5px;
+  flex-shrink:0;
+}
+.resource-table thead th{
+  background:#223042;
+  color:#ffffff;
+  font-size:13px;
+  font-weight:800;
+  padding:8px 14px;
+  text-align:left;
+}
+.resource-table tbody th{
+  background:#f1f5f9;
+  color:#0f172a;
+  font-size:13.5px;
+  font-weight:900;
+  padding:6px 14px;
+  text-align:left;
+  border-bottom:1.5px solid #cbd5e1;
+}
+.resource-table td{
+  padding:7px 14px;
+  border-bottom:1px solid #e2e8f0;
+  font-weight:700;
+  color:var(--body);
+}
+.need{
+  display:inline-block;
+  padding:1px 8px;
+  border-radius:999px;
+  background:#fef3c7;
+  color:#92400e;
+  font-size:12px;
+  font-weight:800;
+}
+
+@media(max-width:760px){
+  .toolbar-inner{width:calc(100% - 24px)}
+  .reader{padding:16px 0 25px}
+  .page-shell{width:calc(100% - 24px)!important;height:auto!important;margin-bottom:16px}
+  .page{width:100%;height:auto;padding:20px 16px;transform:none!important;overflow:visible}
+  .page-header{flex-direction:column;align-items:flex-start}
+  .header-sub{white-space:normal}
+    .resource-table{display:block;overflow-x:auto}
+}
+
+@media print{
+  @page{size:1280px 720px;margin:0}
+  body{background:#fff;margin:0;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .toolbar{display:none!important}
+  .reader{padding:0;margin:0}
+  .page-shell{width:1280px!important;height:720px!important;margin:0!important}
+  .page{width:1280px!important;height:720px!important;transform:none!important;box-shadow:none!important;overflow:hidden!important}
+}
+</style>
+</head>
+<body>
+<header class="toolbar">
+  <div class="toolbar-inner">
+    <a class="brand" href="#resources"><span class="brand-badge">S</span>SafeHandoff <small>8 · EXTERNAL RESOURCES</small></a>
+    <div class="tools">
+      <a class="tool-button" href="SafeHandoff_팀원_소개.html">‹ 7. 팀원 역할</a>
+      <a class="tool-button" href="SafeHandoff_기대효과.html">9. 기대효과 ›</a>
+      <a class="tool-button" href="../spec.md">제품 설계</a>
+      <a class="tool-button" href="../../README.md">실제 구현</a>
+      <button class="tool-button" id="print-document" type="button">인쇄 / PDF 저장</button>
+    </div>
+  </div>
+</header>
+
+<main class="reader" aria-label="SafeHandoff 외부 자원 활용 내역">
+  <div class="page-shell" id="sheet-resources">
+    <section class="page" id="resources" aria-labelledby="resources-title">
+      <header class="page-header">
+        <!-- 표의 사용자 확인값과 미검증 범위는 ISSUES.md PRES-11 참조. -->
+        <h2 id="resources-title">외부 자원 활용 내역</h2>
+        <span class="header-sub">제품 패키지의 외부 npm 의존성은 없음 · 아래는 개발 도구와 인용 자료</span>
+      </header>
+      <table class="resource-table">
+        <thead>
+          <tr><th style="width:14%">구분</th><th style="width:37%">명칭</th><th style="width:30%">용도</th><th>라이선스</th></tr>
+        </thead>
+        <tbody>
+          <tr><th scope="rowgroup" rowspan="8">오픈소스</th><td>Node.js 24.21.0 (내장 node:sqlite 포함)</td><td>서버·도구 런타임, 문서 저장</td><td>MIT</td></tr>
+          <tr><td>TypeScript 5.9.3</td><td>전체 패키지 구현 언어</td><td>Apache-2.0</td></tr>
+          <tr><td>pnpm 10.13.1 · mise · just 1.58.0</td><td>의존성·도구 버전 고정, 명령 실행</td><td>MIT · MIT · CC0-1.0</td></tr>
+          <tr><td>Quality Gate(@slop-lab/qg) 0.1.0</td><td>타입·빌드·테스트·규칙 검사</td><td>MIT</td></tr>
+          <tr><td>Docker Engine · Go 표준 라이브러리</td><td>재현 toy 이미지 빌드·격리 실행</td><td>Apache-2.0 · BSD-3-Clause</td></tr>
+          <tr><td>Playwright 1.64.1 · Python 3.13.8</td><td>발표 통합본·PDF 생성</td><td>Apache-2.0 · PSF-2.0</td></tr>
+          <tr><td>Noto Sans KR 5.3.1 · Pretendard 1.3.9</td><td>발표 글꼴</td><td>OFL-1.1</td></tr>
+          <tr><td>Lucide · Simple Icons · 모델 로고</td><td>슬라이드 아이콘·모델 식별</td><td>ISC · CC0-1.0 · MIT<br>로고 상표권: 각 제공처</td></tr>
+          <tr><th scope="rowgroup" rowspan="1">외부 API</th><td>네이토 API (코디세이 제공, OpenAI 호환)</td><td>승인 사실 기반 초안 작성·검토, 가상 데이터만 전송</td><td>제공처 약관</td></tr>
+          <tr><th scope="rowgroup" rowspan="1">사전 보유 코드</th><td>없음</td><td>-</td><td>-</td></tr>
+          <tr><th scope="rowgroup" rowspan="4">기타</th><td>Claude Code · Codex · Antigravity · ChatGPT</td><td>코드·화면 디자인·문서·발표자료 작성 보조</td><td>상용 서비스 (각 제공처 약관)</td></tr>
+          <tr><td>이코노미스트·AI타임스 기사, 서울대 보도자료, Cyberhaven</td><td>문제 배경 인용 (1쪽)</td><td>저작권은 각 출처 · 출처 표기</td></tr>
+          <tr><td>KISIA · 과기정통부 · 이노베이션아카데미</td><td>기관 로고 (10쪽)</td><td>각 기관 로고 사용 기준</td></tr>
+          <tr><td>페르소나(Gemini) · 삽화(OpenAI image_gen)</td><td>가상 인물·스토리보드·기대효과 도식 (2·3·9쪽)</td><td>상용 서비스 (각 제공처 약관)</td></tr>
+        </tbody>
+      </table>
+    </section>
+  </div>
+</main>
+
+<script>
+(() => {
+  'use strict';
+  const shells = Array.from(document.querySelectorAll('.page-shell'));
+  function fitPages() {
+    const mobile = innerWidth <= 760;
+    const width = Math.min(1280, innerWidth - 40);
+    shells.forEach(shell => {
+      shell.style.width = mobile ? '' : width + 'px';
+      shell.style.height = mobile ? '' : 720 * width / 1280 + 'px';
+      shell.querySelector('.page').style.transform = mobile ? '' : 'scale(' + width / 1280 + ')';
+    });
+  }
+  document.getElementById('print-document').addEventListener('click', () => window.print());
+  window.addEventListener('resize', fitPages);
+  window.addEventListener('afterprint', fitPages);
+  fitPages();
+})();
+</script>
+</body>
+</html>

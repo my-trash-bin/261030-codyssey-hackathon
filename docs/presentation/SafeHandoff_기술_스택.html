@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SafeHandoff — 04. 핵심 기술 및 개발 환경 (Core Technology &amp; Stack)</title>
+<title>SafeHandoff · 6. 개발 환경 및 기술 스택</title>
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
 <style>
@@ -123,126 +123,95 @@ html,body{
   letter-spacing:-0.01em;
 }
 
-/* 3열 기술 스택 그리드 (레퍼런스 스타일) */
-.stack-columns{
-  display:grid;
-  grid-template-columns:repeat(3, 1fr);
-  gap:20px;
+/* 왼쪽: 기술 스택 칩 */
+.env-layout{
   flex:1;
-  margin-top:14px;
   min-height:0;
+  margin-top:14px;
+  display:grid;
+  grid-template-columns:404px minmax(0,1fr);
+  gap:18px;
 }
-
-.stack-col{
+.stack-list{
   display:flex;
   flex-direction:column;
-  gap:10px;
-  min-width:0;
+  gap:13px;
+  min-height:0;
 }
-
-/* 상단 하늘색 카테고리 바 (레퍼런스 프론트엔드 바 스타일) */
-.col-banner{
-  background:#e6f3f8;
-  border-left:4px solid #0284c7;
-  padding:7px 14px;
-  border-radius:4px;
+.stack-group h3{
+  font-size:15px;
+  font-weight:900;
+  color:#1e3a8a;
+  letter-spacing:-.02em;
+  padding-bottom:4px;
+  border-bottom:1px solid #e2e8f0;
+}
+.why{
+  margin:5px 0 7px;
+  font-size:12.3px;
+  font-weight:600;
+  line-height:1.42;
+  color:#475569;
+  letter-spacing:-.02em;
+}
+.chip-grid{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:6px;
+}
+.stack-chip{
   display:flex;
   align-items:center;
-  justify-content:space-between;
-  flex-shrink:0;
-}
-.col-banner h3{
-  font-size:15.5px;
-  font-weight:900;
-  color:#0369a1;
-  letter-spacing:-0.02em;
-}
-.col-banner span{
-  font-size:11px;
-  font-weight:800;
-  color:#0284c7;
-  opacity:.85;
-}
-
-/* 개별 스택 카드 (레퍼런스 라운드 카드 스타일) */
-.tech-card{
+  gap:5px;
+  min-height:40px;
+  padding:4px 7px;
   background:#ffffff;
   border:1.5px solid #e2e8f0;
-  border-radius:14px;
-  padding:12px 15px;
-  display:flex;
-  flex-direction:column;
-  justify-content:center;
-  gap:6px;
-  flex:1;
-  min-height:0;
-  box-shadow:0 2px 6px rgba(15,23,42,.02);
+  border-radius:8px;
+  font-size:12.5px;
+  font-weight:800;
+  color:#0f172a;
+  line-height:1.2;
 }
-
-.tech-card-head{
-  display:flex;
-  align-items:center;
-  gap:10px;
-}
-
-.tech-icon{
-  width:26px;
-  height:26px;
-  border-radius:6px;
-  display:grid;
-  place-items:center;
+.stack-chip svg{
+  width:18px;
+  height:18px;
   flex-shrink:0;
 }
-.tech-icon svg{
-  width:24px;
-  height:24px;
+.stack-chip small{
   display:block;
-}
-
-.tech-title{
-  font-size:14.5px;
-  font-weight:900;
-  color:#0f172a;
-  letter-spacing:-0.02em;
-  white-space:nowrap;
-}
-
-.tech-desc{
-  font-size:11.8px;
-  line-height:1.45;
-  font-weight:500;
-  color:#475569;
-  letter-spacing:-0.015em;
-  word-break:keep-all;
-}
-.tech-desc strong{
-  color:#0f172a;
-  font-weight:800;
-}
-
-/* 하단 요약 바 */
-.page-footer{
-  margin-top:10px;
-  padding-top:9px;
-  border-top:1px dashed #cbd5e1;
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  font-size:11.5px;
+  font-size:10px;
   font-weight:700;
   color:#64748b;
-  flex-shrink:0;
 }
-.page-footer .footer-Right{
-  color:#1d4ed8;
-  font-weight:800;
+
+/* 오른쪽: 개발 환경 구조도 */
+.env-diagram{
+  width:100%;
+  height:100%;
+  display:block;
+  font-family:inherit;
 }
+.env-diagram .b{fill:#f8fafc;stroke:#cbd5e1;stroke-width:1.3}
+.env-diagram .app{fill:#f2f7ff;stroke:#2563eb;stroke-width:1.8}
+.env-diagram .in{fill:#ffffff;stroke:#94a3b8;stroke-width:1.2}
+.env-diagram .it{fill:#f1f5f9;stroke:none}
+.env-diagram .ext{fill:#ffffff;stroke:#0f172a;stroke-width:1.3}
+.env-diagram .cli{fill:#f8fafc;stroke:#64748b;stroke-width:1.4;stroke-dasharray:6 4}
+.env-diagram .ln{stroke:#475569;stroke-width:1.7;fill:none}
+.env-diagram .dash{stroke:#475569;stroke-width:1.5;stroke-dasharray:5 4;fill:none}
+.env-diagram text{fill:#334155;font-size:11px;font-weight:700}
+.env-diagram .h{fill:#0f172a;font-size:13.5px;font-weight:900}
+.env-diagram .h2{fill:#1e3a8a;font-size:14px;font-weight:900}
+.env-diagram .s{fill:#475569;font-size:11px;font-weight:600}
+.env-diagram .i{fill:#0f172a;font-size:11.5px;font-weight:700}
+.env-diagram .l{fill:#475569;font-size:10.5px;font-weight:800}
 
 @media (max-width:720px){
   .reader{padding:16px 0 25px}
   .page-shell{width:calc(100% - 24px)!important;height:auto!important;margin-bottom:16px}
   .page{width:100%;height:auto;padding:20px 16px;transform:none!important;overflow:visible}
-  .stack-columns{grid-template-columns:1fr}
+  .env-layout{grid-template-columns:1fr}
 }
 
 @media print{
@@ -258,16 +227,10 @@ html,body{
 <body>
 <header class="toolbar">
   <div class="toolbar-inner">
-    <a class="brand" href="#tech-stack"><span class="brand-badge">S</span>SafeHandoff <small>04 · CORE TECHNOLOGY &amp; STACK</small></a>
+    <a class="brand" href="#tech-stack"><span class="brand-badge">S</span>SafeHandoff <small>6 · DEV ENVIRONMENT &amp; STACK</small></a>
     <div class="tools">
-      <a class="tool-button" href="SafeHandoff_목차.html">00. 목차</a>
-      <a class="tool-button" href="SafeHandoff_서비스_플로우.html">‹ 03. 서비스 플로우</a>
-      <a class="tool-button" href="SafeHandoff_AI기술_개발범위.html">05. AI 기술·개발범위 ›</a>
-      <a class="tool-button" href="SafeHandoff_서비스_아키텍처.html">06. 서비스 아키텍처</a>
-      <a class="tool-button" href="SafeHandoff_서비스_차별점.html">07. 서비스 차별점</a>
-      <a class="tool-button" href="SafeHandoff_기대효과.html">08. 기대효과</a>
-      <a class="tool-button" href="SafeHandoff_확장_가능성.html">09. 확장 가능성</a>
-      <a class="tool-button" href="SafeHandoff_팀원_소개.html">10. 팀원 소개</a>
+      <a class="tool-button" href="SafeHandoff_직접_개발_범위.html">‹ 5. AI 기술·직접 개발 범위</a>
+      <a class="tool-button" href="SafeHandoff_팀원_소개.html">7. 팀원 역할 ›</a>
       <a class="tool-button" href="../spec.md">제품 설계</a>
       <a class="tool-button" href="../../README.md">실제 구현</a>
       <button class="tool-button" id="print-document" type="button">인쇄 / PDF 저장</button>
@@ -275,181 +238,285 @@ html,body{
   </div>
 </header>
 
-<main class="reader" aria-label="SafeHandoff 핵심 기술 및 개발 환경">
+<main class="reader" aria-label="SafeHandoff 개발 환경 및 기술 스택">
   <div class="page-shell" id="sheet-tech">
     <section class="page" id="tech-stack" aria-labelledby="tech-title">
+      <svg style="position:absolute;width:0;height:0" aria-hidden="true">
+<symbol id="st-html" viewBox="0 0 24 24"><path fill="#E34F26" d="M1.5 0h21l-1.91 21.563L11.977 24l-8.564-2.438L1.5 0zm7.031 9.75l-.232-2.718 10.059.003.23-2.622L5.412 4.41l.698 8.01h9.126
+l-.326 3.426-2.91.804-2.955-.81-.188-2.11H6.248l.33 4.171L12 19.351l5.379-1.443.744-8.157H8.531z"/></symbol>
+<symbol id="st-css" viewBox="0 0 24 24"><path fill="#663399" d="M0 0v20.16A3.84 3.84 0 0 0 3.84 24h16.32A3.84 3.84 0 0 0 24 20.16V3.84A3.84 3.84 0 0 0 20.16 0Zm14.256 13.08
+c1.56 0 2.28 1.08 2.304 2.64h-1.608
+c.024-.288-.048-.6-.144-.84-.096-.192-.288-.264-.552-.264-.456 0-.696.264-.696.84-.024.576.288.888.768 1.08.72.288 1.608.744 1.92 1.296
+q.432.648.432 1.656c0 1.608-.912 2.592-2.496 2.592-1.656 0-2.4-1.032-2.424-2.688h1.68
+c0 .792.264 1.176.792 1.176.264 0 .456-.072.552-.24.192-.312.24-1.176-.048-1.512-.312-.408-.912-.6-1.32-.816q-.828-.396-1.224-.936
+c-.24-.36-.36-.888-.36-1.536 0-1.44.936-2.472 2.424-2.448m5.4 0c1.584 0 2.304 1.08 2.328 2.64h-1.608
+c0-.288-.048-.6-.168-.84-.096-.192-.264-.264-.528-.264-.48 0-.72.264-.72.84s.288.888.792 1.08
+c.696.288 1.608.744 1.92 1.296.264.432.408.984.408 1.656.024 1.608-.888 2.592-2.472 2.592-1.68 0-2.424-1.056-2.448-2.688h1.68
+c0 .744.264 1.176.792 1.176.264 0 .456-.072.552-.24.216-.312.264-1.176-.048-1.512-.288-.408-.888-.6-1.32-.816-.552-.264-.96-.576-1.2-.936
+s-.36-.888-.36-1.536c-.024-1.44.912-2.472 2.4-2.448m-11.031.018c.711-.006 1.419.198 1.839.63.432.432.672 1.128.648 1.992H9.336
+c.024-.456-.096-.792-.432-.96-.312-.144-.768-.048-.888.24-.12.264-.192.576-.168.864v3.504c0 .744.264 1.128.768 1.128
+a.65.65 0 0 0 .552-.264c.168-.24.192-.552.168-.84h1.776c.096 1.632-.984 2.712-2.568 2.688-1.536 0-2.496-.864-2.472-2.472v-4.032
+c0-.816.24-1.44.696-1.848.432-.408 1.146-.624 1.857-.63"/></symbol>
+<symbol id="st-ts" viewBox="0 0 24 24"><path fill="#3178C6" d="M1.125 0C.502 0 0 .502 0 1.125v21.75C0 23.498.502 24 1.125 24h21.75c.623 0 1.125-.502 1.125-1.125V1.125C24 .502 23.498 0 22.875 0z
+m17.363 9.75c.612 0 1.154.037 1.627.111a6.38 6.38 0 0 1 1.306.34v2.458
+a3.95 3.95 0 0 0-.643-.361 5.093 5.093 0 0 0-.717-.26 5.453 5.453 0 0 0-1.426-.2c-.3 0-.573.028-.819.086a2.1 2.1 0 0 0-.623.242
+c-.17.104-.3.229-.393.374a.888.888 0 0 0-.14.49c0 .196.053.373.156.529.104.156.252.304.443.444s.423.276.696.41
+c.273.135.582.274.926.416.47.197.892.407 1.266.628.374.222.695.473.963.753.268.279.472.598.614.957.142.359.214.776.214 1.253 0 .657-.125 1.21-.373 1.656
+a3.033 3.033 0 0 1-1.012 1.085 4.38 4.38 0 0 1-1.487.596c-.566.12-1.163.18-1.79.18
+a9.916 9.916 0 0 1-1.84-.164 5.544 5.544 0 0 1-1.512-.493v-2.63a5.033 5.033 0 0 0 3.237 1.2
+c.333 0 .624-.03.872-.09.249-.06.456-.144.623-.25.166-.108.29-.234.373-.38
+a1.023 1.023 0 0 0-.074-1.089 2.12 2.12 0 0 0-.537-.5 5.597 5.597 0 0 0-.807-.444 27.72 27.72 0 0 0-1.007-.436
+c-.918-.383-1.602-.852-2.053-1.405-.45-.553-.676-1.222-.676-2.005 0-.614.123-1.141.369-1.582.246-.441.58-.804 1.004-1.089
+a4.494 4.494 0 0 1 1.47-.629 7.536 7.536 0 0 1 1.77-.201zm-15.113.188h9.563v2.166H9.506v9.646H6.789v-9.646H3.375z"/></symbol>
+<symbol id="st-node" viewBox="0 0 24 24"><path fill="#5FA04E" d="M11.998,24c-0.321,0-0.641-0.084-0.922-0.247l-2.936-1.737c-0.438-0.245-0.224-0.332-0.08-0.383 c0.585-0.203,0.703-0.25,1.328-0.604
+c0.065-0.037,0.151-0.023,0.218,0.017l2.256,1.339c0.082,0.045,0.197,0.045,0.272,0l8.795-5.076 c0.082-0.047,0.134-0.141,0.134-0.238
+V6.921c0-0.099-0.053-0.192-0.137-0.242l-8.791-5.072c-0.081-0.047-0.189-0.047-0.271,0 L3.075,6.68
+C2.99,6.729,2.936,6.825,2.936,6.921v10.15c0,0.097,0.054,0.189,0.139,0.235l2.409,1.392 c1.307,0.654,2.108-0.116,2.108-0.89V7.787
+c0-0.142,0.114-0.253,0.256-0.253h1.115c0.139,0,0.255,0.112,0.255,0.253v10.021 c0,1.745-0.95,2.745-2.604,2.745
+c-0.508,0-0.909,0-2.026-0.551L2.28,18.675c-0.57-0.329-0.922-0.945-0.922-1.604V6.921 c0-0.659,0.353-1.275,0.922-1.603l8.795-5.082
+c0.557-0.315,1.296-0.315,1.848,0l8.794,5.082c0.57,0.329,0.924,0.944,0.924,1.603 v10.15c0,0.659-0.354,1.273-0.924,1.604
+l-8.794,5.078C12.643,23.916,12.324,24,11.998,24z M19.099,13.993 c0-1.9-1.284-2.406-3.987-2.763
+c-2.731-0.361-3.009-0.548-3.009-1.187c0-0.528,0.235-1.233,2.258-1.233 c1.807,0,2.473,0.389,2.747,1.607
+c0.024,0.115,0.129,0.199,0.247,0.199h1.141c0.071,0,0.138-0.031,0.186-0.081 c0.048-0.054,0.074-0.123,0.067-0.196
+c-0.177-2.098-1.571-3.076-4.388-3.076c-2.508,0-4.004,1.058-4.004,2.833 c0,1.925,1.488,2.457,3.895,2.695
+c2.88,0.282,3.103,0.703,3.103,1.269c0,0.983-0.789,1.402-2.642,1.402 c-2.327,0-2.839-0.584-3.011-1.742
+c-0.02-0.124-0.126-0.215-0.253-0.215h-1.137c-0.141,0-0.254,0.112-0.254,0.253 c0,1.482,0.806,3.248,4.655,3.248
+C17.501,17.007,19.099,15.91,19.099,13.993z"/></symbol>
+<symbol id="st-sqlite" viewBox="0 0 24 24"><path fill="#003B57" d="M21.678.521c-1.032-.92-2.28-.55-3.513.544a8.71 8.71 0 0 0-.547.535c-2.109 2.237-4.066 6.38-4.674 9.544.237.48.422 1.093.544 1.561
+a13.044 13.044 0 0 1 .164.703s-.019-.071-.096-.296l-.05-.146a1.689 1.689 0 0 0-.033-.08
+c-.138-.32-.518-.995-.686-1.289-.143.423-.27.818-.376 1.176.484.884.778 2.4.778 2.4s-.025-.099-.147-.442
+c-.107-.303-.644-1.244-.772-1.464-.217.804-.304 1.346-.226 1.478.152.256.296.698.422 1.186.286 1.1.485 2.44.485 2.44l.017.224
+a22.41 22.41 0 0 0 .056 2.748c.095 1.146.273 2.13.5 2.657l.155-.084
+c-.334-1.038-.47-2.399-.41-3.967.09-2.398.642-5.29 1.661-8.304 1.723-4.55 4.113-8.201 6.3-9.945-1.993 1.8-4.692 7.63-5.5 9.788-.904 2.416-1.545 4.684-1.931 6.857.666-2.037 2.821-2.912 2.821-2.912
+s1.057-1.304 2.292-3.166c-.74.169-1.955.458-2.362.629-.6.251-.762.337-.762.337s1.945-1.184 3.613-1.72
+C21.695 7.9 24.195 2.767 21.678.521m-18.573.543A1.842 1.842 0 0 0 1.27 2.9v16.608a1.84 1.84 0 0 0 1.835 1.834h9.418
+a22.953 22.953 0 0 1-.052-2.707c-.006-.062-.011-.141-.016-.2a27.01 27.01 0 0 0-.473-2.378
+c-.121-.47-.275-.898-.369-1.057-.116-.197-.098-.31-.097-.432 0-.12.015-.245.037-.386a9.98 9.98 0 0 1 .234-1.045l.217-.028
+c-.017-.035-.014-.065-.031-.097l-.041-.381a32.8 32.8 0 0 1 .382-1.194l.2-.019c-.008-.016-.01-.038-.018-.053l-.043-.316
+c.63-3.28 2.587-7.443 4.8-9.791.066-.069.133-.128.198-.194Z"/></symbol>
+<symbol id="st-docker" viewBox="0 0 24 24"><path fill="#2496ED" d="M13.983 11.078h2.119a.186.186 0 00.186-.185V9.006a.186.186 0 00-.186-.186h-2.119a.185.185 0 00-.185.185v1.888
+c0 .102.083.185.185.185m-2.954-5.43h2.118a.186.186 0 00.186-.186V3.574a.186.186 0 00-.186-.185h-2.118a.185.185 0 00-.185.185v1.888
+c0 .102.082.185.185.185m0 2.716h2.118a.187.187 0 00.186-.186V6.29a.186.186 0 00-.186-.185h-2.118a.185.185 0 00-.185.185v1.887
+c0 .102.082.185.185.186m-2.93 0h2.12a.186.186 0 00.184-.186V6.29a.185.185 0 00-.185-.185H8.1a.185.185 0 00-.185.185v1.887
+c0 .102.083.185.185.186m-2.964 0h2.119a.186.186 0 00.185-.186V6.29a.185.185 0 00-.185-.185H5.136a.186.186 0 00-.186.185v1.887
+c0 .102.084.185.186.186m5.893 2.715h2.118a.186.186 0 00.186-.185V9.006a.186.186 0 00-.186-.186h-2.118a.185.185 0 00-.185.185v1.888
+c0 .102.082.185.185.185m-2.93 0h2.12a.185.185 0 00.184-.185V9.006a.185.185 0 00-.184-.186h-2.12a.185.185 0 00-.184.185v1.888
+c0 .102.083.185.185.185m-2.964 0h2.119a.185.185 0 00.185-.185V9.006a.185.185 0 00-.184-.186h-2.12a.186.186 0 00-.186.186v1.887
+c0 .102.084.185.186.185m-2.92 0h2.12a.185.185 0 00.184-.185V9.006a.185.185 0 00-.184-.186h-2.12a.185.185 0 00-.184.185v1.888
+c0 .102.082.185.185.185M23.763 9.89c-.065-.051-.672-.51-1.954-.51-.338.001-.676.03-1.01.087-.248-1.7-1.653-2.53-1.716-2.566
+l-.344-.199-.226.327c-.284.438-.49.922-.612 1.43-.23.97-.09 1.882.403 2.661-.595.332-1.55.413-1.744.42H.751
+a.751.751 0 00-.75.748 11.376 11.376 0 00.692 4.062
+c.545 1.428 1.355 2.48 2.41 3.124 1.18.723 3.1 1.137 5.275 1.137.983.003 1.963-.086 2.93-.266a12.248 12.248 0 003.823-1.389
+c.98-.567 1.86-1.288 2.61-2.136 1.252-1.418 1.998-2.997 2.553-4.4h.221c1.372 0 2.215-.549 2.68-1.009.309-.293.55-.65.707-1.046
+l.098-.288Z"/></symbol>
+<symbol id="st-go" viewBox="0 0 24 24"><path fill="#00ADD8" d="M1.811 10.231c-.047 0-.058-.023-.035-.059l.246-.315c.023-.035.081-.058.128-.058h4.172c.046 0 .058.035.035.07l-.199.303
+c-.023.036-.082.07-.117.07zM.047 11.306c-.047 0-.059-.023-.035-.058l.245-.316c.023-.035.082-.058.129-.058h5.328
+c.047 0 .07.035.058.07l-.093.28c-.012.047-.058.07-.105.07zm2.828 1.075c-.047 0-.059-.035-.035-.07l.163-.292
+c.023-.035.07-.07.117-.07h2.337c.047 0 .07.035.07.082l-.023.28c0 .047-.047.082-.082.082zm12.129-2.36
+c-.736.187-1.239.327-1.963.514-.176.046-.187.058-.34-.117-.174-.199-.303-.327-.548-.444-.737-.362-1.45-.257-2.115.175-.795.514-1.204 1.274-1.192 2.22.011.935.654 1.706 1.577 1.835.795.105 1.46-.175 1.987-.77.105-.13.198-.27.315-.434
+H10.47c-.245 0-.304-.152-.222-.35.152-.362.432-.97.596-1.274a.315.315 0 01.292-.187h4.253c-.023.316-.023.631-.07.947
+a4.983 4.983 0 01-.958 2.29
+c-.841 1.11-1.94 1.8-3.33 1.986-1.145.152-2.209-.07-3.143-.77-.865-.655-1.356-1.52-1.484-2.595-.152-1.274.222-2.419.993-3.424.83-1.086 1.928-1.776 3.272-2.02 1.098-.2 2.15-.07 3.096.571.62.41 1.063.97 1.356 1.648.07.105.023.164-.117.2
+m3.868 6.461c-1.064-.024-2.034-.328-2.852-1.029a3.665 3.665 0 01-1.262-2.255
+c-.21-1.32.152-2.489.947-3.529.853-1.122 1.881-1.706 3.272-1.95 1.192-.21 2.314-.095 3.33.595.923.63 1.496 1.484 1.648 2.605.198 1.578-.257 2.863-1.344 3.962-.771.783-1.718 1.273-2.805 1.495-.315.06-.63.07-.934.106
+zm2.78-4.72
+c-.011-.153-.011-.27-.034-.387-.21-1.157-1.274-1.81-2.384-1.554-1.087.245-1.788.935-2.045 2.033-.21.912.234 1.835 1.075 2.21.643.28 1.285.244 1.905-.07.923-.48 1.425-1.228 1.484-2.233
+z"/></symbol>
+<symbol id="st-pnpm" viewBox="0 0 24 24"><path fill="#F69220" d="M0 0v7.5h7.5V0zm8.25 0v7.5h7.498V0zm8.25 0v7.5H24V0zM2 2h3.5v3.5H2zm8.25 0h3.498v3.5H10.25zm8.25 0H22v3.5h-3.5zM8.25 8.25v7.5
+h7.498v-7.5zm8.25 0v7.5H24v-7.5zm2 2H22v3.5h-3.5zM0 16.5V24h7.5v-7.5zm8.25 0V24h7.498v-7.5zm8.25 0V24H24v-7.5z"/></symbol>
+<symbol id="st-linux" viewBox="0 0 24 24"><path fill="#FCC624" d="M12.504 0
+c-.155 0-.315.008-.48.021-4.226.333-3.105 4.807-3.17 6.298-.076 1.092-.3 1.953-1.05 3.02-.885 1.051-2.127 2.75-2.716 4.521-.278.832-.41 1.684-.287 2.489
+a.424.424 0 00-.11.135
+c-.26.268-.45.6-.663.839-.199.199-.485.267-.797.4-.313.136-.658.269-.864.68-.09.189-.136.394-.132.602 0 .199.027.4.055.536.058.399.116.728.04.97-.249.68-.28 1.145-.106 1.484.174.334.535.47.94.601.81.2 1.91.135 2.774.6.926.466 1.866.67 2.616.47.526-.116.97-.464 1.208-.946.587-.003 1.23-.269 2.26-.334.699-.058 1.574.267 2.577.2.025.134.063.198.114.333
+l.003.003
+c.391.778 1.113 1.132 1.884 1.071.771-.06 1.592-.536 2.257-1.306.631-.765 1.683-1.084 2.378-1.503.348-.199.629-.469.649-.853.023-.4-.2-.811-.714-1.376
+v-.097l-.003-.003c-.17-.2-.25-.535-.338-.926-.085-.401-.182-.786-.492-1.046h-.003c-.059-.054-.123-.067-.188-.135
+a.357.357 0 00-.19-.064
+c.431-1.278.264-2.55-.173-3.694-.533-1.41-1.465-2.638-2.175-3.483-.796-1.005-1.576-1.957-1.56-3.368.026-2.152.236-6.133-3.544-6.139
+zm.529 3.405h.013c.213 0 .396.062.584.198.19.135.33.332.438.533.105.259.158.459.166.724 0-.02.006-.04.006-.06v.105
+a.086.086 0 01-.004-.021l-.004-.024a1.807 1.807 0 01-.15.706.953.953 0 01-.213.335.71.71 0 00-.088-.042
+c-.104-.045-.198-.064-.284-.133a1.312 1.312 0 00-.22-.066c.05-.06.146-.133.183-.198.053-.128.082-.264.088-.402v-.02
+a1.21 1.21 0 00-.061-.4c-.045-.134-.101-.2-.183-.333-.084-.066-.167-.132-.267-.132h-.016c-.093 0-.176.03-.262.132
+a.8.8 0 00-.205.334 1.18 1.18 0 00-.09.4v.019c.002.089.008.179.02.267-.193-.067-.438-.135-.607-.202a1.635 1.635 0 01-.018-.2v-.02
+a1.772 1.772 0 01.15-.768c.082-.22.232-.406.43-.533a.985.985 0 01.594-.2zm-2.962.059h.036
+c.142 0 .27.048.399.135.146.129.264.288.344.465.09.199.14.4.153.667v.004c.007.134.006.2-.002.266v.08
+c-.03.007-.056.018-.083.024-.152.055-.274.135-.393.2.012-.09.013-.18.003-.267v-.015c-.012-.133-.04-.2-.082-.333
+a.613.613 0 00-.166-.267.248.248 0 00-.183-.064h-.021c-.071.006-.13.04-.186.132a.552.552 0 00-.12.27.944.944 0 00-.023.33v.015
+c.012.135.037.2.08.334.046.134.098.2.166.268.01.009.02.018.034.024-.07.057-.117.07-.176.136
+a.304.304 0 01-.131.068 2.62 2.62 0 01-.275-.402 1.772 1.772 0 01-.155-.667 1.759 1.759 0 01.08-.668 1.43 1.43 0 01.283-.535
+c.128-.133.26-.2.418-.2zm1.37 1.706c.332 0 .733.065 1.216.399.293.2.523.269 1.052.468h.003c.255.136.405.266.478.399v-.131
+a.571.571 0 01.016.47c-.123.31-.516.643-1.063.842v.002c-.268.135-.501.333-.775.465-.276.135-.588.292-1.012.267
+a1.139 1.139 0 01-.448-.067 3.566 3.566 0 01-.322-.198c-.195-.135-.363-.332-.612-.465v-.005h-.005
+c-.4-.246-.616-.512-.686-.71-.07-.268-.005-.47.193-.6.224-.135.38-.271.483-.336.104-.074.143-.102.176-.131h.002v-.003
+c.169-.202.436-.47.839-.601.139-.036.294-.065.466-.065zm2.8 2.142
+c.358 1.417 1.196 3.475 1.735 4.473.286.534.855 1.659 1.102 3.024.156-.005.33.018.513.064.646-1.671-.546-3.467-1.089-3.966-.22-.2-.232-.335-.123-.335.59.534 1.365 1.572 1.646 2.757.13.535.16 1.104.021 1.67.067.028.135.06.205.067 1.032.534 1.413.938 1.23 1.537
+v-.043c-.06-.003-.12 0-.18 0h-.016
+c.151-.467-.182-.825-1.065-1.224-.915-.4-1.646-.336-1.77.465-.008.043-.013.066-.018.135-.068.023-.139.053-.209.064-.43.268-.662.669-.793 1.187-.13.533-.17 1.156-.205 1.869
+v.003c-.02.334-.17.838-.319 1.35-1.5 1.072-3.58 1.538-5.348.334a2.645 2.645 0 00-.402-.533 1.45 1.45 0 00-.275-.333
+c.182 0 .338-.03.465-.067a.615.615 0 00.314-.334
+c.108-.267 0-.697-.345-1.163-.345-.467-.931-.995-1.788-1.521-.63-.4-.986-.87-1.15-1.396-.165-.534-.143-1.085-.015-1.645.245-1.07.873-2.11 1.274-2.763.107-.065.037.135-.408.974-.396.751-1.14 2.497-.122 3.854
+a8.123 8.123 0 01.647-2.876
+c.564-1.278 1.743-3.504 1.836-5.268.048.036.217.135.289.202.218.133.38.333.59.465.21.201.477.335.876.335.039.003.075.006.11.006.412 0 .73-.134.997-.268.29-.134.52-.334.74-.4
+h.005c.467-.135.835-.402 1.044-.7zm2.185 8.958c.037.6.343 1.245.882 1.377.588.134 1.434-.333 1.791-.765l.211-.01
+c.315-.007.577.01.847.268l.003.003c.208.199.305.53.391.876.085.4.154.78.409 1.066.486.527.645.906.636 1.14l.003-.007v.018
+l-.003-.012c-.015.262-.185.396-.498.595-.63.401-1.746.712-2.457 1.57-.618.737-1.37 1.14-2.036 1.191-.664.053-1.237-.2-1.574-.898
+l-.005-.003c-.21-.4-.12-1.025.056-1.69.176-.668.428-1.344.463-1.897.037-.714.076-1.335.195-1.814.12-.465.308-.797.641-.984
+l.045-.022zm-10.814.049h.01c.053 0 .105.005.157.014.376.055.706.333 1.023.752l.91 1.664.003.003
+c.243.533.754 1.064 1.189 1.637.434.598.77 1.131.729 1.57v.006
+c-.057.744-.48 1.148-1.125 1.294-.645.135-1.52.002-2.395-.464-.968-.536-2.118-.469-2.857-.602-.369-.066-.61-.2-.723-.4-.11-.2-.113-.602.123-1.23
+v-.004l.002-.003c.117-.334.03-.752-.027-1.118-.055-.401-.083-.71.043-.94.16-.334.396-.4.69-.533.294-.135.64-.202.915-.47h.002
+v-.002c.256-.268.445-.601.668-.838.19-.201.38-.336.663-.336zm7.159-9.074
+c-.435.201-.945.535-1.488.535-.542 0-.97-.267-1.28-.466-.154-.134-.28-.268-.373-.335-.164-.134-.144-.333-.074-.333.109.016.129.134.199.2.096.066.215.2.36.333.292.2.68.467 1.167.467.485 0 1.053-.267 1.398-.466.195-.135.445-.334.648-.467.156-.136.149-.267.279-.267.128.016.034.134-.147.332
+a8.097 8.097 0 01-.69.468zm-1.082-1.583V5.64
+c-.006-.02.013-.042.029-.05.074-.043.18-.027.26.004.063 0 .16.067.15.135-.006.049-.085.066-.135.066-.055 0-.092-.043-.141-.068-.052-.018-.146-.008-.163-.065
+zm-.551 0
+c-.02.058-.113.049-.166.066-.047.025-.086.068-.14.068-.05 0-.13-.02-.136-.068-.01-.066.088-.133.15-.133.08-.031.184-.047.259-.005.019.009.036.03.03.05
+v.02h.003z"/></symbol>
+<symbol id="st-github" viewBox="0 0 24 24"><path fill="#181717" d="M12 .297
+c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61
+C4.422 18.07 3.633 17.7 3.633 17.7
+c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57
+C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></symbol>
+<symbol id="st-just" viewBox="0 0 24 24"><path fill="#000000" d="M12 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0m0 2.35a3.25 3.35 0 0 1 3.25 3.35
+A3.25 3.35 0 0 1 12 9.05 3.25 3.35 0 0 1 8.75 5.7 3.25 3.35 0 0 1 12 2.35m0 12.6a3.25 3.35 0 0 1 3.25 3.35
+A3.25 3.35 0 0 1 12 21.65a3.25 3.35 0 0 1-3.25-3.35A3.25 3.35 0 0 1 12 14.95"/></symbol>
+<symbol id="st-mise" viewBox="0 0 24 24" fill="none" stroke="#334155" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.106-3.105c.32-.322.863-.22.983.218a6 6 0 0 1-8.259 7.057l-7.91 7.91a1 1 0 0 1-2.999-3l7.91-7.91a6 6 0 0 1 7.057-8.259c.438.12.54.662.219.984z" /></symbol>
+<symbol id="st-llm" viewBox="0 0 24 24" fill="none" stroke="#1e40af" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20v2" /><path d="M12 2v2" /><path d="M17 20v2" /><path d="M17 2v2" /><path d="M2 12h2" /><path d="M2 17h2" /><path d="M2 7h2" /><path d="M20 12h2" /><path d="M20 17h2" /><path d="M20 7h2" /><path d="M7 20v2" /><path d="M7 2v2" /><rect x="4" y="4" width="16" height="16" rx="2" /><rect x="8" y="8" width="8" height="8" rx="1" /></symbol>
+<symbol id="st-check" viewBox="0 0 24 24" fill="none" stroke="#15803d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 5h8" /><path d="M13 12h8" /><path d="M13 19h8" /><path d="m3 17 2 2 4-4" /><path d="m3 7 2 2 4-4" /></symbol>
+<symbol id="st-gate" viewBox="0 0 24 24" fill="none" stroke="#15803d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z" /><path d="m16 9-5.5 5.5L8 12" /></symbol>
+      </svg>
       <header class="page-header">
-        <h2 id="tech-title"><span class="num-accent">핵심 기술</span>Core Technology &amp; Stack</h2>
-      <!-- // TODO: [PRES-05] 앱 인증·전체 원자료 격리·배포는 후속. Docker toy 실행 격리만 완료. ISSUES.md 참조. -->
-        <span class="header-sub"><a href="../architecture.md">현행 아키텍처</a> · 미연결 기능은 계획으로 표기</span>
+        <!-- // TODO: [PRES-05] 앱 인증·전체 원자료 격리·배포는 후속. Docker toy 실행 격리만 완료. ISSUES.md 참조. -->
+        <h2 id="tech-title">개발 환경 및 기술 스택</h2>
+        <span class="header-sub">제품 코드는 모두 TypeScript · 모델 추론은 HTTP로 위임 · Go는 재현 toy 이미지 한정</span>
       </header>
 
-      <div class="stack-columns">
-        <!--  ==================== 열 1: 프론트엔드 ====================  -->
-        <div class="stack-col">
-          <div class="col-banner">
-            <h3>프론트엔드</h3>
-            <span>Client · View</span>
-          </div>
-
-          <!--  카드 1: 참고 아이콘 / 참고 아이콘 / TypeScript  -->
-          <article class="tech-card">
-            <div class="tech-card-head">
-              <div class="tech-icon" style="background:#1e293b">
-                <span aria-hidden="true" style="font-size:18px;font-weight:900">TS</span>
-              </div>
-              <h4 class="tech-title">HTML / CSS / TypeScript</h4>
-            </div>
-            <p class="tech-desc">HTML·CSS 화면과 TypeScript 동작을 사용합니다. 현재 연결은 내부 메모 저장·조회와 코어 상태 확인입니다.</p>
-          </article>
-
-          <!--  카드 2: 참고 아이콘 / Design System  -->
-          <article class="tech-card">
-            <div class="tech-card-head">
-              <div class="tech-icon">
-                <span aria-hidden="true" style="font-size:18px;font-weight:900">TS</span>
-              </div>
-              <h4 class="tech-title">CSS · 작업 화면</h4>
-            </div>
-            <p class="tech-desc">직접 작성한 CSS와 시스템 글꼴을 사용합니다. 공개 방식 카드는 표현 설명이며 실제 공개 결과 계산은 후속입니다.</p>
-          </article>
-
-          <!--  카드 3: 실시간 동기화 상태 관리  -->
-          <article class="tech-card">
-            <div class="tech-card-head">
-              <div class="tech-icon">
-                <span aria-hidden="true" style="font-size:18px;font-weight:900">TS</span>
-              </div>
-              <h4 class="tech-title">선택 상태 · 갱신 계획</h4>
-            </div>
-      <!-- // TODO: [PRES-02] 전체 UI/API 연결·본문/표 갱신·근거·내보내기는 미구현. 현재는 메모 저장/조회와 상태 확인. -->
-      <!-- // TODO: [PRES-06] AI 생성 선택지와 A~D 표시 계약 정리 필요. D는 현행 직접 입력; 비율은 예시. ISSUES.md 참조. -->
-            <p class="tech-desc">현재는 A~D 선택과 직접 입력을 화면에 유지합니다. 본문·표·설명 동시 갱신은 API 연결 후 구현할 계획입니다.</p>
-          </article>
-
-          <!--  카드 4: 사내 근거 매핑 & Diff Viewer  -->
-          <article class="tech-card">
-            <div class="tech-card-head">
-              <div class="tech-icon" style="background:#eff6ff">
-                <span aria-hidden="true" style="font-size:18px;font-weight:900">TS</span>
-              </div>
-              <h4 class="tech-title">내부 근거 · 반출 계획</h4>
-            </div>
-            <p class="tech-desc">문장별 원자료 근거 표시와 최종 파일 확인·다운로드는 계획입니다. 현재 UI에서 성공으로 표시하지 않습니다.</p>
-          </article>
+      <div class="env-layout">
+        <div class="stack-list">
+      <section class="stack-group"><h3>Front-end · 프레임워크 미사용(바닐라)</h3><p class="why">외부 라이브러리 없이 회사 안에서 바로 실행하고, CSP로 외부 연결을 막기 쉽습니다. 타입으로 화면·서버 계약을 맞춥니다.</p><div class="chip-grid">
+          <div class="stack-chip" style="grid-column:span 2"><svg aria-hidden="true"><use href="#st-html"/></svg><svg aria-hidden="true"><use href="#st-css"/></svg><span>HTML / CSS</span></div>
+          <div class="stack-chip"><svg aria-hidden="true"><use href="#st-ts"/></svg><span>TypeScript<small>5.9.3</small></span></div>
+        </div></section>
+      <section class="stack-group"><h3>Back-end &amp; AI</h3><p class="why">Node 내장 SQLite로 별도 DB 서버 없이 설치합니다. OpenAI 호환 호출이라 사내 LLM으로 설정만 바꾸면 됩니다.</p><div class="chip-grid">
+          <div class="stack-chip"><svg aria-hidden="true"><use href="#st-node"/></svg><span>Node.js<small>24.21.0</small></span></div>
+          <div class="stack-chip"><svg aria-hidden="true"><use href="#st-sqlite"/></svg><span>SQLite<small>node:sqlite</small></span></div>
+          <div class="stack-chip"><svg aria-hidden="true"><use href="#st-llm"/></svg><span>네이토 API<small>OpenAI 호환</small></span></div>
+        </div></section>
+      <section class="stack-group"><h3>Infra &amp; 재현 격리</h3><p class="why">재현 실행은 네트워크 차단·읽기 전용 컨테이너로 격리합니다. toy는 Go 표준 라이브러리만 써서 고정하기 쉽습니다.</p><div class="chip-grid">
+          <div class="stack-chip"><svg aria-hidden="true"><use href="#st-docker"/></svg><span>Docker</span></div>
+          <div class="stack-chip"><svg aria-hidden="true"><use href="#st-go"/></svg><span>Go<small>toy 이미지</small></span></div>
+          <div class="stack-chip"><svg aria-hidden="true"><use href="#st-linux"/></svg><span>Linux<small>실행 기준</small></span></div>
+        </div></section>
+      <section class="stack-group"><h3>Tools &amp; Collaboration</h3><p class="why">mise로 도구 버전을 고정해 같은 환경을 재현합니다. QG로 타입·빌드·시험을 한 번에 검사합니다.</p><div class="chip-grid">
+          <div class="stack-chip"><svg aria-hidden="true"><use href="#st-pnpm"/></svg><span>pnpm<small>10.13.1</small></span></div>
+          <div class="stack-chip"><svg aria-hidden="true"><use href="#st-mise"/></svg><span>mise</span></div>
+          <div class="stack-chip"><svg aria-hidden="true"><use href="#st-just"/></svg><span>just<small>1.58.0</small></span></div>
+          <div class="stack-chip"><svg aria-hidden="true"><use href="#st-check"/></svg><span>node:test</span></div>
+          <div class="stack-chip"><svg aria-hidden="true"><use href="#st-gate"/></svg><span>QG<small>0.1.0</small></span></div>
+          <div class="stack-chip"><svg aria-hidden="true"><use href="#st-github"/></svg><span>GitHub</span></div>
+        </div></section>
         </div>
+        <svg class="env-diagram" viewBox="0 0 800 590" role="img" aria-labelledby="env-title env-desc">
+          <title id="env-title">SafeHandoff 개발 환경과 실행 구조</title>
+          <desc id="env-desc">브라우저 작업 화면이 Node.js 앱의 server, core, model-adapter를 거쳐 SQLite와 네이토 API에 연결되고, CLI로 스킬 팩 검증과 Docker 재현을 실행하는 구조</desc>
+          <defs>
+            <marker id="st-arr" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M1 1 L7 4 L1 7 Z" fill="#475569"/></marker>
+          </defs>
 
-        <!--  ==================== 열 2: 백엔드 & AI 엔진 ====================  -->
-        <div class="stack-col">
-          <div class="col-banner">
-            <h3>백엔드 &amp; AI 엔진</h3>
-            <span>Controller · AI Engine</span>
-          </div>
+          <!-- 개발·검사 도구 -->
+          <rect x="340" y="0" width="460" height="62" rx="9" class="b"/>
+          <text x="354" y="21" class="h2" text-anchor="start">Development &amp; Testing Tools</text>
+          <use href="#st-pnpm" x="354" y="32" width="18" height="18"/><text x="376" y="46" class="i" text-anchor="start">pnpm</text>
+          <use href="#st-mise" x="424" y="32" width="18" height="18"/><text x="446" y="46" class="i" text-anchor="start">mise · just</text>
+          <use href="#st-check" x="522" y="32" width="18" height="18"/><text x="544" y="46" class="i" text-anchor="start">node:test</text>
+          <use href="#st-gate" x="608" y="32" width="18" height="18"/><text x="630" y="46" class="i" text-anchor="start">QG</text>
+          <use href="#st-github" x="662" y="32" width="18" height="18"/><text x="684" y="46" class="i" text-anchor="start">GitHub</text>
 
-          <!--  카드 1: TypeScript / 참고 아이콘  -->
-          <article class="tech-card">
-            <div class="tech-card-head">
-              <div class="tech-icon">
-                <span aria-hidden="true" style="font-size:18px;font-weight:900">TS</span>
-              </div>
-              <h4 class="tech-title">Node HTTP / TypeScript</h4>
-            </div>
-            <p class="tech-desc">pnpm workspace의 app이 HTTP server와 RealCore를 조립합니다. server는 Core 계약에만 의존합니다.</p>
-          </article>
+          <!-- 사용자 화면 -->
+          <rect x="0" y="152" width="116" height="108" rx="9" class="b"/>
+          <use href="#st-html" x="12" y="168" width="26" height="26"/><use href="#st-css" x="45" y="168" width="26" height="26"/><use href="#st-ts" x="78" y="168" width="26" height="26"/>
+          <text x="58" y="218" class="h" text-anchor="middle">client</text>
+          <text x="58" y="236" class="s" text-anchor="middle">작업 화면 · 메모</text>
+          <text x="58" y="280" class="s" text-anchor="middle">사용자 브라우저</text>
+          <line x1="116" y1="206" x2="146" y2="206" class="ln" marker-end="url(#st-arr)"/>
+          <text x="131" y="198" class="l" text-anchor="middle">HTTP</text>
 
-          <!--  카드 2: LLM API · Gemini / 사내 sLLM  -->
-          <article class="tech-card">
-            <div class="tech-card-head">
-              <div class="tech-icon">
-                <span aria-hidden="true" style="font-size:18px;font-weight:900">TS</span>
-              </div>
-              <h4 class="tech-title">호환 HTTP ModelClient</h4>
-            </div>
-            <p class="tech-desc">설정한 OpenAI 호환 endpoint에 호출합니다. 모델별 기능과 품질은 실제 연결 시험으로 확인합니다.</p>
-          </article>
+          <!-- 앱 -->
+          <rect x="148" y="82" width="436" height="268" rx="9" class="app"/>
+          <use href="#st-node" x="162" y="94" width="22" height="22"/><use href="#st-ts" x="188" y="94" width="22" height="22"/>
+          <text x="218" y="110" class="h2" text-anchor="start">packages/app</text>
+          <text x="328" y="110" class="s" text-anchor="start">Node.js 24 · 실제 앱 조립</text>
+          <rect x="162" y="128" width="126" height="172" rx="9" class="in"/>
+          <text x="225" y="149" class="h" text-anchor="middle">server</text>
+          <text x="225" y="165" class="s" text-anchor="middle">HTTP API</text>
+          <rect x="171" y="177" width="108" height="31" rx="9" class="it"/><text x="225" y="197" class="i" text-anchor="middle">/api/documents</text>
+          <rect x="171" y="216" width="108" height="31" rx="9" class="it"/><text x="225" y="236" class="i" text-anchor="middle">/api/core</text>
+          <rect x="171" y="255" width="108" height="31" rx="9" class="it"/><text x="225" y="275" class="i" text-anchor="middle">/api/sharing</text>
+          <rect x="303" y="128" width="126" height="172" rx="9" class="in"/>
+          <text x="366" y="149" class="h" text-anchor="middle">core</text>
+          <text x="366" y="165" class="s" text-anchor="middle">RealCore</text>
+          <rect x="312" y="177" width="108" height="31" rx="9" class="it"/><text x="366" y="197" class="i" text-anchor="middle">작성 Engine</text>
+          <rect x="312" y="216" width="108" height="31" rx="9" class="it"/><text x="366" y="236" class="i" text-anchor="middle">검토 Engine</text>
+          <rect x="312" y="255" width="108" height="31" rx="9" class="it"/><text x="366" y="275" class="i" text-anchor="middle">grounding 검사</text>
+          <rect x="444" y="128" width="126" height="172" rx="9" class="in"/>
+          <text x="507" y="149" class="h" text-anchor="middle">model-adapter</text>
+          <text x="507" y="165" class="s" text-anchor="middle">ModelClient</text>
+          <rect x="453" y="177" width="108" height="31" rx="9" class="it"/><text x="507" y="197" class="i" text-anchor="middle">환경 변수 지정</text>
+          <rect x="453" y="216" width="108" height="31" rx="9" class="it"/><text x="507" y="236" class="i" text-anchor="middle">OpenAI 호환</text>
+          <rect x="453" y="255" width="108" height="31" rx="9" class="it"/><text x="507" y="275" class="i" text-anchor="middle">HTTP 호출</text>
+          <line x1="288" y1="214" x2="302" y2="214" class="ln" marker-end="url(#st-arr)"/>
+          <line x1="429" y1="214" x2="443" y2="214" class="ln" marker-end="url(#st-arr)"/>
+          <text x="378" y="330" class="s" text-anchor="start">server는 Core 계약에만 의존</text>
 
-          <!--  카드 3: 참고 아이콘 원문 격리 & 비식별 변환 엔진  -->
-          <article class="tech-card">
-            <div class="tech-card-head">
-              <div class="tech-icon" style="background:#eef2ff">
-                <span aria-hidden="true" style="font-size:18px;font-weight:900">TS</span>
-              </div>
-              <h4 class="tech-title">FactPack · builtin 변환</h4>
-            </div>
-            <p class="tech-desc">승인된 FactPack으로 새 초안을 작성합니다. 결정적 변환과 grounding 검증을 구현했으며 전체 원자료 처리 흐름은 후속입니다.</p>
-          </article>
+          <!-- 모델 -->
+          <line x1="570" y1="214" x2="632" y2="214" class="ln" marker-end="url(#st-arr)"/>
+          <text x="601" y="206" class="l" text-anchor="middle">HTTP</text>
+          <rect x="634" y="150" width="166" height="128" rx="9" class="ext"/>
+          <use href="#st-llm" x="644" y="160" width="22" height="22"/>
+          <text x="672" y="176" class="h" text-anchor="start">네이토 API</text>
+          <text x="644" y="202" class="s" text-anchor="start">코디세이 제공 · 시연용</text>
+          <text x="644" y="226" class="i" text-anchor="start">가상 데이터만 전송</text>
+          <text x="644" y="250" class="s" text-anchor="start">도입 시 사내 LLM으로 교체</text>
 
-          <!--  카드 4: 참고 아이콘 / 3-Way 대조 검증  -->
-          <article class="tech-card">
-            <div class="tech-card-head">
-              <div class="tech-icon">
-                <span aria-hidden="true" style="font-size:18px;font-weight:900">TS</span>
-              </div>
-              <h4 class="tech-title">LLM 검토 · grounding</h4>
-            </div>
-      <!-- // TODO: [PRES-04] 전체 원자료 대조/제약 자동 복원은 계획. 현재는 초안·FactPack·grounding 검토. -->
-            <p class="tech-desc">현재 초안·FactPack·grounding을 검토합니다. 원자료 분석과 전체 3자 의미 대조·누락 제약 복원은 계획입니다.</p>
-          </article>
-        </div>
+          <!-- 저장소 -->
+          <line x1="225" y1="300" x2="225" y2="418" class="ln" marker-end="url(#st-arr)"/>
+          <text x="232" y="372" class="l" text-anchor="start">SQL</text>
+          <rect x="162" y="420" width="126" height="76" rx="9" class="b"/>
+          <use href="#st-sqlite" x="174" y="432" width="24" height="24"/>
+          <text x="204" y="449" class="h" text-anchor="start">SQLite</text>
+          <text x="174" y="480" class="s" text-anchor="start">문서 · task · decision</text>
 
-        <!--  ==================== 열 3: 데이터베이스 & 인프라 ====================  -->
-        <div class="stack-col">
-          <div class="col-banner">
-            <h3>데이터베이스 &amp; 인프라</h3>
-            <span>Model · DevOps</span>
-          </div>
+          <!-- CLI -->
+          <line x1="366" y1="300" x2="366" y2="418" class="dash" marker-end="url(#st-arr)"/>
+          <text x="373" y="372" class="l" text-anchor="start">CLI에서 Core 호출</text>
+          <rect x="304" y="420" width="496" height="170" rx="9" class="cli"/>
+          <text x="318" y="442" class="h2" text-anchor="start">tools CLI</text>
+          <text x="392" y="442" class="s" text-anchor="start">화면 미연결 · 명령으로 실행</text>
+          <rect x="318" y="456" width="148" height="118" rx="9" class="in"/>
+          <text x="392" y="478" class="h" text-anchor="middle">skill-loader</text>
+          <text x="392" y="500" class="s" text-anchor="middle">manifest·파일 지문 검증</text>
+          <text x="392" y="520" class="s" text-anchor="middle">설치 시 판본 고정</text>
+          <text x="392" y="540" class="s" text-anchor="middle">가상 제품 팩 2종</text>
+          <rect x="482" y="456" width="138" height="118" rx="9" class="in"/>
+          <text x="551" y="478" class="h" text-anchor="middle">sandbox-runner</text>
+          <text x="551" y="500" class="s" text-anchor="middle">고정 digest 이미지</text>
+          <text x="551" y="520" class="s" text-anchor="middle">합성 입력만 전달</text>
+          <text x="551" y="540" class="s" text-anchor="middle">고정 규칙으로 판정</text>
+          <line x1="620" y1="515" x2="644" y2="515" class="dash" marker-end="url(#st-arr)"/>
+          <rect x="646" y="456" width="142" height="118" rx="9" class="ext"/>
+          <use href="#st-docker" x="658" y="466" width="24" height="24"/><use href="#st-go" x="688" y="466" width="24" height="24"/>
+          <text x="658" y="510" class="h" text-anchor="start">toy 재현 이미지</text>
+          <text x="658" y="532" class="s" text-anchor="start">network none</text>
+          <text x="658" y="552" class="s" text-anchor="start">읽기 전용 · non-root</text>
 
-          <!--  카드 1: 참고 아이콘 / 참고 아이콘  -->
-          <article class="tech-card">
-            <div class="tech-card-head">
-              <div class="tech-icon">
-                <span aria-hidden="true" style="font-size:18px;font-weight:900">TS</span>
-              </div>
-              <h4 class="tech-title">SQLite / node:sqlite</h4>
-            </div>
-            <p class="tech-desc">문서 저장·조회와 내부 task/decision 저장을 구현했습니다. task/decision HTTP API와 UI 연결은 후속입니다.</p>
-          </article>
-
-          <!--  카드 2: Skill Repository  -->
-          <article class="tech-card">
-            <div class="tech-card-head">
-              <div class="tech-icon">
-                <span aria-hidden="true" style="font-size:18px;font-weight:900">TS</span>
-              </div>
-              <h4 class="tech-title">Rule / SkillPack 구분</h4>
-            </div>
-            <p class="tech-desc">Rule은 공개 결정의 재사용 데이터, SkillPack은 제품 지침·도구 팩입니다. 팩 로딩·ToyRecord 연결은 구현했고 Rule 매칭은 후속입니다.</p>
-          </article>
-
-          <!--  카드 3: Auth & Tenant / 참고 아이콘 격리  -->
-          <article class="tech-card">
-            <div class="tech-card-head">
-              <div class="tech-icon">
-                <span aria-hidden="true" style="font-size:18px;font-weight:900">TS</span>
-              </div>
-              <h4 class="tech-title">실행 경계 · Docker</h4>
-            </div>
-            <p class="tech-desc">고정 digest의 toy 이미지를 격리 실행합니다. 앱 인증·전체 원자료 작업 환경 격리는 후속이며 기업별 내부 운영이 기준입니다.</p>
-          </article>
-
-          <!--  카드 4: GitHub Actions / On-Prem & Cloud  -->
-          <article class="tech-card">
-            <div class="tech-card-head">
-              <div class="tech-icon">
-                <span aria-hidden="true" style="font-size:18px;font-weight:900">TS</span>
-              </div>
-              <h4 class="tech-title">mise / pnpm / QG</h4>
-            </div>
-      <!-- // TODO: [PRES-05] 앱 인증·전체 원자료 격리·배포는 후속. Docker toy 실행 격리만 완료. ISSUES.md 참조. -->
-            <p class="tech-desc">Node 24·pnpm·TypeScript와 just check로 타입·빌드·테스트를 검사합니다. PR Preview·자동 배포는 계획입니다.</p>
-          </article>
-        </div>
+          <!-- 범례 -->
+          <line x1="0" y1="534" x2="30" y2="534" class="ln"/>
+          <text x="38" y="538" class="s" text-anchor="start">앱에서 실행</text>
+          <line x1="0" y1="560" x2="30" y2="560" class="dash"/>
+          <text x="38" y="564" class="s" text-anchor="start">CLI로 실행</text>
+          <text x="0" y="512" class="i" text-anchor="start">시연: 로컬 앱 + 브라우저</text>
+        </svg>
       </div>
-
-      <footer class="page-footer">
-        <span>* 기술·구현 근거: <a href="../architecture.md">architecture</a> · <a href="../../README.md">README</a> · <a href="../api.md">API</a></span>
-        <span class="footer-Right">설계 원칙: 승인 정보로 새 작성 · 실제 구현과 계획 구분</span>
-      </footer>
     </section>
   </div>
 </main>

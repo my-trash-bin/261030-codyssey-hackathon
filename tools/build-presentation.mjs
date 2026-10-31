@@ -41,7 +41,7 @@ async function main() {
     const images = await page.locator('img').evaluateAll(elements => elements.map(image => ({
       source: image.getAttribute('src'), loaded: image.complete && image.naturalWidth > 0,
     })));
-    if (slides !== 12 || images.some(image => !image.loaded)) throw new Error('PRESENTATION_SLIDE_OR_IMAGE_MISSING');
+    if (slides !== 11 || images.some(image => !image.loaded)) throw new Error('PRESENTATION_SLIDE_OR_IMAGE_MISSING');
     const pdf = await page.pdf({ printBackground: true, preferCSSPageSize: true });
     const pages = (pdf.toString('latin1').match(/\/Type\s*\/Page\b/g) ?? []).length;
     if (pages !== slides) throw new Error('PRESENTATION_PAGE_COUNT_MISMATCH');

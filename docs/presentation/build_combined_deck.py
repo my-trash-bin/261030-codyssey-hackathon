@@ -5,17 +5,16 @@ WORKSPACE = os.path.dirname(os.path.abspath(__file__))
 
 SLIDES = [
     ("slide-cover", "표지", "SafeHandoff_표지.html"),
-    ("slide-index", "00. 목차", "SafeHandoff_목차.html"),
-    ("slide-bg", "01. 배경", "SafeHandoff_프로젝트_배경.html"),
-    ("slide-persona", "02. 페르소나", "SafeHandoff_타겟_페르소나.html"),
-    ("slide-flow", "03. 서비스 플로우", "SafeHandoff_서비스_플로우.html"),
-    ("slide-tech", "04. 기술 스택", "SafeHandoff_기술_스택.html"),
-    ("slide-ai", "05. AI 기술·개발범위", "SafeHandoff_AI기술_개발범위.html"),
-    ("slide-arch", "06. 아키텍처", "SafeHandoff_서비스_아키텍처.html"),
-    ("slide-diff", "07. 차별점", "SafeHandoff_서비스_차별점.html"),
-    ("slide-effect", "08. 기대효과", "SafeHandoff_기대효과.html"),
-    ("slide-scale", "09. 확장 가능성", "SafeHandoff_확장_가능성.html"),
-    ("slide-team", "10. 팀원 소개", "SafeHandoff_팀원_소개.html"),
+    ("slide-problem", "1. 프로젝트 배경", "SafeHandoff_문제_사용자.html"),
+    ("slide-dilemma", "2. 페르소나·문제 정의", "SafeHandoff_문제_딜레마.html"),
+    ("slide-after", "3. 솔루션·유저 플로우", "SafeHandoff_전후_비교.html"),
+    ("slide-diff", "4. 서비스 차별점", "SafeHandoff_서비스_차별점.html"),
+    ("slide-dev-scope", "5. AI 기술·직접 개발 범위", "SafeHandoff_직접_개발_범위.html"),
+    ("slide-tech", "6. 기술 스택", "SafeHandoff_기술_스택.html"),
+    ("slide-team", "7. 팀원 역할", "SafeHandoff_팀원_소개.html"),
+    ("slide-resources", "8. 외부 자원", "SafeHandoff_외부_자원.html"),
+    ("slide-effect", "9. 기대효과", "SafeHandoff_기대효과.html"),
+    ("slide-expansion", "10. 확장 가능성", "SafeHandoff_확장_가능성.html"),
 ]
 
 def extract_style_and_page(filepath, scope_id):
@@ -68,8 +67,8 @@ def main():
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#163172">
-<meta name="description" content="SafeHandoff 코디세이 해커톤 발표자료 통합본 (표지 ~ 08. 기대효과)">
-<title>SafeHandoff · 발표자료 통합본 (표지 ~ 08. 기대효과)</title>
+<meta name="description" content="SafeHandoff 코디세이 해커톤 발표자료 통합본">
+<title>SafeHandoff · 발표자료 통합본</title>
 <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -181,6 +180,9 @@ button{{font:inherit;cursor:pointer}}
 
 {"".join(styles)}
 
+/* 표지를 뺀 본문은 제목 위 여백을 720px의 약 5% 더 둔다 */
+.slide-scope:not(#slide-cover) .page{{padding-top:64px}}
+
 @media print{{
   @page{{size:1280px 720px;margin:0}}
   html,body{{background:#fff;margin:0;padding:0;-webkit-print-color-adjust:exact;print-color-adjust:exact}}
@@ -199,7 +201,8 @@ button{{font:inherit;cursor:pointer}}
     <a class="master-brand" href="#slide-cover"><span class="master-badge">S</span>SafeHandoff <small>ALL SLIDES</small></a>
     <div class="master-tools">
 {chr(10).join(nav_buttons)}
-      <button class="tool-button primary" id="print-all" type="button">전체 PDF 인쇄</button>
+      <a class="tool-button" href="SafeHandoff_발표자료_통합.pdf" download>완성 PDF</a>
+      <button class="tool-button primary" id="print-all" type="button" title="인쇄 대상은 PDF로 저장을 선택하세요. Microsoft Print to PDF는 슬라이드 크기를 무시합니다.">전체 PDF 인쇄</button>
     </div>
   </div>
 </header>

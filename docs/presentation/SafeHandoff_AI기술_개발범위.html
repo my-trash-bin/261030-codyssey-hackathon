@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#163172">
 <meta name="description" content="SafeHandoff 05. 핵심 AI 파이프라인 및 직접 개발 범위 — 16:9 와이드스크린 발표 슬라이드">
-<title>SafeHandoff · 05 핵심 AI 파이프라인 및 직접 개발 범위</title>
+<title>SafeHandoff · 3. 핵심 AI 파이프라인 및 직접 개발 범위</title>
 <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -149,6 +149,7 @@ button{font:inherit;cursor:pointer}
   color:#0f172a;
   line-height:1.15;
 }
+.header-sub .st{margin-left:6px}
 .header-sub{
   font-size:14px;
   font-weight:700;
@@ -157,6 +158,30 @@ button{font:inherit;cursor:pointer}
 }
 
 /* ==================== 2x2 카드 그리드 ==================== */
+.model-strip{
+  margin:0 0 9px;
+  display:grid;
+  grid-template-columns:1.1fr 1.1fr 1.05fr 1.05fr 1.1fr;
+  flex-shrink:0;
+}
+.model-strip div{
+  padding:0 12px;
+  border-left:1px solid #dce4f0;
+}
+.model-strip div:first-child{padding-left:0;border-left:0}
+.model-strip dt{
+  font-size:10.5px;
+  font-weight:600;
+  color:#94a3b8;
+}
+.model-strip dd{
+  margin:1px 0 0;
+  font-size:12px;
+  font-weight:600;
+  color:#64748b;
+  white-space:nowrap;
+}
+
 .pipeline-grid{
   flex:1;
   min-height:0;
@@ -381,6 +406,20 @@ button{font:inherit;cursor:pointer}
   font-weight:800;
 }
 
+.st{
+  display:inline-block;
+  padding:1px 7px;
+  border-radius:999px;
+  font-size:10.5px;
+  font-weight:800;
+  line-height:1.4;
+  white-space:nowrap;
+  vertical-align:1px;
+}
+.st-demo{background:#dcfce7;color:#166534}
+.st-built{background:#dbeafe;color:#1e40af}
+.st-plan{background:#e2e8f0;color:#475569}
+
 @media(max-width:760px){
   .toolbar-inner{width:calc(100% - 24px)}
   .reader{padding:16px 0 25px}
@@ -403,16 +442,10 @@ button{font:inherit;cursor:pointer}
 <body>
 <header class="toolbar">
   <div class="toolbar-inner">
-    <a class="brand" href="#ai-pipeline"><span class="brand-badge">S</span>SafeHandoff <small>05 · AI PIPELINE &amp; DEV SCOPE</small></a>
+    <a class="brand" href="#ai-pipeline"><span class="brand-badge">S</span>SafeHandoff <small>4 · AI PIPELINE &amp; DEV SCOPE</small></a>
     <div class="tools">
-      <a class="tool-button" href="SafeHandoff_목차.html">00. 목차</a>
-      <a class="tool-button" href="SafeHandoff_서비스_플로우.html">03. 서비스 플로우</a>
-      <a class="tool-button" href="SafeHandoff_기술_스택.html">‹ 04. 기술 스택</a>
-      <a class="tool-button" href="SafeHandoff_서비스_아키텍처.html">06. 서비스 아키텍처 ›</a>
-      <a class="tool-button" href="SafeHandoff_서비스_차별점.html">07. 차별점</a>
-      <a class="tool-button" href="SafeHandoff_기대효과.html">08. 기대효과</a>
-      <a class="tool-button" href="SafeHandoff_확장_가능성.html">09. 확장 가능성</a>
-      <a class="tool-button" href="SafeHandoff_팀원_소개.html">10. 팀원 소개</a>
+      <a class="tool-button" href="SafeHandoff_서비스_플로우.html">‹ 2. 서비스 플로우</a>
+      <a class="tool-button" href="SafeHandoff_스킬_재사용.html">4. AI·직접 개발 범위 ›</a>
       <a class="tool-button" href="../spec.md">제품 설계</a>
       <a class="tool-button" href="../../README.md">실제 구현</a>
       <button class="tool-button" id="print-document" type="button">인쇄 / PDF 저장</button>
@@ -426,37 +459,156 @@ button{font:inherit;cursor:pointer}
       <header class="page-header">
         <h2 id="ai-pipe-title">핵심 AI 파이프라인 및 직접 개발 범위</h2>
       <!-- // TODO: [PRES-02] 전체 UI/API 연결·본문/표 갱신·근거·내보내기는 미구현. 현재는 메모 저장/조회와 상태 확인. -->
-        <span class="header-sub">설계 목표·후속 계획 포함 · 현재 완료 범위는 <a href="../../README.md">실제 구현</a> · <a href="ISSUES.md">발표 이슈</a> 참조</span>
+        <span class="header-sub"><span class="st st-demo">시연</span> 앱·API로 실행 <span class="st st-built">구현</span> 라이브러리·CLI, 화면 미연결 <span class="st st-plan">설계</span> 아직 미구현</span>
       </header>
+
+      <dl class="model-strip" aria-label="사용 모델과 적용 방식">
+        <div><dt>사용 모델</dt><dd>네이토 API (코디세이 자체 개발)</dd></div>
+        <div><dt>연결 방식</dt><dd>OpenAI 호환 /chat/completions</dd></div>
+        <div><dt>호출 구조</dt><dd>작성 → 검토, 역할별 분리 호출</dd></div>
+        <div><dt>호출 제한</dt><dd>단계별 2회 시도 · 실행당 12회</dd></div>
+        <div><dt>학습 여부</dt><dd>파인튜닝·RAG 없음, 호출만 사용</dd></div>
+      </dl>
 
       <div class="pipeline-grid">
         <!--  ==================== 카드 1: 로그 비식별화 · 문맥 단서 분리 및 A~D 묶음 질문 ====================  -->
         <article class="pipe-card">
           <div class="card-head">
             <div class="card-top-row">
+              <span class="en-kicker">WRITER · APPROVED-FACT DRAFTING</span>
+              <div class="tech-pills">
+                <span class="tech-pill"><svg viewBox="0 0 24 24" fill="none" stroke="#0f172a" stroke-width="2" aria-hidden="true"><rect x="5" y="5" width="14" height="14" rx="2"/><rect x="9" y="9" width="6" height="6"/><path d="M9 2v3M15 2v3M9 19v3M15 19v3M2 9h3M2 15h3M19 9h3M19 15h3"/></svg>네이토 API</span>
+                <span class="tech-pill"><svg viewBox="0 0 24 24" aria-hidden="true"><rect width="24" height="24" rx="4" fill="#3178C6"/><text x="12" y="17" text-anchor="middle" fill="#fff" font-size="12" font-weight="900">TS</text></svg>TypeScript</span>
+                <span class="st st-demo">시연</span>
+              </div>
+            </div>
+            <h3>공유본 작성: 승인한 사실만 LLM에 전달</h3>
+          </div>
+
+          <div class="flow-well">
+            <div class="flow-step">
+              <div class="step-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="3" y="4" width="18" height="16" rx="2"/><line x1="7" y1="8" x2="13" y2="8"/><line x1="7" y1="12" x2="17" y2="12"/><line x1="7" y1="16" x2="15" y2="16"/>
+                </svg>
+              </div>
+              <div class="step-title">FactPack JSON 입력</div>
+              <div class="step-sub">승인 사실만 · 원자료 제외</div>
+            </div>
+            <div class="flow-arrow" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="5" y1="12" x2="19" y2="12"/><polyline points="13 6 19 12 13 18"/>
+              </svg>
+            </div>
+            <div class="flow-step">
+              <div class="step-icon active-blue" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 4.44-2.04Z"/>
+                  <path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-4.44-2.04Z"/>
+                </svg>
+              </div>
+              <div class="step-title">LLM 초안 작성</div>
+              <div class="step-sub">승인 사실만 사용 · 불확실성 유지</div>
+            </div>
+            <div class="flow-arrow" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="5" y1="12" x2="19" y2="12"/><polyline points="13 6 19 12 13 18"/>
+              </svg>
+            </div>
+            <div class="flow-step">
+              <div class="step-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+                </svg>
+              </div>
+              <div class="step-title">draft.v1 응답 검증</div>
+              <div class="step-sub">블록별 근거 fact_id · 형식 검사</div>
+            </div>
+          </div>
+
+          <div class="scope-strip">
+            <span class="scope-api"><strong>LLM 적용:</strong> 시스템 프롬프트 + JSON 응답 · 문서 초안 생성</span>
+            <span class="scope-dev">직접 개발: 입력 경계·프롬프트·응답 검증</span>
+          </div>
+        </article>
+
+        <article class="pipe-card">
+          <div class="card-head">
+            <div class="card-top-row">
+              <span class="en-kicker">REVIEWER · FACT &amp; GROUNDING CHECK</span>
+              <div class="tech-pills">
+                <span class="tech-pill"><svg viewBox="0 0 24 24" fill="none" stroke="#0f172a" stroke-width="2" aria-hidden="true"><rect x="5" y="5" width="14" height="14" rx="2"/><rect x="9" y="9" width="6" height="6"/><path d="M9 2v3M15 2v3M9 19v3M15 19v3M2 9h3M2 15h3M19 9h3M19 15h3"/></svg>네이토 API</span>
+                <span class="tech-pill"><svg viewBox="0 0 24 24" aria-hidden="true"><rect width="24" height="24" rx="4" fill="#3178C6"/><text x="12" y="17" text-anchor="middle" fill="#fff" font-size="12" font-weight="900">TS</text></svg>TypeScript</span>
+                <span class="st st-demo">시연</span>
+              </div>
+            </div>
+            <h3>초안 검토: 초안과 승인 사실을 별도 호출로 대조</h3>
+          </div>
+
+          <div class="flow-well">
+            <div class="flow-step">
+              <div class="step-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/>
+                </svg>
+              </div>
+              <div class="step-title">grounding 사전 검사</div>
+              <div class="step-sub">실패 시 모델을 호출하지 않음</div>
+            </div>
+            <div class="flow-arrow" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="5" y1="12" x2="19" y2="12"/><polyline points="13 6 19 12 13 18"/>
+              </svg>
+            </div>
+            <div class="flow-step">
+              <div class="step-icon active-blue" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 4.44-2.04Z"/>
+                  <path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-4.44-2.04Z"/>
+                </svg>
+              </div>
+              <div class="step-title">LLM 검토</div>
+              <div class="step-sub">노출·누락·단정·참조 판정</div>
+            </div>
+            <div class="flow-arrow" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="5" y1="12" x2="19" y2="12"/><polyline points="13 6 19 12 13 18"/>
+              </svg>
+            </div>
+            <div class="flow-step">
+              <div class="step-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+                </svg>
+              </div>
+              <div class="step-title">review.v1 판정</div>
+              <div class="step-sub">통과 · 수정 · 재결정 · 오류</div>
+            </div>
+          </div>
+
+          <div class="scope-strip">
+            <span class="scope-api"><strong>LLM 적용:</strong> 검토 프롬프트 + JSON 응답 · 8개 사유 코드</span>
+            <span class="scope-dev">직접 개발: grounding·필수 사실 재검사</span>
+          </div>
+        </article>
+
+        <article class="pipe-card">
+          <div class="card-head">
+            <div class="card-top-row">
               <span class="en-kicker">LOG DE-IDENTIFICATION AGENT</span>
               <div class="tech-pills">
-                <!--  OpenAI / LLM API 공식 SVG  -->
+                <!--  사내 LLM  -->
                 <span class="tech-pill">
-                  <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#0f172a" d="M22.2819 9.8211a5.9847 5.9847 0 0 0-.5157-4.9108 6.0462 6.0462 0 0 0-6.5098-2.9A6.0651 6.0651 0 0 0 4.9807 4.1818a5.9847 5.9847 0 0 0-3.9977 2.9 6.0462 6.0462 0 0 0 .7427 7.0966
-5.98 5.98 0 0 0 .511 4.9107 6.051 6.051 0 0 0 6.5146 2.9001A5.9847 5.9847 0 0 0 13.2599 24a6.0557 6.0557 0 0 0 5.7718-4.2058 5.9894 5.9894 0 0 0 3.9977-2.9001 6.0557 6.0557 0 0
-0-.7475-7.0729zm-9.022 12.6081a4.4755 4.4755 0 0 1-2.8764-1.0408l.1419-.0804 4.7783-2.7582a.7948.7948 0 0 0 .3927-.6813v-6.7369l2.02 1.1686a.071.071 0 0 1 .038.052v5.5826a4.504
-4.504 0 0 1-4.4945 4.4944zm-9.6607-4.1254a4.4708 4.4708 0 0 1-.5346-3.0137l.142.0852 4.783 2.7582a.7712.7712 0 0 0 .7806 0l5.8428-3.3685v2.3324a.0804.0804 0 0 1-.0332.0615L9.74
-19.9502a4.4992 4.4992 0 0 1-6.1408-1.6464zM2.3408 7.8956a4.485 4.485 0 0 1 2.3655-1.9728V11.6a.7664.7664 0 0 0 .3879.6765l5.8144 3.3543-2.0201 1.1685a.0757.0757 0 0 1-.071
-0l-4.8303-2.7865A4.504 4.504 0 0 1 2.3408 7.872zm16.5963 3.8558L13.1038 8.364 15.1192 7.2a.0757.0757 0 0 1 .071 0l4.8303 2.7913a4.4944 4.4944 0 0 1-.6765 8.1042v-5.6772a.79.79 0 0
-0-.407-.667zm2.0107-3.0231l-.142-.0852-4.7735-2.7818a.7759.7759 0 0 0-.7854 0L9.409 9.2297V6.8974a.0662.0662 0 0 1 .0284-.0615l4.8303-2.7866a4.4992 4.4992 0 0 1 6.6802 4.66zM8.3065
-12.863l-2.02-1.1638a.0804.0804 0 0 1-.038-.0567V6.0742a4.4992 4.4992 0 0 1 7.3757-3.4537l-.142.0805L8.704 5.459a.7948.7948 0 0 0-.3927.6813zm1.0976-2.3654l2.602-1.4998 2.6069
-1.4998v2.9994l-2.5974
-1.4997-2.6067-1.4997Z"/></svg>
-                  LLM API
+                  <svg viewBox="0 0 24 24" fill="none" stroke="#0f172a" stroke-width="2" aria-hidden="true"><rect x="5" y="5" width="14" height="14" rx="2"/><rect x="9" y="9" width="6" height="6"/><path d="M9 2v3M15 2v3M9 19v3M15 19v3M2 9h3M2 15h3M19 9h3M19 15h3"/></svg>
+                  네이토 API
                 </span>
-                <!--  Node HTTP 공식 SVG  -->
+                <!--  ModelClient  -->
                 <span class="tech-pill">
-                  <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="11" fill="#05998b"/><polygon points="13,5 7,13 12,13 10,20 17,11 12,11" fill="#ffffff"/></svg>
-                  Node HTTP
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><rect width="24" height="24" rx="4" fill="#3178C6"/><text x="12" y="17" text-anchor="middle" fill="#fff" font-size="12" font-weight="900">TS</text></svg>
+                  TypeScript
                 </span>
       <!-- // TODO: [PRES-01] 분석 Engine 구현됨. 묶음 질문·공개 제안/미리보기·서버/UI 연결은 후속. ../f02-analyze-plan.md 참조. -->
-                <span class="tech-pill direct"><span class="pill-check">✓</span>개발 범위 · 묶음 질문기</span>
+                <span class="st st-plan">설계</span>
               </div>
             </div>
       <!-- // TODO: [PRES-01] 분석 Engine 구현됨. 묶음 질문·공개 제안/미리보기·서버/UI 연결은 후속. ../f02-analyze-plan.md 참조. -->
@@ -521,207 +673,29 @@ button{font:inherit;cursor:pointer}
           </div>
 
           <div class="scope-strip">
-            <span class="scope-api"><strong>AI 활용:</strong> LLM API · ModelClient HTTP 호출</span>
+            <span class="scope-api"><strong>LLM 적용:</strong> 공개 후보·질문 제안 (예정)</span>
       <!-- // TODO: [PRES-01] 분석 Engine 구현됨. 묶음 질문·공개 제안/미리보기·서버/UI 연결은 후속. ../f02-analyze-plan.md 참조. -->
-            <span class="scope-dev">직접 개발: JSON Schema 유사 단서 묶음 질문기</span>
+            <span class="scope-dev">설계: 유사 단서 묶음 질문기</span>
           </div>
         </article>
 
-        <!--  ==================== 카드 2: 참고 아이콘 원문 격리 초안 작성 및 본문·표 동시 갱신 ====================  -->
-        <article class="pipe-card">
-          <div class="card-head">
-            <div class="card-top-row">
-              <span class="en-kicker">APPROVED-FACT DRAFTING AGENT</span>
-              <div class="tech-pills">
-                <!--  호환 LLM 공식 SVG  -->
-                <span class="tech-pill">
-                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2 C13.8 9, 15.8 11, 22 12 C15.8 13, 13.8 15, 12 22 C10.2 15, 8.2 13, 2 12 C8.2 11, 10.2 9, 12 2 Z" fill="#6366f1"/></svg>
-                  호환 LLM
-                </span>
-                <!--  TypeScript 공식 SVG  -->
-                <span class="tech-pill">
-                  <svg viewBox="0 0 24 24" aria-hidden="true"><rect width="24" height="24" rx="4" fill="#3178C6"/><text x="12" y="17" text-anchor="middle" fill="#fff" font-size="12" font-weight="900">TS</text></svg>
-                  TypeScript
-                </span>
-      <!-- // TODO: [PRES-02] 전체 UI/API 연결·본문/표 갱신·근거·내보내기는 미구현. 현재는 메모 저장/조회와 상태 확인. -->
-                <span class="tech-pill direct"><span class="pill-check">✓</span>개발 범위 · 동시 갱신 엔진</span>
-              </div>
-            </div>
-      <!-- // TODO: [PRES-02] 전체 UI/API 연결·본문/표 갱신·근거·내보내기는 미구현. 현재는 메모 저장/조회와 상태 확인. -->
-            <h3>원문 격리 초안 작성 · 본문·표 동시 갱신</h3>
-          </div>
-
-          <div class="flow-well">
-            <div class="flow-step">
-              <div class="step-icon" aria-hidden="true">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <rect x="3" y="4" width="18" height="16" rx="2"/>
-                  <line x1="7" y1="8" x2="13" y2="8"/>
-                  <line x1="7" y1="12" x2="17" y2="12"/>
-                  <line x1="7" y1="16" x2="15" y2="16"/>
-                </svg>
-              </div>
-              <div class="step-title">승인 FactPack 입력</div>
-      <!-- // TODO: [PRES-06] AI 생성 선택지와 A~D 표시 계약 정리 필요. D는 현행 직접 입력; 비율은 예시. ISSUES.md 참조. -->
-              <div class="step-sub">승인된 A~D 허용 사실만 전달</div>
-            </div>
-
-            <div class="flow-arrow" aria-hidden="true">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                <line x1="5" y1="12" x2="19" y2="12"/><polyline points="13 6 19 12 13 18"/>
-              </svg>
-            </div>
-
-            <div class="flow-step">
-              <div class="step-icon active-blue" aria-hidden="true">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 4.44-2.04Z"/>
-                  <path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-4.44-2.04Z"/>
-                </svg>
-              </div>
-              <div class="step-title">선택 기준 맞춤 초안 생성</div>
-              <div class="step-sub">실제 수치 가림 · 추이·비율 변환</div>
-            </div>
-
-            <div class="flow-arrow" aria-hidden="true">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                <line x1="5" y1="12" x2="19" y2="12"/><polyline points="13 6 19 12 13 18"/>
-              </svg>
-            </div>
-
-            <div class="flow-step">
-              <div class="step-icon accent-red" aria-hidden="true">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
-                  <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
-                </svg>
-              </div>
-      <!-- // TODO: [PRES-02] 전체 UI/API 연결·본문/표 갱신·근거·내보내기는 미구현. 현재는 메모 저장/조회와 상태 확인. -->
-              <div class="step-title">본문·표·설명 동시 갱신</div>
-      <!-- // TODO: [PRES-02] 전체 UI/API 연결·본문/표 갱신·근거·내보내기는 미구현. 현재는 메모 저장/조회와 상태 확인. -->
-              <div class="step-sub">본문·표 동기화 계획</div>
-            </div>
-          </div>
-
-          <div class="scope-strip">
-            <span class="scope-api"><strong>AI 활용:</strong> 호환 사내 LLM 교체형 초안 생성</span>
-      <!-- // TODO: [PRES-02] 전체 UI/API 연결·본문/표 갱신·근거·내보내기는 미구현. 현재는 메모 저장/조회와 상태 확인. -->
-            <span class="scope-dev">직접 개발: 승인 정보 경계 &amp; 본문·표 동시 갱신 엔진</span>
-          </div>
-        </article>
-
-        <!--  ==================== 카드 3: 해결 스킬 추천 · 3자 대조 검증 및 사내 근거 매핑 ====================  -->
-        <article class="pipe-card">
-          <div class="card-head">
-            <div class="card-top-row">
-      <!-- // TODO: [PRES-04] 전체 원자료 대조/제약 자동 복원은 계획. 현재는 초안·FactPack·grounding 검토. -->
-              <span class="en-kicker">3-WAY CROSS-CHECK &amp; SKILL AGENT</span>
-              <div class="tech-pills">
-                <!--  LLM 검토 공식 SVG  -->
-                <span class="tech-pill">
-                  <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#EE4C2C" d="M12.005 0L4.952 7.053a9.865 9.865 0 000 14.022 9.866 9.866 0 0014.022 0c3.984-3.9 3.986-10.205.085-14.023l-1.744 1.743c2.904 2.905 2.904 7.634 0 10.538s-7.634 2.904-10.538 0-2.904-7.634 0-10.538l4.647-4.646.582-.665zm3.568 3.899a1.327 1.327 0 00-1.327 1.327 1.327 1.327 0 001.327 1.328A1.327 1.327 0 0016.9 5.226 1.327 1.327 0 0015.573 3.9z"/></svg>
-                  LLM 검토
-                </span>
-                <!--  참고 아이콘 Shield 아이콘  -->
-                <span class="tech-pill">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="#0f172a" stroke-width="2.2" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-                  격리 계획
-                </span>
-      <!-- // TODO: [PRES-02] 전체 UI/API 연결·본문/표 갱신·근거·내보내기는 미구현. 현재는 메모 저장/조회와 상태 확인. -->
-                <span class="tech-pill direct"><span class="pill-check">✓</span>개발 범위 · 사내 근거 매핑</span>
-              </div>
-            </div>
-      <!-- // TODO: [PRES-03] Rule 저장/매칭은 미구현. SkillPack과 혼용 금지; 공개 팩 공유는 별도 후속. ISSUES.md 참조. -->
-      <!-- // TODO: [PRES-04] 전체 원자료 대조/제약 자동 복원은 계획. 현재는 초안·FactPack·grounding 검토. -->
-            <h3>해결 스킬 추천 · 3자 대조 및 필수 제약 복원</h3>
-          </div>
-
-          <div class="flow-well">
-            <div class="flow-step">
-              <div class="step-icon" aria-hidden="true">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
-                  <line x1="12" y1="9" x2="12" y2="13"/>
-                  <line x1="12" y1="17" x2="12.01" y2="17"/>
-                </svg>
-              </div>
-              <div class="step-title">누락 · 과다 노출 위험</div>
-              <div class="step-sub">원문 · 선택 기준 · 초안 입력</div>
-            </div>
-
-            <div class="flow-arrow" aria-hidden="true">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                <line x1="5" y1="12" x2="19" y2="12"/><polyline points="13 6 19 12 13 18"/>
-              </svg>
-            </div>
-
-            <div class="flow-step">
-              <div class="step-icon active-blue" aria-hidden="true">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                  <circle cx="18" cy="5" r="3"/>
-                  <circle cx="6" cy="12" r="3"/>
-                  <circle cx="18" cy="19" r="3"/>
-                  <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
-                  <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
-                </svg>
-              </div>
-      <!-- // TODO: [PRES-03] Rule 저장/매칭은 미구현. SkillPack과 혼용 금지; 공개 팩 공유는 별도 후속. ISSUES.md 참조. -->
-      <!-- // TODO: [PRES-04] 전체 원자료 대조/제약 자동 복원은 계획. 현재는 초안·FactPack·grounding 검토. -->
-              <div class="step-title">3-Way 대조 · 스킬 추천</div>
-              <div class="step-sub">유사 문제 분류 · 사내 근거 연결</div>
-            </div>
-
-            <div class="flow-arrow" aria-hidden="true">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                <line x1="5" y1="12" x2="19" y2="12"/><polyline points="13 6 19 12 13 18"/>
-              </svg>
-            </div>
-
-            <div class="flow-step">
-              <div class="step-icon" aria-hidden="true">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                  <polyline points="9 11 12 14 22 4"/>
-                  <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
-                </svg>
-              </div>
-      <!-- // TODO: [PRES-04] 전체 원자료 대조/제약 자동 복원은 계획. 현재는 초안·FactPack·grounding 검토. -->
-              <div class="step-title">빠진 필수 제약 복원</div>
-              <div class="step-sub">“기존 접수 채널 유지” 반영</div>
-            </div>
-          </div>
-
-          <div class="scope-strip">
-      <!-- // TODO: [PRES-04] 전체 원자료 대조/제약 자동 복원은 계획. 현재는 초안·FactPack·grounding 검토. -->
-            <span class="scope-api"><strong>AI 활용:</strong> 전체 의미 대조·분류는 후속 계획</span>
-      <!-- // TODO: [PRES-02] 전체 UI/API 연결·본문/표 갱신·근거·내보내기는 미구현. 현재는 메모 저장/조회와 상태 확인. -->
-      <!-- // TODO: [PRES-04] 전체 원자료 대조/제약 자동 복원은 계획. 현재는 초안·FactPack·grounding 검토. -->
-            <span class="scope-dev">직접 개발: 원자료 근거 매핑·제약 복원 계획</span>
-          </div>
-        </article>
-
-        <!--  ==================== 카드 4: Rule 저장 / 공개 팩 계획 및 기업 간 재사용 자동화 ====================  -->
         <article class="pipe-card">
           <div class="card-head">
             <div class="card-top-row">
       <!-- // TODO: [PRES-03] Rule 저장/매칭은 미구현. SkillPack과 혼용 금지; 공개 팩 공유는 별도 후속. ISSUES.md 참조. -->
               <span class="en-kicker">RULE REUSE &amp; PUBLIC SKILLPACK</span>
               <div class="tech-pills">
-                <!--  SQLite Slonik 공식 SVG  -->
                 <span class="tech-pill">
-                  <svg viewBox="0 0 24 24" aria-hidden="true">
-                    <path d="M9.6 4.4 C4.6 3.3 2.2 5.8 2.6 10.8 C3.0 15.2 5.4 18.2 8.2 17.6" fill="#dbeafe" stroke="#336791" stroke-width="1.8" stroke-linecap="round"/>
-                    <path d="M15.4 4.6 C19.0 3.6 21.4 6.0 20.8 10.4 C20.2 14.2 18.2 16.2 16.0 15.8" fill="#dbeafe" stroke="#336791" stroke-width="1.8" stroke-linecap="round"/>
-                    <path d="M8.8 6.8 C8.8 3.6 16.4 3.6 16.4 6.8 C16.4 9.6 15.6 12.8 15.4 17.6 C15.3 20.0 13.9 21.4 12.3 21.4 C10.7 21.4 10.3 20.0 10.3 17.4 Z" fill="#eff6ff" stroke="#336791" stroke-width="1.8"/>
-                  </svg>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="#0f172a" stroke-width="2" aria-hidden="true"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v14c0 1.7 3.6 3 8 3s8-1.3 8-3V5"/></svg>
                   SQLite
                 </span>
                 <!--  node:sqlite 공식 SVG  -->
                 <span class="tech-pill">
-                  <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#0f172a" d="M21.807 18.285L13.553.757a1.32 1.32 0 0 0-1.129-.755a1.31 1.31 0 0 0-1.206.626l-8.952 14.5a1.36 1.36 0 0 0 .016 1.455l4.376 6.778a1.41 1.41 0 0 0 1.58.581l12.703-3.757c.389-.115.707-.39.873-.755s.164-.783-.007-1.145m-1.848.752L9.18 22.224a.452.452 0 0 1-.575-.52l3.85-18.438c.072-.345.549-.4.699-.08l7.129 15.138a.515.515 0 0 1-.325.713"/></svg>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="#0f172a" stroke-width="2" aria-hidden="true"><path d="M6 3h9l4 4v14H6z"/><path d="M9 12h6M9 16h6"/></svg>
                   node:sqlite
                 </span>
       <!-- // TODO: [PRES-03] Rule 저장/매칭은 미구현. SkillPack과 혼용 금지; 공개 팩 공유는 별도 후속. ISSUES.md 참조. -->
-                <span class="tech-pill direct"><span class="pill-check">✓</span>개발 범위 · Rule 매칭 계획</span>
+                <span class="st st-built">구현</span> <span class="st st-plan">설계</span>
               </div>
             </div>
             <h3>공개 기준(Rule) 재사용 · 공개 SkillPack 공유 계획</h3>
@@ -782,17 +756,13 @@ button{font:inherit;cursor:pointer}
       <!-- // TODO: [PRES-05] 앱 인증·전체 원자료 격리·배포는 후속. Docker toy 실행 격리만 완료. ISSUES.md 참조. -->
             <span class="scope-api"><strong>인프라 활용:</strong> SQLite · node:sqlite</span>
       <!-- // TODO: [PRES-03] Rule 저장/매칭은 미구현. SkillPack과 혼용 금지; 공개 팩 공유는 별도 후속. ISSUES.md 참조. -->
-            <span class="scope-dev">직접 개발: Skill Repository &amp; 조건부 Rule 매칭 계획</span>
+            <span class="scope-dev">구현: 팩 검증·등록 · 설계: Rule 매칭</span>
           </div>
         </article>
       </div>
 
-      <footer class="page-footer"><a href="../architecture.md">현행 아키텍처 참조</a> · <a href="ISSUES.md">구현 상태·미결 사항</a>
-        <span>현재 연결 스택은 <a href="../architecture.md">현행 아키텍처 문서</a> 참조 · 분석·질문·전체 대조·Rule 매칭은 후속</span>
-      <!-- // TODO: [PRES-02] 전체 UI/API 연결·본문/표 갱신·근거·내보내기는 미구현. 현재는 메모 저장/조회와 상태 확인. -->
-      <!-- // TODO: [PRES-03] Rule 저장/매칭은 미구현. SkillPack과 혼용 금지; 공개 팩 공유는 별도 후속. ISSUES.md 참조. -->
-      <!-- // TODO: [PRES-04] 전체 원자료 대조/제약 자동 복원은 계획. 현재는 초안·FactPack·grounding 검토. -->
-        <span class="footer-right">작성·검토·팩 연결 구현 / 분석·Rule·동기화 후속</span>
+      <footer class="page-footer">
+        <span>AI 활용: 네이토 API(시연) → 사내 LLM(도입 시 어댑터 설정 교체) · 호출 제한은 기본 설정값</span>
       </footer>
     </section>
   </div>

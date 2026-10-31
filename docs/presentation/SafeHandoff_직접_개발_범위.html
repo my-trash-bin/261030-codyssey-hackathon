@@ -1,0 +1,254 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#163172">
+<meta name="description" content="SafeHandoff 직접 개발 범위 - 협업 도구, 개발 흐름, AI 역할과 직접 개발 영역">
+<title>SafeHandoff · 5. 활용 AI 기술 및 직접 개발 범위</title>
+<link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --blue:#2563eb;
+  --navy:#163172;
+  --ink:#111827;
+  --body:#334155;
+  --muted:#64748b;
+  --line:#dce4f0;
+  --paper:#ffffff;
+}
+*{box-sizing:border-box}
+html{
+  scroll-behavior:smooth;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+}
+body{
+  margin:0;
+  background:#e8edf5;
+  color:var(--ink);
+  font-family:"Pretendard Variable",Pretendard,"Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+  font-size:14px;
+  font-weight:600;
+  line-height:1.45;
+  word-break:keep-all;
+  overflow-wrap:break-word;
+}
+h1,h2,h3,h4,p,figure,ul{margin:0}
+a{color:inherit;text-decoration:none}
+button{font:inherit;cursor:pointer}
+
+.toolbar{
+  height:64px;
+  position:sticky;
+  top:0;
+  z-index:30;
+  background:#fffffff7;
+  border-bottom:1px solid var(--line);
+  backdrop-filter:blur(12px);
+}
+.toolbar-inner{
+  height:100%;
+  width:min(1280px,calc(100% - 40px));
+  margin:auto;
+  display:flex;
+  justify-content:space-between;
+  gap:20px;
+  align-items:center;
+}
+.brand{
+  font-size:19px;
+  font-weight:900;
+  color:var(--navy);
+  white-space:nowrap;
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+.brand-badge{
+  display:inline-grid;
+  place-items:center;
+  width:26px;
+  height:26px;
+  border-radius:7px;
+  background:#0f9f90;
+  color:#fff;
+  font-size:14px;
+  font-weight:900;
+}
+.brand small{
+  font-size:11px;
+  letter-spacing:.08em;
+  font-weight:700;
+  margin-left:4px;
+  color:var(--muted);
+}
+.tools{display:flex;gap:8px;align-items:center}
+.tool-button{
+  font-size:12px;
+  font-weight:700;
+  color:var(--navy);
+  background:#fff;
+  border:1.5px solid var(--line);
+  border-radius:8px;
+  padding:7px 13px;
+  line-height:1.5;
+}
+.tool-button:hover{background:#f0f5ff}
+
+.reader{padding:28px 0 42px}
+.page-shell{
+  position:relative;
+  margin:0 auto 28px;
+  width:1280px;
+  height:720px;
+}
+.page{
+  position:relative;
+  width:1280px;
+  height:720px;
+  padding:28px 46px 24px;
+  background:var(--paper);
+  box-shadow:0 6px 28px #16317212;
+  transform-origin:top left;
+  overflow:hidden;
+  display:flex;
+  flex-direction:column;
+}
+.page-header{
+  border-bottom:2px solid var(--navy);
+  padding-bottom:12px;
+  margin-bottom:18px;
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-end;
+  gap:16px;
+  flex-shrink:0;
+}
+.page-header h2{
+  font-size:30px;
+  color:var(--ink);
+  font-weight:900;
+  letter-spacing:-.04em;
+}
+.header-sub{
+  font-size:13px;
+  font-weight:700;
+  color:var(--muted);
+  white-space:nowrap;
+}
+
+
+/* 협업 도구와 개발 영역 */
+.page-header{margin-bottom:20px;padding-bottom:11px}.page-header h2{font-size:31px}.header-sub{font-size:13px}
+.dev-defs{position:absolute;width:0;height:0;overflow:hidden}
+.section-caption{display:flex;align-items:baseline;justify-content:space-between;gap:18px;margin-bottom:12px}
+.section-caption h3{font-size:18px;font-weight:900;line-height:1.3;color:#163172;letter-spacing:-.025em;white-space:nowrap}
+.section-caption p{font-size:12.5px;line-height:1.5;font-weight:600;color:#64748b}
+.collaboration{flex-shrink:0;margin-bottom:24px}
+.collab-flow{display:grid;grid-template-columns:minmax(0,1fr) 25px minmax(0,1fr) 25px minmax(0,1fr) 25px minmax(0,1fr) 25px minmax(0,1fr) 25px minmax(0,1fr);align-items:stretch}
+.collab-tool{display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:0;height:122px;border:1.5px solid #dce4f0;border-radius:11px;background:#f8fafc;text-align:center;padding:10px 5px}
+.collab-tool svg{height:28px;width:28px;margin-bottom:6px;flex-shrink:0}
+.collab-tool h4{font-size:17px;font-weight:900;line-height:1.25;color:#111827;letter-spacing:-.02em}
+.collab-tool p{font-size:12px;line-height:1.35;margin-top:4px;font-weight:700;color:#334155;white-space:nowrap}
+.collab-tool small{font-size:10.5px;line-height:1.3;color:#64748b;margin-top:3px;font-weight:600;white-space:nowrap}
+.tool-arrow{display:flex;align-items:center;justify-content:center}.tool-arrow svg{width:20px;height:20px;fill:none;stroke:#94a3b8;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.scope-areas{flex:1;min-height:0;display:flex;flex-direction:column}.scope-grid{flex:1;min-height:0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}
+.scope-card{min-width:0;min-height:0;display:flex;flex-direction:column;border:1.5px solid #cbd9ef;border-top:4px solid #2563eb;border-radius:12px;background:#fff;padding:15px}
+.scope-card.planned{border-style:dashed;border-top-color:#94a3b8;background:#fafbfc}
+.scope-card-head{display:flex;align-items:center;gap:9px;margin-bottom:14px;flex-shrink:0}.scope-card-head svg{width:31px;height:31px;flex-shrink:0}.scope-card-head h3{font-size:18px;font-weight:900;letter-spacing:-.035em;line-height:1.3;color:#111827}
+.developer-work{flex-shrink:0;padding:11px 12px;border:1px solid #dbeafe;border-radius:8px;background:#f2f7ff;color:#163172}
+.work-label{display:flex;align-items:center;gap:5px;font-size:11px;font-weight:900;line-height:1.3;margin-bottom:7px;color:#2563eb}.work-label svg{width:16px;height:16px;flex-shrink:0}
+.developer-work p{font-size:15px;font-weight:800;line-height:1.5;letter-spacing:-.025em}
+.model-work{margin-top:12px;min-height:63px;color:#475569;padding:0 2px}.model-work .work-label{color:#64748b;margin-bottom:4px}.model-work p{font-size:13px;font-weight:600;line-height:1.45;letter-spacing:-.02em}
+.scope-status{display:flex;gap:5px;margin-top:auto;padding-top:10px;flex-shrink:0}.chip{display:inline-block;padding:3px 10px;border-radius:99px;font-size:11.5px;line-height:1.4;font-weight:800;white-space:nowrap}.chip.demo{background:#dcfce7;color:#166534}.chip.built{background:#dbeafe;color:#1e40af}.chip.plan{background:#e2e8f0;color:#475569}
+.scope-legend{display:flex;align-items:center;gap:25px;flex-shrink:0;margin-top:13px;font-size:11px;font-weight:600;color:#64748b}.scope-legend span{display:flex;align-items:center;gap:6px}.scope-legend b{color:#475569;font-weight:900}.scope-legend i{width:8px;height:8px;border-radius:50%;display:inline-block}.legend-demo{background:#22c55e}.legend-built{background:#3b82f6}.legend-plan{background:#94a3b8}
+
+/* 필수 AI 기술과 현재 범위를 같은 장에 표시 */
+.ai-tech-summary{flex-shrink:0;display:grid;grid-template-columns:1fr 1.15fr 1.1fr;gap:14px;margin-bottom:15px;padding:12px 15px;border:1px solid #dce4f0;border-radius:10px;background:#f8fafc}.ai-tech-summary>div{display:flex;align-items:center;gap:9px;min-width:0}.ai-tech-summary>div+div{padding-left:14px;border-left:1px solid #dce4f0}.ai-tech-summary img{width:26px;height:26px;object-fit:contain;flex-shrink:0}.ai-tech-summary small{display:block;margin-bottom:3px;font-size:10.5px;font-weight:700;color:#64748b}.ai-tech-summary b{font-size:13px;line-height:1.4;font-weight:800;color:#163172;letter-spacing:-.025em;white-space:nowrap}
+.page-header{margin-bottom:15px}.page-header h2{font-size:30px}.collaboration{margin-bottom:18px}.section-caption{margin-bottom:9px}.section-caption h3{font-size:17px}.section-caption p{font-size:11.5px}.collab-tool{height:85px;padding:6px 5px}.collab-tool svg{width:22px;height:22px;margin-bottom:3px}.collab-tool h4{font-size:14px}.collab-tool p{font-size:10.5px;margin-top:3px}.collab-tool small{font-size:9.5px;margin-top:2px}.scope-card{padding:13px}.scope-card-head{margin-bottom:12px}.scope-card-head h3{font-size:17px}.developer-work{padding:9px 10px}.model-work{min-height:58px;margin-top:10px}.scope-legend{margin-top:10px}
+
+@media(max-width:760px){
+ .toolbar-inner{width:calc(100% - 24px)}.reader{padding:16px 0 25px}
+ .page-shell{width:calc(100% - 24px)!important;height:auto!important;margin-bottom:16px}.page{width:100%;height:auto;padding:20px 16px;transform:none!important;overflow:visible}
+ .page-header,.section-caption{flex-direction:column;align-items:flex-start;gap:6px}.header-sub{white-space:normal}.collab-flow{grid-template-columns:1fr 1fr 1fr;gap:8px}.tool-arrow{display:none}.scope-grid{grid-template-columns:1fr 1fr}.scope-card{min-height:280px}.scope-legend{flex-wrap:wrap;gap:12px}
+}
+@media print{
+ @page{size:1280px 720px;margin:0}body{background:#fff;margin:0;-webkit-print-color-adjust:exact;print-color-adjust:exact}.toolbar{display:none!important}.reader{padding:0;margin:0}
+ .page-shell{width:1280px!important;height:720px!important;margin:0!important}.page{width:1280px!important;height:720px!important;transform:none!important;box-shadow:none!important;overflow:hidden!important}
+}
+</style></head><body>
+<header class="toolbar"><div class="toolbar-inner">
+      <a class="brand" href="#dev-scope"><span class="brand-badge">S</span>SafeHandoff <small>5 · DEVELOPMENT SCOPE</small></a>
+      <div class="tools"><a class="tool-button" href="SafeHandoff_서비스_차별점.html">‹ 4. 서비스 차별점</a>
+<a class="tool-button" href="SafeHandoff_기술_스택.html">6. 기술 스택 ›</a><a class="tool-button" href="../spec.md">제품 설계</a><a class="tool-button" href="../../README.md">실제 구현</a><button class="tool-button" id="print-document" type="button">인쇄 / PDF 저장</button></div>
+    </div></header>
+<main class="reader" aria-label="SafeHandoff 직접 개발 범위"><div class="page-shell" id="sheet-dev-scope"><section class="page" id="dev-scope" aria-labelledby="dev-scope-title"><svg class="dev-defs" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"><defs><symbol id="dev-github" viewBox="0 0 24 24"><path fill="#181717" d="M12 .297
+c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61
+C4.422 18.07 3.633 17.7 3.633 17.7
+c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57
+C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></symbol><symbol id="dev-mise" viewBox="0 0 24 24" fill="none" stroke="#334155" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.106-3.105c.32-.322.863-.22.983.218a6 6 0 0 1-8.259 7.057l-7.91 7.91a1 1 0 0 1-2.999-3l7.91-7.91a6 6 0 0 1 7.057-8.259c.438.12.54.662.219.984z" /></symbol><symbol id="dev-pnpm" viewBox="0 0 24 24"><path fill="#F69220" d="M0 0v7.5h7.5V0zm8.25 0v7.5h7.498V0zm8.25 0v7.5H24V0zM2 2h3.5v3.5H2zm8.25 0h3.498v3.5H10.25zm8.25 0H22v3.5h-3.5zM8.25 8.25v7.5
+h7.498v-7.5zm8.25 0v7.5H24v-7.5zm2 2H22v3.5h-3.5zM0 16.5V24h7.5v-7.5zm8.25 0V24h7.498v-7.5zm8.25 0V24H24v-7.5z"/></symbol><symbol id="dev-just" viewBox="0 0 24 24"><path fill="#000000" d="M12 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0m0 2.35a3.25 3.35 0 0 1 3.25 3.35
+A3.25 3.35 0 0 1 12 9.05 3.25 3.35 0 0 1 8.75 5.7 3.25 3.35 0 0 1 12 2.35m0 12.6a3.25 3.35 0 0 1 3.25 3.35
+A3.25 3.35 0 0 1 12 21.65a3.25 3.35 0 0 1-3.25-3.35A3.25 3.35 0 0 1 12 14.95"/></symbol><symbol id="dev-gate" viewBox="0 0 24 24" fill="none" stroke="#15803d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z" /><path d="m16 9-5.5 5.5L8 12" /></symbol><symbol id="dev-check" viewBox="0 0 24 24" fill="none" stroke="#15803d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 5h8" /><path d="M13 12h8" /><path d="M13 19h8" /><path d="m3 17 2 2 4-4" /><path d="m3 7 2 2 4-4" /></symbol><symbol id="dev-docker" viewBox="0 0 24 24"><path fill="#2496ED" d="M13.983 11.078h2.119a.186.186 0 00.186-.185V9.006a.186.186 0 00-.186-.186h-2.119a.185.185 0 00-.185.185v1.888
+c0 .102.083.185.185.185m-2.954-5.43h2.118a.186.186 0 00.186-.186V3.574a.186.186 0 00-.186-.185h-2.118a.185.185 0 00-.185.185v1.888
+c0 .102.082.185.185.185m0 2.716h2.118a.187.187 0 00.186-.186V6.29a.186.186 0 00-.186-.185h-2.118a.185.185 0 00-.185.185v1.887
+c0 .102.082.185.185.186m-2.93 0h2.12a.186.186 0 00.184-.186V6.29a.185.185 0 00-.185-.185H8.1a.185.185 0 00-.185.185v1.887
+c0 .102.083.185.185.186m-2.964 0h2.119a.186.186 0 00.185-.186V6.29a.185.185 0 00-.185-.185H5.136a.186.186 0 00-.186.185v1.887
+c0 .102.084.185.186.186m5.893 2.715h2.118a.186.186 0 00.186-.185V9.006a.186.186 0 00-.186-.186h-2.118a.185.185 0 00-.185.185v1.888
+c0 .102.082.185.185.185m-2.93 0h2.12a.185.185 0 00.184-.185V9.006a.185.185 0 00-.184-.186h-2.12a.185.185 0 00-.184.185v1.888
+c0 .102.083.185.185.185m-2.964 0h2.119a.185.185 0 00.185-.185V9.006a.185.185 0 00-.184-.186h-2.12a.186.186 0 00-.186.186v1.887
+c0 .102.084.185.186.185m-2.92 0h2.12a.185.185 0 00.184-.185V9.006a.185.185 0 00-.184-.186h-2.12a.185.185 0 00-.184.185v1.888
+c0 .102.082.185.185.185M23.763 9.89c-.065-.051-.672-.51-1.954-.51-.338.001-.676.03-1.01.087-.248-1.7-1.653-2.53-1.716-2.566
+l-.344-.199-.226.327c-.284.438-.49.922-.612 1.43-.23.97-.09 1.882.403 2.661-.595.332-1.55.413-1.744.42H.751
+a.751.751 0 00-.75.748 11.376 11.376 0 00.692 4.062
+c.545 1.428 1.355 2.48 2.41 3.124 1.18.723 3.1 1.137 5.275 1.137.983.003 1.963-.086 2.93-.266a12.248 12.248 0 003.823-1.389
+c.98-.567 1.86-1.288 2.61-2.136 1.252-1.418 1.998-2.997 2.553-4.4h.221c1.372 0 2.215-.549 2.68-1.009.309-.293.55-.65.707-1.046
+l.098-.288Z"/></symbol>
+<symbol id="dev-shield" viewBox="0 0 32 32" fill="none" stroke="#2563eb" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m16 3 11 4v8c0 7-11 14-11 14S5 22 5 15V7z"/><path d="m10 16 4 4 8-9"/></symbol>
+<symbol id="dev-pack" viewBox="0 0 32 32" fill="none" stroke="#2563eb" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 3H7v22h18V8zM20 3v6h5M11 13h9M11 17h5M11 21h4M4 8H2v21h18v-2"/><circle cx="24" cy="24" r="6"/><path d="m21 24 2 2 4-4"/></symbol>
+<symbol id="dev-database" viewBox="0 0 32 32" fill="none" stroke="#64748b" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="16" cy="7" rx="11" ry="4"/><path d="M5 7v9c0 5 22 5 22 0V7M5 16v9c0 5 22 5 22 0v-9"/></symbol>
+<symbol id="dev-code" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="m8 6-6 6 6 6m8-12 6 6-6 6M14 3l-4 18"/></symbol>
+<symbol id="dev-model" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="5" width="16" height="14" rx="3"/><path d="M12 2v3M8 10h.01M16 10h.01M8 15h8M1 10v4M23 10v4"/></symbol></defs></svg>
+<header class="page-header"><h2 id="dev-scope-title">활용 AI 기술 및 직접 개발 범위</h2><span class="header-sub">협업 도구와 개발 영역</span></header>
+<section class="ai-tech-summary" aria-label="활용 AI와 적용 방식"><div><img src="logo_gemini.png" alt=""><p><small>모델·API</small><b>Gemini Flash · NAITO API</b></p></div><div><p><small>적용 방식</small><b>승인팩 작성 · 규칙 검사 · LLM 대조</b></p></div><div><p><small>공개 표현의 규칙 계산</small><b>정확값·추이·비율 · 선택은 사람</b></p></div></section><section class="collaboration" aria-labelledby="collaboration-title"><div class="section-caption"><h3 id="collaboration-title">Tools &amp; Collaboration</h3><p>GitHub로 코드를 공유하고, mise로 환경을 맞춘 뒤 just check로 같은 검사를 실행합니다.</p></div><div class="collab-flow"><div class="collab-tool"><svg class="" aria-hidden="true"><use href="#dev-github"/></svg><h4>GitHub</h4><p>코드·변경 이력 공유</p><small>협업 저장소</small></div><span class="tool-arrow" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 12h17m-6-6 6 6-6 6"/></svg></span><div class="collab-tool"><svg class="" aria-hidden="true"><use href="#dev-mise"/></svg><h4>mise</h4><p>도구 버전 고정</p><small>Node 24.21.0</small></div><span class="tool-arrow" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 12h17m-6-6 6 6-6 6"/></svg></span><div class="collab-tool"><svg class="" aria-hidden="true"><use href="#dev-pnpm"/></svg><h4>pnpm</h4><p>패키지 분리·연결</p><small>10.13.1</small></div><span class="tool-arrow" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 12h17m-6-6 6 6-6 6"/></svg></span><div class="collab-tool"><svg class="" aria-hidden="true"><use href="#dev-just"/></svg><h4>just</h4><p>검사 명령 통일</p><small>just check · 1.58.0</small></div><span class="tool-arrow" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 12h17m-6-6 6 6-6 6"/></svg></span><div class="collab-tool"><svg class="" aria-hidden="true"><use href="#dev-gate"/></svg><h4>QG</h4><p>타입·빌드·시험 검사</p><small>0.1.0</small></div><span class="tool-arrow" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 12h17m-6-6 6 6-6 6"/></svg></span><div class="collab-tool"><svg class="" aria-hidden="true"><use href="#dev-check"/></svg><h4>node:test</h4><p>Node 테스트 실행</p><small>공통 테스트 러너</small></div></div></section>
+<section class="scope-areas" aria-labelledby="scope-areas-title"><div class="section-caption"><h3 id="scope-areas-title">개발 영역별 역할</h3><p>LLM의 작성·제안과 직접 개발하는 검사·제어를 구분합니다.</p></div><div class="scope-grid"><article class="scope-card">
+<header class="scope-card-head"><svg class="" aria-hidden="true"><use href="#dev-shield"/></svg><h3>작성·검토</h3></header>
+<div class="developer-work"><span class="work-label"><svg class="" aria-hidden="true"><use href="#dev-code"/></svg>직접 개발</span><p>승인 상태·허용 근거 검증<br>응답 형식·호출 상한</p></div>
+<div class="model-work"><span class="work-label"><svg class="" aria-hidden="true"><use href="#dev-model"/></svg>AI 역할</span><p>승인 사실로 초안 작성<br>승인 내용과 대조 판정</p></div>
+<div class="scope-status"><span class="chip demo">시연</span></div></article><article class="scope-card">
+<header class="scope-card-head"><svg class="" aria-hidden="true"><use href="#dev-docker"/></svg><h3>재현 확인</h3></header>
+<div class="developer-work"><span class="work-label"><svg class="" aria-hidden="true"><use href="#dev-code"/></svg>직접 개발</span><p>Docker 격리 실행<br>고정 판정 규칙</p></div>
+<div class="model-work"><span class="work-label"><svg class="" aria-hidden="true"><use href="#dev-model"/></svg>AI 역할</span><p>실행 결과를<br>문서에 반영</p></div>
+<div class="scope-status"><span class="chip built">구현</span></div></article><article class="scope-card">
+<header class="scope-card-head"><svg aria-hidden="true"><use href="#dev-pack"/></svg><h3>후보 분류·스킬 팩</h3></header>
+<div class="developer-work"><span class="work-label"><svg aria-hidden="true"><use href="#dev-code"/></svg>직접 개발</span><p>스킬 팩 manifest<br>파일 지문 검증</p></div>
+<div class="model-work"><span class="work-label"><svg aria-hidden="true"><use href="#dev-model"/></svg>AI가 제안할 분류</span><p>관찰·제약·가설·미확인<br>식별자 후보로 분류</p></div>
+<div class="scope-status"><span class="chip built">팩 검증 구현</span><span class="chip plan">AI 분류 설계</span></div></article><article class="scope-card planned">
+<header class="scope-card-head"><svg class="" aria-hidden="true"><use href="#dev-database"/></svg><h3>산업·회사별 맞춤</h3></header>
+<div class="developer-work"><span class="work-label"><svg class="" aria-hidden="true"><use href="#dev-code"/></svg>직접 개발</span><p>업종별 스킬·DB 프로필<br>민감 기준(Rule) 저장</p></div>
+<div class="model-work"><span class="work-label"><svg class="" aria-hidden="true"><use href="#dev-model"/></svg>AI 역할</span><p>업무 맥락·컬럼 의미 제안</p></div>
+<div class="scope-status"><span class="chip plan">설계</span></div></article></div></section>
+<footer class="scope-legend"><span><i class="legend-demo"></i><b>시연</b> 앱·API로 실행</span><span><i class="legend-built"></i><b>구현</b> 라이브러리·CLI</span><span><i class="legend-plan"></i><b>설계</b> 미구현</span></footer></section></div></main>
+<script>
+(() => {
+  'use strict';
+  const shells = Array.from(document.querySelectorAll('.page-shell'));
+  function fitPages() {
+    const mobile = innerWidth <= 760;
+    const width = Math.min(1280, innerWidth - 40);
+    shells.forEach(shell => {
+      shell.style.width = mobile ? '' : width + 'px';
+      shell.style.height = mobile ? '' : 720 * width / 1280 + 'px';
+      shell.querySelector('.page').style.transform = mobile ? '' : 'scale(' + width / 1280 + ')';
+    });
+  }
+  document.getElementById('print-document').addEventListener('click', () => window.print());
+  window.addEventListener('resize', fitPages);
+  window.addEventListener('afterprint', fitPages);
+  fitPages();
+})();
+</script></body></html>

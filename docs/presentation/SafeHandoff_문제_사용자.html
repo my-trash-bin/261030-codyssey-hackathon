@@ -1,0 +1,326 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#163172">
+<meta name="description" content="SafeHandoff 문제 정의 - 외부 AI에 사내 자료를 붙여넣어 생기는 사고">
+<title>SafeHandoff · 1. 프로젝트 배경</title>
+<link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --blue:#2563eb;
+  --navy:#163172;
+  --ink:#111827;
+  --body:#334155;
+  --muted:#64748b;
+  --line:#dce4f0;
+  --paper:#ffffff;
+}
+*{box-sizing:border-box}
+html{
+  scroll-behavior:smooth;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+}
+body{
+  margin:0;
+  background:#e8edf5;
+  color:var(--ink);
+  font-family:"Pretendard Variable",Pretendard,"Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+  font-size:14px;
+  font-weight:600;
+  line-height:1.45;
+  word-break:keep-all;
+  overflow-wrap:break-word;
+}
+h1,h2,h3,h4,p,figure,ul{margin:0}
+a{color:inherit;text-decoration:none}
+button{font:inherit;cursor:pointer}
+
+.toolbar{
+  height:64px;
+  position:sticky;
+  top:0;
+  z-index:30;
+  background:#fffffff7;
+  border-bottom:1px solid var(--line);
+  backdrop-filter:blur(12px);
+}
+.toolbar-inner{
+  height:100%;
+  width:min(1280px,calc(100% - 40px));
+  margin:auto;
+  display:flex;
+  justify-content:space-between;
+  gap:20px;
+  align-items:center;
+}
+.brand{
+  font-size:19px;
+  font-weight:900;
+  color:var(--navy);
+  white-space:nowrap;
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+.brand-badge{
+  display:inline-grid;
+  place-items:center;
+  width:26px;
+  height:26px;
+  border-radius:7px;
+  background:#0f9f90;
+  color:#fff;
+  font-size:14px;
+  font-weight:900;
+}
+.brand small{
+  font-size:11px;
+  letter-spacing:.08em;
+  font-weight:700;
+  margin-left:4px;
+  color:var(--muted);
+}
+.tools{display:flex;gap:8px;align-items:center}
+.tool-button{
+  font-size:12px;
+  font-weight:700;
+  color:var(--navy);
+  background:#fff;
+  border:1.5px solid var(--line);
+  border-radius:8px;
+  padding:7px 13px;
+  line-height:1.5;
+}
+.tool-button:hover{background:#f0f5ff}
+
+.reader{padding:28px 0 42px}
+.page-shell{
+  position:relative;
+  margin:0 auto 28px;
+  width:1280px;
+  height:720px;
+}
+.page{
+  position:relative;
+  width:1280px;
+  height:720px;
+  padding:28px 46px 24px;
+  background:var(--paper);
+  box-shadow:0 6px 28px #16317212;
+  transform-origin:top left;
+  overflow:hidden;
+  display:flex;
+  flex-direction:column;
+}
+.page-header{
+  border-bottom:2px solid var(--navy);
+  padding-bottom:12px;
+  margin-bottom:18px;
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-end;
+  gap:16px;
+  flex-shrink:0;
+}
+.page-header h2{
+  font-size:30px;
+  color:var(--ink);
+  font-weight:900;
+  letter-spacing:-.04em;
+}
+.header-sub{
+  font-size:13px;
+  font-weight:700;
+  color:var(--muted);
+  white-space:nowrap;
+}
+
+.section-subhead{
+  flex-shrink:0;
+  margin-bottom:12px;
+  font-size:18px;
+  font-weight:800;
+  color:var(--blue);
+  letter-spacing:-.03em;
+}
+.three{
+  flex:1;
+  min-height:0;
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:20px;
+}
+.discovery-card{
+  display:flex;
+  flex-direction:column;
+  min-height:0;
+  padding:15px 20px 12px;
+  border-radius:14px;
+  background:#f3f5fa;
+}
+.discovery-kicker{
+  text-align:center;
+  font-size:13px;
+  font-weight:800;
+  color:var(--blue);
+  letter-spacing:-.01em;
+  margin-bottom:5px;
+}
+.discovery-card h3{
+  text-align:center;
+  font-size:20px;
+  font-weight:900;
+  color:var(--ink);
+  letter-spacing:-.035em;
+  line-height:1.3;
+}
+.news-capture{
+  flex:0 0 254px;
+  margin:10px 0 8px;
+  padding:7px 9px;
+  background:#ffffff;
+  border:1.5px solid #d5dfef;
+  border-radius:10px;
+  overflow:hidden;
+}
+.news-capture img{display:block;width:100%;height:100%;object-fit:contain}
+.stat-caption{
+  text-align:center;
+  font-size:13.5px;
+  font-weight:700;
+  color:var(--muted);
+  line-height:1.45;
+}
+.card-divider{
+  border:0;
+  border-top:1.5px solid var(--line);
+  margin:9px 0;
+}
+.pain-list{
+  margin:0;
+  padding-left:17px;
+  color:var(--body);
+  font-size:14.4px;
+  font-weight:600;
+  line-height:1.5;
+  letter-spacing:-.02em;
+  flex:1;
+}
+.pain-list strong{font-weight:800;color:var(--ink)}
+.src{
+  margin-top:auto;
+  padding-top:4px;
+  font-size:11px;
+  font-weight:600;
+  line-height:1.35;
+  color:var(--muted);
+}
+
+@media(max-width:760px){
+  .toolbar-inner{width:calc(100% - 24px)}
+  .reader{padding:16px 0 25px}
+  .page-shell{width:calc(100% - 24px)!important;height:auto!important;margin-bottom:16px}
+  .page{width:100%;height:auto;padding:20px 16px;transform:none!important;overflow:visible}
+  .page-header{flex-direction:column;align-items:flex-start}
+  .header-sub{white-space:normal}
+  .grid-collapse{grid-template-columns:1fr!important}
+}
+
+@media print{
+  @page{size:1280px 720px;margin:0}
+  body{background:#fff;margin:0;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .toolbar{display:none!important}
+  .reader{padding:0;margin:0}
+  .page-shell{width:1280px!important;height:720px!important;margin:0!important}
+  .page{width:1280px!important;height:720px!important;transform:none!important;box-shadow:none!important;overflow:hidden!important}
+}
+</style>
+</head>
+<body>
+<header class="toolbar">
+  <div class="toolbar-inner">
+    <a class="brand" href="#problem"><span class="brand-badge">S</span>SafeHandoff <small>1 · PROBLEM</small></a>
+    <div class="tools">
+      <a class="tool-button" href="SafeHandoff_표지.html">‹ 표지</a>
+      <a class="tool-button" href="SafeHandoff_문제_딜레마.html">2. 페르소나·문제 정의 ›</a>
+      <a class="tool-button" href="../spec.md">제품 설계</a>
+      <a class="tool-button" href="../../README.md">실제 구현</a>
+      <button class="tool-button" id="print-document" type="button">인쇄 / PDF 저장</button>
+    </div>
+  </div>
+</header>
+
+<main class="reader" aria-label="SafeHandoff 1. 문제 정의">
+  <div class="page-shell" id="sheet-problem">
+    <section class="page" id="problem" aria-labelledby="problem-title">
+      <header class="page-header">
+        <h2 id="problem-title">프로젝트 배경: 외부에 물어야 일은 풀리는데, 그대로 보내면 유출이 된다</h2>
+        <span class="header-sub">문제 정의 및 목표 사용자</span>
+      </header>
+      <p class="section-subhead">실제 보안 사고 뉴스와 기업 데이터 반출 조사에서 확인한 세 가지 배경</p>
+      <div class="three grid-collapse">
+        <article class="discovery-card">
+          <p class="discovery-kicker">배경 1 · 현실의 기밀 유출 사고</p>
+          <h3>급한 오류·회의록을 외부에 묻다<br>회사 기밀이 유출된다</h3>
+          <figure class="news-capture"><img src="news_samsung_chatgpt.png" alt="[단독] 우려가 현실로…삼성전자, 챗GPT 빗장 풀자마자 ‘오남용’ 속출"></figure>
+          <p class="stat-caption">기업 데이터의 AI 도구 입력 1년 새 485% 증가<br>삼성전자 반도체 부문 입력 사고 3건 보도</p>
+          <hr class="card-divider">
+          <ul class="pain-list">
+            <li>급한 오류를 고치려 <strong>소스코드</strong>를 입력하고, <strong>회의 내용</strong>까지 넣었다가 설비 정보가 외부 서버로 전송됨</li>
+          </ul>
+          <p class="src">출처: 이코노미스트 정두용 기자(2023.03.30) · Cyberhaven(2024.05, 2023.03~2024.03 기준)</p>
+        </article>
+        <article class="discovery-card">
+          <p class="discovery-kicker">배경 2 · 막아도 쓰게 되는 현실</p>
+          <h3>유출이 두려워 회사에서 막아도,<br>당장 급한 직원은 몰래 복붙한다</h3>
+          <figure class="news-capture"><img src="news_estsecurity_ai.png" alt="이스트시큐리티, 보안 담당자 200명 설문... AI 민감 정보 유출 우려 커"></figure>
+          <p class="stat-caption">기업 보안 우려 1위 ‘민감 정보 유출’(64.5%)<br>직장 내 챗GPT 사용의 73.8%가 개인 계정</p>
+          <hr class="card-divider">
+          <ul class="pain-list">
+            <li>AI 도구에 넣는 민감 데이터는 <strong>고객지원(16.3%)</strong>, <strong>소스코드(12.7%)</strong>, <strong>연구개발 자료(10.8%)</strong>로, 일을 해결하려다 보내게 됨</li>
+          </ul>
+          <p class="src">출처: AI타임스 박수빈 기자(2025.02.05, 이스트시큐리티 200여 명 설문) · Cyberhaven(2024.05)</p>
+        </article>
+        <article class="discovery-card">
+          <p class="discovery-kicker">배경 3 · 이름만 가리는 방식의 한계</p>
+          <h3>이름·번호만 지워선 비밀이 새고,<br>너무 많이 지우면 대화가 안 된다</h3>
+          <figure class="news-capture"><img src="news_snu_deid.png" alt="문맥은 살리고 개인정보만 가린다 — 서울대 이재진 교수팀, AI 비식별화 개발"></figure>
+          <p class="stat-caption">덜 가리면 개인정보가 드러나고<br>많이 가리면 내용을 이해하기 어려움 (판결서 연구)</p>
+          <hr class="card-divider">
+          <ul class="pain-list">
+            <li>회사 자료도 같습니다. 이름만 가리면 <strong>주변 내용으로 정보가 드러나고</strong>, 많이 지우면 <strong>맥락이 끊겨</strong> 사람이 다시 고쳐야 함</li>
+          </ul>
+          <p class="src">출처: 서울대학교 보도자료, 이재진 교수 연구팀(2026.09.29)</p>
+        </article>
+      </div>
+    </section>
+  </div>
+</main>
+
+<script>
+(() => {
+  'use strict';
+  const shells = Array.from(document.querySelectorAll('.page-shell'));
+  function fitPages() {
+    const mobile = innerWidth <= 760;
+    const width = Math.min(1280, innerWidth - 40);
+    shells.forEach(shell => {
+      shell.style.width = mobile ? '' : width + 'px';
+      shell.style.height = mobile ? '' : 720 * width / 1280 + 'px';
+      shell.querySelector('.page').style.transform = mobile ? '' : 'scale(' + width / 1280 + ')';
+    });
+  }
+  document.getElementById('print-document').addEventListener('click', () => window.print());
+  window.addEventListener('resize', fitPages);
+  window.addEventListener('afterprint', fitPages);
+  fitPages();
+})();
+</script>
+</body>
+</html>
