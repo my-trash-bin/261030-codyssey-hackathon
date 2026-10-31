@@ -44,9 +44,10 @@
 | D18 | 카탈로그는 로컬 설정, 사용자 UI는 선택/상태조회만 | 첫 PoC 관리기능 범위 제한 | F01/F10, api |
 | D19 | 재시작 queued/running 모두 failed/INTERRUPTED | 숨은 자동재개 없이 사용자가 실행상태 파악 | F09, spec |
 | D20 | 제목만 바뀌어도 revision 증가·stale | 첫 PoC 무효화 규칙 단순화 | spec, F01/F09 |
-| D21 | 한국어 문서·파일명 허용, npm QG recommended 규칙과 Go·문서 시험 연결 | 사용자 요청에 따라 언어 정책을 명시하고 검사 진입점을 통일. Node는 개발 도구로 한정 | AGENTS, .qg.yaml, package.json, Makefile, architecture |
+| D21 | 한국어 문서·파일명 허용, npm QG recommended 규칙과 Go·문서 시험 연결 | 사용자 요청에 따라 언어 정책을 명시하고 검사 진입점을 통일. Node는 개발 도구로 한정 | AGENTS, .qg.yaml, package.json, justfile, architecture |
 | D22 | 앱·live evaluator가 선택적 .env 자동 로딩, 기존 환경 변수 우선 | 사용자 요청에 따라 source/export 없이 실행. 설정 오류는 비밀 값 없이 원인 필드 구분 | architecture, F10, implementation-start, .env.example |
 | D23 | 기본 loopback 유지, 명시한 wildcard/서버 IP listen 지원, Host와 listen 분리 | 사용자 요청에 따라 0.0.0.0 바인딩에서도 서버 IP로 접속. 인터페이스 IP 및 allowed_hosts만 허용하고 Origin·CSRF 유지 | PRD, spec, API, security, F10, QA |
+| D24 | Make에서 just로 전환, .local/run 기반 단일 백그라운드 서버 관리 | 사용자 요청에 따라 start/stop/restart/status/logs 제공. 시작 식별자·PID 소유 검증, DB 보존 | justfile, mise, QG, server.py, README, architecture |
 
 런타임/드라이버 버전은 실제 빌드 호환성을 확인해 잠근다. 버전 선택만으로 제품 범위를 재질문할 필요는 없다. 현재 기본값으로 진행할 수 없는 실제 제약이 확인되면 D 변경 PR로 기록한다.
 

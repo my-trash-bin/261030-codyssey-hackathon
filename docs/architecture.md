@@ -14,7 +14,7 @@
 | 결정적 도구 | 등록된 Go 함수 | 수치·시간·파일·검사 로직을 모델 계산과 분리 |
 | 별도 실행 | 등록 실행 파일을 제한된 Docker runner로 호출 | 재현·외부 검사기 확장만. 자동 이미지 다운로드·임의 shell 없음 |
 | 테스트 | Go 단위/통합, fixture provider, 브라우저 시나리오, 별도 live 평가 | fixture 통과와 모델 유용성 검증을 분리 |
-| 개발 품질 검사 | npm `@slop-lab/qg` 기본 recommended 규칙, 한국어·영어 문서 허용 | Node 24.21.0을 mise로 고정. `make test`/`npm test`에서 정책 회귀·Go·문서 검사 연결. 앱 런타임에는 불필요 |
+| 개발 품질 검사 | npm `@slop-lab/qg` 기본 recommended 규칙, 한국어·영어 문서 허용 | Node 24.21.0을 mise로 고정. `just test`/`npm test`에서 정책 회귀·Go·문서 검사 연결. 앱 런타임에는 불필요 |
 
 Go의 HTTP 서버/클라이언트와 템플릿 기능은 표준 패키지에서 제공된다.[R1][R2] 여기서 선택한 모듈 구조와 처리 제한은 이 프로젝트의 설계다. 버전 번호는 구현 시작 시 실제 설치·호환성 확인 후 `go.mod`, `go.sum`, 이미지 digest에 고정한다. `latest`로 재현 환경을 운영하지 않는다.
 
@@ -67,6 +67,8 @@ SQLite connection마다 foreign keys를 켜고 단일 DB 연결로 시작한다.
 앱 종료 뒤 queued/running 작업은 자동 성공으로 복구하지 않는다. `INTERRUPTED`로 기록하고 사용자가 새 job을 시작한다. 계산이 끝난 오래된 job은 내부 기록만 남기고 현재 결과를 바꾸지 않는다. 설정된 모델 전역 큐는 여러 작업 간 FIFO로 처리하며 사용자가 취소한 작업은 건너뛴다.
 
 ## 4. 설정 계약
+
+개발 명령은 mise로 고정한 just 1.58.0과 루트 justfile을 사용한다. `just start`/`start-fixture`는 빌드 후 백그라운드로 실행하고 `stop`/`restart`/`status`/`logs`로 관리한다. 관리 상태·PID·명령 잠금·로그는 `.local/run`에 저장하며 원자료 DB와 분리한다. stop/restart는 관리 기록의 프로세스 시작 식별자를 확인하고 정상 종료를 요청한다. 15초 안에 종료되지 않으면 기록을 보존하며 임의 포트 소유 프로세스나 재사용된 PID를 강제 종료하지 않는다.
 
 아래는 구현할 설정의 예다. config.json에는 환경 변수 이름을 지정하며 비밀 값은 실행 환경 또는 Git에서 제외한 `.env`에 둔다. 비밀은 UI·로그·export에 노출하지 않는다.
 

@@ -1,5 +1,5 @@
 # The CLI enables the language-independent recommended rules by default.
-# Tests run through npm test / make test; hook installation is managed separately.
+# Tests run through npm test / just test; hook installation is managed separately.
 hooks:
   preCommit:
     installation: off
@@ -63,9 +63,13 @@ checks:
     message: Keep Korean documents allowed and recommended checks enforced.
   - name: Go unit and integration tests
     command: mise
-    args: [exec, --, make, test-go]
+    args: [exec, --, just, test-go]
     message: Fix the Go tests before accepting the change.
   - name: Documentation contracts and references
     command: python3
     args: [tools/validate_docs.py]
     message: Fix documentation contracts, references, or example data.
+  - name: Background server lifecycle
+    command: python3
+    args: [-m, unittest, discover, -s, tools, -p, test_server.py]
+    message: Fix server startup, shutdown, restart, or PID ownership handling.

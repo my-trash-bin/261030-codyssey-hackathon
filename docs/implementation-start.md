@@ -38,18 +38,22 @@
 
 | 명령 | 책임과 성공 조건 |
 | --- | --- |
-| `make setup` | 고정 Go 모듈·필수 로컬 자원 준비. 사내 모델 설치나 GPU 설정은 강제하지 않음 |
-| `make build` | 서버, fixture 생성기, evaluator, 등록 checker 빌드 |
-| `make fixtures` | 고정 seed의 가상 입력과 공개 예시 검증·생성. 평가 정답은 별도 관리 |
-| `make test` | 사내 endpoint·Docker 없이 가능한 도메인·API·fixture 시험 |
-| `make run-fixture` | 전용 개발 DB와 fixture 표시로 로컬 서버 실행 |
-| `make run` | 설정된 사내 LLM 연결, 실제 endpoint 없으면 명확한 설정 오류 |
-| `make prepare-runners` | toy 대상·checker·실행 이미지를 사전 빌드하고 digest 기록 |
-| `make test-extensions` | 실제 등록 process checker와 고정 재현 환경을 실행 |
-| `make test-live` | 가상 입력으로 실제 사내 모델의 역할과 실패 처리 검증 |
-| `make eval` | 실제 내보낸 결과와 별도 평가 정답을 비교해 기록 생성 |
-| `make seed-demo` | 전용 demo DB에 자료만 입력. 공개 결정은 미승인 상태 |
-| `make demo-reset` | 전용 demo 데이터만 정리. 일반 사용자 DB 경로는 거부 |
+| `just setup` | 고정 Go 모듈·필수 로컬 자원 준비. 사내 모델 설치나 GPU 설정은 강제하지 않음 |
+| `just build` | 서버, fixture 생성기, evaluator, 등록 checker 빌드 |
+| `just fixtures` | 고정 seed의 가상 입력과 공개 예시 검증·생성. 평가 정답은 별도 관리 |
+| `just test` | 사내 endpoint·Docker 없이 가능한 도메인·API·fixture 시험 |
+| `just run-fixture` | 전용 개발 DB와 fixture 표시로 로컬 서버 실행 |
+| `just run` | 설정된 사내 LLM 연결, 실제 endpoint 없으면 명확한 설정 오류 |
+| `just prepare-runners` | toy 대상·checker·실행 이미지를 사전 빌드하고 digest 기록 |
+| `just test-extensions` | 실제 등록 process checker와 고정 재현 환경을 실행 |
+| `just test-live` | 가상 입력으로 실제 사내 모델의 역할과 실패 처리 검증 |
+| `just eval` | 실제 내보낸 결과와 별도 평가 정답을 비교해 기록 생성 |
+| `just seed-demo` | 전용 demo DB에 자료만 입력. 공개 결정은 미승인 상태 |
+| `just demo-reset` | 전용 demo 데이터만 정리. 일반 사용자 DB 경로는 거부 |
+| `just start` / `just start-fixture` | 빌드 후 live/fixture 서버를 백그라운드로 시작, 중복 실행 확인 |
+| `just stop` / `just restart` / `just restart-fixture` | 관리 중인 PID의 소유 확인 후 정상 종료·재시작. DB 유지 |
+| `just status` / `just logs` / `just logs-follow` | .local/run의 상태·최근 로그·실시간 로그 조회 |
+| `just test-server` | 임시 서버로 생명주기·실패 정리·PID 재사용 보호·포트 충돌 시험 |
 
 시험 CLI 종료 코드는 `0=선택한 필수 시험 모두 통과`, `1=시험 실패`, `2=필수 환경 없음/미수행`이다. 개별 시험 상태는 보고서에 모두 남긴다. 환경이 없다고 해당 시험을 조용히 생략하고 0으로 종료하지 않는다.
 

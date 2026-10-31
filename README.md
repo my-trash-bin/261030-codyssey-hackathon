@@ -28,14 +28,14 @@ P0는 입력·분석·선택·작성/검토·확정·재사용·복구·실행 �
 
 ## 실행
 
-개발·검증 도구는 [mise](https://mise.jdx.dev/)로 관리하는 Go·Make·Node.js 24.21.0입니다. `make setup`이 고정 npm 개발 의존성도 설치합니다. 앱 실행 자체에는 Node/npm이 필요하지 않으며 Docker는 합성 재현·외부 checker 시험에 사용합니다.
+개발·검증 도구는 [mise](https://mise.jdx.dev/)로 관리하는 Go·just·Node.js 24.21.0입니다. `just setup`이 고정 npm 개발 의존성도 설치합니다. 앱 실행 자체에는 Node/npm이 필요하지 않으며 Docker는 합성 재현·외부 checker 시험에 사용합니다.
 
 ```bash
 mise trust
 mise install
-mise exec -- make setup
-mise exec -- make test
-mise exec -- make run-fixture
+mise exec -- just setup
+mise exec -- just test
+mise exec -- just run-fixture
 ```
 
 브라우저에서 **http://127.0.0.1:8080** 을 엽니다. 처음에는 작업 기록이 비어 있습니다. 새 작업을 만들고 `fixtures/author/b2b-timeout`의 세 파일을 업로드합니다. 자료 분석 후 공개 미리보기를 확인하고 선택을 적용한 뒤 작성 → 최종 파일 확인 → 이 파일들로 확정 순으로 진행합니다.
@@ -48,7 +48,7 @@ ok  safehandoff.local/poc/internal/policy
 SafeHandoff fixture: http://127.0.0.1:8080
 ```
 
-fixture DB는 `var/fixture`, 일반 live DB는 `var/safehandoff`에 분리됩니다. 실행 중인 다른 서버가 있으면 `./bin/safehandoff --fixture --data-dir ./var/demo --listen 127.0.0.1:8081`처럼 포트를 바꿉니다. seed는 `mise exec -- make seed-demo`로 전용 `var/demo`에 **미승인** 작업 세 개를 만듭니다. 이 DB를 보려면 `./bin/safehandoff --fixture --data-dir ./var/demo`로 실행하세요.
+fixture DB는 `var/fixture`, 일반 live DB는 `var/safehandoff`에 분리됩니다. 실행 중인 다른 서버가 있으면 `./bin/safehandoff --fixture --data-dir ./var/demo --listen 127.0.0.1:8081`처럼 포트를 바꿉니다. seed는 `mise exec -- just seed-demo`로 전용 `var/demo`에 **미승인** 작업 세 개를 만듭니다. 이 DB를 보려면 `./bin/safehandoff --fixture --data-dir ./var/demo`로 실행하세요.
 
 ### 사내 서버 IP로 접속
 
@@ -62,16 +62,33 @@ fixture DB는 `var/fixture`, 일반 live DB는 `var/safehandoff`에 분리됩니
 
 서버 IP 외의 도메인이나 NAT 주소로 접속한다면 `allowed_hosts`에 브라우저 주소의 `호스트:포트`를 넣습니다. 예: `"allowed_hosts": ["safehandoff.internal:8080"]`. Host는 허용 목록과, Origin은 실제 요청 Host와 비교합니다. HTTP 사내 IP에서도 업로드·공개 선택·작성·확정이 가능하며 클립보드와 원문 발췌의 WebCrypto 기능은 브라우저의 HTTPS/secure context 지원이 필요합니다.
 
+### 백그라운드 서버 관리
+
+```bash
+mise exec -- just start           # 빌드 후 live 서버 시작
+mise exec -- just status          # PID·실행 모드·listen 확인
+mise exec -- just logs            # 최근 100줄
+mise exec -- just logs-follow     # 로그 실시간 보기; Ctrl-C는 로그 보기만 종료
+mise exec -- just restart         # 빌드 후 정상 종료·live 재시작
+mise exec -- just stop            # 정상 종료
+```
+
+fixture 모드는 `just start-fixture`, `just restart-fixture`를 사용합니다. 별도 설정 파일은 `just start path/to/config.json` 또는 `just restart path/to/config.json`으로 지정합니다. foreground 실행은 기존 `just run`, `just run-fixture`입니다. 명령 목록은 `just --list`로 확인합니다.
+
+관리 파일은 `.local/run/server_pid`(PID), `.local/run/server.json`(프로세스 시작 식별자·실행 모드·설정 경로), `.local/run/server.lock`(명령 간 잠금), `.local/run/server.log`(누적 로그)입니다. 모두 Git에서 제외됩니다. 앱 DB는 기존 `var/` 설정을 사용하며 stop/restart로 삭제하지 않습니다.
+
+한 checkout에서 백그라운드 서버 하나를 관리합니다. 중복 start는 기존 PID를 반환합니다. 종료 전 프로세스 시작 식별자를 확인해 오래된 PID로 다른 프로세스를 종료하지 않으며 Linux에서는 pidfd도 사용합니다. 정상 종료 대기는 15초이고 초과하면 강제 종료하지 않고 관리 파일을 보존합니다. 시작 실패 시 PID·상태 파일은 정리하고 로그를 남깁니다. 수동 실행 중인 다른 서버가 포트를 사용하면 자동으로 종료하지 않습니다.
+
 ## 실제 사내 모델 연결
 
 ```bash
 cp config.example.json config.json
 cp .env.example .env
 # .env에 실제 endpoint·모델 ID·필요한 인증키를 입력합니다.
-mise exec -- make run
+mise exec -- just run
 ```
 
-앱과 live evaluator는 실행 디렉터리의 `.env`를 자동으로 읽습니다. 기존 `.env`가 있으면 위 복사 단계는 생략하세요. `source`·`export` 없이 `make run`, `make test-live`를 실행할 수 있습니다. 이미 export된 환경 변수는 `.env`보다 우선하며 빈 값도 덮어쓰지 않습니다. `.env`가 없으면 기존 환경 변수만 사용합니다.
+앱과 live evaluator는 실행 디렉터리의 `.env`를 자동으로 읽습니다. 기존 `.env`가 있으면 위 복사 단계는 생략하세요. `source`·`export` 없이 `just run`, `just test-live`를 실행할 수 있습니다. 이미 export된 환경 변수는 `.env`보다 우선하며 빈 값도 덮어쓰지 않습니다. `.env`가 없으면 기존 환경 변수만 사용합니다.
 
 ```dotenv
 SAFEHANDOFF_LLM_BASE_URL=https://your-internal-endpoint/v1
@@ -82,7 +99,7 @@ SAFEHANDOFF_LLM_API_KEY=your-key-if-required
 `base_url`은 `/v1`까지의 API root입니다. 모델 서비스가 HTTP만 제공하면 **해당 로컬 설정의** `provider.allow_plain_http`를 `true`로 바꿉니다. redirect는 따라가지 않습니다. 시스템 역할 미지원은 `supports_system_role=false`, temperature 미지원은 `send_temperature=false`, 출력 제한 매개변수는 `max_tokens / max_completion_tokens / omit`으로 설정합니다. 일반 텍스트 JSON 응답만 필요하며 native tool calling은 실행하지 않습니다. live 장애 시 fixture로 자동 전환하지 않습니다.
 
 ```bash
-mise exec -- make test-live
+mise exec -- just test-live
 ```
 
 연결 전 설정 검증이 실패하면 evaluator가 `not_run`, 종료 코드 2와 원인 필드를 남깁니다. 예를 들어 스킴 누락은 `provider.base_url_env`, HTTP 허용 누락은 `provider.allow_plain_http`, 모델 ID 누락은 `provider.model_env`로 구분합니다. 진단에는 주소·모델명·인증키 값을 출력하지 않습니다. 실제 사내 모델 실행 기록은 아직 없습니다. 인증 값을 UI·프롬프트·저장소에 넣지 마세요. `config.json`, `.env`, `var`, `bin`은 Git에서 제외됩니다.
@@ -90,14 +107,14 @@ mise exec -- make test-live
 ## 재현과 평가
 
 ```bash
-mise exec -- make prepare-runners
-mise exec -- make test-extensions
-mise exec -- make eval
+mise exec -- just prepare-runners
+mise exec -- just test-extensions
+mise exec -- just eval
 ```
 
 준비 단계에서만 고정 바이너리와 `scratch` Docker 이미지를 빌드합니다. 실행 단계에서는 이미지 pull·네트워크·코드 생성을 허용하지 않습니다. Docker daemon 권한이 없으면 `not_run/no_environment`입니다. 준비 뒤 코드를 바꾸면 등록 digest를 다시 준비해야 합니다.
 
-`make eval`은 가상 자료에 명시적인 테스트 공개 계획을 적용하고 앱의 확정·다운로드 경로로 실제 ZIP을 검사합니다. 제품 모델에는 평가 정답표가 제공되지 않습니다. 결과는 [evaluation/results](evaluation/results)에 저장됩니다. 각 실행 ID의 `runs/{run_id}` 보고서·trace·파일과 최신 `*-run.json`을 함께 남깁니다. 이전 예시는 `previous-examples`에 보존하며 실패 실행을 지우지 않습니다. `pass`는 자동 검사 범위의 성공이고 사람 의미 평가·수신자 평가는 별도입니다.
+`just eval`은 가상 자료에 명시적인 테스트 공개 계획을 적용하고 앱의 확정·다운로드 경로로 실제 ZIP을 검사합니다. 제품 모델에는 평가 정답표가 제공되지 않습니다. 결과는 [evaluation/results](evaluation/results)에 저장됩니다. 각 실행 ID의 `runs/{run_id}` 보고서·trace·파일과 최신 `*-run.json`을 함께 남깁니다. 이전 예시는 `previous-examples`에 보존하며 실패 실행을 지우지 않습니다. `pass`는 자동 검사 범위의 성공이고 사람 의미 평가·수신자 평가는 별도입니다.
 
 공개 결과 예시는 [공급사 문의](evaluation/results/examples/b2b-timeout-direction/support-request.md), [방향 표](evaluation/results/examples/b2b-timeout-direction/observations.csv), [ID 미공개 문의](evaluation/results/examples/b2b-timeout-direction-ids-excluded/support-request.md), [운영 자문](evaluation/results/examples/internal-operations-ratio/operations-brief.md), [OSS 재현 패키지](evaluation/results/examples/oss-encoding-direction)입니다. ZIP과 manifest도 같은 폴더에 있습니다. 모두 가상 자료입니다.
 
@@ -119,18 +136,18 @@ GOTOOLCHAIN=local GOPROXY=off go run ./cmd/repro --inputs ./inputs
 ## 문서와 제품 검증
 
 ```bash
-mise exec -- make test
+mise exec -- just test
 # 개별 실행
 mise exec -- npm run lint
 mise exec -- npm run test:qg
-mise exec -- make test-go
-mise exec -- make test-docs
+mise exec -- just test-go
+mise exec -- just test-docs
 ```
 
-`make test`와 `npm test`는 `@slop-lab/qg`의 기본 recommended 규칙, QG 정책 회귀시험, Go 단위·통합시험, 문서 검사를 함께 실행합니다. `.qg.yaml`에서 한국어·영어 문서를 허용하고 문서에서 사용하는 기호를 명시했습니다. 한국어 문서를 영어로 바꿀 필요는 없습니다.
+`just test`와 `npm test`는 `@slop-lab/qg`의 기본 recommended 규칙, QG 정책 회귀시험, Go 단위·통합시험, 문서 검사를 함께 실행합니다. `.qg.yaml`에서 한국어·영어 문서를 허용하고 문서에서 사용하는 기호를 명시했습니다. 한국어 문서를 영어로 바꿀 필요는 없습니다.
 
-생성된 계약·실행 보고서·로컬 빌드 출력은 생성물로 분류합니다. 기존 CSV 행·프롬프트·HTML/JS 템플릿의 긴 줄은 해당 경로에만 유한 한도를 설정했으며 그 밖의 recommended 규칙은 유지합니다. Git hook 자동 설치는 끄고 동일 검사를 npm/Make 진입점으로 실행합니다. 파일 길이는 500줄 초과 경고·1000줄 초과 오류를 유지하며, 기존 경고 파일은 책임별로 분할했습니다.
+생성된 계약·실행 보고서·로컬 빌드 출력은 생성물로 분류합니다. 기존 CSV 행·프롬프트·HTML/JS 템플릿의 긴 줄은 해당 경로에만 유한 한도를 설정했으며 그 밖의 recommended 규칙은 유지합니다. Git hook 자동 설치는 끄고 동일 검사를 npm/just 진입점으로 실행합니다. 파일 길이는 500줄 초과 경고·1000줄 초과 오류를 유지하며, 기존 경고 파일은 책임별로 분할했습니다.
 
 문서 링크·AC/QA 연결·가상 자료·참조 SQL을 검사합니다. [문서 검사 결과](validation-report.json)는 제품 시험 결과와 별개입니다. 현재 앱의 실행 증거는 [fixture](evaluation/results/fixture-run.json), [확장](evaluation/results/extensions-run.json), [live 미수행](evaluation/results/live-run.json) 및 [검증보고서](docs/검증보고서.md)를 참고하세요.
 
-Go **1.27.3**, modernc.org/sqlite **v1.61.0**, GNU Make **4.4.1**을 고정했습니다. Go 및 드라이버는 [공식 배포 목록](https://go.dev/dl/)과 [버전 문서](https://pkg.go.dev/modernc.org/sqlite@v1.61.0)를 확인하고 실제 빌드했습니다. 런타임 웹 자원·한국어 글꼴은 실행 파일에 포함되며 CDN을 사용하지 않습니다. Noto Sans KR의 [OFL 라이선스](web/static/NotoSansKR-OFL.txt)를 포함합니다.
+Go **1.27.3**, modernc.org/sqlite **v1.61.0**, just **1.58.0**을 고정했습니다. Go 및 드라이버는 [공식 배포 목록](https://go.dev/dl/)과 [버전 문서](https://pkg.go.dev/modernc.org/sqlite@v1.61.0)를 확인하고 실제 빌드했습니다. 런타임 웹 자원·한국어 글꼴은 실행 파일에 포함되며 CDN을 사용하지 않습니다. Noto Sans KR의 [OFL 라이선스](web/static/NotoSansKR-OFL.txt)를 포함합니다.

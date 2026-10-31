@@ -85,7 +85,7 @@ M0–M2는 사내 모델 연결 없이 진행할 수 있다. M3의 endpoint 설�
 
 ## 7. 완료 보고·실행 인터페이스
 
-구현 저장소는 `make setup`, `make build`, `make fixtures`, `make test`, `make run-fixture`, `make run`, `make test-live`, `make prepare-runners`, `make test-extensions`, `make eval`을 제공한다. 구체 동작은 [implementation-start.md](implementation-start.md)에 정의한다. 이 문서 패키지에는 실행 앱이나 완성된 Makefile이 포함되어 있지 않다.
+구현 저장소는 `just setup`, `just build`, `just fixtures`, `just test`, `just run-fixture`, `just run`, `just test-live`, `just prepare-runners`, `just test-extensions`, `just eval`을 제공한다. 구체 동작은 [implementation-start.md](implementation-start.md)에 정의한다. 현재 저장소의 justfile을 실행 명령의 진입점으로 사용한다.
 
 각 구현 PR에는 변경한 요구사항·기능 ID, 실제 실행 명령, 시험 결과, 사용자에게 보이는 변화, 남은 제한을 적는다. 환경이 없어 실행하지 못한 시험은 `not_run`이며 통과 수에 넣지 않는다. 파일을 실제로 내려받아 확인한 결과를 최종 통합 보고에 포함한다.
 

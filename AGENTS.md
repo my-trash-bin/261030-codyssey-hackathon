@@ -16,7 +16,7 @@
 
 한국어 문서와 한국어 파일명을 명시적으로 허용한다. 설명 문서는 한국어로 작성할 수 있으며 영어 번역을 필수로 요구하지 않는다. API 필드·enum·명령·코드 식별자는 계약의 표기를 유지한다.
 
-품질 검사는 npm 개발 의존성 `@slop-lab/qg`의 기본 recommended 규칙을 사용한다. `.qg.yaml`의 `markdown/allowed-characters.allowedLanguages`에 `en`, `ko`를 설정한다. `mise exec -- make test` 또는 `mise exec -- npm test`로 전체 규칙과 Go·문서 검사를 실행한다. 규칙 검사만 필요하면 `mise exec -- npm run lint`를 사용한다. Node/npm은 개발·검증 도구이며 앱 런타임에는 필요하지 않다.
+품질 검사는 npm 개발 의존성 `@slop-lab/qg`의 기본 recommended 규칙을 사용한다. `.qg.yaml`의 `markdown/allowed-characters.allowedLanguages`에 `en`, `ko`를 설정한다. `mise exec -- just test` 또는 `mise exec -- npm test`로 전체 규칙과 Go·문서 검사를 실행한다. 규칙 검사만 필요하면 `mise exec -- npm run lint`를 사용한다. Node/npm은 개발·검증 도구이며 앱 런타임에는 필요하지 않다.
 
 ## 2. 파일별 역할·입력·다음 문서
 
@@ -49,7 +49,9 @@
 | `docs/decisions.md` | 무엇이 사용자 방향·기본 설계·확인 필요인가? | 승인·설계 결정·확인된 환경 | 관련 문서 변경의 이유 |
 | `docs/구조와설계.md`, `docs/API와역할계약.md`, `docs/시연안내.md` | 공통 설계·API·시연의 한국어 요약. 독립 계약을 정의하지 않음 | architecture/API/agent-workflow/demo | 같은 기준으로 유지하는 안내 |
 | `docs/검증보고서.md` | 현재 코드의 구현·미완료 및 실제 실행 증거 | 코드·실제 시험·현재 명세 | 후속 구현과 검증 |
-| `.qg.yaml`, `package.json`, `tools/qg.test.mjs` | recommended 품질 규칙·한국어 허용·테스트 실행 | 문서 언어 정책과 기존 시험 | npm/Make의 동일 품질 gate |
+| `.qg.yaml`, `package.json`, `tools/qg.test.mjs` | recommended 품질 규칙·한국어 허용·테스트 실행 | 문서 언어 정책과 기존 시험 | npm/just의 동일 품질 gate |
+| `justfile`, `mise.toml` | 개발·빌드·검증·서버 관리 명령과 도구 버전 | 구현 명령·실행 설정 | 실행·테스트의 공통 진입점 |
+| `tools/server.py`, `tools/test_server.py` | .local/run 기반 서버 시작·정상 종료·재시작·PID 소유 확인 | 단일 checkout·단일 관리 서버 | 백그라운드 실행·상태·로그 |
 | `docs/implementation-start.md`, `docs/demo.md` | 구현을 어떻게 시작하고 무엇을 보여주는가? | 전체 공통 계약 | 에이전트 인계·팀 시연 |
 
 `docs/features/00-template.md`는 작성 양식이며 실제 기능 구현 범위가 아니다. `validation-report.json`은 문서 패키지 검사 기록이며 제품 테스트 결과가 아니다.
