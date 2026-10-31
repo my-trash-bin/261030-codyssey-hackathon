@@ -70,3 +70,26 @@ Linux 전용 시험과 실제 Docker 이미지 시험의 skip은 해당 환경�
 영상 길이는 99988ms로 110초 이내다. JSON의 integrated_main은 `3aaf0a4`다.
 이 묶음은 과거 실행의 일관된 산출물이며 최신 main 검증 결과로 재표시하지 않는다.
 최신 통합 검증은 위 새 실행 기록으로 구분한다. 기존 JSON은 갱신하지 않았다.
+
+## 마무리 검토와 별도 제출 묶음
+
+작업 재개 후 원격을 다시 fetch했고 main은 `0ff9e8d`로 추가 변경이 없었다.
+정상 속도 녹화의 시작·중간·마지막 추출 프레임에서 자막과 fake-app 표시를 확인했다.
+녹화 이후 병합 커밋 `dda256e`와 `dd68d06` 사이의 packages·시연 스크립트·입력 fixture·
+의존성 파일 차이가 없음을 확인했다. 녹화 당시 없던 Git provenance를 원본 run에 추가하지 않았다.
+
+최신 묶음은 로컬 `var/cdp-submission-qtfxj0s8`에 새로 만들었다.
+submission.mp4·미리보기 final.png·run.json·6개 영상 추출 프레임은 모두
+`var/cdp-demo-Wxuyre`의 파일과 SHA-256이 일치한다. playback-run.json은 별도 재생 시험
+`var/cdp-demo-vdMcqx`의 복사본이다. verification.json은 각 파일의 출처·길이·해시와
+main·검토 HEAD·시험 경계를 기록한다. 기존 로컬 DB나 비공개 설정은 묶음에 포함하지 않았다.
+이 폴더는 로컬 산출물이며 Git 커밋이나 외부 제출을 수행하지 않았다.
+
+- 영상 SHA-256: `9e7f2d30b9e1cb98414818e47181a05ade0ff50ee852f0d6a12a8c81ac83d59e`
+- 미리보기 SHA-256: `3b966d7f1e273dc0b68d9e2c441991f9595316b83a5b84be416dc74e19bdc98d`
+- 검증 JSON SHA-256: `b1c982689e2c10243c029f0055d497efa682c447260d7f486d73cf2e2eed013a`
+
+Docker CLI는 설치돼 있지만 로컬 데몬 소켓이 없어 실제 컨테이너 시험을 실행할 수 없었다.
+현재 호스트는 macOS이므로 Linux /proc 기반 팩 시험도 미검증이다.
+이 두 시험은 후속 Linux·Docker 환경에서 수행해야 하며 이전 실행 문서를 성공 근거로 쓰지 않았다.
+QG의 파일 길이 경고 7개는 유지한다. 오류는 없고 발표자료에 한정한 수치 상한을 적용한다.

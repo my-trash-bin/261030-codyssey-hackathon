@@ -143,7 +143,9 @@ Chrome은 macOS 기본 경로를 사용하며 `CHROME_PATH`로 바꿀 수 있습
 장면 이동은 새 브라우저 시연 상태를 구성한 뒤 해당 장면에서 일시정지합니다.
 110초를 초과한 정상 속도 실행은 실패로 처리합니다. `--fast`는 제출 시간 검증이 아닙니다.
 
-[제출 영상](docs/demo-media/SafeHandoff-demo.mp4) · [미리보기](docs/demo-media/preview.png) ·
-[영상 검증 기록](evaluation/results/cdp-submission-run.json)
+보존 중인 이전 실행: [제출 영상](docs/demo-media/SafeHandoff-demo.mp4) ·
+[미리보기](docs/demo-media/preview.png) · [영상 검증 기록](evaluation/results/cdp-submission-run.json).
+이 묶음의 기준 main은 `3aaf0a4`입니다. 최신 main 통합의 검증 결과와 별도 제출 묶음 위치는
+[CDP 통합 기록](docs/cdp-integration-2026-10-31.md)을 따릅니다.
 
 ToyRecord 팩을 실제 catalog에서 선택해 OSS 스모크로 연결할 수 있다. `--catalog`, `--pack-version`, 운영자 `--registration`을 함께 사용하며 실행 전에 digest를 재검증한다. [설치·실행 절차](docs/toyrecord-pack.md)를 따른다.
