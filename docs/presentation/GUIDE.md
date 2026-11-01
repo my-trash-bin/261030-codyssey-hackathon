@@ -105,7 +105,7 @@
 기대 방향과 지표만 보인다. [가치 비교 정본](../product/prd.md)의 같은 조건 원칙을 따른다.
 
 **도구 상태 (2026-10-31)**: 이 실험을 실행하던 `tools/effect-measure.mjs`와 가상 사례/정답지
-(`evaluation/effect-compare/cases.json`)는 저장소에서 제거했다 ([decisions.md](../product/decisions.md)).
+(`evaluation/effect-compare/cases.json`)는 저장소에서 제거했다 ([구현 상태](../product/submission-status.md)).
 아래 절차와 원칙은 실험을 다시 설계할 때의 기준으로 남기며, 실행하려면 먼저 동등한 도구와 사례
 파일을 로컬에서 다시 만들어야 한다.
 

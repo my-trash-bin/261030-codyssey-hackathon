@@ -2,7 +2,7 @@
 
 상태: 제품 의도의 초기 기준 v1.0 / 2026-10-31.
 
-**이 파일의 변경은 프로젝트 소유 사용자의 명시적 승인 범위에서만 한다.** 구현 편의를 위해 다른 문서를 먼저 바꾼 뒤 이 파일을 사후에 맞추지 않는다. 이미 현재 작업에서 승인된 변경은 다시 승인받지 않는다. 세부 구현 기본값은 이 파일이 아닌 docs/spec.md/architecture.md/decisions.md에서 관리한다.
+**이 파일의 변경은 프로젝트 소유 사용자의 명시적 승인 범위에서만 한다.** 구현 편의를 위해 다른 문서를 먼저 바꾼 뒤 이 파일을 사후에 맞추지 않는다. 이미 현재 작업에서 승인된 변경은 다시 승인받지 않는다. 세부 구현 계약은 [동작 명세](docs/design/spec.md), [구조](docs/design/architecture.md), [API](docs/design/api.md)에서 관리한다.
 
 ## INT-01. 풀려는 문제
 
@@ -58,5 +58,5 @@ SafeHandoff는 **공유 가능한 자료를 준비하는 작업을 돕는 프로
 
 - [docs/product/prd.md](docs/product/prd.md): 위 의도를 현재 사용자/범위/요구사항으로 풀어 쓴다.
 - [docs/design/spec.md](docs/design/spec.md): 같은 상황에서 같은 결과를 내도록 동작 규칙을 정한다.
-- [docs/product/decisions.md](docs/product/decisions.md): 확정 방향/구현 기본값/실제 확인 필요를 구분한다.
+- [docs/product/decisions.md](docs/product/decisions.md): 핵심 가치·방향성에 영향을 주며 이 의도를 보강하는 제품 판단과 그 이유만 기록한다.
 - [AGENTS.md](AGENTS.md): 문서 역할/관계/변경 권한과 구현 에이전트의 작업 절차를 정한다.

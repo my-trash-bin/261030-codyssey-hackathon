@@ -47,7 +47,7 @@ QA 시험(`T01-T60`, [qa.md](../qa/qa.md))은 `passed` 13 / `partial` 33 / `not_
 
 - **성과로 말하지 않는 것**: JSON Schema 엔진 검증 완결, 실제 LLM 품질, OS/컨테이너 격리 보장, 제품 수준 보안 보장, 사람 스톱워치 작업시간 절감.
 - **제거된 산출물**: 해커톤 당시의 3자 가치 비교 도구(`tools/value-comparison.mjs` 등)와 `docs/검증보고서.md`, `evaluation/` 실행
-  기록은 2026-10-31에 저장소에서 제거했다([decisions.md](decisions.md) 최하단 항목). `INT-11`의 "정직한 측정 분리" 원칙 자체는
+  기록은 2026-10-31에 저장소에서 제거했다. `INT-11`의 "정직한 측정 분리" 원칙 자체는
   유지하되, 수치 비교는 평가자가 로컬에서 재실행해야 하는 과제로 남아 있다.
 - **아직 화면/API로 연결되지 않은 부분(`product_backlog`, 65개 AC)**: 전체 `/api/v1/tasks` REST 라우트, UI-02~UI-10 다중 화면,
   `rules` CRUD API, ZIP 아카이브 다운로드 API 등. 코어 계약과 DB 스키마는 준비되어 있지만 end-to-end 화면 연결은 없다.
