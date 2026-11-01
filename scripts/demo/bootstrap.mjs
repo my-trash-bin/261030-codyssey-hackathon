@@ -25,7 +25,7 @@ export async function main(args = process.argv.slice(2)) {
   const { chromium } = await import('playwright');
   env.CHROME_PATH = chromium.executablePath();
  }
- console.log('fake-app 화면 연출을 시작합니다. 실제 모델과 Docker 재현은 just app에서 준비합니다.');
+ console.log('실제 client를 fake-app API에 연결해 시연합니다. 실제 모델과 Docker 재현은 just app에서 준비합니다.');
  await run(process.execPath, [resolve(root, 'scripts/demo/run.mjs'), ...browserArgs], env);
 }
 

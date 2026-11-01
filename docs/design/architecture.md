@@ -40,7 +40,7 @@ flowchart TD
 | `@safehandoff/skill-loader` | `packages/skill-loader` | `FsSkillPackLoader`: `O_NOFOLLOW` 경로 검증, `manifest.json`/참조 파일 SHA-256 지문 계산 및 설치 pin 대조(`load`/`verify`), `skillSetHash` | `@safehandoff/core-interface`, `node:crypto`, `node:fs` |
 | `@safehandoff/server` | `packages/server` | `createServer`: HTTP 라우팅(`/api/health`, `/api/core/status`, `/api/core/generate`, `/api/documents`), `DocumentStore` 및 `TaskStore`(`node:sqlite`) | `@safehandoff/core-interface`, `node:http`, `node:sqlite` |
 | `@safehandoff/app` | `packages/app` | 실제 서버 실행 조립(`RealCore` + `HttpModelClient` + `DockerReproRunner` + `DocumentStore`, 기본 `:8080`) | `server`, `core`, `model-adapter`, `sandbox-runner` |
-| `@safehandoff/fake-app` | `packages/fake-app` | 시연용 가짜 코어(`FakeCore`) + 제어 API(`POST /__demo`, 기본 `:8081`) | `server`, `core-interface` |
+| `@safehandoff/fake-app` | `packages/fake-app` | 시연용 `FakeCore` + 설정 화면(`/__demo`, 기본 `:8081`). workflow 미연결 | `server`, `fake-core`, `core-interface` |
 | `@safehandoff/client` | `packages/client` | React 19 + Vite 프론트엔드(`ApiClient` + 웹 화면) | `react`, `react-dom` |
 
 ---
@@ -67,6 +67,6 @@ flowchart TD
 | --- | --- | --- | --- |
 | 실제 앱 전체 | `just app` | `http://127.0.0.1:5173` | 설치·빌드 후 API와 웹을 함께 실행·종료 |
 | 실제 서버 | `just api` | `http://127.0.0.1:8080` | 사내/로컬 LLM 및 SQLite 연동 실행 |
-| 시연용 서버 | `just fake-app` | `http://127.0.0.1:8081` | 외부 LLM 없이 UI 상태/응답 시나리오 확인 (`POST /__demo`) |
+| 시연용 서버 | `just fake-app` | `http://127.0.0.1:8081` | 외부 LLM 없이 고정 Core 응답과 설정 확인 (`/__demo`), workflow는 미연결 |
 | 클라이언트 (실제 연결) | `just web` | `http://127.0.0.1:5173` | `/api` 요청을 `:8080`으로 프록시 |
 | 클라이언트 (시연 연결) | `just fake-client` | `http://127.0.0.1:5174` | `/api` 및 `/__demo` 요청을 `:8081`로 프록시 |

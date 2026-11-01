@@ -15,7 +15,6 @@ async function staticRoot(): Promise<string> {
   const root = await mkdtemp(join(tmpdir(), 'safehandoff-demo-'));
   await mkdir(join(root, 'assets'));
   await writeFile(join(root, 'index.html'), '<!doctype html><html lang="ko"><body><div id="root"></div><p>가짜 코어·연결부 연출 조절</p></body></html>');
-  await writeFile(join(root, 'presentation.html'), '<!doctype html><html lang="ko"><body><div id="root"></div><p class="mode">실제 승인 기능이 아닙니다</p></body></html>');
   await writeFile(join(root, 'assets', 'demo.js'), 'export const ready = true;');
   return root;
 }
@@ -34,13 +33,7 @@ test('demo control changes fake copy and connection failures without modifying t
     assert.match(demo.headers.get('content-type') ?? '', /^text\/html/);
     assert.equal(demo.headers.get('x-content-type-options'), 'nosniff');
     assert.match(await demo.text(), /연출 조절/);
-    const presentation = await fetch(base + '/__presentation');
-    assert.equal(presentation.status, 200);
-    assert.match(presentation.headers.get('content-type') ?? '', /^text\/html/);
-    assert.match(await presentation.text(), /실제 승인 기능이 아닙니다/);
-    const head = await fetch(base + '/__presentation', { method: 'HEAD' });
-    assert.equal(head.status, 200);
-    assert.equal(await head.text(), '');
+    assert.equal((await fetch(base + '/__presentation')).status, 404);
     assert.equal((await fetch(base + '/assets/demo.js')).status, 200);
     assert.equal((await fetch(base + '/assets/missing.js')).status, 404);
     assert.equal((await fetch(base + '/__presentation/../../config.json')).status, 404);

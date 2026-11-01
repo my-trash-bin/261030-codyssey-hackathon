@@ -5,7 +5,7 @@ import type { DemoAssets } from './assets.ts';
 
 export type { DemoAssets } from './assets.ts';
 
-// 연출 화면 HTML·번들은 주입한 assets가 맡는다. 화면 경로는 정적 파일 경로로 바꿔 넘기고,
+// fake 설정 화면의 HTML·번들은 주입한 assets가 맡는다. 화면 경로는 정적 파일 경로로 바꿔 넘기고,
 // assets가 담당하지 않으면 base(404 포함)로 넘긴다.
 export function createDemoHandler(
   base: RequestListener,
@@ -19,7 +19,6 @@ export function createDemoHandler(
       if (!assets) { base(request, response); return; }
       if (request.method === 'GET' || request.method === 'HEAD') {
         if (path === '/__demo') request.url = '/index.html';
-        else if (path === '/__presentation') request.url = '/presentation.html';
       }
       assets(request, response, () => base(request, response));
       return;
