@@ -4,42 +4,11 @@
 
 ## 1. 현행 구현된 HTTP 엔드포인트 (`@safehandoff/server`)
 
-아래 공통 API는 `packages/server`가 담당한다. `app`(`:8080`)과 `fake-app`(`:8081`)은 동일한 HTTP 라우터에 각자의 `Core` 구현만 주입한다. 원자료를 저장해도 자동 분석/외부 전송을 수행하지 않는다.
-
-| 메서드 | 경로 | 상태 | 동작 |
-| --- | --- | --- | --- |
-| `GET` | `/health` (및 `/api/health`) | 구현 완료 | 서버 상태 확인 (`200 OK`) |
-| `GET` | `/api/documents` | 구현 완료 | SQLite `documents` 목록 조회 |
-| `POST` | `/api/documents` | 구현 완료 | 문서 저장 (`201 Created`, 본문 상한 1 MiB) |
-| `DELETE` | `/api/documents/:id` | 구현 완료 | 문서 삭제 |
-| `GET` | `/api/core` (및 `/api/core/status`) | 구현 완료 | `implementation` (`real`/`fake`), `connection` (`direct`/`simulated`), `ready` 조회 |
-| `POST` | `/api/sharing` (및 `/api/core/generate`) | 구현 완료 | 호출자가 승인한 `facts` 배열로 주입된 `Core.generate()` 호출 (본문 상한 1 MiB) |
-| `POST` | `/api/analysis` | 구현 완료 | 주입된 `Engine.analyze()`로 원자료를 결정적으로 파싱하고 근거(`evidence`)와 후보 제안(`proposals`)을 반환 (본문 상한 1.5 MiB, stateless) |
-| `GET`/`PUT` | `/__demo`, `/api/demo/settings` | `fake-app` 전용 | 시연용 지연(`delayMs`)/실패 횟수(`failuresRemaining`)/고정 스크립트 제어 (실제 `app`에서는 `404`) |
-| `GET` | `/__presentation` | 제거됨 (`404`) | 별도 시연 UI clone을 제공하지 않음. CDP 시연은 `@safehandoff/client`의 `/`를 사용 |
-
-fake-app 자체 정적 자산은 `/__demo` 설정 화면만 제공합니다. `just demo`는 임시 API 포트와 실제 client
-포트를 각각 열지만, fake-app에는 `/api/v1` workflow가 아직 없습니다. 따라서 client가 표시하는 연결
-불가 상태가 현재 구현 범위이며, 고정 응답으로 작업 생성·분석·결정·확정을 성공시켜 보이지 않습니다.
-
-### 코어 생성 요청 형식 (`POST /api/sharing` / `/api/core/generate`)
-
-```json
-{
-  "purpose": "공급사 기술지원 문의",
-  "recipient": "지정 가상 공급사",
-  "facts": [
-    {"id": "observation", "text": "첫 요청은 응답 대기 timeout을 관찰했습니다."},
-    {"id": "uncertainty", "text": "서버 처리 완료와 중복 여부는 모릅니다."}
-  ]
-}
-```
-
-- `facts`는 호출자가 이번 목적/수신자에게 공개하기로 승인한 표현이다. 원자료 `sources`나 추가 키를 같이 보내면 `400 INVALID_CORE_INPUT`으로 거부한다.
-- 성공 시 `document: { title, body }`와 `provenance: { implementation, connection, ready }`를 반환한다.
-- 모델 설정 없음/호출 실패/검토 미통과는 `503 CORE_UNAVAILABLE`, 미구현 기능은 `CORE_NOT_IMPLEMENTED`, 취소는 `CORE_CANCELLED`로 반환하며 실제 앱에서 가짜 응답으로 대체하지 않는다 (`INV-14`).
-
----
+실제 앱은 `/health`, `/api/core`와 아래 task API만 제공한다. 원자료를 등록해도 자동 분석하지 않는다.
+구형 `/api/documents`, `/api/sharing`, `/api/analysis` 및 별칭은 실제 앱에서 제거했다.
+fake-app의 `/api/documents`, `/api/sharing`, `/__demo`는 연출 전용이다.
+`/__presentation`은 제거했으며 시연은 실제 client를 사용한다. fake-app의 workflow API는 미지원이다.
+제거 이유와 추가 후보는 [기능 정리](../product/deferred-features.md)를 따른다.
 
 ## 2. 현행 구현된 엔진/라이브러리 계약 (`@safehandoff/core` / `core-interface`)
 
@@ -143,7 +112,7 @@ X-CSRF-Token/Idempotency-Key와 Set-Cookie를 전달한다. 임의 origin/와일
 
 | 경로 | 본문 또는 응답 data |
 | --- | --- |
-| POST /api/v1/tasks | `{context:{purpose,recipient,goal_variant?,output_language?}}` -> 201 StoredTask |
+| POST /api/v1/tasks | 아래 intake 형식 -> 201 StoredTask |
 | GET /api/v1/tasks/{id} | 현재 task 집계(아래 설명) |
 | PUT /api/v1/tasks/{id}/sources | `{expected_revision,sources:SourceDocument[]}` -> StoredTask |
 | POST /api/v1/tasks/{id}/jobs | `{expected_revision,kind:"analyze"}` -> 202 job 요약 |
@@ -218,22 +187,20 @@ expires_at은 선택 가능하며 과거 시각은 거부한다. 필수 후보 e
 시작 토큰, 5분 제한, 1회용 링크와 로그인 화면은 제거했다. `POST /api/v1/session`은 `{}`를 받아
 쿠키와 CSRF 상태를 준비하며 사용자 인증을 수행하지 않는다. 브라우저는 처음 접속하거나
 기존 연결이 만료되면 이를 자동 호출한다. 내부 세션은 8시간이며 서버 재시작 시 폐기한다.
-DELETE /api/v1/session은 Origin/CSRF/멱등 키를 확인해 쿠키를 지운다.
+세션 삭제 API와 화면 조작은 제거했다. `DELETE /api/v1/session`은 405를 반환한다.
 
-SAFEHANDOFF_WORKFLOW_CATALOG는 운영자 JSON 경로다. 형식은 projects/recipients 배열이며
-각 항목은 `{id,display_name}`이다. 생략 시 두 목록은 빈 배열이다. 가상 예제는
-`fixtures/workflow/catalog.json`이며 실제 운영 설정으로 자동 채택하지 않는다.
-목적은 oss_issue/vendor_support/operations_advice, goal은 default/observations_only/
-ask_for_diagnostics/reproduction_evidence다. 연결되지 않은 확장 팩을 설치 상태로 표시하지 않는다.
+프로젝트·수신처 사전 등록과 `SAFEHANDOFF_WORKFLOW_CATALOG` 설정은 제거했다.
+수신처는 직접 입력한다. 목적은 oss_issue/vendor_support/operations_advice,
+goal은 default/observations_only/ask_for_diagnostics다.
+합성 재현 엔진은 유지하지만 작업 목표와 job 경로에는 노출하지 않는다.
 
 모든 경로는 기존 세션/쓰기 CSRF/Origin/Host/멱등 키 규칙을 따른다. 성공 data envelope를 사용한다.
 
 | 경로 | 입력과 결과 |
 | --- | --- |
-| GET /api/v1/catalog | 프로젝트/목적/수신자/goal/양식/활성 확장(현재 빈 배열)/실제 한도 |
-| GET /api/v1/runtime | core 모드/model_id/app_version/확장/검사기/재현 설정/debug 정책. URL/키/토큰/내부 경로 제외 |
+| GET /api/v1/catalog | 목적/goal/양식/실제 한도. projects/recipients/skills는 빈 배열 |
 | GET /api/v1/tasks?cursor=... | 최근 수정순 30개, tasks와 next_cursor. 원자료/모델 응답 없음 |
-| POST /api/v1/tasks | `{intake:{internal_title,project_id,purpose_id,recipient_id,audience,skill_ids,goal_variant?,output_language?}}` |
+| POST /api/v1/tasks | `{intake:{internal_title,project_id?,purpose_id,recipient_id,audience,skill_ids,goal_variant?,output_language?}}` |
 | GET /api/v1/tasks/{id}/sources | 등록 판본 메타데이터/byte_size/선택 여부. raw_bytes 없음 |
 | GET /api/v1/tasks/{id}/sources/{version_id}/content | 세션 사용자의 내부 확인용. 현재 선택된 원자료의 `{id,display_name,format,text}`. 없거나 해제한 판본은 404 `SOURCE_NOT_FOUND` |
 | GET /api/v1/tasks/{id}/disclosure-comparison | 세션 사용자의 내부 확인용. `{input_revision,sources[],candidates[]}`. 후보마다 `candidate_id/kind/statement/required/disposition/representation/disclosed`와 `originals[]`(`evidence_id/source_name/locator/start/end/text/truncated`, 구간당 2048바이트 상한)를 준다. 철회/만료 결정은 `disposition=null` |
@@ -246,23 +213,22 @@ ask_for_diagnostics/reproduction_evidence다. 연결되지 않은 확장 팩을 
 | GET /api/v1/artifacts/{id} | DocAST/검토/파일 메타데이터/hash/현재 여부. 내부 승인팩/grounding은 반환하지 않음 |
 | GET /api/v1/tasks/{id}/bundle | 가장 최근 artifact와 실제 파일 목록. 과거 판본은 is_current=false |
 | GET /api/v1/artifacts/{id}/files/{path} | 내부 확인용 실제 UTF-8 파일 바이트. 확정 다운로드 권한과 별개 |
-| PUT /api/v1/artifacts/{id}/edit | `{expected_revision,expected_document_hash,draft}` -> 새 revision/artifact, 검토 무효 |
 | POST /api/v1/artifacts/{id}/human-review | `{expected_revision,target_hash,checklist,fallback_reason}` -> 새 revision/artifact |
 | POST /api/v1/tasks/{id}/finalize | `{expected_revision,artifact_id,expected_artifact_set_hash,confirmed:true}` -> 불변 export |
 | GET /api/v1/exports/{id}/files/{path} | 확정한 동일 바이트, Content-Disposition: attachment |
 | GET /api/v1/exports/{id}/archive | 저장된 동일 ZIP, archive_sha256으로 확인 가능 |
 | GET /api/v1/rules | logical ID별 최신 판본/scope/selector/표현/만료/철회 |
 | POST /api/v1/rules | `{task_id,expected_revision,decision_id}`. 현재 유효한 allow에서 별도 규칙 저장 |
-| POST /api/v1/rules/{id}/versions | `{expected_rule_version,representation,expires_at}`. 새 불변 판본 |
 | POST /api/v1/rules/{id}/revoke | `{expected_rule_version}`. 전 판본 철회/영향 task revision 증가 |
 | POST /api/v1/tasks/{id}/rules/apply | `{expected_revision,rule_refs:[{id,version}]}`. 전부 성공 또는 전부 거부 |
 
-intake는 catalog 밖 ID/등록되지 않은 skill_ids를 거부한다. 현재 skill_ids는 빈 배열만 받는다.
-기존 context 기반 작업 생성도 유지하되, catalog scope가 없는 작업은 재사용 규칙을 저장할 수 없다.
+intake는 목적 선택지와 비어 있지 않은 수신처(최대 256자)를 검증한다. skill_ids는 빈 배열만 받는다.
+project_id 생략 시 내부 범위는 workspace다. context 생성 경로는 제거했다.
+원시 JSON 편집, 규칙 판본 생성, runtime 경로는 404를 반환한다.
 PUT sources는 included=false도 검증해 보관하며 선택에서는 제외한다. 분석은 included=true만 읽는다.
 한도는 100개/개당 256 KiB/합계 1 MiB/근거 100개이며 catalog와 코드가 같은 값을 쓴다.
 
-초안 시작과 채택, 편집/검토/사람 검토/확정은 각각 새 revision을 만든다. 새 입력 뒤 늦은 결과는
+초안 시작과 채택, 검토/사람 검토/확정은 각각 새 revision을 만든다. 새 입력 뒤 늦은 결과는
 현재 초안을 덮지 않는다. 조회 phase는 needs_analysis/needs_decisions/processing/needs_attention/
 ready_to_generate/ready_to_finalize/finalized이고 current_job_id/current_artifact_id를 제공한다.
 writer는 서버의 현재 유효 결정으로 구성한 FactPack만 받으며 원자료/원래 파일명/내부 제목은 받지 않는다.

@@ -36,7 +36,7 @@ Node 24(`node:sqlite`, `node --test`) + TypeScript 5.8 + React 19 기반 `pnpm` 
 | `@safehandoff/model-adapter` | OpenAI 호환 LLM HTTP 클라이언트 | `OpenAICompatibleModelClient` (`/v1/chat/completions`, 타임아웃/크기 제한/엄격 오류 매핑) |
 | `@safehandoff/sandbox-runner` | 무인터넷 Docker 재현 실행기 | `DockerReproRunner` (`--network=none`, `--read-only`, 이미지 digest 검증, 4회 실행 고정 oracle) |
 | `@safehandoff/skill-loader` | 도메인 지침 팩(`SkillPack`) 로더 | `FsSkillPackLoader` (`O_NOFOLLOW` 심볼릭링크 차단, `manifest.json` 및 파일 전체 SHA-256 지문 검증) |
-| `@safehandoff/server` | HTTP 서버 및 SQLite 저장소 | `createServer` (`/api/documents`, `/api/sharing`, `/api/analysis`), `TaskStore` (`workflow_*` 11개 테이블/migration v2/`TaskStore.analysis` CAS) |
+| `@safehandoff/server` | HTTP 서버 및 SQLite 저장소 | `createServer` (task API, `/health`, `/api/core`), `TaskStore` (`workflow_*` 11개 테이블/migration v2/`TaskStore.analysis` CAS) |
 | `@safehandoff/app` | 실제 실행 서버 (`:8080`) | `RealCore` + `OpenAICompatibleModelClient` + `DockerReproRunner` + SQLite 연결 |
 | `@safehandoff/fake-app` | 시연용 API 서버 (`:8081`) | `FakeCore` + 시연 상태 제어 (`/__demo`, `/api/demo/settings`). `/api/v1` workflow는 아직 제공하지 않음 |
 | `@safehandoff/client` | 웹 클라이언트 (`:5173` / `:5174`, React 19 + Vite) | 업무용 콘솔 형태의 6단계 작업 화면. 세션, 카탈로그 기반 작업 등록, 원자료, 분석, 공개 결정, 초안/검토/확정, 규칙, 이력, 문서 보관소를 인증된 `/api/v1` 경로로 호출. 상태는 순수 reducer(`disclosure-state.ts`)와 훅(`ui/hooks/`)이 소유 |
@@ -53,6 +53,9 @@ pnpm typecheck
 pnpm test
 python tools/validate_docs.py
 ```
+
+현재 제공 범위에서 제거한 기능과 선택적 후속 계획은
+[삭제 기능과 후속 검토](docs/product/deferred-features.md)를 확인합니다.
 
 ### 3.2 서버/클라이언트 실행
 
@@ -179,45 +182,15 @@ provider 확인은 기존 텍스트 경로를 유지합니다.
 요청 세대 번호와 `AbortController`, 진행 중 점유 같은 요청 수명만 다룹니다. 세션 CSRF 토큰은
 `App`의 React 상태로 공유합니다.
 
-서버 배선은 다음 범위까지 코드로 연결돼 있습니다.
+현재 작업 화면은 자동 세션과 CSRF를 사용하며, 작업 생성 -> 원자료 등록 -> 분석 -> 공개 결정 ->
+초안 작성·검토 -> 확정·다운로드를 연결합니다. 목적을 선택하고 수신처를 직접 입력합니다.
+프로젝트나 수신처를 미리 등록할 필요가 없습니다. 작업 목록과 이벤트 이력도 제공합니다.
 
-- `useSession`이 `restoreSession`/`openSession`/`logoutSession`으로 `GET`/`POST`/`DELETE
-  /api/v1/session`을 호출하고, 받은 토큰을 `App`이 `useDisclosures({ csrfToken })`/
-  `useTaskFlow({ csrfToken })`로 내려 쓰기 헤더에 실립니다(`session-client.ts`).
-- `useTaskFlow`가 `readCatalog` -> `createTask({ intake })` -> `startAnalysis` ->
-  `readAnalysisJob` 순서로 작업 생성/원자료 등록/분석 job을 진행하고, 수동 후보 추가, 원자료 해제,
-  분석 취소를 같은 훅에서 호출합니다(`task-client.ts`).
-- `useDisclosures`가 `GET /api/v1/tasks/{id}` 조회와 C 필드 목록, 미리보기/조건 해석/결정 배치/
-  철회를 호출합니다. C는 서버가 준 필드 목록에서만 고를 수 있고 선택 값은 브라우저에서 다시
-  계산하지 않습니다.
-- `useArtifacts`가 공유 초안 생성(`compose`)과 자동 검토, DocAST 편집 저장, 사람 의미 검토 기록,
-  최종 확정, ZIP/개별 파일 다운로드를 호출합니다(`artifacts-client.ts`). 다운로드는 서버가 준 bytes를
-  그대로 저장하며 다시 렌더링하지 않습니다.
-- 자료 분석과 검토 단계는 `GET /api/v1/tasks/{id}/disclosure-comparison`과
-  `GET /api/v1/tasks/{id}/sources/{version_id}/content`로 원문과 공개 내용을 대조합니다
-  (`source-views-client.ts`). 세션 사용자의 내부 확인용이며 모델 입력이나 공유 파일에 쓰지 않습니다.
-- `useRules`/`useTaskBrowser`/`useTaskHistory`가 규칙 저장/목록/새 판본/철회/명시 적용, 작업 목록/
-  삭제, 작업 이벤트 조회를 호출합니다(`rules-client.ts`, `task-browser-client.ts`,
-  `workflow-client.ts`).
-- 공개 결정 영역은 후보별로 미선택/허용/제외/보류를 따로 관리하고, 실제 미리보기 확인과 전체 일괄
-  적용을 분리합니다. 배치가 409를 받으면 reducer가 재조회 요청을 만들고 훅의 효과가 그것을 한 번만
-  소비합니다.
-- 토큰이 없으면 쓰기는 사유만 표시하고 전송하지 않습니다(`disclosure-selectors.ts`의
-  `writeBlockReason`). fake-app은 이 task API를 아직 제공하지 않으며 실제 client는 연결 불가를 표시합니다.
-- 기존 `GET /api/core`, `GET/POST /api/documents`, `POST /api/analysis`도 유지합니다. 내부 파일
-  분석은 목적/수신처/파일 확인과 승인된 사내/로컬 분석 환경 동의 뒤에만 호출하고, 파일 선택만으로
-  전송하지 않으며 입력이 바뀌면 동의를 해제합니다. `crypto.subtle`을 쓸 수 없는 보안 문맥에서는
-  요청 전에 오류를 안내합니다. 이 경로의 근거/후보 제안은 내부 검토용이며 task 후보나 공개 허가로
-  자동 저장하지 않습니다. 내부 메모 저장/조회도 공개 승인/공유 초안과 별개입니다.
-- `/api/sharing`은 화면이 호출하지 않습니다. 실행 정보 화면은 `/api/core`와 인증된 `/api/v1/runtime`을,
-  세션 영역은 세션 응답의 `analysis_environment`를 표시합니다.
-
-이 배선은 합성 모델 client와 메모리 저장소로 띄운 서버에 실제 브라우저를 붙여 세션 열기/복원/
-로그아웃, 카탈로그 작업 생성, 원자료 등록/해제, 분석 실행/취소, C 필드 선택과 미리보기, 결정 배치,
-철회, 수동 후보 추가, 규칙 저장/새 판본/명시 적용/철회, 초안 작성/자동 검토, 사람 의미 검토,
-확정, ZIP/개별 파일 다운로드(내려받은 파일 해시가 화면 표시값과 일치), 작업 삭제까지 한 번씩
-실행해 확인했습니다. 세부 결과와 남은 간격은 [docs/UI-구현기준.md](docs/UI-구현기준.md)의 실행 확인
-절에 적습니다. 실제 모델로 같은 흐름을 돌린 기록은 아니며, 그 구분을 유지합니다.
+내부 메모 보관함, 구형 context 생성/독립 분석 API, 로그인·로그아웃 화면, 원시 JSON 편집,
+별도 규칙 관리와 실행 환경 화면은 제거했습니다. 현재 제거 범위와 향후 추가 조건은
+[기능 정리 및 추가 후보](docs/product/deferred-features.md)에 DF 번호로 관리합니다.
+재사용 결정의 서버 검증과 철회에 따른 다운로드 무효화는 유지합니다.
+자료 분석과 검토 화면의 원문·공개 내용 대조 기능은 유지합니다.
 
 시각 기준은 [docs/UI-구현기준.md](docs/UI-구현기준.md)의 시각 기준 절을 따릅니다. 색, 글자, 간격,
 버튼과 입력 크기는 [docs/design-tokens.md](docs/design-tokens.md)의 토큰으로만 정하며, 토큰과 컴포넌트
@@ -229,17 +202,6 @@ provider 확인은 기존 텍스트 경로를 유지합니다.
 `just fake-app`)은 같은 Node 서버에 Vite 미들웨어를 붙이며 HMR과 WebSocket을 쓰지 않으므로 편집
 뒤 브라우저를 새로고침합니다. 고정 Node 버전의 네이티브 설정 로더로 Vite 설정을 읽어
 `node --watch`가 임시 설정 번들 때문에 반복 재시작하지 않게 합니다.
-
-main을 병합한 뒤에는 legacy `/api/analysis`와 `/api/documents`도 같은 세션 경계를 따릅니다. 세션이
-열려 있으면 화면이 CSRF 토큰을 함께 보내고, 인증 경계가 꺼진 서버(fake-app, workflow 미설정)는 기존
-호출을 그대로 유지합니다. 병합 트리를 실제 브라우저로 확인한 기록은 다음과 같습니다. 가상
-`ModelClient`와 실제 `RealCore`, `WorkflowSessions`, `createWorkflowHandler`, `createApp`을 하나의
-세션 구성으로 묶어 세션 열기, 분석 후보 1개 표시, 내부 메모 저장과 목록 조회까지 확인했고, 경계를
-끈 별도 `createApp` 서버에서도 세션 없이 메모 저장과 조회를 확인했습니다. 두 경우 모두 외부 모델
-API를 호출하지 않았습니다. 병합 직후에는 세션 토큰이 도착하기 전에 시작한 초기 문서 조회가 401로
-끝나 새 조회가 누락되는 경쟁이 있었다. `useDocuments`의 효과가 진행 중 조회를 마친 뒤 다시 load하도록
-수정했고, `documents-refresh.test.ts`에 소비자 records 상태를 확인하는 검사를 하나 추가했습니다.
-이 확인은 앞 절의 React 전환 시점 192개 통과 기록과 별개이며, QG 최종 통과를 뜻하지 않습니다.
 
 ### 3.7 React 전환 시점의 검사 기록
 

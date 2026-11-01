@@ -31,17 +31,7 @@ export interface TaskEvent {
   usage: string | null;
 }
 
-export interface WorkflowRuntime {
-  provider: string | null;
-  model: string | null;
-  ready: boolean | null;
-  appVersion: string | null;
-  extensions: string[];
-  checkers: string[];
-  reproductionStatus: string | null;
-  contentLogging: boolean | null;
-  retention: string | null;
-}
+
 
 const base = '/api/v1';
 
@@ -104,31 +94,6 @@ function labelList(value: unknown): string[] {
   return labels;
 }
 
-function parseRuntime(body: unknown): WorkflowRuntime | null {
-  if (!isRecord(body)) return null;
-  const data = body['data'];
-  if (!isRecord(data)) return null;
-  const rawCore = data['core'];
-  const rawReproduction = data['reproduction'];
-  const rawDebug = data['debug'];
-  const core = isRecord(rawCore) ? rawCore : {};
-  const reproduction = isRecord(rawReproduction) ? rawReproduction : {};
-  const debug = isRecord(rawDebug) ? rawDebug : {};
-  const ready = core['ready'];
-  const contentLogging = debug['content_logging'];
-  return {
-    provider: asString(core['provider']),
-    // app은 model_id를 최상위로 보내고, core.model은 코어가 직접 알릴 때만 있다.
-    model: asString(data['model_id']) ?? asString(core['model']),
-    ready: typeof ready === 'boolean' ? ready : null,
-    appVersion: asString(data['app_version']),
-    extensions: labelList(data['extensions']),
-    checkers: labelList(data['checkers']),
-    reproductionStatus: asString(reproduction['status']),
-    contentLogging: typeof contentLogging === 'boolean' ? contentLogging : null,
-    retention: asString(debug['retention']),
-  };
-}
 
 function measuredUsage(value: unknown): string | null {
   if (value === null || value === undefined) return null;
@@ -220,13 +185,6 @@ export function listTaskEvents(
 }
 
 /** 인증된 실행 정보를 읽는다. 값이 없으면 null로 남기고 다른 값으로 추정하지 않는다. */
-export function readRuntime(fetchFn: typeof fetch): Promise<WorkflowResult<WorkflowRuntime>> {
-  return requestJson(fetchFn, {
-    method: 'GET',
-    path: `${base}/runtime`,
-    parse: parseRuntime,
-  });
-}
 
 const PHASE_LABELS: Record<string, string> = {
   needs_analysis: '분석 전',

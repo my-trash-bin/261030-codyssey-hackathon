@@ -6,24 +6,18 @@ import type { JSX } from 'react';
 import { currentStepId } from '../flow-status.ts';
 import type { StepId, StepView } from '../flow-status.ts';
 
-export type ViewId = StepId | 'rules' | 'history' | 'archive' | 'execution';
+export type ViewId = StepId | 'history';
 
 // 보조 화면은 단계가 아니라 참고 화면이다. 이름과 설명을 한 곳에 두고 셸이 그대로 읽는다.
 export const VIEW_INFO: Record<Exclude<ViewId, StepId>, { label: string; hint: string }> = {
-  rules: { label: '재사용 규칙', hint: '승인한 표현을 다음 작업에 다시 씁니다.' },
-  history: { label: '작업 이력', hint: '이 작업에서 일어난 결정·검토·초안 기록입니다.' },
-  archive: { label: '문서 보관소', hint: '내부 메모를 보관합니다. 공개 승인이나 공유 초안과는 별개입니다.' },
-  execution: { label: '실행 정보', hint: '연결 상태와 서버 설정을 확인합니다.' },
+  history: { label: '검토 이력', hint: '이 작업에서 일어난 결정·검토·초안 기록입니다.' },
 };
 
 const SECONDARY = Object.keys(VIEW_INFO) as (keyof typeof VIEW_INFO)[];
 
 // 단계 없는 보조 화면을 구분하는 내비게이션 아이콘. 글자와 함께만 쓴다. 외부 자산을 불러오지 않는다.
 const VIEW_ICONS: Record<keyof typeof VIEW_INFO, string> = {
-  rules: 'M3 2h10a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1zm1 3v1.5h8V5H4zm0 3v1.5h8V8H4zm0 3v1h5v-1H4z',
   history: 'M8 1.5A6.5 6.5 0 1 1 1.5 8 6.5 6.5 0 0 1 8 1.5zM7.2 4v4.4l3.4 2 .8-1.3-2.7-1.6V4H7.2z',
-  archive: 'M1.5 3h13v3h-13V3zm1 4h11v6a1 1 0 0 1-1 1h-9a1 1 0 0 1-1-1V7zm3 2v1.5h5V9h-5z',
-  execution: 'M2 3h12a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1zm1.5 3 2.6 2-2.6 2 .9 1.2L8 8 4.4 4.8 3.5 6zM8.5 10v1.3h4V10h-4z',
 };
 
 export function FlowRail(props: {

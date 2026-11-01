@@ -139,16 +139,7 @@ export class ArtifactStore {
       const bytes = Buffer.from(f.bytes, 'base64'); return bytes.toString('base64') !== f.bytes || bytes.length !== f.size || digest(bytes) !== f.sha256;
     }) || digest(JSON.stringify(files.map(f => ({ path: f.path, size: f.size, sha256: f.sha256 })))) !== artifact.artifact_set_hash) deny(409, 'ARTIFACT_CORRUPT');
   }
-  edit(id: string, revision: number, expectedHash: string, draft: Draft): Artifact {
-    return this.c.hooks.transaction(() => {
-      const prior = this.get(id); this.c.store.assertRevision(prior.task_id, revision); this.guard(prior);
-      if (prior.document_hash !== expectedHash) deny(409, 'DOCUMENT_HASH_CONFLICT');
-      validateDocument(draft, prior.pack); const files = renderFiles(draft, prior.pack), updated = this.c.hooks.advance(this.c.store.get(prior.task_id));
-      const value: Artifact = { ...prior, ...files, id: randomUUID(), revision: updated.revision, draft, review: null,
-        review_error_code: null, review_target_hash: null, human_review: null, authorization_hash: this.authorization(prior.task_id) };
-      this.save(value); return value;
-    });
-  }
+
   humanReview(id: string, revision: number, targetHash: string, checklist: Record<string, boolean>, reason: string): Artifact {
     return this.c.hooks.transaction(() => {
       const prior = this.get(id); this.c.store.assertRevision(prior.task_id, revision); this.guard(prior);

@@ -277,20 +277,7 @@ export function parseDraftDocument(value: unknown): DraftDocument {
   return { schema_version: 'draft.v1', blocks };
 }
 
-/** 편집기가 보낸 JSON 문자열을 서버 draft.v1에 가까운 구조로 확인한다. 내용 규칙은 서버가 최종 판정한다. */
-export function parseDraftText(text: string): { draft: DraftDocument } | { error: string } {
-  let value: unknown;
-  try {
-    value = JSON.parse(text);
-  } catch {
-    return { error: 'JSON 문법이 올바르지 않습니다.' };
-  }
-  try {
-    return { draft: parseDraftDocument(value) };
-  } catch (error) {
-    return { error: error instanceof Error ? error.message : '문서 구조를 확인하지 못했습니다.' };
-  }
-}
+
 
 function parseReviewIssue(value: unknown): ReviewIssueView | null {
   if (!isRecord(value) || !isRecord(value.target)) return null;
@@ -538,26 +525,6 @@ export async function cancelArtifactJob(
   return { ok: true, value: { cancelRequested: data.cancel_requested } };
 }
 
-export async function editArtifact(
-  fetchFn: FetchFn,
-  csrfToken: string,
-  artifactId: string,
-  expectedRevision: number,
-  expectedDocumentHash: string,
-  draft: DraftDocument,
-  idempotencyKey: string = newIdempotencyKey(),
-): Promise<ArtifactResult<ArtifactView>> {
-  const response = await requestJson(fetchFn, 'PUT', `/api/v1/artifacts/${encodeURIComponent(artifactId)}/edit`, csrfToken, {
-    payload: { expected_revision: expectedRevision, expected_document_hash: expectedDocumentHash, draft },
-    idempotencyKey,
-  });
-  if (!response.ok) return response;
-  try {
-    return { ok: true, value: parseArtifact(response.body) };
-  } catch {
-    return malformed(response.status);
-  }
-}
 
 export async function recordHumanReview(
   fetchFn: FetchFn,

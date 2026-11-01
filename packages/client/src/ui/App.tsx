@@ -8,10 +8,8 @@ import { useDisclosures } from './hooks/useDisclosures.ts';
 import { useRuntimeInfo } from './hooks/useRuntimeInfo.ts';
 import type { RuntimeInfoApi } from './hooks/useRuntimeInfo.ts';
 import { useSession } from './hooks/useSession.ts';
-import type { SessionApi } from './hooks/useSession.ts';
 import { useTaskFlow } from './hooks/useTaskFlow.ts';
 import { useArtifacts } from './hooks/useArtifacts.ts';
-import { useDocuments } from './hooks/useDocuments.ts';
 import type { SessionInfo } from '../session-client.ts';
 import { validSavedDecisions } from '../disclosure-selectors.ts';
 import { completionCount, currentStepId, describeSteps, EMPTY_FACTS, stepView } from '../flow-status.ts';
@@ -22,10 +20,7 @@ import { TaskSection } from './TaskSection.tsx';
 import { TaskBrowser } from './TaskBrowser.tsx';
 import { DisclosuresSection } from './DisclosuresSection.tsx';
 import { DraftSection } from './DraftSection.tsx';
-import { RulesSection } from './RulesSection.tsx';
 import { TaskHistory } from './TaskHistory.tsx';
-import { ExecutionSection } from './ExecutionSection.tsx';
-import { ArchiveSection } from './ArchiveSection.tsx';
 import { FlowRail, VIEW_INFO } from './FlowRail.tsx';
 import type { ViewId } from './FlowRail.tsx';
 import { Inspector } from './Inspector.tsx';
@@ -52,12 +47,10 @@ function WorkflowWorkspace(props: {
   csrfToken: string;
   environment: SessionInfo['environment'];
   onAuthRequired: () => void;
-  session: SessionApi;
   runtime: RuntimeInfoApi;
 }): JSX.Element {
-  const { csrfToken, environment, onAuthRequired, session, runtime } = props;
+  const { csrfToken, environment, onAuthRequired, runtime } = props;
   const disclosures = useDisclosures({ csrfToken, onAuthRequired });
-  const documents = useDocuments({ csrfToken });
   const task = useTaskFlow({
     csrfToken,
     snapshot: disclosures.snapshot,
@@ -174,17 +167,7 @@ function WorkflowWorkspace(props: {
         <h2>{VIEW_INFO[id as keyof typeof VIEW_INFO].label}</h2>
         <p className="screen__lede">{VIEW_INFO[id as keyof typeof VIEW_INFO].hint}</p>
       </header>
-      {id === 'rules' ? <RulesSection {...shared} names={task.catalog} /> : null}
-      {id === 'history' ? <TaskHistory {...shared} part="events" /> : null}
-      {id === 'archive' ? <ArchiveSection documents={documents} /> : null}
-      {id === 'execution'
-        ? (
-          <>
-            <ExecutionSection runtime={runtime} embedded />
-            <TaskHistory {...shared} part="runtime" />
-          </>
-        )
-        : null}
+      {id === 'history' ? <TaskHistory {...shared} /> : null}
     </section>
   );
 
@@ -205,7 +188,7 @@ function WorkflowWorkspace(props: {
         <div className="app__content">
           <TopBar
             modeLabel={runtime.modeLabel}
-            sessionLabel={session.session ? '연결됨' : null}
+
             taskLabel={taskLabel}
           />
           <div className="app__columns">
@@ -266,7 +249,6 @@ function WorkflowWorkspace(props: {
           steps={steps}
           status={recentStatus}
           taskPhase={snapshot?.phase ?? null}
-          session={session}
           snapshot={snapshot}
           workflow={artifacts}
         />
@@ -297,10 +279,9 @@ export function App(): JSX.Element {
             <SidebarHead steps={describeSteps(EMPTY_FACTS)} completed={0} />
           </aside>
           <div className="app__content">
-            <TopBar modeLabel={runtime.modeLabel} sessionLabel={null} taskLabel={null} />
+            <TopBar modeLabel={runtime.modeLabel} taskLabel={null} />
             <main className="workspace" id="workspace" tabIndex={-1}>
               <SessionSection session={session} />
-              <ExecutionSection runtime={runtime} />
             </main>
           </div>
         </div>
@@ -314,7 +295,6 @@ export function App(): JSX.Element {
       csrfToken={csrfToken}
       environment={openedSession.environment}
       onAuthRequired={session.recheck}
-      session={session}
       runtime={runtime}
     />
   );

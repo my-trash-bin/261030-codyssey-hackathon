@@ -6,8 +6,8 @@ import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import test from 'node:test';
-import { createApp } from './app.ts';
-import { DocumentStore } from './database.ts';
+import { createDemoApp } from './legacy-app.ts';
+import { DocumentStore } from '@safehandoff/server';
 
 test('saved text survives closing and reopening the SQLite database', async () => {
   const folder = await mkdtemp(join(tmpdir(), 'safehandoff-db-'));
@@ -27,7 +27,7 @@ test('HTTP saves and lists documents; invalid input does not create rows', async
   const store = new DocumentStore(':memory:');
   const core: Core = { info: { implementation: 'real', connection: 'direct', ready: false },
     async generate() { throw new Error('must not call core when saving'); } };
-  const server = createServer(createApp(store, core));
+  const server = createServer(createDemoApp(store, core));
   await new Promise<void>(resolve => server.listen(0, '127.0.0.1', resolve));
   const base = `http://127.0.0.1:${(server.address() as AddressInfo).port}`;
   try {

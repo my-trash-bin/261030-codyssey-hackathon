@@ -8,7 +8,6 @@ import type { WireSource } from '../../analysis-state.ts';
 import {
   addManualCandidate,
   cancelAnalysis,
-  createContextTask,
   createTask,
   deleteSource,
   readAnalysisJob,
@@ -258,15 +257,7 @@ export function useTaskFlow(options: TaskFlowOptions): TaskFlowApi {
     setForm(formRef.current);
     setInvalidField(null);
     // 목적·수신처·공개 범위·언어가 바뀌면 분석 동의를 다시 받는다.
-    if (field !== 'internalTitle' && field !== 'legacyPurpose' && field !== 'legacyRecipient') resetConsent();
-    if (field === 'legacyPurpose' || field === 'legacyRecipient') resetConsent();
-  }, [resetConsent]);
-
-  const setUseLegacy = useCallback((value: boolean): void => {
-    formRef.current = { ...formRef.current, useLegacy: value };
-    setForm(formRef.current);
-    setInvalidField(null);
-    resetConsent();
+    if (field !== 'internalTitle') resetConsent();
   }, [resetConsent]);
 
   const setFiles = useCallback((next: File[]): void => {
@@ -309,7 +300,6 @@ export function useTaskFlow(options: TaskFlowOptions): TaskFlowApi {
 
   const buildIntake = useCallback((input: IntakeForm): TaskIntake => ({
     internal_title: input.internalTitle.trim(),
-    project_id: input.projectId,
     purpose_id: input.purposeId,
     recipient_id: input.recipientId,
     audience: input.audience as Audience,
@@ -327,27 +317,15 @@ export function useTaskFlow(options: TaskFlowOptions): TaskFlowApi {
     }
     const currentCatalog = catalogRef.current;
     if (currentCatalog === null) {
-      report('서버 카탈로그를 아직 읽지 못해 작업을 만들 수 없습니다. 카탈로그를 확인한 뒤 다시 시도하세요.');
+      report('작업 설정을 불러온 뒤 다시 시도하세요.');
       return;
     }
     const input = formRef.current;
-    const usable = currentCatalog.projects.length > 0 && currentCatalog.recipients.length > 0 && currentCatalog.purposes.length > 0;
-    const legacy = !usable && input.useLegacy;
-    if (!usable && !legacy) {
-      report('카탈로그에 프로젝트·수신처·목적이 설정되지 않았습니다. 운영자가 카탈로그를 설정해야 하며, 화면이 임의 기본값을 만들지 않습니다.');
-      return;
-    }
-    if (legacy) {
-      if (input.legacyPurpose.trim() === '') { setInvalidField('legacyPurpose'); report('기존 방식의 전달 목적을 입력하세요.'); return; }
-      if (input.legacyRecipient.trim() === '') { setInvalidField('legacyRecipient'); report('기존 방식의 수신처를 입력하세요.'); return; }
-    } else {
-      if (input.internalTitle.trim() === '') { setInvalidField('internalTitle'); report('작업 제목을 입력하세요.'); return; }
-      if (input.internalTitle.trim().length > 256) { setInvalidField('internalTitle'); report('작업 제목은 256자까지 쓸 수 있습니다.'); return; }
-      if (input.projectId === '') { setInvalidField('projectId'); report('프로젝트를 선택하세요.'); return; }
-      if (input.purposeId === '') { setInvalidField('purposeId'); report('전달 목적을 선택하세요.'); return; }
-      if (input.recipientId === '') { setInvalidField('recipientId'); report('수신처를 선택하세요.'); return; }
-      if (input.audience === '') { setInvalidField('audience'); report('공개 범위를 선택하세요.'); return; }
-    }
+    if (input.internalTitle.trim() === '') { setInvalidField('internalTitle'); report('작업 제목을 입력하세요.'); return; }
+    if (input.internalTitle.trim().length > 256) { setInvalidField('internalTitle'); report('작업 제목은 256자까지 쓸 수 있습니다.'); return; }
+    if (input.purposeId === '') { setInvalidField('purposeId'); report('전달 목적을 선택하세요.'); return; }
+    if (input.recipientId === '') { setInvalidField('recipientId'); report('수신처를 선택하세요.'); return; }
+    if (input.audience === '') { setInvalidField('audience'); report('공개 범위를 선택하세요.'); return; }
     const chosen = filesRef.current;
     if (chosen.length === 0) {
       setInvalidField('files');
@@ -370,9 +348,7 @@ export function useTaskFlow(options: TaskFlowOptions): TaskFlowApi {
         }
         if (!isCurrent(epoch)) return;
         report('작업을 만드는 중입니다…');
-        const created = legacy
-          ? await createContextTask(defaultFetch, token, { purpose: input.legacyPurpose.trim(), recipient: input.legacyRecipient.trim() })
-          : await createTask(defaultFetch, token, buildIntake(input));
+        const created = await createTask(defaultFetch, token, buildIntake(input));
         if (!isCurrent(epoch)) return;
         if (!created.ok) {
           fail(created.failure);
@@ -818,11 +794,6 @@ export function useTaskFlow(options: TaskFlowOptions): TaskFlowApi {
     })();
   }, [isCurrent, loadTask, pollJob, refreshSources, fail]);
 
-  const catalogUsable = catalog !== null
-    && catalog.projects.length > 0
-    && catalog.recipients.length > 0
-    && catalog.purposes.length > 0;
-  const catalogNeedsSetup = catalog !== null && !catalogUsable;
   const canStart = selected !== null
     && sources.some((source) => source.included)
     && consent
@@ -834,13 +805,10 @@ export function useTaskFlow(options: TaskFlowOptions): TaskFlowApi {
     catalog,
     catalogBusy,
     catalogProblem,
-    catalogUsable,
-    catalogNeedsSetup,
     reloadCatalog,
 
     form,
     setField,
-    setUseLegacy,
     invalidField,
 
     files,

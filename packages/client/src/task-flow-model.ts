@@ -24,26 +24,19 @@ export interface TaskFlowOptions {
 
 export type StringField =
   | 'internalTitle'
-  | 'projectId'
   | 'purposeId'
   | 'recipientId'
   | 'audience'
   | 'goalVariant'
-  | 'outputLanguage'
-  | 'legacyPurpose'
-  | 'legacyRecipient';
+  | 'outputLanguage';
 
 export interface IntakeForm {
   internalTitle: string;
-  projectId: string;
   purposeId: string;
   recipientId: string;
   audience: Audience | '';
   goalVariant: string;
   outputLanguage: OutputLanguage | '';
-  legacyPurpose: string;
-  legacyRecipient: string;
-  useLegacy: boolean;
 }
 
 export type IntakeField = StringField | 'files';
@@ -75,13 +68,10 @@ export interface TaskFlowApi {
   catalog: WorkflowCatalog | null;
   catalogBusy: boolean;
   catalogProblem: string;
-  catalogUsable: boolean;
-  catalogNeedsSetup: boolean;
   reloadCatalog: () => void;
 
   form: IntakeForm;
   setField: (field: StringField, value: string) => void;
-  setUseLegacy: (value: boolean) => void;
   invalidField: IntakeField | null;
 
   files: File[];
@@ -129,15 +119,11 @@ export interface TaskFlowApi {
 
 export const INITIAL_FORM: IntakeForm = {
   internalTitle: '',
-  projectId: '',
   purposeId: '',
   recipientId: '',
   audience: '',
   goalVariant: '',
   outputLanguage: '',
-  legacyPurpose: '',
-  legacyRecipient: '',
-  useLegacy: false,
 };
 
 export const INITIAL_MANUAL: ManualForm = {

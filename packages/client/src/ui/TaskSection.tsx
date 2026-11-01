@@ -7,7 +7,6 @@ import type { SessionInfo } from '../session-client.ts';
 import { CANDIDATE_KINDS, CANDIDATE_RELEVANCES, CANDIDATE_UNCERTAINTIES } from '../task-client.ts';
 import type { Candidate } from '../disclosure-contract.ts';
 import { KIND_LABELS, UNCERTAINTY_LABELS } from '../disclosure-format.ts';
-import type { CatalogOption } from '../task-client.ts';
 import { FileField } from './FileField.tsx';
 import { AnalysisSources } from './SourceViews.tsx';
 import type { TaskFlowApi } from './hooks/useTaskFlow.ts';
@@ -21,7 +20,6 @@ const GOAL_LABELS: Record<string, string> = {
   default: '기본',
   observations_only: '관찰만',
   ask_for_diagnostics: '진단 정보 요청',
-  reproduction_evidence: '재현 근거',
 };
 
 const ANALYSIS_ERROR_LABELS: Record<string, string> = {
@@ -52,25 +50,6 @@ function formatBytes(bytes: number | null): string {
   return `${Math.round(bytes / (1024 * 102.4)) / 10} MiB`;
 }
 
-function templateNote(templates: readonly CatalogOption[]): string {
-  if (templates.length === 0) return '';
-  return `문서 양식: ${templates.map((template) => template.displayName).join(', ')}`;
-}
-
-/** 환경 값은 표시만 한다. 주소나 승인 문자열을 연결·승인 성공으로 해석하지 않는다. */
-function environmentLines(environment: SessionInfo['environment'] | undefined): string[] {
-  if (!environment) {
-    return ['분석 환경 정보를 받지 못했습니다. 화면에서 승인 여부를 확인할 수 없습니다.'];
-  }
-  const approval = environment.approvalStatus === '' ? '값 없음' : environment.approvalStatus;
-  const verified = environment.verifiedAt === null ? '없음' : environment.verifiedAt;
-  return [
-    `승인 상태 값: ${approval}. 이 값을 승인으로 해석하지 않습니다.`,
-    `확인 시각: ${verified}. 확인 시각은 승인 증거가 아닙니다.`,
-    '주소 표시는 연결 성공의 증거가 아닙니다.',
-  ];
-}
-
 export type TaskSectionPart = 'setup' | 'sources' | 'analysis';
 
 export function TaskSection(props: {
@@ -87,14 +66,11 @@ export function TaskSection(props: {
   useEffect(() => { setSetupOpen(!hasSelected); }, [hasSelected]);
 
   const titleRef = useRef<HTMLInputElement | null>(null);
-  const projectRef = useRef<HTMLSelectElement | null>(null);
   const purposeRef = useRef<HTMLSelectElement | null>(null);
-  const recipientRef = useRef<HTMLSelectElement | null>(null);
+  const recipientRef = useRef<HTMLInputElement | null>(null);
   const audienceRef = useRef<HTMLSelectElement | null>(null);
   const filesRef = useRef<HTMLInputElement | null>(null);
   const addFilesRef = useRef<HTMLInputElement | null>(null);
-  const legacyPurposeRef = useRef<HTMLInputElement | null>(null);
-  const legacyRecipientRef = useRef<HTMLInputElement | null>(null);
 
   const kindRef = useRef<HTMLSelectElement | null>(null);
   const uncertaintyRef = useRef<HTMLSelectElement | null>(null);
@@ -107,13 +83,10 @@ export function TaskSection(props: {
   useEffect(() => {
     const field = task.invalidField;
     if (field === 'internalTitle') titleRef.current?.focus();
-    else if (field === 'projectId') projectRef.current?.focus();
     else if (field === 'purposeId') purposeRef.current?.focus();
     else if (field === 'recipientId') recipientRef.current?.focus();
     else if (field === 'audience') audienceRef.current?.focus();
     else if (field === 'files') filesRef.current?.focus();
-    else if (field === 'legacyPurpose') legacyPurposeRef.current?.focus();
-    else if (field === 'legacyRecipient') legacyRecipientRef.current?.focus();
   }, [task.invalidField]);
 
   useEffect(() => {
@@ -140,8 +113,7 @@ export function TaskSection(props: {
 
   const catalog = task.catalog;
   const job = task.job;
-  const showIntake = catalog !== null && !task.catalogNeedsSetup;
-  const showLegacy = task.catalogNeedsSetup && task.form.useLegacy;
+  const showIntake = catalog !== null;
   const canSubmit = csrfToken !== null && !task.busy;
   const cacheIncomplete = task.addFiles.length > 0
     && task.sources.some((source) => source.included)
@@ -161,33 +133,13 @@ export function TaskSection(props: {
             형식은 txt·log·md·csv·json(UTF-8)이고, 파일당 {formatBytes(catalog?.limits?.sourceBytes ?? 262144)}, 합계 {formatBytes(catalog?.limits?.sourceTotalBytes ?? 1048576)}까지입니다. 파일을 골라도 분석을 시작하기 전에는 모델로 보내지 않습니다.
           </p>
 
-          {task.catalogBusy && <p className="hint">서버 카탈로그를 읽는 중입니다…</p>}
+          {task.catalogBusy && <p className="hint">작업 설정을 불러오는 중입니다…</p>}
           {task.catalogProblem !== '' && (
             <div className="hint">
               <p role="status">{task.catalogProblem}</p>
-              <button className="button" type="button" onClick={() => { task.reloadCatalog(); }}>카탈로그 다시 읽기</button>
+              <button className="button" type="button" onClick={() => { task.reloadCatalog(); }}>설정 다시 불러오기</button>
             </div>
           )}
-          {task.catalogNeedsSetup && (
-            <div className="hint">
-              <p>
-                프로젝트·수신처 목록이 서버에 설정되지 않았습니다. 운영자가 카탈로그를 설정해야 합니다.
-              </p>
-              <div className="option option--consent">
-                <input
-                  type="checkbox"
-                  id="task-legacy-mode"
-                  checked={task.form.useLegacy}
-                  onChange={(event): void => { task.setUseLegacy(event.currentTarget.checked); }}
-                />
-                <label htmlFor="task-legacy-mode">기존 목적·수신처 방식으로 작업 만들기</label>
-              </div>
-              <p id="task-legacy-note">
-                기존 방식으로 만든 작업은 재사용 규칙을 저장할 수 없습니다.
-              </p>
-            </div>
-          )}
-
           <form
             className="form"
             id="task-form"
@@ -218,23 +170,6 @@ export function TaskSection(props: {
                   />
                 </div>
                 <div className="field">
-                  <label htmlFor="task-project">프로젝트</label>
-                  <select
-                    id="task-project"
-                    name="projectId"
-                    required
-                    aria-required="true"
-                    ref={projectRef}
-                    value={task.form.projectId}
-                    aria-invalid={task.invalidField === 'projectId' ? 'true' : undefined}
-                    aria-describedby="task-create-hint task-status"
-                    onChange={(event): void => { task.setField('projectId', event.currentTarget.value); }}
-                  >
-                    <option value="">프로젝트를 선택하세요</option>
-                    {catalog?.projects.map((project) => <option key={project.id} value={project.id}>{project.displayName}</option>)}
-                  </select>
-                </div>
-                <div className="field">
                   <label htmlFor="task-purpose">전달 목적</label>
                   <select
                     id="task-purpose"
@@ -253,20 +188,18 @@ export function TaskSection(props: {
                 </div>
                 <div className="field">
                   <label htmlFor="task-recipient">수신처</label>
-                  <select
+                  <input
                     id="task-recipient"
                     name="recipientId"
+                    type="text"
                     required
-                    aria-required="true"
+                    maxLength={256}
                     ref={recipientRef}
                     value={task.form.recipientId}
                     aria-invalid={task.invalidField === 'recipientId' ? 'true' : undefined}
                     aria-describedby="task-create-hint task-status"
                     onChange={(event): void => { task.setField('recipientId', event.currentTarget.value); }}
-                  >
-                    <option value="">수신처를 선택하세요</option>
-                    {catalog?.recipients.map((recipient) => <option key={recipient.id} value={recipient.id}>{recipient.displayName}</option>)}
-                  </select>
+                  />
                 </div>
                 <div className="field">
                   <label htmlFor="task-audience">공개 범위</label>
@@ -313,45 +246,6 @@ export function TaskSection(props: {
                     <option value="en">{LANGUAGE_LABELS.en}</option>
                   </select>
                 </div>
-                {catalog && catalog.templates.length > 0
-                  ? <p className="hint field--wide" id="task-template-note">{templateNote(catalog.templates)}</p>
-                  : null}
-              </>
-            )}
-            {showLegacy && (
-              <>
-                <div className="field">
-                  <label htmlFor="task-legacy-purpose">전달 목적 (기존 방식)</label>
-                  <input
-                    id="task-legacy-purpose"
-                    name="legacyPurpose"
-                    type="text"
-                    autoComplete="off"
-                    required
-                    aria-required="true"
-                    ref={legacyPurposeRef}
-                    value={task.form.legacyPurpose}
-                    aria-invalid={task.invalidField === 'legacyPurpose' ? 'true' : undefined}
-                    aria-describedby="task-legacy-note task-status"
-                    onChange={(event): void => { task.setField('legacyPurpose', event.currentTarget.value); }}
-                  />
-                </div>
-                <div className="field">
-                  <label htmlFor="task-legacy-recipient">수신처 (기존 방식)</label>
-                  <input
-                    id="task-legacy-recipient"
-                    name="legacyRecipient"
-                    type="text"
-                    autoComplete="off"
-                    required
-                    aria-required="true"
-                    ref={legacyRecipientRef}
-                    value={task.form.legacyRecipient}
-                    aria-invalid={task.invalidField === 'legacyRecipient' ? 'true' : undefined}
-                    aria-describedby="task-legacy-note task-status"
-                    onChange={(event): void => { task.setField('legacyRecipient', event.currentTarget.value); }}
-                  />
-                </div>
               </>
             )}
             <div className="field field--wide">
@@ -371,7 +265,7 @@ export function TaskSection(props: {
               className="button button--solid"
               id="task-submit"
               type="submit"
-              disabled={!canSubmit}
+              disabled={!canSubmit || !showIntake}
               aria-busy={task.busy ? 'true' : undefined}
               aria-describedby="task-create-hint task-status"
             >작업 만들기</button>
@@ -516,7 +410,7 @@ export function TaskSection(props: {
           <details className="fold fold--plain" id="task-environment">
             <summary>분석 환경 자세히</summary>
             <div className="fold__body env">
-              {environmentLines(environment).map((line) => <p className="hint" key={line}>{line}</p>)}
+              <p className="hint">분석 모델: {environment?.providerOrigin ?? '연결 정보를 확인하세요.'}</p>
             </div>
           </details>
 

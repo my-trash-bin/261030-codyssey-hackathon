@@ -4,7 +4,7 @@ import type { TaskStore } from './task-store.ts';
 import type { WorkflowAccess } from './workflow-session.ts';
 import { deny } from './workflow-session.ts';
 import { body, object, revision, send, string } from './workflow-http-utils.ts';
-import { goals, intakeContext, purposes, validateCatalog } from './workflow-catalog.ts';
+import { goals, intakeContext, purposes } from './workflow-catalog.ts';
 import { digest } from './artifact-render.ts';
 interface Context {
   store: TaskStore; engine: Engine; access: WorkflowAccess;
@@ -28,11 +28,8 @@ export async function extendedWorkflowRoutes(c: Context, request: IncomingMessag
   const { store, engine } = c, workflow = store.workflow, artifacts = workflow.artifacts, rules = workflow.rules;
   const path = parts.join('/'), url = new URL(request.url || '/', 'http://localhost');
   if (request.method === 'GET') {
-    if (path === 'catalog') send(response, 200, { data: { ...validateCatalog(c.access.catalog ?? { projects: [], recipients: [] }), purposes,
+    if (path === 'catalog') send(response, 200, { data: { projects: [], recipients: [], purposes,
       goals, skills: [], templates: [{ id: 'support-request.v1', display_name: '문의 문서' }], limits: { sources: 100, source_bytes: 262144, source_total_bytes: 1048576, evidence: 100, export_bytes: 20971520 } } });
-    else if (path === 'runtime') send(response, 200, { data: { core: engine.info, app_version: 'unversioned',
-      extensions: [], checkers: ['docast.v1', 'public-file-integrity.v1'], reproduction: { status: 'not_configured' },
-      debug: { content_logging: false, retention: 'operator_managed' }, ...c.access.runtime } });
     else if (path === 'tasks') send(response, 200, { data: workflow.list(url.searchParams.get('cursor') ?? undefined) });
     else if (parts[0] === 'tasks' && parts.length === 3 && parts[2] === 'sources') send(response, 200, { data: { sources: store.analysis.sourceCatalog(parts[1]!) } });
     else if (path === 'rules') send(response, 200, { data: { rules: rules.list() } });
@@ -77,8 +74,8 @@ export async function extendedWorkflowRoutes(c: Context, request: IncomingMessag
   const key = string(request.headers['idempotency-key']); if (key.length > 200) deny(400, 'INVALID_IDEMPOTENCY_KEY');
   const operation = `${request.method}:${parts[1] ?? ''}:${parts.slice(2).join('/')}`;
   if (path === 'tasks' && request.method === 'POST' && input && typeof input === 'object' && Object.hasOwn(input, 'intake')) {
-    const v = object(input, ['intake']), catalog = validateCatalog(c.access.catalog ?? { projects: [], recipients: [] });
-    const { intake, context } = intakeContext(v.intake, catalog);
+    const v = object(input, ['intake']);
+    const { intake, context } = intakeContext(v.intake);
     const result = store.request('create-task', key, input, () => { const task = store.create(context, digest('[]'), digest('[]')); rules.saveIntake(task.id, intake); return task; });
     send(response, 201, { data: result.result }); return true;
   }
@@ -117,13 +114,11 @@ export async function extendedWorkflowRoutes(c: Context, request: IncomingMessag
     const result = store.request(operation, key, input, () => artifacts.finalize(parts[1]!, revision(v.expected_revision), string(v.artifact_id), string(v.expected_artifact_set_hash), true, prepared));
     send(response, 200, { data: result.result }); return true;
   }
-  if (parts[0] === 'artifacts' && parts.length === 3 && (parts[2] === 'edit' && request.method === 'PUT' || parts[2] === 'human-review' && request.method === 'POST')) {
-    const editing = parts[2] === 'edit', v = editing ? object(input, ['expected_revision', 'expected_document_hash', 'draft']) :
-      object(input, ['expected_revision', 'target_hash', 'checklist', 'fallback_reason']);
+  if (parts[0] === 'artifacts' && parts.length === 3 && parts[2] === 'human-review' && request.method === 'POST') {
+    const v = object(input, ['expected_revision', 'target_hash', 'checklist', 'fallback_reason']);
     const artifact = artifacts.get(parts[1]!);
     if (c.deletingTasks.has(artifact.task_id)) deny(409, 'TASK_DELETING');
-    const result = store.request(`${request.method}:${artifact.task_id}:artifact-${parts[1]}-${parts[2]}`, key, input, () => editing ?
-      artifacts.edit(parts[1]!, revision(v.expected_revision), string(v.expected_document_hash), v.draft as Draft) :
+    const result = store.request(`${request.method}:${artifact.task_id}:artifact-${parts[1]}-human-review`, key, input, () =>
       artifacts.humanReview(parts[1]!, revision(v.expected_revision), string(v.target_hash), object(v.checklist, ['reviewed_all_files', 'approved_facts_only', 'uncertainty_preserved']) as Record<string, boolean>, string(v.fallback_reason)));
     send(response, 200, { data: artifactDTO(result.result, store) }); return true;
   }
@@ -133,10 +128,9 @@ export async function extendedWorkflowRoutes(c: Context, request: IncomingMessag
     send(response, 201, { data: result.result }); return true;
   }
   if (parts[0] === 'rules' && parts.length === 3 && request.method === 'POST') {
-    const versioning = parts[2] === 'versions'; if (!versioning && parts[2] !== 'revoke') deny(404, 'ENDPOINT_NOT_FOUND');
-    const v = object(input, ['expected_rule_version'], versioning ? ['representation', 'expires_at'] : []);
-    const result = store.request(`rule:${parts[1]}:${parts[2]}`, key, input, () => versioning ?
-      rules.update(parts[1]!, revision(v.expected_rule_version), v.representation as Representation, v.expires_at as string | null) : rules.revoke(parts[1]!, revision(v.expected_rule_version)));
+    if (parts[2] !== 'revoke') deny(404, 'ENDPOINT_NOT_FOUND');
+    const v = object(input, ['expected_rule_version']);
+    const result = store.request(`rule:${parts[1]}:${parts[2]}`, key, input, () => rules.revoke(parts[1]!, revision(v.expected_rule_version)));
     send(response, 200, { data: result.result }); return true;
   }
   if (parts[0] === 'tasks' && parts.length === 4 && parts[2] === 'rules' && parts[3] === 'apply' && request.method === 'POST') {

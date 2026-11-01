@@ -11,7 +11,6 @@ export interface TaskHistoryProps {
   csrfToken: string | null;
   snapshot: Snapshot | null;
   onTaskChanged: (id: string) => Promise<void> | void;
-  part: 'events' | 'runtime';
 }
 
 const REPRODUCTION_LABELS: Record<string, string> = {
@@ -21,42 +20,8 @@ const REPRODUCTION_LABELS: Record<string, string> = {
 };
 
 export function TaskHistory(props: TaskHistoryProps): JSX.Element {
-  const { csrfToken, snapshot, part } = props;
+  const { csrfToken, snapshot } = props;
   const history = useTaskHistory({ csrfToken, snapshot });
-  const runtime = history.runtime;
-
-  if (part === 'runtime') {
-    const unknown = '서버가 알리지 않음';
-    return (
-      <div className="runtime" id="workflow-runtime" role="group" aria-labelledby="workflow-runtime-heading">
-        <h3 id="workflow-runtime-heading">서버 설정</h3>
-        <p className="status" role="status" aria-live="polite" data-role="runtime-status">{history.runtimeStatus}</p>
-        {runtime === null
-          ? null
-          : (
-            <ul className="plain-list" data-role="runtime-list">
-              <li>{`모델 ${runtime.model ?? unknown}`}</li>
-              <li>{`준비 상태 ${runtime.ready === null ? unknown : runtime.ready ? '준비됨' : '준비되지 않음'}`}</li>
-              <li>{`앱 버전 ${runtime.appVersion ?? unknown}`}</li>
-              <li>{`검사기 ${runtime.checkers.length === 0 ? '없음' : runtime.checkers.join(', ')}`}</li>
-              <li>{`확장 ${runtime.extensions.length === 0 ? '없음' : runtime.extensions.join(', ')}`}</li>
-              <li>{`재현 실행 ${runtime.reproductionStatus === null ? unknown : REPRODUCTION_LABELS[runtime.reproductionStatus] ?? runtime.reproductionStatus}`}</li>
-              <li>{`본문 로깅 ${runtime.contentLogging === null ? unknown : runtime.contentLogging ? '켜짐' : '꺼짐'}`}</li>
-              <li>{`보존 정책 ${runtime.retention ?? unknown}`}</li>
-            </ul>
-          )}
-        <button
-          className="button button--small"
-          type="button"
-          disabled={history.runtimeBusy || csrfToken === null}
-          aria-busy={history.runtimeBusy ? 'true' : undefined}
-          onClick={() => { history.refreshRuntime(); }}
-        >
-          새로 고침
-        </button>
-      </div>
-    );
-  }
 
   // 측정값이 하나도 없는 열은 같은 글자로 채우지 않고 뺀다.
   const hasDuration = history.events.some(event => event.durationMs !== null);

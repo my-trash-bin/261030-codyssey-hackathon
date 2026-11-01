@@ -1,3 +1,4 @@
+import { createDemoApp } from './legacy-app.ts';
 import assert from 'node:assert/strict';
 import { mkdtemp, mkdir, writeFile } from 'node:fs/promises';
 import { createServer } from 'node:http';
@@ -7,7 +8,7 @@ import { join } from 'node:path';
 import test from 'node:test';
 import { FakeCore } from '@safehandoff/fake-core';
 import { SimulatedConnection } from './connection.ts';
-import { createApp, DocumentStore } from '@safehandoff/server';
+import { DocumentStore } from '@safehandoff/server';
 import { createDemoHandler } from './http.ts';
 import { createStaticAssets } from './assets.ts';
 
@@ -22,7 +23,7 @@ async function staticRoot(): Promise<string> {
 test('demo control changes fake copy and connection failures without modifying the server shell', async () => {
   const store = new DocumentStore(':memory:'), core = new FakeCore(), connector = new SimulatedConnection(core);
   const assets = createStaticAssets(await staticRoot());
-  const server = createServer(createDemoHandler(createApp(store, connector), core, connector, assets));
+  const server = createServer(createDemoHandler(createDemoApp(store, connector), core, connector, assets));
   await new Promise<void>(resolve => server.listen(0, '127.0.0.1', resolve));
   const base = `http://127.0.0.1:${(server.address() as AddressInfo).port}`;
   const input = { purpose: 'support', recipient: 'vendor', facts: [{ id: 'a', text: 'approved' }] };

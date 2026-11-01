@@ -200,7 +200,7 @@ export type OutputLanguage = 'ko' | 'en';
 /** 서버 intakeContext가 허용하는 필드만 담는다. 양식(template)은 intake 필드가 아니다. */
 export interface TaskIntake {
   internal_title: string;
-  project_id: string;
+  project_id?: string;
   purpose_id: string;
   recipient_id: string;
   audience: Audience;
@@ -216,15 +216,6 @@ export function createTask(
   intake: TaskIntake,
 ): Promise<TaskResult> {
   return sendTask(fetchFn, 'POST', '/api/v1/tasks', csrfToken, { intake });
-}
-
-/** 카탈로그를 쓸 수 없을 때의 기존 목적·수신처 방식. 서버는 이 작업에 intake·규칙 범위를 저장하지 않는다. */
-export function createContextTask(
-  fetchFn: FetchFn,
-  csrfToken: string,
-  context: { purpose: string; recipient: string },
-): Promise<TaskResult> {
-  return sendTask(fetchFn, 'POST', '/api/v1/tasks', csrfToken, { context });
 }
 
 /** 작업 상세를 읽어 phase·진행 job·취소 요청 여부를 화면 판본과 맞춘다. */

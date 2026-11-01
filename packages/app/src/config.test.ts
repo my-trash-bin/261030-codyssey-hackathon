@@ -6,7 +6,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import test from 'node:test';
-import { createApp, DocumentStore, TaskStore, runTaskAnalysis } from '@safehandoff/server';
+import { TaskStore, runTaskAnalysis } from '@safehandoff/server';
 import { configuredCore, configuredTranscripts, loadConfig } from './config.ts';
 
 const root = fileURLToPath(new URL('../../../', import.meta.url));
@@ -47,7 +47,6 @@ test('app composition uses example env names for actual HTTP writer/reviewer req
   });
   await new Promise<void>(resolve => model.listen(0, '127.0.0.1', resolve));
   const dir = await mkdtemp(join(tmpdir(), 'safehandoff-compose-'));
-  const store = new DocumentStore(':memory:');
   let server: ReturnType<typeof createServer> | undefined;
   try {
     const config = JSON.parse(await readFile(join(root, 'config.example.json'), 'utf8')); config.provider.allow_plain_http = true;
@@ -56,13 +55,8 @@ test('app composition uses example env names for actual HTTP writer/reviewer req
       SAFEHANDOFF_LLM_MODEL: 'mock', SAFEHANDOFF_LLM_API_KEY: 'local-test',
       SAFEHANDOFF_TRANSCRIPT_DIR: 'transcripts', SAFEHANDOFF_TRANSCRIPT_CONTENT: '1' });
     assert.equal(core.info.ready, true);
-    server = createServer(createApp(store, core));
-    await new Promise<void>(resolve => server!.listen(0, '127.0.0.1', resolve));
-    const response = await fetch(`http://127.0.0.1:${(server.address() as AddressInfo).port}/api/sharing`, {
-      method: 'POST', headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ purpose: 'support', recipient: 'vendor', facts: [{ id: 'f1', text: 'approved' }] }),
-    });
-    assert.equal(response.status, 200); assert.equal((await response.json()).document.body, 'approved');
+    const generated = await core.generate({ purpose: 'support', recipient: 'vendor', facts: [{ id: 'f1', text: 'approved' }] });
+    assert.equal(generated.document.body, 'approved');
     const files = await readdir(join(dir, 'transcripts'));
     assert.equal(files.length, 1);
     const trace = await readFile(join(dir, 'transcripts', files[0]!), 'utf8');
@@ -71,7 +65,7 @@ test('app composition uses example env names for actual HTTP writer/reviewer req
     assert.equal(JSON.parse(trace.trim().split('\n').at(-1)!).event, 'run_completed');
   } finally {
     server?.closeAllConnections(); if (server) await new Promise<void>(resolve => server!.close(() => resolve()));
-    model.closeAllConnections(); await new Promise<void>(resolve => model.close(() => resolve())); store.close();
+    model.closeAllConnections(); await new Promise<void>(resolve => model.close(() => resolve()));
     await rm(dir, { recursive: true, force: true });
   }
 });

@@ -8,7 +8,8 @@ import { excerpt } from './source-views.ts';
 import { createWorkflowHandler } from './workflow-http.ts';
 import { TaskStore } from './task-store.ts';
 const sha = (s: string) => createHash('sha256').update(s).digest('hex');
-const context = { purpose: '가상 테스트', recipient: '가상 수신자' };
+const context = { purpose: 'vendor_support', recipient: '가상 수신자' };
+const intake = { internal_title: '가상 작업', purpose_id: context.purpose, recipient_id: context.recipient, audience: 'named_external', skill_ids: [] };
 const source = { id: 'version', source_id: 'source', version: 1, display_name: 'fictional.txt', format: 'txt', source_slot: 'input',
   included: true, raw_bytes: Buffer.from('fictional').toString('base64'), sha256: sha('fictional') };
 const evidence = { id: 'ev', source_version_id: 'version', start: 0, end: 9, evidence_sha256: source.sha256, locator: { kind: 'byte_range' } };
@@ -39,13 +40,23 @@ async function fixture(t: { after(fn: () => Promise<void>): void }, engineOverri
   cookie = login.headers.get('set-cookie')!.split(';')[0]!; csrf = login.body.data.csrf_token;
   return { origin, store, call, calls: () => calls, setCookie: (v: string) => { cookie = v; } };
 }
+test('task intake needs no project or recipient registry and rejects removed creation modes', async t => {
+  const f = await fixture(t);
+  const created = await f.call('/tasks', 'POST', { intake });
+  assert.equal(created.status, 201);
+  const scope = f.store.workflow.rules.intake(created.body.data.id);
+  assert.equal(scope?.project_id, 'workspace');
+  assert.equal(scope?.recipient_id, intake.recipient_id);
+  assert.equal((await f.call('/tasks', 'POST', { context })).status, 404);
+  assert.equal((await f.call('/tasks', 'POST', { intake: { ...intake, goal_variant: 'reproduction_evidence' } })).status, 400);
+});
 test('authenticated HTTP task analysis adopts once, restores permanent mappings and requires exact revision', async t => {
   const f = await fixture(t);
   assert.equal((await f.call('/session')).status, 200);
-  const create = await f.call('/tasks', 'POST', { context }, { 'Idempotency-Key': 'create' });
+  const create = await f.call('/tasks', 'POST', { intake }, { 'Idempotency-Key': 'create' });
   const id = create.body.data.id;
-  assert.equal((await f.call('/tasks', 'POST', { context }, { 'Idempotency-Key': 'create' })).body.data.id, id);
-  assert.equal((await f.call('/tasks', 'POST', { context: { ...context, purpose: 'other' } }, { 'Idempotency-Key': 'create' })).status, 409);
+  assert.equal((await f.call('/tasks', 'POST', { intake }, { 'Idempotency-Key': 'create' })).body.data.id, id);
+  assert.equal((await f.call('/tasks', 'POST', { intake: { ...intake, internal_title: 'other' } }, { 'Idempotency-Key': 'create' })).status, 409);
   assert.equal((await f.call(`/tasks/${id}/sources`, 'PUT', { expected_revision: 1, sources: [source] })).status, 200);
   const job = await f.call(`/tasks/${id}/jobs`, 'POST', { expected_revision: 2, kind: 'analyze' }, { 'Idempotency-Key': 'analyze' });
   assert.equal(job.status, 202);
@@ -61,8 +72,8 @@ test('authenticated HTTP task analysis adopts once, restores permanent mappings 
 });
 test('session, csrf and Host/Origin reject unauthorized requests without mutation', async t => {
   const f = await fixture(t);
-  assert.equal((await f.call('/tasks', 'POST', { context }, { 'X-CSRF-Token': '' })).status, 403);
-  assert.equal((await f.call('/tasks', 'POST', { context }, { Origin: 'http://evil.invalid' })).status, 403);
+  assert.equal((await f.call('/tasks', 'POST', { intake }, { 'X-CSRF-Token': '' })).status, 403);
+  assert.equal((await f.call('/tasks', 'POST', { intake }, { Origin: 'http://evil.invalid' })).status, 403);
   const hostStatus = await new Promise<number>(resolve => {
     const req = httpRequest(f.origin + '/api/v1/session', { headers: { Host: 'evil.invalid' } }, res => { res.resume(); resolve(res.statusCode!); });
     req.end();
@@ -127,7 +138,7 @@ test('late model completion after HTTP cancellation never creates candidates or 
   let resolve!: (value: AnalyzeResult) => void, signal: AbortSignal | undefined;
   const waiting = new Promise<AnalyzeResult>(r => { resolve = r; });
   const f = await fixture(t, { analyze: async (_request, options) => { signal = options?.signal; return waiting; } });
-  const task = (await f.call('/tasks', 'POST', { context })).body.data;
+  const task = (await f.call('/tasks', 'POST', { intake })).body.data;
   const base = '/tasks/' + task.id;
   await f.call(base + '/sources', 'PUT', { expected_revision: 1, sources: [source] });
   const started = await f.call(base + '/jobs', 'POST', { expected_revision: 2, kind: 'analyze' });

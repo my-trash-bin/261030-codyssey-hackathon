@@ -1,7 +1,8 @@
+import { createDemoApp } from './legacy-app.ts';
 import { createServer } from 'node:http';
 import { fileURLToPath } from 'node:url';
 import { resolve } from 'node:path';
-import { createApp, DocumentStore } from '@safehandoff/server';
+import { DocumentStore } from '@safehandoff/server';
 import { FakeCore } from '@safehandoff/fake-core';
 import { SimulatedConnection } from './connection.ts';
 import { createDemoHandler } from './http.ts';
@@ -32,7 +33,7 @@ const development = import.meta.url.endsWith('.ts');
 const assets: DemoAssets = development
   ? await devAssets()
   : createStaticAssets(fileURLToPath(new URL('./static/', import.meta.url)));
-const server = createServer(createDemoHandler(createApp(store, connector), core, connector, assets));
+const server = createServer(createDemoHandler(createDemoApp(store, connector), core, connector, assets));
 server.listen(port, process.env.DEMO_HOST || '0.0.0.0', () => console.log(`demo controls: http://127.0.0.1:${port}/__demo`));
 function shutdown(): void { server.close(() => { store.close(); process.exit(0); }); }
 process.once('SIGTERM', shutdown);

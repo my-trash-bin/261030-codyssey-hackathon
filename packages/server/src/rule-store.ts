@@ -86,15 +86,7 @@ export class RuleStore {
       db.prepare('INSERT INTO workflow_rules VALUES(?,?,?,NULL)').run(rule.id, 1, JSON.stringify(rule)); return rule;
     });
   }
-  update(id: string, expected: number, representation: Representation, expires: string | null): StoredRule {
-    return this.c.hooks.transaction(() => {
-      const rule = this.list().find(r => r.id === id); if (!rule) deny(404, 'RULE_NOT_FOUND');
-      if (rule.version !== expected) deny(409, 'RULE_VERSION_CONFLICT');
-      if (rule.revoked || !this.supported(representation) || (expires !== null && (!Number.isFinite(Date.parse(expires)) || Date.parse(expires) <= Date.parse(this.c.hooks.now())))) deny(400, 'INVALID_RULE');
-      const value = { ...rule, version: expected + 1, representation, expires_at: expires };
-      this.c.db.prepare('INSERT INTO workflow_rules VALUES(?,?,?,NULL)').run(id, value.version, JSON.stringify(value)); return value;
-    });
-  }
+
   revoke(id: string, expected: number): { id: string; affected_tasks: string[] } {
     const { db, hooks, store } = this.c;
     return hooks.transaction(() => {

@@ -33,15 +33,6 @@ export type SessionResult = { ok: true; session: SessionInfo } | { ok: false; fa
 
 type FetchFn = (input: string, init?: RequestInit) => Promise<Response>;
 
-export type SessionLogoutResult = { ok: true } | { ok: false; failure: SessionFailure };
-
-/** 멱등 키. 브라우저에 없으면 시간·난수 조합으로 만든다. 저장하지 않는다. */
-function idempotencyKey(): string {
-  const random = globalThis.crypto?.randomUUID;
-  if (typeof random === 'function') return random.call(globalThis.crypto);
-  return `logout-${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
-}
-
 function parseEnvironment(value: unknown): SessionEnvironment | null {
   if (!isRecord(value)) return null;
   return {
@@ -136,40 +127,6 @@ export function openSession(fetchFn: FetchFn): Promise<SessionResult> {
 /** 이미 열린 세션(쿠키)을 조회한다. 토큰을 다시 보내지 않는다. */
 export function restoreSession(fetchFn: FetchFn): Promise<SessionResult> {
   return requestSession(fetchFn, 'restore');
-}
-
-/**
- * 열린 세션을 닫는다. 서버는 Origin·CSRF·멱등 키를 확인하고 쿠키를 지운다.
- * 쿠키를 지우지 못한 경우에도 화면은 사유를 보여 주고 세션 상태를 유지한다.
- */
-export async function logoutSession(fetchFn: FetchFn, csrfToken: string): Promise<SessionLogoutResult> {
-  let response: Response;
-  try {
-    response = await fetchFn('/api/v1/session', {
-      method: 'DELETE',
-      headers: {
-        Accept: 'application/json',
-        'X-CSRF-Token': csrfToken,
-        'Idempotency-Key': idempotencyKey(),
-      },
-      credentials: 'same-origin',
-    });
-  } catch {
-    return { ok: false, failure: { kind: 'network', status: 0, code: '' } };
-  }
-  if (!response.ok) {
-    return { ok: false, failure: { kind: failureKind(response.status, 'restore'), status: response.status, code: await readErrorCode(response) } };
-  }
-  let body: unknown;
-  try {
-    body = await response.json();
-  } catch {
-    return { ok: false, failure: { kind: 'malformed', status: response.status, code: '' } };
-  }
-  if (!isRecord(body) || !isRecord(body.data) || body.data.logged_out !== true) {
-    return { ok: false, failure: { kind: 'malformed', status: response.status, code: '' } };
-  }
-  return { ok: true };
 }
 
 /** 화면에 표시할 사유. 토큰 값이나 서버 내부 정보를 담지 않는다. */

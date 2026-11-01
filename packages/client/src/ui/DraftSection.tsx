@@ -419,43 +419,7 @@ export function DraftSection(props: {
             </p>
           </div>
 
-          <details className="fold" id="draft-docast-editor">
-            <summary>문서 구조 직접 편집</summary>
-            <div className="fold__body">
-              <p className="hint">
-                허용된 블록의 글, 항목, 사실 참조만 고칠 수 있습니다. 저장하면 새 판본이 만들어지고 자동 검토를 다시 거칩니다. 공개 결정은 바뀌지 않습니다.
-              </p>
-              <div className="field">
-                <label htmlFor="draft-docast">문서 구조(JSON)</label>
-                <textarea
-                  id="draft-docast"
-                  value={workflow.draftText}
-                  onChange={(event) => { workflow.setDraftText(event.target.value); }}
-                  rows={18}
-                  spellCheck={false}
-                  aria-invalid={workflow.draftError !== ''}
-                  aria-describedby="draft-docast-error"
-                />
-              </div>
-              <p className="hint" id="draft-docast-error" aria-live="polite">
-                {workflow.draftError === ''
-                  ? (workflow.draftDirty ? '저장하지 않은 편집이 있습니다.' : '')
-                  : workflow.draftError}
-              </p>
-              <div className="action">
-                <button
-                  className="button"
-                  type="button"
-                  onClick={workflow.saveEdit}
-                  disabled={workflow.editBlockReason !== ''}
-                  aria-describedby="draft-edit-reason"
-                >
-                  편집 저장 후 다시 검토
-                </button>
-                <p className="hint" id="draft-edit-reason">{workflow.editBlockReason}</p>
-              </div>
-            </div>
-          </details>
+
           </>
         )}
 

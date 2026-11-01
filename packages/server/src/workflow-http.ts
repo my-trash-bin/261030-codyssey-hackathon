@@ -64,9 +64,6 @@ export function createWorkflowHandler(store: TaskStore, engine: Engine, access: 
           object(await body(request), []); send(response, 200, { data: sessionData(sessions.open(request, response)) }); return;
         }
         if (request.method === 'GET') { send(response, 200, { data: sessionData(sessions.require(request, false)) }); return; }
-        if (request.method === 'DELETE') {
-          string(request.headers['idempotency-key']); sessions.logout(request, response); send(response, 200, { data: { logged_out: true } }); return;
-        }
         deny(405, 'METHOD_NOT_ALLOWED');
       }
       sessions.require(request, write);
@@ -94,12 +91,6 @@ export function createWorkflowHandler(store: TaskStore, engine: Engine, access: 
       const key = string(request.headers['idempotency-key']);
       if (key.length > 200) deny(400, 'INVALID_IDEMPOTENCY_KEY');
       const input = await body(request);
-      if (request.method === 'POST' && parts.join('/') === 'tasks') {
-        const v = object(input, ['context']);
-        object(v.context, ['purpose', 'recipient'], ['goal_variant', 'output_language']);
-        const result = store.request('create-task', key, input, () => store.create(v.context as unknown as TaskContext, hash('[]'), hash('[]')));
-        send(response, 201, { data: result.result }); return;
-      }
       if (parts[0] !== 'tasks' || parts.length < 2) deny(404, 'ENDPOINT_NOT_FOUND');
       const id = parts[1]!, action = parts.slice(2).join('/');
       // Only known endpoints can consume a mutation key.
