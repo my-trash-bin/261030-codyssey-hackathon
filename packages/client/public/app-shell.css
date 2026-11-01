@@ -420,6 +420,26 @@ h3 {
   border-top-color: var(--color-border-accent);
 }
 
+/* 분석 모델 연결 상태 */
+
+.model-status {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.model-status__facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3) var(--space-7);
+  margin: 0;
+}
+
+.model-status__facts dd {
+  margin: 0;
+  font-weight: var(--font-weight-medium);
+  overflow-wrap: anywhere;
+}
+
 /* 원문과 공개 내용 대조 */
 
 .compare,
@@ -483,6 +503,13 @@ h3 {
 
 .compare__state {
   font-weight: var(--font-weight-medium);
+}
+
+.compare__draft {
+  display: grid;
+  gap: var(--space-2);
+  padding-block-start: var(--space-3);
+  border-top: var(--border-width) solid var(--color-border-subtle);
 }
 
 .compare__span {
