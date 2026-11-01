@@ -15,10 +15,10 @@ build:
 
 # 두 터미널에서 각각 실행
 app:
-    mise exec -- pnpm dev:app
+    mise exec -- node scripts/bootstrap/app.mjs
 
 client:
-    mise exec -- pnpm dev:client
+    mise exec -- node scripts/bootstrap/app.mjs --client
 
 # 연출 전용 가짜 앱. 실제 앱과 DB·포트를 공유하지 않음
 fake-app:
@@ -46,14 +46,14 @@ prepare-demo-video:
 preview-demo-video: prepare-demo-video
     mise exec -- python -m http.server 8092 --bind 127.0.0.1 --directory .local/demo-video
 
-# fake-app 전용 화면 시연. 추가 인수 예: just demo --headless
-demo *args: build
-    mise exec -- pnpm demo:cdp {{args}}
+# 의존성·브라우저 준비 후 fake-app 화면 시연
+demo *args:
+    mise exec -- node scripts/demo/bootstrap.mjs {{args}}
 
 # 모델 호출 없는 브라우저 장면·재생 제어 검증
-demo-check: build
-    mise exec -- pnpm demo:cdp --headless --fast --verify-playback
+demo-check *args:
+    mise exec -- node scripts/demo/bootstrap.mjs --headless --fast --verify-playback {{args}}
 
 # macOS Swift·AVFoundation 필요. 정상 속도 녹화 및 시간 제한 검증
-demo-record: build
-    mise exec -- pnpm demo:cdp --headless --record
+demo-record *args:
+    mise exec -- node scripts/demo/bootstrap.mjs --headless --record {{args}}

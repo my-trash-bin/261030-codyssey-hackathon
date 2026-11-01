@@ -10,7 +10,7 @@ SafeHandoff는 심사위원과 사용자가 **실제 동작하는 코드**와 **
 | --- | --- | --- | --- |
 | 1. 실제 앱 (`@safehandoff/app`) | `just app` (또는 `pnpm --filter @safehandoff/app start`) | `127.0.0.1:8080` | `RealCore` + OpenAI 호환 모델 어댑터(`HttpModelClient`) + SQLite(`node:sqlite`) 실행. `/api/core/status`, `/api/core/generate`, `/api/documents` 제공 |
 | 2. 연출용 앱 (`@safehandoff/fake-app`) | `just fake-app` | `127.0.0.1:8081` | 외부 LLM 없이 고정 시나리오 응답(`FakeCore`)과 상태 제어(`POST /__demo`)를 제공. 실제 모델 추론 완료로 집계하지 않음 |
-| 3. 웹 클라이언트 (`@safehandoff/client`) | `just client` / `just client-fake` | `127.0.0.1:5173` / `:5174` | React 19 + Vite UI. 상단 배지로 코어 준비 상태(`ready`)와 연결 모드를 실시간 표시 |
+| 3. 웹 클라이언트 (`@safehandoff/client`) | `just client` / `just fake-client` | `127.0.0.1:5173` / `:5174` | React 19 + Vite UI. 상단 배지로 코어 준비 상태(`ready`)와 연결 모드를 실시간 표시 |
 | 4. OSS 재현/작성/검토 종단간 스모크 | `node tools/oss-repro-smoke.mjs ...` | CLI | `make_synthetic_inputs_v1` -> `DockerReproRunner`(`--network=none`, 4회 실행) -> `composeFactPack` + `groundFacts` -> `RealCore.writeReviewed()` 실행 |
 
 ---
@@ -45,10 +45,18 @@ just client
 just fake-app
 
 # 터미널 2 - 연출용 서버에 연결된 웹 클라이언트 (:5174 -> :8081 프록시)
-just client-fake
+just fake-client
 ```
 
 ### 2.3 ToyRecord 스킬 팩 등록 및 Docker 재현 종단간 시연
+
+`just demo`는 의존성 설치·빌드·브라우저 준비 후 기존 fake-app 화면만 실행한다.
+실제 앱은 기존 `just app`이 설치·빌드·모델 연결 정보 입력을 자동 처리한다.
+재현 enabled이고 등록 경로가 없으면 이미지·합성 입력 등록을 준비해 실제 앱에 주입한다.
+`just client`도 설치·빌드 후 실제 앱용 클라이언트를 실행한다. 기존 설정은 변경하지 않는다.
+상세 조건은 [README](../../README.md) 3.2 및 3.4를 따른다.
+
+아래 OSS CLI는 이미지 및 installation을 이미 준비한 경우의 수동 개발 검증 단계다.
 
 ```sh
 # 1. 로컬 카탈로그에 toyrecord-repro 1.0.0 팩 지문 검증/등록

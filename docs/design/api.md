@@ -65,6 +65,8 @@ HTTP API 계약은 그대로입니다. 연출의 분석과 공개 선택은 브�
 
 1. **모델 연결 환경 변수**:
    - `SAFEHANDOFF_LLM_BASE_URL`, `SAFEHANDOFF_LLM_MODEL`, `SAFEHANDOFF_LLM_API_KEY`를 설정 파일(`SAFEHANDOFF_CONFIG`, 기본 `config.json` / `config.example.json`)에 지정된 환경 변수 이름으로 읽는다.
+   - 기존 `just app`은 설치·빌드 후 없는 연결 정보를 프롬프트로 받아 실제 앱에 전달한다. 키는 숨김 입력하며 파일에 저장하지 않는다.
+   - reproduction.enabled가 true이고 `SAFEHANDOFF_REPRO_REGISTRY`가 없으면 실행기 이미지·합성 입력 등록을 준비해 해당 환경 변수로 앱에 주입한다. 기존 등록과 disabled 설정은 유지한다. HTTP/UI 재현 실행은 아직 미구현이다.
    - 분석/작성/검토는 tool calling이 필요한 `submit` 결과 도구를 사용하며 `response_format`을 전송하지 않는다.
    - `provider.response_mode`는 도구 없는 공개 조건 해석/provider 확인 호출에만 적용한다. text는 프롬프트와 엄격한 응답 검증을 사용하고, json일 때만 JSON 응답 형식 필드를 전송한다.
 2. **로컬 실행 Transcript (`transcript.v1`)**:

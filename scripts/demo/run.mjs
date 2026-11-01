@@ -67,6 +67,7 @@ try {
   '--disable-backgrounding-occluded-windows',
   '--window-size=1440,1000', '--start-maximized',
   ...(headless ? ['--headless=new'] : []), 'about:blank',
+  ...(process.argv.includes('--no-sandbox') ? ['--no-sandbox'] : []),
  ]);
  const { targetId } = await cdp.send('Target.createTarget', { url: 'about:blank' });
  const attached = await cdp.send('Target.attachToTarget', { targetId, flatten: true });

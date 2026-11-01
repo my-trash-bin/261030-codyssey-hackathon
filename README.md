@@ -56,7 +56,21 @@ python tools/validate_docs.py
 
 ### 3.2 서버/클라이언트 실행
 
-`.env.example`을 참고해 `.env`에 OpenAI 호환 LLM 연결 정보(`SAFEHANDOFF_LLM_BASE_URL`, `SAFEHANDOFF_LLM_MODEL`, `SAFEHANDOFF_LLM_API_KEY`)를 설정합니다.
+`mise install` 후 기존 `just app`과 `just client`를 실행합니다. 두 명령 모두
+`pnpm install --frozen-lockfile`과 빌드를 자동 수행합니다.
+`just app`은 `.env`와 환경 변수(환경 변수 우선), 선택한 config의 provider 변수명을 사용합니다.
+없는 모델 URL·모델명·API 키는 프롬프트로 받으며 키는 숨김 입력입니다. 인증이 없으면 Enter로 생략합니다.
+입력은 이번 실제 앱 프로세스에 전달하고 파일에 저장하지 않습니다. 비대화형 실행은 연결 정보를 미리 설정합니다.
+
+config의 `reproduction.enabled=true`이고 `SAFEHANDOFF_REPRO_REGISTRY`가 없으면,
+Go 실행기·Docker 이미지를 빌드하고 실제 digest 및 새 합성 입력을 등록한 파일을
+`.local/app-runtime-*/repro-registration.json`에 생성하여 실제 앱에 자동 주입합니다.
+등록 경로를 이미 지정했으면 해당 파일을 사용하고, reproduction이 disabled이면 준비를 생략합니다.
+새 clone의 `config.example.json`은 reproduction이 disabled이므로 Docker가 필요 없습니다.
+재현을 켜려면 별도 config에서 enabled를 true로 설정합니다.
+Go는 mise에 포함되며 재현 활성화 시 Linux `/usr/bin/docker`, 실행 중인 로컬 데몬과 소켓 권한이 필요합니다.
+기존 `.env`·config·등록 파일은 수정하지 않습니다. 상세는 [실행기 설치 안내](packages/sandbox-runner/image/README.md)를 참고합니다.
+runner 주입을 준비하며 HTTP/UI 재현 실행은 아직 미구현입니다.
 
 ```sh
 # 실제 앱 (:8080) + 웹 클라이언트 (:5173)
@@ -76,6 +90,24 @@ SAFEHANDOFF_WORKFLOW_TOKEN(32자 이상)을 설정하면 실제 앱에서 세션
 상세 DTO는 [docs/design/api.md](docs/design/api.md) 5, 남은 UI 연결은 [docs/ops/ui-api-requests.md](docs/ops/ui-api-requests.md)를 따릅니다.
 
 ### 3.4 CDP 시연 및 OSS Docker 재현 스모크
+
+새 clone에서 `mise install` 후 `just demo`를 실행하면
+`pnpm install --frozen-lockfile`, 빌드, Chromium 설치, 기존 fake-app 화면 시연을 자동 수행합니다.
+API 키나 Docker는 필요 없습니다. `just demo-check`와 `just demo-record`도 같은 준비를 수행합니다.
+
+```sh
+mise install
+just demo
+just demo --headless --fast
+```
+
+Linux 브라우저 시스템 라이브러리 설치에는 sudo 권한이 필요할 수 있습니다.
+설치한 브라우저는 `CHROME_PATH`로 지정할 수 있습니다. 녹화는 macOS Swift/AVFoundation이 필요합니다.
+브라우저가 `No usable sandbox!`로 종료하는 환경에서는 호스트의 sandbox 설정을 확인합니다.
+격리된 로컬 fixture 화면에 한해 sandbox 없이 실행하는 선택 옵션은 `just demo --no-sandbox`입니다.
+
+실제 모델 연결 및 Docker runner 준비는 기존 `just app`에서 처리합니다(3.2 참고).
+아래 OSS CLI는 별도 개발 검증 도구이며 이미지와 installation을 준비한 경우의 수동 명령입니다.
 
 ```sh
 # 최신 fake-app 기반 CDP 6단계 연출 시연 및 탐색/녹화 검증
