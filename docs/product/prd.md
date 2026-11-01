@@ -38,7 +38,7 @@ SafeHandoff는 세 가지 원칙으로 이 문제를 푼다.
 | 기호 | 의미 | 변경 규칙 |
 | --- | --- | --- |
 | `U` | 사용자 확정 방향 ([intent.md](../../intent.md) `INT-01-INT-12`에 직접 근거) | 사용자 승인 없이 변경 불가 (`U01-U12`) |
-| `D` | 구현 가능성을 위해 팀이 고정한 기본 설계 (`D01-D24`) | 더 나은 대안이 있으면 근거와 함께 [decisions.md](decisions.md), [spec.md](../design/spec.md), [ERD.md](../design/erd.md), [api.md](../design/api.md)를 동시에 갱신 |
+| `D` | 구현 가능성을 위해 팀이 고정한 기본 설계 (`D01-D23`) | 더 나은 대안이 있으면 근거와 함께 [decisions.md](decisions.md), [spec.md](../design/spec.md), [ERD.md](../design/erd.md), [api.md](../design/api.md)를 동시에 갱신 |
 | `Q` | 실제 기업 도입/운영 시 확인이 필요한 질문 (`Q-LLM`, `Q-POLICY`, `Q-EXT`, `Q-DEPLOY`, `Q-LICENSE`) | 미확인 상태에서도 가상 자료와 고정 인터페이스로 구현/검증 가능하도록 격리 |
 
 ### 사용자 확정 항목 (`U01-U12`)
@@ -147,7 +147,7 @@ SafeHandoff는 세 가지 원칙으로 이 문제를 푼다.
 | [intent.md](../../intent.md) | 사용자 확정 의도 원문 (`INT-01-INT-12`, 수정 금지) |
 | [docs/product/prd.md](prd.md) | 제품 요구사항 정본 (`PRD-01-PRD-14`, 현행 TypeScript 범위 요약) |
 | [docs/product/plan.md](plan.md) | 해커톤 2일 수직 슬라이스(`H1-H4`), 제품 단계(`M0-M5`), 5인 팀 역할 분담과 커밋 구조 |
-| [docs/product/decisions.md](decisions.md) | 아키텍처/도메인 결정 기록 (`D01-D24`, Go 초기 시제품 -> TypeScript 전환 경위 포함) |
+| [docs/product/decisions.md](decisions.md) | 아키텍처/도메인 결정 기록 (`D01-D23`, Go 초기 시제품 -> TypeScript 전환 경위 포함) |
 | [docs/design/spec.md](../design/spec.md) / [docs/design/security.md](../design/security.md) | 상태 전이/불변조건(`INV-01-16`)/보안 경계 명세 |
 | [docs/design/architecture.md](../design/architecture.md) / [docs/design/erd.md](../design/erd.md) / [docs/design/api.md](../design/api.md) | 9개 TypeScript 패키지 구조, 현행 SQLite 테이블 + 전체 목표 ERD, HTTP/Core API 계약 |
 | [docs/design/agent-workflow.md](../design/agent-workflow.md) / [docs/design/extensions.md](../design/extensions.md) | 에이전트 역할별 입출력/grounding/transcript 계약 및 `SkillPack`/내장 도구/Docker 재현 명세 |

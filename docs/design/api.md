@@ -16,14 +16,11 @@
 | `POST` | `/api/sharing` (및 `/api/core/generate`) | 구현 완료 | 호출자가 승인한 `facts` 배열로 주입된 `Core.generate()` 호출 (본문 상한 1 MiB) |
 | `POST` | `/api/analysis` | 구현 완료 | 주입된 `Engine.analyze()`로 원자료를 결정적으로 파싱하고 근거(`evidence`)와 후보 제안(`proposals`)을 반환 (본문 상한 1.5 MiB, stateless) |
 | `GET`/`PUT` | `/__demo`, `/api/demo/settings` | `fake-app` 전용 | 시연용 지연(`delayMs`)/실패 횟수(`failuresRemaining`)/고정 스크립트 제어 (실제 `app`에서는 `404`) |
-| `GET` | `/__presentation`, `/assets/*.js`, `/presentation.css` | `fake-app` 전용 | CDP 6단계 자막/장면 타임라인/재생 제어 연출 화면 (실제 `app`에는 미포함) |
+| `GET` | `/__presentation` | 제거됨 (`404`) | 별도 시연 UI clone을 제공하지 않음. CDP 시연은 `@safehandoff/client`의 `/`를 사용 |
 
-연출 화면의 스크립트와 스타일은 `vite build` 결과인 `packages/fake-app/dist/static`에서 서빙합니다.
-화면 경로 `/__presentation`과 `/__demo`는 각각 `presentation.html`과 `index.html`로 넘기고, 번들은
-해시가 붙은 `/assets/*.js`, 스타일은 `/presentation.css`입니다. 예전 고정 스크립트
-`/__presentation.js`는 더 이상 제공하지 않으며(404), 서버가 정적 자산을 내보내는 경로만 바뀌었고
-HTTP API 계약은 그대로입니다. 연출의 분석과 공개 선택은 브라우저 상태이고 실제 승인 API를 구현한
-것으로 표시하지 않습니다.
+fake-app 자체 정적 자산은 `/__demo` 설정 화면만 제공합니다. `just demo`는 임시 API 포트와 실제 client
+포트를 각각 열지만, fake-app에는 `/api/v1` workflow가 아직 없습니다. 따라서 client가 표시하는 연결
+불가 상태가 현재 구현 범위이며, 고정 응답으로 작업 생성·분석·결정·확정을 성공시켜 보이지 않습니다.
 
 ### 코어 생성 요청 형식 (`POST /api/sharing` / `/api/core/generate`)
 

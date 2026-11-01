@@ -3,7 +3,7 @@ import { stat } from 'node:fs/promises';
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import { extname, resolve, sep } from 'node:path';
 
-// 연출 화면의 정적 자산. 패키지 경계상 client 구현을 import할 수 없어 같은 규칙을 여기 둔다.
+// fake 설정 화면의 정적 자산. 제품 UI는 별도 @safehandoff/client 프로세스가 제공한다.
 export type DemoAssets = (request: IncomingMessage, response: ServerResponse, next: () => void) => void;
 
 const CONTENT_TYPES: Record<string, string> = {

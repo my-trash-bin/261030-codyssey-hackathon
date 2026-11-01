@@ -15,7 +15,7 @@
 | [docs/product/plan.md](docs/product/plan.md) | **해커톤 2일 수직 슬라이스(`H1-H4`)** vs 제품 마일스톤(`M0-M5`), **5인 실제 팀 역할 분담 및 커밋 구조** |
 | [docs/qa/acceptance-map.csv](docs/qa/acceptance-map.csv) / [docs/qa/traceability.csv](docs/qa/traceability.csv) | 127개 수용 기준(`AC-F01-01-AC-F10-12`) 및 60개 QA 시험(`T01-T60`)과 자동화 테스트 파일 매핑 |
 | [docs/design/architecture.md](docs/design/architecture.md) / [docs/design/api.md](docs/design/api.md) / [docs/design/erd.md](docs/design/erd.md) | TypeScript 9개 패키지 구조, HTTP/엔진 API 계약, SQLite 스키마 |
-| [docs/product/decisions.md](docs/product/decisions.md) / [docs/design/spec.md](docs/design/spec.md) / [docs/design/security.md](docs/design/security.md) | 설계 결정(`D01-D24`, Go -> TypeScript 전환 경위 포함), 상태/불변조건(`INV-01-16`), 실행 보안 경계 |
+| [docs/product/decisions.md](docs/product/decisions.md) / [docs/design/spec.md](docs/design/spec.md) / [docs/design/security.md](docs/design/security.md) | 설계 결정(`D01-D23`, Go -> TypeScript 전환 경위 포함), 상태/불변조건(`INV-01-16`), 실행 보안 경계 |
 | [docs/design/agent-workflow.md](docs/design/agent-workflow.md) / [docs/design/extensions.md](docs/design/extensions.md) | 역할별 JSON 계약/`groundFacts`/`transcript.v1` 및 `SkillPack`/내장 변환/Docker 재현 계약 |
 | [docs/design-tokens.md](docs/design-tokens.md) | 디자인 토큰 3단계(프리미티브/시멘틱/컴포넌트), 눈금, KRDS 참고 출처, `/#design-system` 화면 |
 | [docs/design/ia.md](docs/design/ia.md) / [docs/ops/uj.md](docs/ops/uj.md) / [docs/ops/demo.md](docs/ops/demo.md) | 화면 구조(`UI-01-10`), 사용자 여정(`UJ-01-07`), 로컬/Docker 시연 절차 |
@@ -38,7 +38,7 @@ Node 24(`node:sqlite`, `node --test`) + TypeScript 5.8 + React 19 기반 `pnpm` 
 | `@safehandoff/skill-loader` | 도메인 지침 팩(`SkillPack`) 로더 | `FsSkillPackLoader` (`O_NOFOLLOW` 심볼릭링크 차단, `manifest.json` 및 파일 전체 SHA-256 지문 검증) |
 | `@safehandoff/server` | HTTP 서버 및 SQLite 저장소 | `createServer` (`/api/documents`, `/api/sharing`, `/api/analysis`), `TaskStore` (`workflow_*` 11개 테이블/migration v2/`TaskStore.analysis` CAS) |
 | `@safehandoff/app` | 실제 실행 서버 (`:8080`) | `RealCore` + `OpenAICompatibleModelClient` + `DockerReproRunner` + SQLite 연결 |
-| `@safehandoff/fake-app` | 시연/연출용 서버 (`:8081`) | `FakeCore` + 시연 상태 제어 (`/__demo`, `/api/demo/settings`) 및 CDP 연출 화면 (`/__presentation`) |
+| `@safehandoff/fake-app` | 시연용 API 서버 (`:8081`) | `FakeCore` + 시연 상태 제어 (`/__demo`, `/api/demo/settings`). `/api/v1` workflow는 아직 제공하지 않음 |
 | `@safehandoff/client` | 웹 클라이언트 (`:5173` / `:5174`, React 19 + Vite) | 업무용 콘솔 형태의 6단계 작업 화면. 세션, 카탈로그 기반 작업 등록, 원자료, 분석, 공개 결정, 초안/검토/확정, 규칙, 이력, 문서 보관소를 인증된 `/api/v1` 경로로 호출. 상태는 순수 reducer(`disclosure-state.ts`)와 훅(`ui/hooks/`)이 소유 |
 
 ---
@@ -107,8 +107,10 @@ just fake-client
 ### 3.4 CDP 시연 및 OSS Docker 재현 스모크
 
 새 clone에서 `mise install` 후 `just demo`를 실행하면
-`pnpm install --frozen-lockfile`, 빌드, Chromium 설치, 기존 fake-app 화면 시연을 자동 수행합니다.
-API 키나 Docker는 필요 없습니다. `just demo-check`와 `just demo-record`도 같은 준비를 수행합니다.
+`pnpm install --frozen-lockfile`, 빌드, Chromium 설치 후 실제 `@safehandoff/client` 화면을
+별도 포트의 `fake-app`에 연결해 엽니다. 별도 시연 UI clone은 사용하지 않으며, fake-app에 아직
+`/api/v1` workflow가 없어서 실제 UI가 연결 불가를 표시하는 현재 미완성 상태까지가 실행 범위입니다.
+API 키나 Docker는 필요 없습니다. `just demo-check`는 이 상태를 성공 흐름으로 꾸미지 않고 확인합니다.
 
 ```sh
 mise install
@@ -125,7 +127,7 @@ Linux 브라우저 시스템 라이브러리 설치에는 sudo 권한이 필요�
 아래 OSS CLI는 별도 개발 검증 도구이며 이미지와 installation을 준비한 경우의 수동 명령입니다.
 
 ```sh
-# 최신 fake-app 기반 CDP 6단계 연출 시연 및 탐색/녹화 검증
+# 실제 client + fake backend의 현재 연결 상태 확인
 mise exec -- just demo
 mise exec -- just demo-check
 mise exec -- just demo-record
@@ -144,7 +146,8 @@ node tools/oss-repro-smoke.mjs \
   --output .local/toyrecord-pack-smoke-42.json
 ```
 
-자세한 시연 시나리오/제출 영상(`docs/demo-media/SafeHandoff-demo.mp4`)/과거 영상 참고자료([docs/presentation/video/README.md](docs/presentation/video/README.md))는 [docs/ops/demo.md](docs/ops/demo.md)에서 확인할 수 있습니다.
+자세한 현재 상태와 과거 영상 출처 메타데이터는 [시연 안내](docs/ops/demo.md)와
+[과거 영상 안내](docs/presentation/video/README.md)에서 확인할 수 있습니다. 영상 파일 자체는 tracked 파일에서 제거했습니다.
 
 ### 3.5 모델 통신과 결과 인자 복구
 
@@ -166,7 +169,8 @@ provider 확인은 기존 텍스트 경로를 유지합니다.
 
 ### 3.6 작업 화면 구현 상태와 실행 방식
 
-작업 화면과 fake-app 연출 화면은 React + TypeScript 함수 컴포넌트입니다. 상태 소유자는 클래스나
+작업 화면과 fake-app 설정 화면은 React + TypeScript 함수 컴포넌트입니다. 시연의 제품 화면도
+`packages/client`의 같은 `App`을 사용합니다. 상태 소유자는 클래스나
 구독 어댑터 객체가 아니라 `packages/client/src`의 순수 reducer와, 그 reducer를 `useReducer`로 붙인
 훅입니다. `disclosuresReducer`(`disclosure-state.ts`)와 작업 흐름 훅(`ui/hooks/useTaskFlow.ts`,
 공유 타입과 상수는 `task-flow-model.ts`)이 화면 상태의 단일 원천이고, 파생 값과 명령 계획은
@@ -201,7 +205,7 @@ provider 확인은 기존 텍스트 경로를 유지합니다.
   적용을 분리합니다. 배치가 409를 받으면 reducer가 재조회 요청을 만들고 훅의 효과가 그것을 한 번만
   소비합니다.
 - 토큰이 없으면 쓰기는 사유만 표시하고 전송하지 않습니다(`disclosure-selectors.ts`의
-  `writeBlockReason`). fake-app은 이 task API를 제공하지 않으며 별도 연출 화면을 사용합니다.
+  `writeBlockReason`). fake-app은 이 task API를 아직 제공하지 않으며 실제 client는 연결 불가를 표시합니다.
 - 기존 `GET /api/core`, `GET/POST /api/documents`, `POST /api/analysis`도 유지합니다. 내부 파일
   분석은 목적/수신처/파일 확인과 승인된 사내/로컬 분석 환경 동의 뒤에만 호출하고, 파일 선택만으로
   전송하지 않으며 입력이 바뀌면 동의를 해제합니다. `crypto.subtle`을 쓸 수 없는 보안 문맥에서는

@@ -37,7 +37,7 @@ QA 시험(`T01-T60`, [qa.md](../qa/qa.md))은 `passed` 13 / `partial` 33 / `not_
   모델 호출이 즉시 가능한 상태다. `fake-app`(연출용 가짜 코어, `:8081`)과는 패키지 수준에서 분리되어 있다.
   단, `config.json`의 `reproduction.enabled: true`에 대응하는 `SAFEHANDOFF_REPRO_REGISTRY`가 `.env`에 없어 Docker 합성
   재현 기능만 호출 시 `CORE_NOT_IMPLEMENTED`로 막힌다 - 재현 데모가 필요하면 그 값을 채워야 한다.
-- 제출 영상(`docs/demo-media/SafeHandoff-demo.mp4`, 약 40MB)과 통합 발표자료(`docs/presentation/SafeHandoff_발표자료_통합.pdf`)
+- 통합 발표자료(`docs/presentation/SafeHandoff_발표자료_통합.pdf`). 과거 제출 영상은 현재 실제 UI와 다른 전용 clone을 사용해 tracked 파일에서 제거함
   모두 저장소에 존재하고 README에서 바로 링크된다.
 - `pnpm test`/`just check`/`validate_docs.py` 세 검사가 모두 녹색이라 "코드와 문서가 서로 거짓말하지 않는" 상태로 제출 가능하다.
 

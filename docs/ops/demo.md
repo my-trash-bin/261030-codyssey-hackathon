@@ -6,10 +6,16 @@
 
 SafeHandoff는 심사위원과 사용자가 **실제 동작하는 코드**와 **화면 연출/고정 응답 모드**를 혼동하지 않도록 실행 경로를 명확히 분리한다 (`INV-14`).
 
+모든 현재·향후 브라우저 연출과 녹화는 `packages/client`가 빌드한 실제 제품 UI를 대상으로 한다.
+발표 편의를 위한 별도 UI clone, 실제 UI에 없는 화면·성공 상태, 브라우저 안에서만 성립하는 가짜
+분석·승인 흐름을 새로 만들지 않는다. 실제 UI나 backend가 미완성이면 그 상태를 그대로 표시하고,
+완료된 기능처럼 보이게 우회하지 않는다. 자막·커서·재생 제어는 제품 DOM 위에 덧붙일 수 있지만
+제품 화면과 workflow 상태의 소유자가 되어서는 안 된다.
+
 | 실행 경로 | 실행 명령 | 포트 | 동작 내용과 표시 |
 | --- | --- | --- | --- |
 | 1. 실제 앱 (`@safehandoff/app`) | `just api` (또는 `pnpm --filter @safehandoff/app start`) | `127.0.0.1:8080` | `RealCore` + OpenAI 호환 모델 어댑터(`HttpModelClient`) + SQLite(`node:sqlite`) 실행. `/api/core/status`, `/api/core/generate`, `/api/documents` 제공 |
-| 2. 연출용 앱 (`@safehandoff/fake-app`) | `just fake-app` | `127.0.0.1:8081` | 외부 LLM 없이 고정 시나리오 응답(`FakeCore`)과 상태 제어(`POST /__demo`)를 제공. 실제 모델 추론 완료로 집계하지 않음 |
+| 2. 연출용 API (`@safehandoff/fake-app`) | `just fake-app` | `127.0.0.1:8081` | 외부 LLM 없이 고정 `Core.generate` 응답과 상태 제어(`/__demo`)를 제공. `/api/v1` workflow는 아직 없음 |
 | 3. 웹 클라이언트 (`@safehandoff/client`) | `just web` / `just fake-client` | `127.0.0.1:5173` / `:5174` | React 19 + Vite UI. 상단 배지로 코어 준비 상태(`ready`)와 연결 모드를 실시간 표시 |
 | 4. OSS 재현/작성/검토 종단간 스모크 | `node tools/oss-repro-smoke.mjs ...` | CLI | `make_synthetic_inputs_v1` -> `DockerReproRunner`(`--network=none`, 4회 실행) -> `composeFactPack` + `groundFacts` -> `RealCore.writeReviewed()` 실행 |
 
@@ -51,7 +57,8 @@ just fake-client
 
 ### 2.3 ToyRecord 스킬 팩 등록 및 Docker 재현 종단간 시연
 
-`just demo`는 의존성 설치·빌드·브라우저 준비 후 기존 fake-app 화면만 실행한다.
+`just demo`는 의존성 설치·빌드·브라우저 준비 후 실제 `@safehandoff/client`를 fake-app API에 연결해 실행한다.
+제품 화면의 별도 clone은 두지 않는다. fake-app workflow 미구현으로 연결 불가가 표시되는 것이 현재 정상 상태다.
 실제 앱은 기존 `just app`이 설치·빌드·모델 연결 정보 입력을 자동 처리한다.
 `.env`가 없으면 `.env.example`을 복사하고 입력한 모델 설정을 `.env`에 저장해 다음 실행에 재사용한다.
 재현 enabled이고 등록 경로가 없으면 이미지·합성 입력 등록을 준비해 실제 앱에 주입한다.
@@ -111,11 +118,11 @@ SAFEHANDOFF_TRANSCRIPT_DIR=.local/transcripts SAFEHANDOFF_TRANSCRIPT_CONTENT=1 \
 
 ---
 
-## 4. 최신 fake-app 기반 CDP 연출 및 제출 영상 검증
+## 4. 실제 client + fake backend 현재 상태 확인
 
 - **실행 명령**: `mise exec -- just demo` (탐색/재생 검증: `just demo-check`, macOS MP4 녹화: `just demo-record`).
-- **동작 범위**: [진행 코드](../../scripts/demo/run.mjs)가 최신 `fake-app`을 별도 SQLite DB/루프백 포트로 실행하고 전용 [연출 화면](../../packages/fake-app/presentation.html)(`/__presentation`)을 연다. [자막](../../scripts/demo/stage.mjs)/[장면 정의](../../scripts/demo/scenes.mjs)/[재생 제어](../../scripts/demo/playback.mjs)가 6단계/21개 세부 장면과 일시정지/탐색을 제공한다. 분석/공개 선택은 브라우저 연출 상태이며 문서 생성/저장/조회는 공통 `/api/sharing`/`/api/documents` API를 호출한다.
-- **녹화 및 제출 시간 검증**: [녹화 코드](../../scripts/demo/recording.mjs)와 [macOS 인코더](../../scripts/demo/encode.swift)가 실제 CDP 프레임을 H.264 MP4로 인코딩한다. 최신 `fake-app` 제출 녹화([저장된 영상](../demo-media/SafeHandoff-demo.mp4), [미리보기](../demo-media/preview.png))의 실제 길이는 **99.988초**로 110초 제한을 통과했다. 당시 측정 로그는 저장소에 두지 않는다.
+- **동작 범위**: [진행 코드](../../scripts/demo/run.mjs)가 `fake-app` API와 실제 `@safehandoff/client`를 별도 루프백 포트로 실행하고 client의 `/`를 연다. [자막](../../scripts/demo/stage.mjs)/[장면 정의](../../scripts/demo/scenes.mjs)/[재생 제어](../../scripts/demo/playback.mjs)는 client 위에만 주입된다. 현재는 workflow 비활성 상태를 확인하며 작업 완료를 연출하지 않는다.
+- **영상**: 전용 UI clone으로 만든 기존 MP4·미리보기는 tracked 파일에서 제거했다. 현재 client 기반 흐름의 성공 영상은 아직 없다.
 
 ## 5. 시연 중 실패/질문 대응 기준
 

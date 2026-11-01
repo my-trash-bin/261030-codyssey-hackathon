@@ -27,7 +27,7 @@ let startedAt;
 const executable = browserExecutable();
 await mkdir(resolve(root, 'var'), { recursive: true });
 if (record) await buildEncoder(root);
-const port = await new Promise((resolvePort, reject) => {
+const freePort = () => new Promise((resolvePort, reject) => {
  const probe = createServer();
  probe.on('error', reject);
  probe.listen(0, '127.0.0.1', () => {
@@ -35,6 +35,9 @@ const port = await new Promise((resolvePort, reject) => {
   probe.close(() => resolvePort(selected));
  });
 });
+const port = await freePort();
+let clientPort = await freePort();
+while (clientPort === port) clientPort = await freePort();
 const runDir = await mkdtemp(resolve(root, 'var/cdp-demo-'));
 const profile = await mkdtemp(resolve(tmpdir(), 'safehandoff-chrome-'));
 const server = spawn(process.execPath, [resolve(root, 'packages/fake-app/dist/main.js')], {
@@ -42,13 +45,17 @@ const server = spawn(process.execPath, [resolve(root, 'packages/fake-app/dist/ma
  env: { ...process.env, DEMO_PORT: String(port), DEMO_HOST: '127.0.0.1',
   DEMO_DATABASE_PATH: resolve(runDir, 'demo.sqlite') },
 });
+const client = spawn(process.execPath, [resolve(root, 'packages/client/dist/serve.js')], {
+ cwd: root, stdio: ['ignore', 'pipe', 'pipe'],
+ env: { ...process.env, CLIENT_PORT: String(clientPort), HOST: '127.0.0.1', SERVER_ORIGIN: `http://127.0.0.1:${port}` },
+});
 let cdp;
 let stopped = false;
-const cleanup = () => { server.kill(); cdp?.child.kill(); recording?.encoder?.kill(); };
+const cleanup = () => { server.kill(); client.kill(); cdp?.child.kill(); recording?.encoder?.kill(); };
 process.on('SIGINT', () => { cleanup(); process.exit(130); });
 process.on('SIGTERM', () => { cleanup(); process.exit(143); });
 try {
- const base = await new Promise((resolveURL, reject) => {
+ await new Promise((resolveURL, reject) => {
   const timer = setTimeout(() => reject(Error('서버 시작 시간 초과')), 20000);
   let log = '';
   server.on('error', reject);
@@ -59,7 +66,20 @@ try {
    if (match) { clearTimeout(timer); resolveURL(match[0]); }
   };
   server.stdout.on('data', read);
-  server.stderr.on('data', read);
+ server.stderr.on('data', read);
+ });
+ const base = await new Promise((resolveURL, reject) => {
+  const timer = setTimeout(() => reject(Error('클라이언트 시작 시간 초과')), 20000);
+  let log = '';
+  client.on('error', reject);
+  client.on('exit', () => reject(Error('클라이언트가 종료되었습니다: ' + log)));
+  const read = (data) => {
+   log += data.toString();
+   const match = log.match(/client listening on port (\d+)/);
+   if (match) { clearTimeout(timer); resolveURL(`http://127.0.0.1:${match[1]}`); }
+  };
+  client.stdout.on('data', read);
+  client.stderr.on('data', read);
  });
  cdp = new CDP(executable, [
   `--user-data-dir=${profile}`, '--no-first-run', '--no-default-browser-check',
@@ -94,10 +114,6 @@ try {
   try { playback.command(JSON.parse(message.params.payload)); } catch { /* Ignore malformed UI messages. */ }
  };
  let replayTarget = null;
- const active = async () => {
-  if (replayTarget) { await playback.check(); return; }
-  await playback.ready();
- };
  async function wait(fn) {
   const deadline = Date.now() + 45000;
   while (!await evaluate(fn)) {
@@ -122,7 +138,7 @@ try {
   }
   await playback.publish(playback.state());
   const scene = playback.plan.find((entry) => entry.id === id);
-  if (id === 'purpose' && !replayTarget && !startedAt) {
+  if (id === 'status' && !replayTarget && !startedAt) {
    if (record) { recording = new Recording(cdp, root, runDir); await recording.start(); }
    startedAt = performance.now();
   }
@@ -136,112 +152,19 @@ try {
  }
  async function verifyControls(id) {
   const expect = (ok, message) => { if (!ok) throw Error(message); };
-  if (verificationStep === 0 && id === 'draft') {
-   verificationStep++;
-   await evaluate(() => document.querySelector('#demo-stage nav button').click());
-   await delay(100);
-   expect(playback.target === 'purpose', '단계 버튼의 이전 장면 이동 실패');
-   await playback.check();
-  }
-  if (verificationStep === 1 && id === 'purpose') {
-   expect(playback.paused, '이동 후 일시정지 실패');
-   const snapshot = await evaluate(() => document.querySelector('#title').value);
-   await delay(300);
-   expect(snapshot === await evaluate(() => document.querySelector('#title').value), '일시정지 중 화면 변경');
-   verificationStep++;
-   await evaluate(() => document.querySelector('#demo-next').click());
-   await delay(100);
-   expect(playback.target === 'upload', '다음 장면 버튼 실패');
-   await playback.check();
-  }
-  if (verificationStep === 2 && id === 'upload') {
-   expect(playback.paused, '다음 장면 정지 실패');
-   verificationStep++;
-   await evaluate(() => {
-    const range = document.querySelector('#demo-timeline');
-    range.value = range.max;
-    range.dispatchEvent(new Event('input'));
-    range.dispatchEvent(new Event('change'));
-   });
-   await delay(100);
-   expect(playback.target === 'final', '타임라인 앞으로 이동 실패');
-   await playback.check();
-  }
-  if (verificationStep === 3 && id === 'final') {
-   expect(playback.paused, '마지막 장면 정지 실패');
-   expect(await evaluate(() => !document.querySelector('#confirmed').checked), '최종 확정을 자동 선택함');
-   await evaluate(() => document.querySelector('#demo-pause').click());
-   await delay(100);
-   expect(!playback.paused, '재생 버튼 실패');
-   verificationStep++;
-   console.log('재생 제어 검증 통과: 뒤로 이동, 다음, 타임라인 이동, 도착 후 정지, 재생');
-  }
- }
- async function click(selector) {
-  await active();
-  if (!replayTarget) {
-   const motion = await evaluate((selector, ms) => window.demoFocus(selector, ms), selector, fast ? 30 : 500);
-   motionEvidence.push({ action: selector, ...motion });
-   await active();
-  }
-  const point = await evaluate((selector, instant) => {
-   const el = document.querySelector(selector);
-   if (!el || el.disabled) throw Error('클릭할 수 없습니다: ' + selector);
-   if (instant) el.scrollIntoView({ block: 'center', behavior: 'instant' });
-   const box = el.getBoundingClientRect();
-   const x = box.x + box.width / 2, y = box.y + box.height / 2;
-   if (document.elementFromPoint(x, y) !== el) throw Error('클릭 대상이 다른 요소에 가려졌습니다: ' + selector);
-   document.querySelector('#demo-cursor').style.transform = `translate(${x - 11}px,${y - 11}px)`;
-   return { x, y };
-  }, selector, !!replayTarget);
-  await hold(.55);
-  await cdp.send('Input.dispatchMouseEvent', { type: 'mousePressed', button: 'left', clickCount: 1, ...point }, cdp.session);
-  await cdp.send('Input.dispatchMouseEvent', { type: 'mouseReleased', button: 'left', clickCount: 1, ...point }, cdp.session);
+  if (id !== 'status' || verificationStep !== 0) return;
+  expect(await evaluate(() => document.querySelector('#session-status')?.textContent.includes('비활성')), '미구현 workflow 상태가 표시되지 않음');
+  expect(await evaluate(() => document.querySelector('#mode-label')?.textContent.includes('실제 모델 실행 아님')), 'fake backend 표시가 없음');
+  verificationStep = 4;
+  console.log('현재 실제 UI 상태 검증 통과: workflow 비활성 상태를 그대로 표시');
  }
  async function perform() {
- await cdp.send('Page.navigate', { url: base + '/__presentation' }, cdp.session);
+ await cdp.send('Page.navigate', { url: base + '/' }, cdp.session);
  await cdp.send('Page.bringToFront', {}, cdp.session);
- await wait(() => !!document.querySelector('#files'));
+ await wait(() => !!document.querySelector('#session-status') && !document.querySelector('#session-status').textContent.includes('연결하는 중'));
  if (replayTarget) await playback.publish({ ...playback.state(), seeking: true });
- await scene('purpose');
- const { root: doc } = await cdp.send('DOM.getDocument', {}, cdp.session);
- const { nodeId } = await cdp.send('DOM.querySelector', { nodeId: doc.nodeId, selector: '#files' }, cdp.session);
- await cdp.send('DOM.setFileInputFiles', {
-  nodeId, files: ['client-log.txt', 'request-summary.csv', 'support-notes.md']
-   .map((file) => resolve(root, 'fixtures/author/b2b-timeout', file)),
- }, cdp.session);
- await scene('upload');
- await click('#create');
- await wait(() => !!document.querySelector('#preview-0'));
- const count = await evaluate(() => document.querySelectorAll('[id^="choice-"]').length);
- const kinds = await evaluate(() => window.presentationKinds);
- playback.plan = scenes(count, kinds);
- for (let i = 0; i < count; i++) {
-  await evaluate((i) => {
-   const select = document.querySelector('#choice-' + i);
-   if ([...select.options].some((o) => o.value === 'direction')) select.value = 'direction';
-   select.dispatchEvent(new Event('change', { bubbles: true }));
-  }, i);
-  await scene('choice-' + i);
-  await click('#preview-' + i);
-  await wait(new Function(`return document.querySelector('#apply-${i}')?.disabled === false`));
-  await scene('projection-' + i);
-  await click('#apply-' + i);
-  await wait(new Function(`return !!document.querySelector('#revoke-${i}')`));
- }
- await scene('compose');
- await click('#compose');
- await wait(() => document.querySelector('.status')?.textContent.includes('가짜 초안 작성 완료'));
- await scene('draft');
- await evaluate(() => {
-  const link = [...document.querySelectorAll('a')].find((a) => a.textContent.includes('최종 파일 확인'));
-  if (!link) throw Error('최종 파일 링크가 없습니다.');
-  link.id = 'demo-final-link';
- });
- await click('#demo-final-link');
- await wait(() => !!document.querySelector('#confirmed'));
- await evaluate(() => document.querySelectorAll('.file details').forEach((el) => { el.open = true; }));
- await scene('final');
+ const count = 0;
+ await scene('status');
  await evaluate(() => {
   const panel = document.querySelector('#demo-stage');
   const rect = panel.getBoundingClientRect();
@@ -263,7 +186,7 @@ try {
  const screenshot = await cdp.send('Page.captureScreenshot', { format: 'png' }, cdp.session);
  await writeFile(resolve(runDir, 'final.png'), Buffer.from(screenshot.data, 'base64'));
  await writeFile(resolve(runDir, 'run.json'), JSON.stringify({
-  status: (withinLimit || fast) && smooth ? 'pass' : 'fail', mode: 'fake-app', finalization: 'not_implemented_in_current_app', candidateCount: count,
+  status: (withinLimit || fast) && smooth ? 'pass' : 'fail', mode: 'client-with-fake-backend', finalization: 'not_implemented', candidateCount: count,
   url: await evaluate(() => location.href), screenshot: 'final.png',
   sceneCount: playback.plan.length, replayCount,
   transitions: { smooth, checks: transitionChecks },
@@ -294,8 +217,7 @@ try {
    replayTarget = playback.target;
    playback.target = null;
    await playback.publish({ ...playback.state(), seeking: true });
-   // Re-run real fixture actions in a new task to restore prior server state.
-   // Never rewind only the DOM while leaving approvals from a later scene active.
+   // 현재 상태 장면을 다시 열어 선택한 위치에서 멈춘다.
   }
  }
 
