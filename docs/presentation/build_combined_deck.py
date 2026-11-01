@@ -7,7 +7,7 @@ SLIDES = [
     ("slide-cover", "표지", "SafeHandoff_표지.html"),
     ("slide-problem", "1. 프로젝트 배경", "SafeHandoff_문제_사용자.html"),
     ("slide-dilemma", "2. 페르소나·문제 정의", "SafeHandoff_문제_딜레마.html"),
-    ("slide-after", "3. 솔루션·유저 플로우", "SafeHandoff_전후_비교.html"),
+    ("slide-after", "3. 솔루션 및 유저플로우", "SafeHandoff_전후_비교.html"),
     ("slide-diff", "4. 서비스 차별점", "SafeHandoff_서비스_차별점.html"),
     ("slide-dev-scope", "5. AI 기술·직접 개발 범위", "SafeHandoff_직접_개발_범위.html"),
     ("slide-tech", "6. 기술 스택", "SafeHandoff_기술_스택.html"),

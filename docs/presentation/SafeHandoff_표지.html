@@ -156,12 +156,16 @@ button{font:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
 
 /* 좌측 메인 카피 영역 */
 .cover-main{
-  position:relative;
+  position:absolute;
+  left:64px;
+  top:102.453125px;
+  width:650px;
   z-index:3;
   max-width:650px;
-  margin-top:16px;
+  margin-top:0;
 }
 .service-tag{
+  position:relative;
   display:inline-flex;
   align-items:center;
   gap:12px;
@@ -178,21 +182,26 @@ button{font:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
   height:3px;
   background:var(--blue);
   border-radius:2px;
+  visibility:hidden;
 }
+.service-tag .brand-placeholder{visibility:hidden}
+.service-tag .cover-brand-image{position:absolute;left:0;bottom:-4px;display:block;width:217.6px;height:auto;max-width:none;transform:translate(-5%,7%)}
 .hero-title{
-  font-size:50px;
+  font-size:33px;
   font-weight:900;
-  line-height:1.24;
+  line-height:62px;
   letter-spacing:-.04em;
   color:#0f172a;
   margin-bottom:28px;
 }
+.hero-title .headline-line{display:block;white-space:nowrap}
+.hero-title .safe-accent{color:var(--blue)}
 .hero-title .accent{
   color:var(--blue);
   display:block;
 }
 .hero-sub{
-  font-size:19.5px;
+  font-size:14.5px;
   font-weight:600;
   color:#334155;
   line-height:1.58;
@@ -202,6 +211,7 @@ button{font:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
 /* 하단 조·팀원 영역 (클릭해 직접 수정 가능) */
 .cover-bottom{
   position:relative;
+  transform:translateY(-144px);
   z-index:3;
   display:flex;
   align-items:baseline;
@@ -244,6 +254,8 @@ button{font:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
   .reader{padding:16px 0 25px}
   .page-shell{width:calc(100% - 24px)!important;height:auto!important;margin-bottom:16px}
   .page{width:100%;height:auto;padding:32px 24px;transform:none!important;overflow:visible}
+  .cover-main{position:relative;left:auto;top:auto;width:auto;max-width:100%;margin-top:16px}
+  .cover-bottom{transform:none}
   .hero-title{font-size:36px}
   .hero-graphic{position:relative;top:0;right:0;width:100%;height:auto;margin-top:20px}
 }
@@ -276,7 +288,7 @@ button{font:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
     <section class="page" id="cover" aria-labelledby="cover-title">
 
       <!--  상단: Codyssey 로고 + 프로젝트 헤더  -->
-      <header class="cover-top">
+      <header class="cover-top" aria-hidden="true" style="visibility:hidden">
         <div class="codyssey-logo" aria-hidden="true">
           <svg viewBox="0 0 48 34" fill="none">
             <!--  주황 돛  -->
@@ -292,11 +304,11 @@ button{font:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
 
       <!--  중앙 좌측: 메인 타이틀 & 서브카피  -->
       <div class="cover-main">
-        <div class="service-tag">SafeHandoff</div>
+        <div class="service-tag"><span class="brand-placeholder" aria-hidden="true">SafeHandoff</span><img class="cover-brand-image" src="logo_safehandoff_cover.svg" alt="SafeHandoff · 공개할 내용만, 안전하게 전달"></div>
         <h1 class="hero-title" id="cover-title">
-          외부에 공유할 사내 자료,<br>
-          민감 정보는 덜어내고
-          <span class="accent">필요한 단서만 전달하세요</span>
+          <span class="headline-line">외부에 공유할 사내자료</span>
+          <span class="headline-line">'<span class="safe-accent">안전(Safe)</span>'하게 민감 정보는 덜어내고</span>
+          <span class="accent headline-line">중요한 단서만 전달(Handoff)하세요.</span>
         </h1>
 <!-- // TODO: [PRES-07] 보안 보장 문구는 ISSUES의 수정 검토 대상이며 실제 안전 보증이 아님. -->
         <p class="hero-sub">
@@ -307,7 +319,7 @@ button{font:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
 
       <!--  하단: 팀 정보 (클릭하여 팀명/이름 바로 편집 가능)  -->
       <footer class="cover-bottom">
-        <span class="team-num" contenteditable="true" spellcheck="false" title="클릭하여 팀명을 수정할 수 있습니다">지피한테물어봐</span>
+        <span class="team-num" contenteditable="true" spellcheck="false" title="클릭하여 팀명을 수정할 수 있습니다">지피한테물어보죠</span>
         <span class="team-members" contenteditable="true" spellcheck="false" title="클릭하여 팀원 이름을 수정할 수 있습니다">김병철 이상혁 맹주영 김민성 임재홍</span>
       </footer>
 
@@ -443,21 +455,21 @@ button{font:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
 
           <!--  ==================== 중앙 전면: SafeHandoff 보호·변환 완료 카드 ====================  -->
           <circle cx="388" cy="348" r="110" fill="url(#blue-glow)"/>
-          <g transform="translate(262, 292)" filter="url(#card-drop)">
-            <rect x="0" y="0" width="256" height="122" rx="14" fill="#ffffff" stroke="#1263fe" stroke-width="2.2"/>
-            <rect x="14" y="14" width="96" height="22" rx="6" fill="#1263fe"/>
-            <text x="62" y="29" text-anchor="middle" fill="#ffffff" font-size="11" font-weight="900">SafeHandoff 보호</text>
+          <g id="cover-protection-card" transform="translate(248, 292)" filter="url(#card-drop)">
+            <rect class="protection-frame" x="0" y="0" width="284" height="144" rx="14" fill="#ffffff" stroke="#1263fe" stroke-width="2.2"/>
+            <rect class="protection-tag" x="14" y="14" width="112" height="22" rx="6" fill="#1263fe"/>
+            <text class="protection-tag-text" x="70" y="29" text-anchor="middle" fill="#ffffff" font-size="11" font-weight="900">SafeHandoff 보호</text>
       <!-- // TODO: [PRES-05] 앱 인증·전체 원자료 격리·배포는 후속. Docker toy 실행 격리만 완료. ISSUES.md 참조. -->
-            <text x="120" y="29" fill="#0f766e" font-size="11" font-weight="800">✓ 승인 사실만 모델에 전달</text>
+            <text class="protection-input-text" x="136" y="29" fill="#0f766e" font-size="11" font-weight="800">✓ 승인 사실만 모델에 전달</text>
 
-            <rect x="14" y="46" width="228" height="28" rx="6" fill="#f0f6ff" stroke="#bfdbfe"/>
+            <rect class="protection-level" x="14" y="46" width="256" height="44" rx="6" fill="#f0f6ff" stroke="#bfdbfe"/>
       <!-- // TODO: [PRES-06] AI 생성 선택지와 A~D 표시 계약 정리 필요. D는 현행 직접 입력; 비율은 예시. ISSUES.md 참조. -->
-            <text x="24" y="64" fill="#1e3a8a" font-size="11.5" font-weight="800">공개 수준(A~D): 사실 · 추이 · 마스킹 · 비율 변환</text>
+            <text class="protection-level-text" x="24" y="63" fill="#1e3a8a" font-size="11.5" font-weight="800">공개 수준(A~D): <tspan x="24" dy="16">사실 · 추이 · 마스킹 · 비율 변환</tspan></text>
 
-            <rect x="14" y="80" width="228" height="28" rx="6" fill="#f0fdf4" stroke="#bbf7d0"/>
+            <rect class="protection-review" x="14" y="98" width="256" height="30" rx="6" fill="#f0fdf4" stroke="#bbf7d0"/>
       <!-- // TODO: [PRES-03] Rule 저장/매칭은 미구현. SkillPack과 혼용 금지; 공개 팩 공유는 별도 후속. ISSUES.md 참조. -->
       <!-- // TODO: [PRES-04] 전체 원자료 대조/제약 자동 복원은 계획. 현재는 초안·FactPack·grounding 검토. -->
-            <text x="24" y="98" fill="#15803d" font-size="11.5" font-weight="800">검토 AI: 승인 사실 대조 · 사람 최종 확인</text>
+            <text class="protection-review-text" x="24" y="117" fill="#15803d" font-size="11.5" font-weight="800">검토 AI: 승인 사실 대조 · 사람 최종 확인</text>
           </g>
         </svg>
       </figure>

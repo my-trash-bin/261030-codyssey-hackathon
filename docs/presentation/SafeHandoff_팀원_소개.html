@@ -376,7 +376,7 @@ button{font:inherit;cursor:pointer}
           <h2 id="team-title">팀원 소개 및 역할 분담</h2>
           <span class="header-sub">팀원별 담당 업무와 기여 내용</span>
         </div>
-        <span class="team-badge">TEAM · 지피한테물어봐</span>
+        <span class="team-badge">TEAM · 지피한테물어보죠</span>
       </header>
 
       <!--  공통 아바타 심볼 (첨부 레퍼런스 이미지와 동일한 연보라-블루 스쿼클 + 인물 실루엣)  -->
@@ -391,24 +391,23 @@ button{font:inherit;cursor:pointer}
       </svg>
 
       <div class="team-grid" contenteditable="true" spellcheck="false" aria-label="5인 팀원별 담당 업무 및 기여 내용">
-        <!--  1. 김병철 (팀장 · 백엔드)  -->
+        <!--  1. 김병철 (QA, 사용자 확정 역할)  -->
         <article class="member-card">
           <div class="avatar-wrap">
             <svg class="avatar-squircle" aria-hidden="true"><use href="#member-avatar"/></svg>
-            <span class="role-tag">팀장 · 백엔드</span>
+            <span class="role-tag">QA</span>
           </div>
           <h3 class="member-name">김병철</h3>
-      <!-- // TODO: [PRES-05] 앱 인증·전체 원자료 격리·배포는 후속. Docker toy 실행 격리만 완료. ISSUES.md 참조. -->
-          <div class="member-title">팀 총괄 · 백엔드 구조 설계</div>
+          <div class="member-title">테스트 설계 · 품질 검증</div>
           <div class="contrib-label">담당 업무 및 개발 범위</div>
           <ul class="contrib-list">
-            <li><b>프로젝트 총괄 및 아키텍처:</b> app·server·core 경계 구조와 HTTP API 서버 설계·구현</li>
-            <li><b>통합 및 품질 검증:</b> 작성·검토 흐름과 저장·API 통합, 검사 체계 운영</li>
-            <li><b>근거 위치 연결:</b> 초안 문장과 원본 문서 위치를 잇는 구조 설계</li>
+            <li><b>테스트 시나리오:</b> 승인·작성·검토 흐름의 정상·예외 케이스 정리</li>
+            <li><b>통합·회귀 검증:</b> 입력 경계와 API·저장 연동, 오류 처리 확인</li>
+            <li><b>품질 점검·이슈 관리:</b> 민감 정보 잔존·필수 근거 누락 검증과 재현 절차 기록</li>
           </ul>
           <div class="stack-box">
-            <span class="stack-chip">Team Lead</span>
-            <span class="stack-chip">Backend Arch</span>
+            <span class="stack-chip">QA</span>
+            <span class="stack-chip">Test &amp; Validation</span>
           </div>
         </article>
 
@@ -462,16 +461,17 @@ button{font:inherit;cursor:pointer}
           </div>
           <h3 class="member-name">맹주영</h3>
       <!-- // TODO: [PRES-02] 전체 UI/API 연결·본문/표 갱신·근거·내보내기는 미구현. 현재는 메모 저장/조회와 상태 확인. -->
-          <div class="member-title">작업 화면 · 앱 클라이언트</div>
+          <div class="member-title">백엔드 구조 · 서버·API</div>
           <div class="contrib-label">담당 업무 및 개발 범위</div>
           <ul class="contrib-list">
+            <li><b>백엔드 구조·서버:</b> app·server·core 경계 설계와 HTTP API 서버 구현</li>
+            <li><b>API·저장 연동:</b> 문서 저장·조회, 작성·검토 엔진과 클라이언트 연결</li>
             <li><b>작업 화면 구현:</b> 전달 조건·공개 방식 화면과 메모 저장·조회 연결</li>
-            <li><b>본문·표·설명 동시 갱신:</b> A~D 변경 시 연결 내용 갱신 설계</li>
-            <li><b>공유본 반출:</b> 내부 근거 분리 표시와 복사·다운로드 설계</li>
+            <li><b>화면 갱신·반출 설계:</b> A~D에 따른 본문·표 갱신, 내부 근거 분리와 복사·다운로드</li>
           </ul>
           <div class="stack-box">
             <span class="stack-chip">Full-Stack</span>
-            <span class="stack-chip">Client UI</span>
+            <span class="stack-chip">Backend / API</span>
           </div>
         </article>
 
@@ -501,9 +501,9 @@ button{font:inherit;cursor:pointer}
         <div class="collab-left">
           <span class="collab-pill">협업 및 직접 개발 원칙</span>
       <!-- // TODO: [PRES-02] 전체 UI/API 연결·본문/표 갱신·근거·내보내기는 미구현. 현재는 메모 저장/조회와 상태 확인. -->
-          <span>기획, 백엔드·LLM 엔진, 프론트엔드·앱 클라이언트로 역할을 나눠 개발</span>
+          <span>기획, 백엔드·LLM 엔진, 프론트엔드·앱 클라이언트·QA로 역할을 나눠 개발</span>
         </div>
-        <span class="collab-right">CODYSSEY HACKATHON · 지피한테물어봐</span>
+        <span class="collab-right">CODYSSEY HACKATHON · 지피한테물어보죠</span>
       </footer>
     </section>
   </div>

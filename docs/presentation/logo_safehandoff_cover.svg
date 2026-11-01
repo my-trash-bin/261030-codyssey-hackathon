@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1326" height="384" viewBox="0 0 1326 384" role="img" aria-labelledby="title desc">
+  <title id="title">SafeHandoff</title>
+  <desc id="desc">공개할 내용만, 안전하게 전달</desc>
+  <g fill="none" stroke-width="16" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M162 96H112Q88 96 88 120V272Q88 296 112 296H162" stroke="#0f172a"/>
+    <path d="M230 96H280Q304 96 304 120V272Q304 296 280 296H230M140 196H250M220 166L250 196L220 226" stroke="#eb764d"/>
+  </g>
+  <text x="388" y="216" fill="#0f172a" font-family="Arial,Helvetica,sans-serif" font-size="114" font-weight="700" letter-spacing="-2">SafeHandoff</text>
+  <text x="394" y="284" fill="#64748b" font-family="Malgun Gothic,Noto Sans KR,sans-serif" font-size="32" font-weight="400">공개할 내용만, 안전하게 전달</text>
+</svg>
