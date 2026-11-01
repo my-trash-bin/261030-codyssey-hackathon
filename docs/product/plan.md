@@ -19,7 +19,7 @@
 | `H1` | Day 1 오전 | **도메인 계약 / SQLite 저장소 / 분리 실행 서버/클라이언트** | `@safehandoff/core-interface`, `@safehandoff/server`(`DocumentStore` + `TaskStore` 11개 테이블/CAS), `@safehandoff/app`(`:8080`), `@safehandoff/fake-app`(`:8081`), `@safehandoff/client` | 완료 (단위/통합 테스트 통과) |
 | `H2` | Day 1 오후 | **근거 추출(`F02`) / 결정 투영/변환(`F03`) / 승인팩 작성/기본 거부 검토(`F04/F06`)** | `parseSources`, `RealCore.analyze()`, `POST /api/analysis`, `TaskStore.analysis`, `composeFactPack()`, `builtin-tools` 5종(`100/141/212` 지수, 추이, 인용 `[가림]`), `groundFacts()`, `RealCore.writeReviewed()`, UI `analysis-view.ts`/`disclosure-view.ts` | 완료 (단위/통합 테스트 및 라이브 스모크 통과) |
 | `H3` | Day 2 오전 | **제품 지침 팩(`F07`) / 무인터넷 Docker 4회 합성 재현(`F08`) / 실행 Transcript** | `FsSkillPackLoader`(`load`/`verify`), `pack-register.mjs`, `DockerReproRunner`(`--network=none`, 고정 oracle), `FileTranscriptSink`(`transcript.v1`), `oss-repro-smoke.mjs` | 완료 (단위 테스트 및 Docker 종단간 스모크 통과) |
-| `H4` | Day 2 오후 | **CDP 시연 녹화 / 127개 AC 매핑 / 발표 정합성 감사** | 당시 `scripts/demo/*`(`fake-app` `/__presentation`, 99.988초 녹화), `acceptance-map.csv`/`traceability.csv` 테스트 연결, `docs/presentation/` | 당시 완료. 전용 화면은 이후 제거하고 실제 client 기반 시연으로 교체했다. 당시 포함했던 3자 가치 비교 검증(`PRD-13`) 도구도 2026-10-31에 제거했다 ([decisions.md](decisions.md)) |
+| `H4` | Day 2 오후 | **CDP 시연 녹화 / 127개 AC 매핑 / 발표 정합성 감사** | 당시 `scripts/demo/*`(`fake-app` `/__presentation`, 99.988초 녹화), `acceptance-map.csv`/`traceability.csv` 테스트 연결, `docs/presentation/` | 당시 완료. 전용 화면은 이후 제거하고 실제 client 기반 시연으로 교체했다. 당시 포함했던 3자 가치 비교 검증(`PRD-13`) 도구도 2026-10-31에 제거했다 ([구현 상태](submission-status.md)) |
 
 ### 1.2 기능별 127개 수용 기준(AC)의 해커톤 범위 분류
 
@@ -57,7 +57,7 @@
 | **김민성 (`servercat`)** | 프론트엔드 UI / 공개 결정 / 분석 화면 연결 | `F01`/`F02`/`F03` 작업 화면(`Swiss Grid`), 후보별 공개 결정(`disclosure-state.ts`, `disclosure-view.ts`), 원자료 분석 UI 연결(`analysis-state.ts`, `analysis-view.ts`) 구현 | `packages/client/src/`, `packages/client/public/` |
 | **임재홍 (`andy1398`)** | CDP 시연 자동화 / 제출 영상 녹화 / 검증 | 당시 `fake-app` 전용 화면과 자막/장면 탐색/재생 제어(`scripts/demo/*`), 99.988초 제출 영상 녹화 및 해시 검증. 전용 화면과 tracked 영상은 이후 제거됨 | `scripts/demo/`, `docs/presentation/video/` 출처 기록 |
 | **김병철** | 도메인 계약 / 수치 변환 / 재사용/확장 규칙 설계 | `F03`/`F05` 계약(`contracts/*.schema.json`), `builtin-tools` 수치/시계열/인용 변환(`100/141/212`, `[가림]`), `F06` `groundFacts` 기본 거부 및 `F07` `SkillPack` 규칙 설계 | `contracts/`, `docs/features/`, `fixtures/skills/` |
-| **이상혁 (`dbralfk12-stack`)** | 발표 패키지 / 3자 가치 비교 실험 / 추적성 검증 | 발표 슬라이드 구성(`docs/presentation/`), 공개 통계 기반 TAM/SAM/SOM 산식 검증, 가상 로그 10건 3자 비교 실험(해커톤 당시 `tools/value-comparison.mjs`, `effect-measure.mjs`로 실행 - 2026-10-31 도구 제거, [decisions.md](decisions.md)), 127개 AC 매핑 | `docs/presentation/`, `docs/acceptance-map.csv` |
+| **이상혁 (`dbralfk12-stack`)** | 발표 패키지 / 3자 가치 비교 실험 / 추적성 검증 | 발표 슬라이드 구성(`docs/presentation/`), 공개 통계 기반 TAM/SAM/SOM 산식 검증, 가상 로그 10건 3자 비교 실험(해커톤 당시 `tools/value-comparison.mjs`, `effect-measure.mjs`로 실행 - 2026-10-31 도구 제거, [구현 상태](submission-status.md)), 127개 AC 매핑 | `docs/presentation/`, `docs/acceptance-map.csv` |
 
 ### 2.2 Git 커밋 이력과 협업 방식 설명
 
@@ -84,7 +84,7 @@
 | `M2` | **승인팩 전용 작성 / 기본 거부 검토 / 수리 루프 (`F04`, `F05`)** | `RealCore.write()`, `review()`, `writeReviewed()`(고정 `reason_code` 1회 수리), `/api/core/generate` 연결, `FileTranscriptSink`(`transcript.v1`) | DocAST 블록 수동 편집 API, `human-review` 체크리스트 저장, `manifest.json` 및 결정적 ZIP 아카이브 다운로드 API(`/api/v1/exports`) |
 | `M3` | **공개 표현 기준(`Rule`) 조건부 재사용 (`F06`, `F09`)** | `Rule`/`Scope` 타입 계약, `groundFacts()` 결정적 검증(`exact_value`/`approved_excerpt` 재사용 차단, 만료/철회/범위/`goal_variant` 불일치 차단), `TaskStore` revision CAS | 서버 `rules` 테이블 CRUD API(`/api/v1/rules`), 분석 채택 시 규칙 자동 매칭, UI-07/08 이력/작업 삭제(`DELETE` 확인) 화면 연결 |
 | `M4` | **제품별 지침 팩(`SkillPack`) / 합성 입력 Docker 재현 (`F07`, `F08`)** | `FsSkillPackLoader`(`load`/`verify`, `O_NOFOLLOW`), `pack-register.mjs`, `make_synthetic_inputs_v1`, `DockerReproRunner`(`--network=none`, 4회 실행 고정 oracle), `oss-repro-smoke.mjs` | `check_doc_ip_context_v1` 컨테이너 프로세스 어댑터 연결, UI-09 확장 카탈로그 상태 조회 화면 |
-| `M5` | **가치 비교 실험 / 수신자 충분성 검증 / 품질 게이트 (`PRD-13`)** | 48개 자동 테스트 스위트, 127개 AC/60개 QA 추적표 연결. 해커톤 당시 가상 로그 10건 결정적 3자 비교 도구를 만들었으나 2026-10-31에 제거했다 ([decisions.md](decisions.md)) | 가상 로그 10건 결정적 3자 비교와 2인 교차 참여자 스톱워치 작업 시간 측정(10건 완주) 도구를 다시 만들고 실제 사내 도입 파일럿(`Q-LLM`, `Q-POLICY`)을 수행 |
+| `M5` | **가치 비교 실험 / 수신자 충분성 검증 / 품질 게이트 (`PRD-13`)** | 48개 자동 테스트 스위트, 127개 AC/60개 QA 추적표 연결. 해커톤 당시 가상 로그 10건 결정적 3자 비교 도구를 만들었으나 2026-10-31에 제거했다 ([구현 상태](submission-status.md)) | 가상 로그 10건 결정적 3자 비교와 2인 교차 참여자 스톱워치 작업 시간 측정(10건 완주) 도구를 다시 만들고 실제 사내 도입 파일럿(`Q-LLM`, `Q-POLICY`)을 수행 |
 
 ---
 

@@ -17,7 +17,7 @@
 | 새 작성/검토 (`PRD-07/08`, `F04`) | `RealCore.write()` / `review()` / `writeReviewed()` (원문 미전달 `FactPack` 전용 작성, `groundFacts` 기본 거부, `fixed reason code` 1회 자동 수리, `/api/core/generate` HTTP 연결) | DocAST 블록별 수동 편집 UI, `human-review` 체크리스트 API 및 최종 번들 렌더러 |
 | 기준 재사용 (`PRD-09`, `F06`) | `Rule`/`Scope` 계약 및 `groundFacts()` 결정적 검증(`exact_value`/`approved_excerpt` 재사용 차단, 만료/철회/범위 불일치 시 모델 호출 전 차단) | 서버 `rules` 테이블 CRUD/자동 매칭 API 및 UI-08 규칙 관리 화면 |
 | 도메인 확장/재현 (`PRD-10/11`, `F07/F08`) | `FsSkillPackLoader`(manifest/경로/심볼릭링크/SHA-256 지문 검증), `pack-register` CLI, `DockerReproRunner`(`--network=none`, 4회 실행 oracle 판정), `oss-repro-smoke` 종단간 실행 | UI-09 확장 카탈로그 조회 API 및 `check_doc_ip_context_v1` 컨테이너 프로세스 어댑터 |
-| 가치/품질 검증 (`PRD-13`) | 48개 자동 테스트 스위트 통과 | 가상 사례 10건 3자 결정적 비교 실험과 참여자 스톱워치 기반 사람 작업 시간 측정 (해커톤 당시 도구를 만들었으나 2026-10-31 제거, [decisions.md](decisions.md)) |
+| 가치/품질 검증 (`PRD-13`) | 48개 자동 테스트 스위트 통과 | 가상 사례 10건 3자 결정적 비교 실험과 참여자 스톱워치 기반 사람 작업 시간 측정 (해커톤 당시 도구를 만들었으나 2026-10-31 제거, [구현 상태](submission-status.md)) |
 
 ---
 
@@ -29,7 +29,7 @@ SafeHandoff는 세 가지 원칙으로 이 문제를 푼다.
 
 1. **가림(Redaction)이 아니라 승인 정보 기반 새 작성(Authorized Composition)**: 원본 문서를 지운 흔적 투성이로 내보내지 않고, 사람이 승인한 사실/변환 표/합성 입력만으로 목적에 맞는 새 공유본을 구성한다 (`U02`, `U05`).
 2. **모델 추론과 권한 결정의 분리**: 분석 모델은 근거에 연결된 후보만 제안하고, 공개 여부와 표현 수준(A/B/C/D)은 사람과 결정적 앱 코드가 확정한다. 작성 모델(`Writer`)은 원자료 없이 승인팩(`FactPack`)만 받는다 (`D04`, `INV-04`).
-3. **고정 계약과 결정적 검증 우선**: 재사용 규칙의 범위/만료/철회, 필수 사실 포함 여부, 수치 상대지수(`100/141/212`), Docker 4회 재현 판정은 프롬프트 지시에만 맡기지 않고 TypeScript 코드와 JSON Schema로 먼저 강제한다 (`D06`, `D10`).
+3. **고정 계약과 결정적 검증 우선**: 재사용 규칙의 범위/만료/철회, 필수 사실 포함 여부, 수치 상대지수(`100/141/212`), Docker 4회 재현 판정은 프롬프트 지시에만 맡기지 않고 TypeScript 코드와 JSON Schema로 먼저 강제한다 (`D10`, 구현 계약은 [spec.md](../design/spec.md)).
 
 ---
 
@@ -38,7 +38,7 @@ SafeHandoff는 세 가지 원칙으로 이 문제를 푼다.
 | 기호 | 의미 | 변경 규칙 |
 | --- | --- | --- |
 | `U` | 사용자 확정 방향 ([intent.md](../../intent.md) `INT-01-INT-12`에 직접 근거) | 사용자 승인 없이 변경 불가 (`U01-U12`) |
-| `D` | 구현 가능성을 위해 팀이 고정한 기본 설계 (`D01-D23`) | 더 나은 대안이 있으면 근거와 함께 [decisions.md](decisions.md), [spec.md](../design/spec.md), [ERD.md](../design/erd.md), [api.md](../design/api.md)를 동시에 갱신 |
+| `D` | 제품 핵심 가치·방향성을 구체화하는 판단 | [기록 정책](decisions.md)에 따라 `INT` 근거·선택 이유·제품 영향을 기록. 구현 상세는 명세·구조·API에서 관리 |
 | `Q` | 실제 기업 도입/운영 시 확인이 필요한 질문 (`Q-LLM`, `Q-POLICY`, `Q-EXT`, `Q-DEPLOY`, `Q-LICENSE`) | 미확인 상태에서도 가상 자료와 고정 인터페이스로 구현/검증 가능하도록 격리 |
 
 ### 사용자 확정 항목 (`U01-U12`)
@@ -79,18 +79,18 @@ SafeHandoff는 세 가지 원칙으로 이 문제를 푼다.
 ### PRD-02 / 3대 지원 시나리오 (`U03`)
 오픈소스 버그 제보(`oss_bug_report`), 재현 환경 없는 B2B 기술지원 문의(`vendor_support`), 일반 내부 운영 자료 기반 외부 자문(`operations_advisory`)을 같은 근거/결정/작성/검토 파이프라인 위에서 처리한다.
 
-### PRD-03 / 내부 설치형 TypeScript 런타임과 지정 LLM 연결 (`U04`, `D01`)
+### PRD-03 / 내부 설치형 TypeScript 런타임과 지정 LLM 연결 (`U04`)
 - **현행 아키텍처**: Node 24와 TypeScript 기반 `pnpm` 워크스페이스로 구성하며, 서버는 `node:sqlite` 단일 파일 DB를 사용하고 기본 `127.0.0.1` 루프백(또는 운영자가 명시한 내부 인터페이스)에서 동작한다.
 - **패키지 경계**: 순수 도메인 계약(`@safehandoff/core-interface`), 분석/승인팩/작성/검토/내장 변환 엔진(`@safehandoff/core`), OpenAI 호환 HTTP 모델 어댑터(`@safehandoff/model-adapter`), 무인터넷 Docker 재현 실행기(`@safehandoff/sandbox-runner`), 파일시스템 지침 팩 로더(`@safehandoff/skill-loader`), SQLite/HTTP 서버(`@safehandoff/server`), 실행 앱(`@safehandoff/app`, `@safehandoff/fake-app`), React 웹 클라이언트(`@safehandoff/client`)로 분리한다.
 - **데이터 경계**: 원자료는 지정된 모델 엔드포인트 외의 외부 네트워크로 전송하지 않으며, 작성기(`Writer`)에는 원자료 대신 승인된 `FactPack`만 전달한다.
 
-### PRD-04 / 작업 생성과 불변 원자료 등록 (`U03`, `D03`, `F01`)
+### PRD-04 / 작업 생성과 불변 원자료 등록 (`U03`, `F01`)
 작업 생성 시 목적(`purpose_id`), 목표 변형(`goal_variant`), 수신자(`recipient_id`), 공개 범위(`audience`), 결과 언어를 고정한다. 입력 자료(`.txt`, `.md`, `.csv`, `.json`)는 원본 바이트와 SHA-256 해시를 보존하며, 자료를 업로드하거나 메모를 적은 행위 자체를 공개 승인으로 간주하지 않는다.
 
 ### PRD-05 / 근거 기반 후보 추출과 대화형 공개 범위 조정 (`U05`, `F02`, `F03`)
 분석 단계(`RealCore.analyze`)는 원자료의 정확한 위치(`evidence_id`, UTF-8 byte range, CSV 행/열, JSON Pointer)에 연결된 관찰(`observation`), 가설(`hypothesis`), 미확인(`unknown`), 업무 제약(`constraint`), 수치 시계열(`series`) 후보를 추출한다. 작성/검토 중 추가 공개 결정이 필요하면 임의로 원문을 끌어쓰지 않고 사용자 결정 단계(`needs_decisions`)로 돌아간다.
 
-### PRD-06 / 4가지 표현 수준 선택지 A / B / C / D (`U06`, `D06`, `F03`)
+### PRD-06 / 4가지 표현 수준 선택지 A / B / C / D (`U06`, `F03`)
 수치/민감 후보에 대해 사용자는 실제 공개 미리보기를 확인하고 아래 네 가지 중 하나로 표현 수준을 결정한다.
 - **A. 구체적인 데이터 없이 사실만**: 수치/관찰 횟수/간격 없이 승인된 추세 사실 문장만 전달한다 (예: `관찰된 구간에서 요청량이 증가했습니다.`).
 - **B. 추이만 보이게 나머지 마스킹**: 원래 숫자와 시각을 제외하고 관찰 순서와 인접 증감 방향(`기준` / `증가` / `감소`)만 새 표로 만든다 (`series_direction_only.v1`).
@@ -108,17 +108,17 @@ SafeHandoff는 세 가지 원칙으로 이 문제를 푼다.
 ### PRD-09 / 공개 표현 기준(`Rule`)의 조건부 재사용 (`U09`, `D10`, `F06`)
 같은 `project_id`, `purpose_id`, `goal_variant`, `recipient_id`, `audience`, `skill_set_hash`와 검증된 자료 스키마(`selector`)에서는 이전에 저장한 변환 기준(`Rule`)을 다시 적용해 새 입력의 값을 재계산한다 (`820/780/1740` -> `기준/감소/증가`). 정확한 값(`exact_value`), 원문 인용(`approved_excerpt`), 실제값 선택 필드(`selected_fields`)는 절대 자동 재사용하지 않으며, `groundFacts()`가 만료/철회/범위 불일치를 모델 호출 전에 차단한다.
 
-### PRD-10 / 제품별 제보 지침(`SkillPack`)과 맥락 기반 예외 검사 (`U08`, `D08`, `F07`)
+### PRD-10 / 제품별 제보 지침(`SkillPack`)과 맥락 기반 예외 검사 (`U08`, `F07`)
 오픈소스/공급사별 필수 확인 항목과 공개 양식을 `SkillPack`(`manifest.json`, `SKILL.md`, 역할별 참조 문서)으로 등록하고 SHA-256 지문으로 검증한다. 또한 단순 정규식 차단을 넘어, 승인된 새 설정 예시(`make_config_example_v1`) 안의 RFC 5737 문서용 IP(`192.0.2.0/24` 등)인지 판정하는 맥락 검사(`check_doc_ip_context_v1`) 계약을 지원한다.
 
-### PRD-11 / 합성 입력 생성과 격리된 재현 검증 (`U10`, `D09`, `F08`)
+### PRD-11 / 합성 입력 생성과 격리된 재현 검증 (`U10`, `F08`)
 재현 환경이 등록된 경우(`toyrecord-repro`), 원래 고객 문자열(7글자)을 변형하지 않고 공개 계약과 시드로 새 6글자 ASCII/한글 합성 입력(`make_synthetic_inputs_v1`)을 만든다. 네트워크가 차단된(`--network=none`) 읽기 전용 Docker 컨테이너에서 buggy/fixed 대상 x 2개 입력의 4회 실행과 결과 파일 바이트를 고정 oracle로 대조해 `reproduced`, `not_reproduced`, `inconclusive`, `error`, `not_run`을 정직하게 판정한다. 재현 환경이 없는 B2B 문의는 미실행(`not_run / no_environment`)을 명시한 관찰 문의로 완결한다.
 
-### PRD-12 / 진행 이력/실행 기록(Transcript)/작업 삭제 (`D11`, `F09`, `F10`)
+### PRD-12 / 진행 이력/실행 기록(Transcript)/작업 삭제 (`F09`, `F10`)
 선택 변경 시 revision을 올려 이전 산출물을 즉시 `stale` 처리하고, 실행 단계와 모델 호출 메타데이터를 `transcript.v1` JSONL 및 이벤트로 기록한다. 작업 삭제 시 원자료/초안/결정/이력을 제거하되, 원문을 담지 않는 별도 재사용 규칙(`Rule`)의 보존 여부를 사용자에게 명확히 구분해 안내한다.
 
 ### PRD-13 / 가치 검증과 수용 기준 추적 (`U11`, `D12`)
-1. **3자 비교 검증**: 가상 업무 로그 10건(금지 항목 43개/필수 단서 32개)에 대해 **직접 단순 마스킹** vs **미검토 원문 AI 생성** vs **SafeHandoff 파이프라인**의 금지 정보 노출/필수 단서 보존/미승인/만료 규칙 차단율을 결정적으로 비교 측정한다. 사람 참여자의 스톱워치 작업 시간 측정은 별도 실험으로 구분해 기록한다. 해커톤 당시 이를 실행하는 도구와 보고서를 만들었으나 2026-10-31에 저장소에서 제거했다 ([decisions.md](decisions.md)) - 이 수용 기준 자체는 남아 있으며 재구현이 필요하다.
+1. **3자 비교 검증**: 가상 업무 로그 10건(금지 항목 43개/필수 단서 32개)에 대해 **직접 단순 마스킹** vs **미검토 원문 AI 생성** vs **SafeHandoff 파이프라인**의 금지 정보 노출/필수 단서 보존/미승인/만료 규칙 차단율을 결정적으로 비교 측정한다. 사람 참여자의 스톱워치 작업 시간 측정은 별도 실험으로 구분해 기록한다. 해커톤 당시 이를 실행하는 도구와 보고서를 만들었으나 2026-10-31에 저장소에서 제거했다 ([구현 상태](submission-status.md)) - 이 수용 기준 자체는 남아 있으며 재구현이 필요하다.
 2. **추적성**: `INT-01-12` -> `PRD-01-14` -> `F01-F10` -> 127개 수용 기준(`AC-F01-01-AC-F10-12`)과 60개 품질 시험(`T01-T60`)을 [acceptance-map.csv](../qa/acceptance-map.csv) 및 [traceability.csv](../qa/traceability.csv)에서 실제 자동 테스트 파일과 연결해 관리한다.
 
 ### PRD-14 / 약속하지 않는 것 (`U12`)
@@ -147,7 +147,7 @@ SafeHandoff는 세 가지 원칙으로 이 문제를 푼다.
 | [intent.md](../../intent.md) | 사용자 확정 의도 원문 (`INT-01-INT-12`, 수정 금지) |
 | [docs/product/prd.md](prd.md) | 제품 요구사항 정본 (`PRD-01-PRD-14`, 현행 TypeScript 범위 요약) |
 | [docs/product/plan.md](plan.md) | 해커톤 2일 수직 슬라이스(`H1-H4`), 제품 단계(`M0-M5`), 5인 팀 역할 분담과 커밋 구조 |
-| [docs/product/decisions.md](decisions.md) | 아키텍처/도메인 결정 기록 (`D01-D23`, Go 초기 시제품 -> TypeScript 전환 경위 포함) |
+| [docs/product/decisions.md](decisions.md) | `intent.md`를 보강하는 제품 핵심 가치·방향성의 판단과 기록 정책 |
 | [docs/design/spec.md](../design/spec.md) / [docs/design/security.md](../design/security.md) | 상태 전이/불변조건(`INV-01-16`)/보안 경계 명세 |
 | [docs/design/architecture.md](../design/architecture.md) / [docs/design/erd.md](../design/erd.md) / [docs/design/api.md](../design/api.md) | 9개 TypeScript 패키지 구조, 현행 SQLite 테이블 + 전체 목표 ERD, HTTP/Core API 계약 |
 | [docs/design/agent-workflow.md](../design/agent-workflow.md) / [docs/design/extensions.md](../design/extensions.md) | 에이전트 역할별 입출력/grounding/transcript 계약 및 `SkillPack`/내장 도구/Docker 재현 명세 |
