@@ -25,7 +25,7 @@
 
 ## 3. 인수시험 목록
 
-F 번호는 [기능 파일](features/)의 책임 영역, INV 번호는 [spec.md](spec.md)의 불변조건이다. [acceptance-map.csv](acceptance-map.csv)는 개별 AC->시험 ID, [traceability.csv](traceability.csv)는 시험->기능/불변조건/AC를 연결한다. 여러 기능이 닿는 시험에는 관련 F를 모두 표기한다. 연결표의 `not_run`은 아직 제품 시험을 실행하지 않았다는 뜻이다.
+F 번호는 [기능 파일](../features)의 책임 영역, INV 번호는 [spec.md](../design/spec.md)의 불변조건이다. [acceptance-map.csv](acceptance-map.csv)는 개별 AC->시험 ID, [traceability.csv](traceability.csv)는 시험->기능/불변조건/AC를 연결한다. 여러 기능이 닿는 시험에는 관련 F를 모두 표기한다. 연결표의 `not_run`은 아직 제품 시험을 실행하지 않았다는 뜻이다.
 
 ### 3.1 공개 선택/원문 경계/판본
 
@@ -82,7 +82,7 @@ F 번호는 [기능 파일](features/)의 책임 영역, INV 번호는 [spec.md]
 | ID | 기능 / 불변조건 | 준비/행동 | 통과 결과와 확인할 증거 |
 | --- | --- | --- | --- |
 | T41 | F09 / INV-07 | SSE 끊김/중복/역순 이벤트/과거 Last-Event-ID/새로고침 | 현재 revision으로 재조회/복원. 오래된 이벤트로 결과 되돌림 없음. SSE 중단이 job 취소로 이어지지 않음 |
-| T42 | F10 / INV-16 | 미인증 API, 만료/재사용 launch token, 세션8시간만료/logout/서버재시작, CSRF 없음, 잘못된 Host/Origin/외부CORS/명시적네트워크바인딩/서버IP접속 | 비민감 liveness 외 접근 차단. 5분 일회 토큰/8시간 세션/CSRF 계약 적용, 재시작 후 새 접속 필요. 명시한 네트워크 바인딩과 서버 IP Host는 허용하고 미등록 Host/다른 Origin은 거절. endpoint 비밀 정보 노출 없음 |
+| T42 | F10 / INV-16 | 자동 연결 API, 세션8시간만료/폐기/서버재시작, CSRF 없음, 잘못된 Host/Origin/외부CORS/명시적네트워크바인딩/서버IP접속 | 시작 토큰 없이 자동 연결. 내부 8시간 세션/CSRF 계약 적용, 재시작 후 자동 재연결. 명시한 네트워크 바인딩과 서버 IP Host는 허용하고 미등록 Host/다른 Origin은 거절. endpoint 비밀 정보 노출 없음 |
 | T43 | F01 F03 F05 F09 / INV-16 | 다른 task의 source/candidate/decision/artifact/file ID 제출 | 참조 소속 검증 실패. 같은 로컬 사용자여도 다른 작업의 grant/파일을 끼워 넣지 못함 |
 | T44 | F09 F10 / INV-07 INV-09 | running 중 작업 삭제, 확인 불일치, 삭제 후 늦은 완료, 같은 삭제요청 재전송 | 확인 불일치 거부. 유효 삭제는 job 취소와 원문/결과/export/trace/이력 제거. 늦은 응답으로 부활하지 않음.24시간 무내용 삭제영수증만 남겨 재전송 처리 |
 | T45 | F06 F09 / INV-10 | 재사용 규칙을 만든 원래 작업 삭제 | 원래 자료/정확값을 규칙에 복제하지 않음. 규칙은 비민감 provenance와 조건만 유지하며 원작업 FK 해제. 삭제가 규칙철회와 같다고 오표시하지 않음 |

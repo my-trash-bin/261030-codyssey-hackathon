@@ -49,7 +49,7 @@ const assets = development
   ? await devAssets()
   : createStaticAssets(fileURLToPath(new URL('./static/', import.meta.url)));
 const server = createServer(createClientHandler(process.env.SERVER_ORIGIN || 'http://127.0.0.1:8080', assets));
-server.listen(port, process.env.CLIENT_HOST || '127.0.0.1', () => console.log(`client listening on port ${port}`));
+server.listen(port, process.env.HOST || '127.0.0.1', () => console.log(`client listening on port ${port}`));
 function shutdown(): void { server.close(() => process.exit(0)); }
 process.once('SIGTERM', shutdown);
 process.once('SIGINT', shutdown);

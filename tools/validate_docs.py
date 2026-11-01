@@ -70,11 +70,11 @@ for path in features:
     for acid in re.findall(r'^\| (AC-F\d\d-\d\d) \|', source, re.M):
         check(acid not in acceptance, f'duplicate acceptance id: {acid}')
         acceptance[acid] = path.relative_to(ROOT/'docs').as_posix()
-qa_text = (ROOT/'docs/qa.md').read_text(encoding='utf-8')
+qa_text = (ROOT/'docs/qa/qa.md').read_text(encoding='utf-8')
 qa_ids = re.findall(r'^\| (T\d\d) \|', qa_text, re.M)
 check(len(qa_ids) == len(set(qa_ids)), 'duplicate QA IDs')
 check(set(qa_ids) == {f'T{i:02}' for i in range(1, 61)}, 'T01..T60 coverage changed')
-with (ROOT/'docs/acceptance-map.csv').open(encoding='utf-8', newline='') as f:
+with (ROOT/'docs/qa/acceptance-map.csv').open(encoding='utf-8', newline='') as f:
     mapped = list(csv.DictReader(f))
 check({x['acceptance_id'] for x in mapped} == set(acceptance), 'AC map does not cover all actual AC IDs')
 for row in mapped:
@@ -87,7 +87,7 @@ for row in mapped:
         check(bool(t_paths) and all((ROOT / p).exists() for p in t_paths), f"AC missing automated_tests {row['acceptance_id']}")
     else:
         check(row.get('automated_tests') == 'backlog', f"AC not_run should have backlog automated_tests {row['acceptance_id']}")
-with (ROOT/'docs/traceability.csv').open(encoding='utf-8', newline='') as f:
+with (ROOT/'docs/qa/traceability.csv').open(encoding='utf-8', newline='') as f:
     trace = list(csv.DictReader(f))
 check({x['test_id'] for x in trace} == set(qa_ids), 'traceability lacks QA IDs')
 for row in trace:
@@ -152,7 +152,7 @@ for name, definition in schema.get('$defs', {}).items():
 checks['schema_internal_definitions_checked'] = len(defs)
 # Check the authored model examples for the named mandatory keys. This is
 # deliberately not claimed as full JSON Schema validation.
-model_text = (ROOT/'docs/agent-workflow.md').read_text(encoding='utf-8')
+model_text = (ROOT/'docs/design/agent-workflow.md').read_text(encoding='utf-8')
 example_count = 0
 for block in re.findall(r'```json\n(.*?)\n```', model_text, re.S):
     example = json.loads(block)

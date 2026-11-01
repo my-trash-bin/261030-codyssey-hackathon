@@ -1,10 +1,10 @@
 # F03 - 공개 범위/표현 수준/직접 조건 결정
 
-상태: P0 구현 기준안 / 기준일: 2026-10-31 / 구현 담당: [plan.md](../plan.md)의 F03 담당
+상태: P0 구현 기준안 / 기준일: 2026-10-31 / 구현 담당: [plan.md](../product/plan.md)의 F03 담당
 
 ## 1. 목적
 
-[PRD-05/06](../prd.md)에 따라 사용자가 **필요한 정보는 무엇이고 어느 수준까지 공개할지** 실제 결과를 보며 결정하게 한다. 선택은 내부 원자료에서 공개 작성용 정보로 넘어가는 경계다. 후보를 발견한 것, 원문을 읽은 것, 초안을 편집한 것을 공개 허용으로 처리하지 않는다(INV-03~06).
+[PRD-05/06](../product/prd.md)에 따라 사용자가 **필요한 정보는 무엇이고 어느 수준까지 공개할지** 실제 결과를 보며 결정하게 한다. 선택은 내부 원자료에서 공개 작성용 정보로 넘어가는 경계다. 후보를 발견한 것, 원문을 읽은 것, 초안을 편집한 것을 공개 허용으로 처리하지 않는다(INV-03~06).
 
 ## 2. 쓰는 사람과 권한
 
@@ -60,7 +60,7 @@ B는 관찰 개수와 순서까지 드러난다. A는 그 정보도 별도 승�
 | artifacts / exports / jobs | 현재 결과/실행 | 새 결정 후 stale/취소 요청 |
 | events / idempotency_keys | 변경 이력/중복 | 결정과 같은 트랜잭션에서 기록 |
 
-정확한 열/JSON 구조는 [ERD](../ERD.md), [API](../api.md), [contracts](../../contracts/)를 따른다. 내부 근거/원문 위치/승인 이유를 공개 작성 입력과 분리한다.
+정확한 열/JSON 구조는 [ERD](../design/erd.md), [API](../design/api.md), [contracts](../../contracts)를 따른다. 내부 근거/원문 위치/승인 이유를 공개 작성 입력과 분리한다.
 
 ## 5. 규칙
 
@@ -133,11 +133,11 @@ allow 항목은 유효한 `preview_id`와 `projection_sha256`가 필수다. excl
 | `DisclosureService.ApplyDecisionBatch` / `POST /api/v1/tasks/{id}/decision-batches` | expected_revision, 후보별 disposition과 현재 미리보기/hash, expiry, 재사용 선택 | 새 결정 ID/revision/phase/무효화 내역 |
 | `DisclosureService.RevokeDecision` / `POST /api/v1/tasks/{id}/decisions/{decision_id}/revoke` | expected_revision | 현재 결정 무효, 새 revision |
 
-현재 실제 경로/세션 CSRF/DTO는 [api.md](../api.md)를 정본으로 따른다.
+현재 실제 경로/세션 CSRF/DTO는 [api.md](../design/api.md)를 정본으로 따른다.
 `contracts/openapi.json`과 `*.v1.schema.json`은 [참고 계약](../../contracts/README.md)이며
 전체 스키마가 현재 서버의 동작 API라는 뜻은 아니다. `select_fields.v1`의 parameters.fields는
 기존 core 정의와 HTTP 참고 스키마를 맞췄고, 단일 CSV/JSON 근거의 필드 목록/서버 변환을 구현했다.
-화면 로그인/C 필드 선택 등 후속은 [UI 요청 현황](../ui-api-requests.md)을 따른다.
+화면 로그인/C 필드 선택 등 후속은 [UI 요청 현황](../ops/ui-api-requests.md)을 따른다.
 F02의 후보/근거 -> F03의 결정/투영 -> F04의 승인팩으로 연결한다. F05는 현재 결정의 유효성과
 보류 여부를 검사한다. F06은 재사용 기준만 만들고 새 자료의 정확값 허용을 만들지 않는다.
 F07의 예외 검사 결과가 F03 allow를 대신할 수 없다.
@@ -165,7 +165,7 @@ F07의 예외 검사 결과가 F03 allow를 대신할 수 없다.
 | AC-F03-13 | raw | UTF-8 중간 경계/범위 밖/해시 불일치/만료 원문 사용을 거부 |
 | AC-F03-14 | 접근 | 다른 task의 candidate/preview/decision ID, 비인증/위조 CSRF가 상태를 바꾸지 못함 |
 
-대응 시험은 [qa.md](../qa.md)의 T02, T05-06, T21-22, T30-39, T51, T58이다.
+대응 시험은 [qa.md](../qa/qa.md)의 T02, T05-06, T21-22, T30-39, T51, T58이다.
 
 ## 9. 확인 필요와 구현 순서
 

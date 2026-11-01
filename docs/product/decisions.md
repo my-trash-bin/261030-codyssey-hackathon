@@ -1,10 +1,10 @@
 # SafeHandoff 아키텍처/설계 결정 기록 (ADR)
 
-문서 버전: 2.0 / 기준일: 2026-10-31 / 상태: 현행 정본 (TypeScript 워크스페이스 기준) / 연결: [intent.md](../intent.md), [prd.md](prd.md), [spec.md](spec.md), [architecture.md](architecture.md)
+문서 버전: 2.0 / 기준일: 2026-10-31 / 상태: 현행 정본 (TypeScript 워크스페이스 기준) / 연결: [intent.md](../../intent.md), [prd.md](prd.md), [spec.md](../design/spec.md), [architecture.md](../design/architecture.md)
 
 ## 1. 결정 구분 원칙 (`U` / `D` / `Q`)
 
-- **`U` (`U01-U12`)**: [intent.md](../intent.md)에서 사용자가 확정한 제품 의도다. 임의로 축소하거나 변경하지 않는다.
+- **`U` (`U01-U12`)**: [intent.md](../../intent.md)에서 사용자가 확정한 제품 의도다. 임의로 축소하거나 변경하지 않는다.
 - **`D` (`D01-D24`)**: 제품 요구사항을 일관되게 구현하기 위해 확정한 기술/도메인 결정이다.
 - **`Q` (`Q-LLM`, `Q-POLICY`, `Q-EXT`, `Q-DEPLOY`, `Q-LICENSE`)**: 실제 도입 조직의 운영 환경에서 확인해야 할 사항이다. 미확인 상태에서도 로컬 가상 데이터와 고정 계약으로 검증 가능하게 설계한다.
 
@@ -44,9 +44,9 @@
 ## 3. 발표 패키지 관련 결정 (`PRES-DEC-01`)
 
 - **`PRES-DEC-01` (해커톤 발표용 B2B 솔루션 프레이밍 유지)**:
-  - 제품은 [intent.md](../intent.md) `INT-04`/`INT-12`에 따라 내부 설치형 오픈소스 도구로 개발한다.
+  - 제품은 [intent.md](../../intent.md) `INT-04`/`INT-12`에 따라 내부 설치형 오픈소스 도구로 개발한다.
   - 다만 해커톤 발표 슬라이드에서는 다양한 배경의 심사위원이 기업 문제/도입 효과/시장 규모(TAM/SAM/SOM)를 직관적으로 이해할 수 있도록 B2B 엔터프라이즈 솔루션 프레이밍을 유지한다.
-  - 발표 슬라이드의 가설/목업과 실제 코드 구현 범위의 차이는 숨기지 않고 [docs/presentation/ISSUES.md](presentation/ISSUES.md) (`PRES-01-PRES-12`)에 명시적으로 대조/관리한다.
+  - 발표 슬라이드의 가설/목업과 실제 코드 구현 범위의 차이는 숨기지 않고 [docs/presentation/ISSUES.md](../presentation/ISSUES.md) (`PRES-01-PRES-12`)에 명시적으로 대조/관리한다.
 
 ---
 
@@ -75,7 +75,7 @@ revision/SQLite 멱등 기록을 함께 검사한다. 기존 stateless API의 �
 원자료는 서버 snapshot으로 고정하고 서버 분석 job만 CAS 채택한다. 브라우저 AnalyzeResult를
 받아 후보나 허용 결정을 만들지 않는다. C는 연결된 단일 CSV/JSON 근거 필드만 계산한다.
 D 모델 응답도 제안이며 실제 미리보기와 사람 결정은 별도다. Rule 저장과 원문 예외/타임라인은
-미지원으로 거부한다. 현재 서버 DTO는 [API](api.md), 남은 화면 작업은 [요청 현황](ui-api-requests.md)을 따른다.
+미지원으로 거부한다. 현재 서버 DTO는 [API](../design/api.md), 남은 화면 작업은 [요청 현황](../ops/ui-api-requests.md)을 따른다.
 
 ## 2026-10-31 / 두 신뢰 경계를 하나로 묶음
 
@@ -136,3 +136,26 @@ SDK 중립 스키마를 typia 런타임 API로 검증하고 기존 Engine의 근
 `AC-F02-05`/`AC-F04-01`/`AC-F10-05`와 `docs/traceability.csv`의 `T60`은 유일한 근거였던
 `tools/value-comparison.test.mjs`가 사라졌으므로 `not_run`/`backlog`로 되돌렸다 - 다른 테스트가
 같은 수준의 writer 입력 캡처를 아직 대신하지 않는다.
+
+## 2026-10-31 / 제출 상태 스냅샷 작성과 AGENTS.md 서술 정정
+
+"지금 최종 제출한다고 가정" 하고 개발 진척도를 점검하라는 요청에 따라, `pnpm build`/`pnpm test`/
+`just check`/`tools/validate_docs.py` 네 가지를 이번 기준일에 다시 실행해 모두 통과를 직접 확인하고
+[docs/product/submission-status.md](submission-status.md)에 그 결과와 127개 AC 현황, 심사자에게
+밝혀야 할 제한(`not_claimed`, `product_backlog` 65개, ISSUES.md 포장/가설 구분)을 한곳에 모았다.
+기존 [plan.md](plan.md)/[ISSUES.md](../presentation/ISSUES.md)/`validation-report.json`이 이미
+각자의 범위에서 진척도를 추적하고 있었으므로 그 내용을 다시 만들지 않고 참조만 모았다.
+
+점검 과정에서 `AGENTS.md`의 "진짜 코어는 아직 미구현이다"라는 문장이 초기 워크스페이스 분리
+시점 이후 갱신되지 않은 채 남아 있던 것을 발견했다. 그 뒤 `RealCore.analyze()`/`write()`/
+`review()`/Docker 재현 연결이 자동 테스트와 함께 구현됐으므로 이는 실제로 구현된 범위를
+과소 서술하는 간극이었다 - 구현되지 않은 것을 완료로 보고하지 말라는 `AGENTS.md`의 원칙은
+구현된 것을 미구현으로 보고하지 말라는 방향에도 같게 적용된다고 판단해 해당 문장을 현재 코드와
+`product_backlog` 구분에 맞게 고쳤다. `intent.md`는 손대지 않았다.
+
+## 2026-11-01 시작 토큰 제거
+
+사용자 요청에 따라 시작 토큰 인증, 5분/1회 사용 제한, 토큰 접속 링크와 로그인 화면을 제거했다.
+일반 접속 URL에서 작업 공간 연결을 자동 준비한다. 내부 세션 쿠키와 CSRF/정확한 Host·Origin 검사는
+요청 무결성을 위해 유지하며 사용자 인증으로 설명하지 않는다. 내부 세션 만료·재시작 뒤에도 자동 재연결한다.
+`SAFEHANDOFF_WORKFLOW_TOKEN`은 더 이상 사용하지 않는다. `intent.md`는 변경하지 않았다.

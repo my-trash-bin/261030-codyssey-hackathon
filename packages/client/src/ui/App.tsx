@@ -7,7 +7,7 @@ import type { JSX } from 'react';
 import { useDisclosures } from './hooks/useDisclosures.ts';
 import { useRuntimeInfo } from './hooks/useRuntimeInfo.ts';
 import type { RuntimeInfoApi } from './hooks/useRuntimeInfo.ts';
-import { formatSessionExpiry, useSession } from './hooks/useSession.ts';
+import { useSession } from './hooks/useSession.ts';
 import type { SessionApi } from './hooks/useSession.ts';
 import { useTaskFlow } from './hooks/useTaskFlow.ts';
 import { useArtifacts } from './hooks/useArtifacts.ts';
@@ -205,7 +205,7 @@ function WorkflowWorkspace(props: {
         <div className="app__content">
           <TopBar
             modeLabel={runtime.modeLabel}
-            sessionLabel={session.session ? `만료 ${formatSessionExpiry(session.session.expiresAt)}` : null}
+            sessionLabel={session.session ? '연결됨' : null}
             taskLabel={taskLabel}
           />
           <div className="app__columns">

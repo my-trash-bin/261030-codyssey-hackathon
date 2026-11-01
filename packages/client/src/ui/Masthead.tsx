@@ -64,7 +64,7 @@ export function TopBar(props: {
         </div>
         <div>
           <dt className="meta">세션</dt>
-          <dd id="session-label" role="status" aria-live="polite">{sessionLabel ?? '닫힘'}</dd>
+          <dd id="session-label" role="status" aria-live="polite">{sessionLabel ?? '연결 전'}</dd>
         </div>
       </dl>
     </header>

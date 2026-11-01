@@ -11,16 +11,17 @@
 | 문서 | 설명 |
 | --- | --- |
 | [intent.md](intent.md) | 사용자 확정 의도 원문 (`INT-01-INT-12`) |
-| [docs/prd.md](docs/prd.md) | **현행 제품 요구사항 정본 (`PRD-01-PRD-14`)** - 해커톤 구현 범위 vs 전체 제품 목표 한 장 요약 |
-| [docs/plan.md](docs/plan.md) | **해커톤 2일 수직 슬라이스(`H1-H4`)** vs 제품 마일스톤(`M0-M5`), **5인 실제 팀 역할 분담 및 커밋 구조** |
-| [docs/acceptance-map.csv](docs/acceptance-map.csv) / [docs/traceability.csv](docs/traceability.csv) | 127개 수용 기준(`AC-F01-01-AC-F10-12`) 및 60개 QA 시험(`T01-T60`)과 자동화 테스트 파일 매핑 |
-| [docs/architecture.md](docs/architecture.md) / [docs/api.md](docs/api.md) / [docs/ERD.md](docs/ERD.md) | TypeScript 9개 패키지 구조, HTTP/엔진 API 계약, SQLite 스키마 |
-| [docs/decisions.md](docs/decisions.md) / [docs/spec.md](docs/spec.md) / [docs/security.md](docs/security.md) | 설계 결정(`D01-D24`, Go -> TypeScript 전환 경위 포함), 상태/불변조건(`INV-01-16`), 실행 보안 경계 |
-| [docs/agent-workflow.md](docs/agent-workflow.md) / [docs/extensions.md](docs/extensions.md) | 역할별 JSON 계약/`groundFacts`/`transcript.v1` 및 `SkillPack`/내장 변환/Docker 재현 계약 |
+| [docs/product/prd.md](docs/product/prd.md) | **현행 제품 요구사항 정본 (`PRD-01-PRD-14`)** - 해커톤 구현 범위 vs 전체 제품 목표 한 장 요약 |
+| [docs/product/plan.md](docs/product/plan.md) | **해커톤 2일 수직 슬라이스(`H1-H4`)** vs 제품 마일스톤(`M0-M5`), **5인 실제 팀 역할 분담 및 커밋 구조** |
+| [docs/qa/acceptance-map.csv](docs/qa/acceptance-map.csv) / [docs/qa/traceability.csv](docs/qa/traceability.csv) | 127개 수용 기준(`AC-F01-01-AC-F10-12`) 및 60개 QA 시험(`T01-T60`)과 자동화 테스트 파일 매핑 |
+| [docs/design/architecture.md](docs/design/architecture.md) / [docs/design/api.md](docs/design/api.md) / [docs/design/erd.md](docs/design/erd.md) | TypeScript 9개 패키지 구조, HTTP/엔진 API 계약, SQLite 스키마 |
+| [docs/product/decisions.md](docs/product/decisions.md) / [docs/design/spec.md](docs/design/spec.md) / [docs/design/security.md](docs/design/security.md) | 설계 결정(`D01-D24`, Go -> TypeScript 전환 경위 포함), 상태/불변조건(`INV-01-16`), 실행 보안 경계 |
+| [docs/design/agent-workflow.md](docs/design/agent-workflow.md) / [docs/design/extensions.md](docs/design/extensions.md) | 역할별 JSON 계약/`groundFacts`/`transcript.v1` 및 `SkillPack`/내장 변환/Docker 재현 계약 |
 | [docs/design-tokens.md](docs/design-tokens.md) | 디자인 토큰 3단계(프리미티브/시멘틱/컴포넌트), 눈금, KRDS 참고 출처, `/#design-system` 화면 |
-| [docs/IA.md](docs/IA.md) / [docs/uj.md](docs/uj.md) / [docs/demo.md](docs/demo.md) | 화면 구조(`UI-01-10`), 사용자 여정(`UJ-01-07`), 로컬/Docker 시연 절차 |
+| [docs/design/ia.md](docs/design/ia.md) / [docs/ops/uj.md](docs/ops/uj.md) / [docs/ops/demo.md](docs/ops/demo.md) | 화면 구조(`UI-01-10`), 사용자 여정(`UJ-01-07`), 로컬/Docker 시연 절차 |
 | [docs/features/01-task-intake.md](docs/features/01-task-intake.md) - [10-runtime-boundary.md](docs/features/10-runtime-boundary.md) | 기능 단위 명세 (`F01-F10`) |
 | [docs/presentation/ISSUES.md](docs/presentation/ISSUES.md) / [GUIDE.md](docs/presentation/GUIDE.md) | 발표 슬라이드와 실제 코드 사이의 차이 관리(`PRES-01-12`) 및 발표 가이드 |
+| [docs/product/submission-status.md](docs/product/submission-status.md) | **지금 제출한다고 가정한 현재 상태 스냅샷** - 자동 검증 재실행 결과, AC 현황, 밝혀야 할 제한 |
 
 ---
 
@@ -55,12 +56,39 @@ python tools/validate_docs.py
 
 ### 3.2 서버/클라이언트 실행
 
-`.env.example`을 참고해 `.env`에 OpenAI 호환 LLM 연결 정보(`SAFEHANDOFF_LLM_BASE_URL`, `SAFEHANDOFF_LLM_MODEL`, `SAFEHANDOFF_LLM_API_KEY`)를 설정합니다.
+`mise install` 후 `just app`으로 API 서버와 웹 화면을 함께 실행합니다.
+API만 실행하려면 `just api`, 웹만 실행하려면 `just web`을 사용합니다. 각 명령은
+`pnpm install --frozen-lockfile`과 빌드를 자동 수행합니다.
+준비 단계는 진행 상태만 표시하고 원시 로그는 `.local/bootstrap-log-*/output.log`에 저장합니다.
+실패하면 해당 로그 경로를 안내합니다.
+`just app`은 준비를 한 번만 수행하고 두 서버를 시작합니다. 웹 화면은 `http://127.0.0.1:5173/`이며
+8080은 API 전용입니다. Ctrl+C 또는 한 서버의 종료 시 함께 실행한 다른 서버도 종료합니다.
+API와 웹은 모두 `.env`의 `HOST`를 수신 주소로 사용합니다. 기본은 `127.0.0.1`이며,
+다른 기기에서 접속하려면 `HOST=0.0.0.0`으로 설정하고 `http://<서버 IP>:5173/`로 접속합니다.
+`.env`가 없으면 먼저 `.env.example`을 복사합니다. 기존 `.env`는 그대로 사용합니다.
+`just app`은 `.env`와 환경 변수(환경 변수 우선), 선택한 config의 provider 변수명을 사용합니다.
+없는 모델 URL·모델명·API 키는 프롬프트로 받으며 키는 숨김 입력입니다. 인증이 없으면 Enter로 생략합니다.
+입력한 값은 루트 `.env`에 저장하고 실제 앱에도 전달합니다. 다음 실행부터 저장된 값을 재사용합니다.
+API 키 없이 Enter로 진행한 경우 빈 값으로 저장하며 다시 묻지 않습니다. `.env`는 소유자만 읽고 쓰도록
+저장하고, 기존의 다른 설정과 주석은 보존합니다. 비대화형 실행은 연결 정보를 미리 설정합니다.
+
+config의 `reproduction.enabled=true`이고 `SAFEHANDOFF_REPRO_REGISTRY`가 없으면,
+Go 실행기·Docker 이미지를 빌드하고 실제 digest 및 새 합성 입력을 등록한 파일을
+`.local/app-runtime-*/repro-registration.json`에 생성하여 실제 앱에 자동 주입합니다.
+등록 경로를 이미 지정했으면 해당 파일을 사용하고, reproduction이 disabled이면 준비를 생략합니다.
+새 clone의 `config.example.json`은 reproduction이 disabled이므로 Docker가 필요 없습니다.
+재현을 켜려면 별도 config에서 enabled를 true로 설정합니다.
+Go는 mise에 포함되며 재현 활성화 시 Linux `/usr/bin/docker`, 실행 중인 로컬 데몬과 소켓 권한이 필요합니다.
+기존 config·재현 등록 파일은 수정하지 않습니다. 상세는 [실행기 설치 안내](packages/sandbox-runner/image/README.md)를 참고합니다.
+runner 주입을 준비하며 HTTP/UI 재현 실행은 아직 미구현입니다.
 
 ```sh
-# 실제 앱 (:8080) + 웹 클라이언트 (:5173)
+# 실제 앱 전체: API (:8080) + 웹 화면 (:5173)
 just app
-just client
+
+# 각각 실행할 때는 두 터미널에서 실행
+just api
+just web
 
 # LLM 없이 시연 흐름을 확인하는 가짜 앱 (:8081) + 웹 클라이언트 (:5174)
 just fake-app
@@ -69,12 +97,32 @@ just fake-client
 
 ### 3.3 UI용 task/공개 결정 HTTP
 
-SAFEHANDOFF_WORKFLOW_TOKEN(32자 이상)을 설정하면 실제 앱에서 세션/CSRF/Host/Origin/revision/멱등 키를
-검사하는 인증된 v1 task API(task 생성/원자료 교체/분석 job/CAS/수동 후보/미리보기/결정 배치/철회)를
-사용할 수 있습니다. HTTP loopback/단일 운영자 개발용이며 미설정/fake-app은 WORKFLOW_API_DISABLED입니다.
-상세 DTO는 [docs/api.md](docs/api.md) 5, 남은 UI 연결은 [docs/ui-api-requests.md](docs/ui-api-requests.md)를 따릅니다.
+실제 앱은 시작 토큰이나 로그인 없이 접속합니다. `just app`이 출력한 일반 접속 URL을 열면
+작업 공간이 자동으로 연결됩니다. 세션 쿠키와 CSRF/Host/Origin/revision/멱등 키 검사는
+요청 무결성을 위해 내부에서 처리합니다. 세션 만료·서버 재시작 뒤에도 화면이 자동 재연결합니다.
+작업 API는 기본 활성화이며 `SAFEHANDOFF_WORKFLOW_ENABLED=0`으로 끌 수 있습니다.
+별도 사용자 인증은 제공하지 않습니다. fake-app에는 작업 API가 없습니다.
+상세 DTO는 [docs/design/api.md](docs/design/api.md) 5, 남은 UI 연결은 [docs/ops/ui-api-requests.md](docs/ops/ui-api-requests.md)를 따릅니다.
 
 ### 3.4 CDP 시연 및 OSS Docker 재현 스모크
+
+새 clone에서 `mise install` 후 `just demo`를 실행하면
+`pnpm install --frozen-lockfile`, 빌드, Chromium 설치, 기존 fake-app 화면 시연을 자동 수행합니다.
+API 키나 Docker는 필요 없습니다. `just demo-check`와 `just demo-record`도 같은 준비를 수행합니다.
+
+```sh
+mise install
+just demo
+just demo --headless --fast
+```
+
+Linux 브라우저 시스템 라이브러리 설치에는 sudo 권한이 필요할 수 있습니다.
+설치한 브라우저는 `CHROME_PATH`로 지정할 수 있습니다. 녹화는 macOS Swift/AVFoundation이 필요합니다.
+브라우저가 `No usable sandbox!`로 종료하는 환경에서는 호스트의 sandbox 설정을 확인합니다.
+격리된 로컬 fixture 화면에 한해 sandbox 없이 실행하는 선택 옵션은 `just demo --no-sandbox`입니다.
+
+실제 모델 연결 및 Docker runner 준비는 기존 `just app`에서 처리합니다(3.2 참고).
+아래 OSS CLI는 별도 개발 검증 도구이며 이미지와 installation을 준비한 경우의 수동 명령입니다.
 
 ```sh
 # 최신 fake-app 기반 CDP 6단계 연출 시연 및 탐색/녹화 검증
@@ -96,7 +144,7 @@ node tools/oss-repro-smoke.mjs \
   --output .local/toyrecord-pack-smoke-42.json
 ```
 
-자세한 시연 시나리오/제출 영상(`docs/demo-media/SafeHandoff-demo.mp4`)/과거 영상 참고자료([docs/presentation/video/README.md](docs/presentation/video/README.md))는 [docs/demo.md](docs/demo.md)에서 확인할 수 있습니다.
+자세한 시연 시나리오/제출 영상(`docs/demo-media/SafeHandoff-demo.mp4`)/과거 영상 참고자료([docs/presentation/video/README.md](docs/presentation/video/README.md))는 [docs/ops/demo.md](docs/ops/demo.md)에서 확인할 수 있습니다.
 
 ### 3.5 모델 통신과 결과 인자 복구
 
@@ -173,7 +221,7 @@ provider 확인은 기존 텍스트 경로를 유지합니다.
 해당 동작 가까이에 짧게 표시하고, 개발용 예시 모드는 실제 실행과 구분해 표시합니다.
 
 빌드된 작업 화면은 `vite build`가 만든 `packages/client/dist/static`을 Node가 서빙하고 API를
-프록시하며 `pnpm --filter @safehandoff/client start`로 실행합니다. 개발 실행(`just client`,
+프록시하며 `just app` 또는 `just web`으로 실행합니다. 개발 실행(`pnpm dev:client`,
 `just fake-app`)은 같은 Node 서버에 Vite 미들웨어를 붙이며 HMR과 WebSocket을 쓰지 않으므로 편집
 뒤 브라우저를 새로고침합니다. 고정 Node 버전의 네이티브 설정 로더로 Vite 설정을 읽어
 `node --watch`가 임시 설정 번들 때문에 반복 재시작하지 않게 합니다.

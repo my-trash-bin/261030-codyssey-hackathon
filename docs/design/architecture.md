@@ -1,6 +1,6 @@
 # SafeHandoff 아키텍처 - TypeScript 9개 패키지 구조와 의존성 경계
 
-문서 버전: 2.0 / 기준일: 2026-10-31 / 상태: 현행 정본 / 연결: [prd.md](prd.md), [decisions.md](decisions.md), [api.md](api.md), [ERD.md](ERD.md)
+문서 버전: 2.0 / 기준일: 2026-10-31 / 상태: 현행 정본 / 연결: [prd.md](../product/prd.md), [decisions.md](../product/decisions.md), [api.md](api.md), [ERD.md](erd.md)
 
 ## 1. 패키지 구성과 의존성 방향
 
@@ -65,7 +65,8 @@ flowchart TD
 
 | 실행 대상 | 명령 | 기본 주소 | 용도 |
 | --- | --- | --- | --- |
-| 실제 서버 | `just app` | `http://127.0.0.1:8080` | 사내/로컬 LLM 및 SQLite 연동 실행 |
+| 실제 앱 전체 | `just app` | `http://127.0.0.1:5173` | 설치·빌드 후 API와 웹을 함께 실행·종료 |
+| 실제 서버 | `just api` | `http://127.0.0.1:8080` | 사내/로컬 LLM 및 SQLite 연동 실행 |
 | 시연용 서버 | `just fake-app` | `http://127.0.0.1:8081` | 외부 LLM 없이 UI 상태/응답 시나리오 확인 (`POST /__demo`) |
-| 클라이언트 (실제 연결) | `just client` | `http://127.0.0.1:5173` | `/api` 요청을 `:8080`으로 프록시 |
-| 클라이언트 (시연 연결) | `just client-fake` | `http://127.0.0.1:5174` | `/api` 및 `/__demo` 요청을 `:8081`로 프록시 |
+| 클라이언트 (실제 연결) | `just web` | `http://127.0.0.1:5173` | `/api` 요청을 `:8080`으로 프록시 |
+| 클라이언트 (시연 연결) | `just fake-client` | `http://127.0.0.1:5174` | `/api` 및 `/__demo` 요청을 `:8081`로 프록시 |

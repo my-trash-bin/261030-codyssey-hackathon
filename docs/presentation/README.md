@@ -17,16 +17,16 @@
 
 1/2차 심사 배점, 7분 발표/5분 질의응답 운영, 발표 순서/시장 산식과 출처/10건 비교 실험 실행은
 [발표 가이드](GUIDE.md)를 따른다. B2B 포장 여부는
-[결정 PRES-DEC-01](../decisions.md)에 확정했으며 실제 제품 BM 변경과 구분한다.
+[결정 PRES-DEC-01](../product/decisions.md)에 확정했으며 실제 제품 BM 변경과 구분한다.
 
 ## 외부 정본과 발표용 파생 자료
 
 | 내용 | 정본 / 참조 |
 | --- | --- |
-| 실제 구현/API/미연결 기능 | [루트 README](../../README.md), [API](../api.md) |
-| 제품 의도와 공개 결정 경계 | [intent](../../intent.md), [spec](../spec.md) |
-| 다음 구현 범위 | [구현 계획](../plan.md), [도메인 확장 계약](../extensions.md), [에이전트 역할 계약](../agent-workflow.md) |
-| 현재 기술 스택 | [architecture](../architecture.md), [실행 환경](../../README.md), 각 packages의 package.json. 발표 HTML은 정본이 아님 |
+| 실제 구현/API/미연결 기능 | [루트 README](../../README.md), [API](../design/api.md) |
+| 제품 의도와 공개 결정 경계 | [intent](../../intent.md), [spec](../design/spec.md) |
+| 다음 구현 범위 | [구현 계획](../product/plan.md), [도메인 확장 계약](../design/extensions.md), [에이전트 역할 계약](../design/agent-workflow.md) |
+| 현재 기술 스택 | [architecture](../design/architecture.md), [실행 환경](../../README.md), 각 packages의 package.json. 발표 HTML은 정본이 아님 |
 | 발표와 외부 정본 사이의 편집 이슈 | [ISSUES](ISSUES.md). 제품 계약이 아니라 차이와 후속 결정 기록 |
 | 개별 HTML | 외부 정본에 근거해 편집하는 발표용 파생 자료. 제품/기술의 정본이 아님 |
 | 통합 HTML/PDF | 발표용 HTML을 묶은 배포 산출물. 외부 문서의 정본이 아님 |
@@ -89,5 +89,5 @@ mise run setup-presentation-system
 `mise exec -- python docs/presentation/build_combined_deck.py`를 사용할 수 있다. 브라우저 캐시/
 node_modules/Python 캐시/PDF는 Git에 넣지 않는다.
 
-이전 CDP 영상 연출 브랜치의 참고 자료는 [시연 안내](../demo.md)에서 구분해 설명한다.
+이전 CDP 영상 연출 브랜치의 참고 자료는 [시연 안내](../ops/demo.md)에서 구분해 설명한다.
 `just preview-demo-video`로 과거 fixture 영상을 로컬에서 확인하며 현행 앱 실행과 구분한다.

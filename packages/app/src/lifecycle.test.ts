@@ -39,7 +39,7 @@ async function fixture(t: { after(fn: () => Promise<void>): void }, databasePath
   const server = createServer((req, res) => { void handler(req, res); });
   await new Promise<void>(r => server.listen(0, '127.0.0.1', r));
   const origin = `http://127.0.0.1:${(server.address() as AddressInfo).port}`;
-  handler = createWorkflowHandler(store, core, { token: 'x'.repeat(32), browserOrigin: origin, serverOrigin: origin,
+  handler = createWorkflowHandler(store, core, { browserOrigin: origin, serverOrigin: origin,
     catalog: { projects: [{ id: 'fixture-project', display_name: '가상 프로젝트' }], recipients: [{ id: 'fixture-vendor', display_name: '가상 공급사' }] } });
   let closed = false;
   const close = async () => { if (closed) return; closed = true; await handler.close(); await new Promise<void>(r => server.close(() => r())); store.close(); };
@@ -50,7 +50,7 @@ async function fixture(t: { after(fn: () => Promise<void>): void }, databasePath
   const call = async (path: string, method = 'GET', input?: unknown, key?: string) => {
     const r = await raw(path, method, input, key); return { status: r.status, body: await r.json() as any };
   };
-  const login = await raw('/session', 'POST', { token: 'x'.repeat(32) }); cookie = login.headers.get('set-cookie')!.split(';')[0]!; csrf = (await login.json() as any).data.csrf_token;
+  const login = await raw('/session', 'POST', {}); cookie = login.headers.get('set-cookie')!.split(';')[0]!; csrf = (await login.json() as any).data.csrf_token;
   const poll = async (path: string) => { for (let n = 0; n < 50; n++) { const r = await call(path); if (!['running', 'cancel_requested'].includes(r.body.data?.status)) return r.body.data; } throw Error('local job did not settle'); };
   const intake = { internal_title: 'PRIVATE_INTERNAL_TITLE', project_id: 'fixture-project', purpose_id: 'vendor_support', recipient_id: 'fixture-vendor', audience: 'named_external', skill_ids: [] };
   const create = async (counts = [20, 30, 40]) => {
@@ -151,7 +151,7 @@ test('expiry blocks stored downloads without rerunning the model, metadata endpo
   const events = (await f.call(`/tasks/${task.id}/events`)).body.data.events;
   assert.ok(events.length > 0); assert.ok(!JSON.stringify(events).includes('PRIVATE_'));
   const runtime = (await f.call('/runtime')).body.data; assert.ok(!JSON.stringify(runtime).includes(f.origin));
-  assert.equal((await f.call('/session', 'POST', { token: 'x'.repeat(32) })).status, 401);
+  assert.equal((await f.call('/session', 'POST', {})).status, 200);
   assert.equal((await f.call('/session', 'DELETE')).status, 200);
   assert.equal((await f.call('/tasks')).status, 401);
 });

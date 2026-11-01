@@ -56,7 +56,7 @@ SafeHandoff는 **공유 가능한 자료를 준비하는 작업을 돕는 프로
 
 ## 연결 문서
 
-- [docs/prd.md](docs/prd.md): 위 의도를 현재 사용자/범위/요구사항으로 풀어 쓴다.
-- [docs/spec.md](docs/spec.md): 같은 상황에서 같은 결과를 내도록 동작 규칙을 정한다.
-- [docs/decisions.md](docs/decisions.md): 확정 방향/구현 기본값/실제 확인 필요를 구분한다.
+- [docs/product/prd.md](docs/product/prd.md): 위 의도를 현재 사용자/범위/요구사항으로 풀어 쓴다.
+- [docs/design/spec.md](docs/design/spec.md): 같은 상황에서 같은 결과를 내도록 동작 규칙을 정한다.
+- [docs/product/decisions.md](docs/product/decisions.md): 확정 방향/구현 기본값/실제 확인 필요를 구분한다.
 - [AGENTS.md](AGENTS.md): 문서 역할/관계/변경 권한과 구현 에이전트의 작업 절차를 정한다.

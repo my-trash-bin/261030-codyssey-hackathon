@@ -1,6 +1,6 @@
 # 데이터 모델과 저장 계약 (ERD)
 
-문서 버전: 2.0 / 기준일: 2026-10-31 / 상태: 현행 정본 (TypeScript `node:sqlite` 워크스페이스 기준) / 참조 DDL: [schema.sql](../contracts/schema.sql), [task-schema.ts](../packages/server/src/task-schema.ts) / 공통 enum: [domain-contract.json](../contracts/domain-contract.json)
+문서 버전: 2.0 / 기준일: 2026-10-31 / 상태: 현행 정본 (TypeScript `node:sqlite` 워크스페이스 기준) / 참조 DDL: [schema.sql](../../contracts/schema.sql), [task-schema.ts](../../packages/server/src/task-schema.ts) / 공통 enum: [domain-contract.json](../../contracts/domain-contract.json)
 
 ## 0. 현행 TypeScript SQLite 구현 테이블과 전체 목표 스키마 매핑
 
@@ -86,7 +86,7 @@ erDiagram
 | `deletion_receipts` | task_id PK, request_key, request_hash, deleted_at, expires_at | 삭제 재전송 처리용 24시간 무내용 영수증. 원문/제목/응답 body 없음 |
 | `run_traces` | id, job_id, role, prompt_version, provider_config_hash, elapsed_ms, usage_json, error_code, raw_request/response_payload, raw_payload_expires_at | 메타데이터 기본 저장. raw body는 디버그 opt-in, 24시간 후 제거 |
 
-카탈로그(project/purpose/recipient/공개 template/등록 pack/tool)는 첫 버전에서 검증된 로컬 설정으로 제공한다. 구성은 시작 시 snapshot/digest를 기록한다. 사용자/조직/회원/청구 테이블은 없다. 세션과 일회 토큰은 메모리에만 두며 재시작하면 새 접속이 필요하다.
+카탈로그(project/purpose/recipient/공개 template/등록 pack/tool)는 첫 버전에서 검증된 로컬 설정으로 제공한다. 구성은 시작 시 snapshot/digest를 기록한다. 사용자/조직/회원/청구 테이블은 없다. 내부 세션은 메모리에만 두며 재시작하면 화면이 자동 재연결한다. 사용자 접속 토큰은 사용하지 않는다.
 
 ## 3. JSON 칼럼의 필수 의미
 
@@ -177,7 +177,7 @@ DB 트랜잭션은 모델/실행기 대기 시간까지 유지하지 않는다. 
 
 작업별 파일/원자료/근거/초안/검토/export/trace/event/멱등 응답을 함께 삭제한다. 삭제 이후 늦게 반환된 job은 task 없음으로 적용을 거부한다. `deletion_receipts`는 24시간 뒤 제거하고 원문 데이터가 없어야 한다. 이미 받은 파일과 OS 백업까지 삭제했다고 표시하지 않는다.
 
-run_traces의 raw body는 기본 null이다. opt-in이면 expires_at을 함께 저장하고 24시간 후 body만 null로 지워 작업 측정 metadata를 유지한다. 일회 토큰/세션/CSRF/모델 API key는 이 DB에 저장하지 않는다. 사용자 삭제까지 보관하는 기본값은 실자료 운영 전 Q-POLICY에서 조직 정책과 맞춘다.
+run_traces의 raw body는 기본 null이다. opt-in이면 expires_at을 함께 저장하고 24시간 후 body만 null로 지워 작업 측정 metadata를 유지한다. 세션/CSRF/모델 API key는 이 DB에 저장하지 않는다. 사용자 삭제까지 보관하는 기본값은 실자료 운영 전 Q-POLICY에서 조직 정책과 맞춘다.
 
 ## 8. migration 완료 기준
 

@@ -1,6 +1,4 @@
-// 로컬 접속 세션. 운영자 토큰을 POST /api/v1/session으로 교환하고 CSRF 토큰만 돌려준다.
-// 토큰은 메모리에만 두며 저장소·로그·URL에 남기지 않는다. 응답 DTO는 docs/api.md의
-// "인증된 task·공개 결정 API" 절을 따른다.
+// 자동 연결 세션. 쿠키와 CSRF 상태를 관리하며 사용자 인증 토큰은 사용하지 않는다.
 import { isRecord } from './disclosure-contract.ts';
 
 export interface SessionEnvironment {
@@ -17,7 +15,6 @@ export interface SessionInfo {
 }
 
 export type SessionFailureKind =
-  | 'invalid_token'
   | 'no_session'
   | 'boundary'
   | 'disabled'
@@ -78,7 +75,7 @@ export function parseSession(body: unknown): SessionInfo | null {
 }
 
 function failureKind(status: number, mode: 'open' | 'restore'): SessionFailureKind {
-  if (status === 401) return mode === 'open' ? 'invalid_token' : 'no_session';
+  if (status === 401) return 'no_session';
   if (status === 403) return 'boundary';
   if (status === 503) return 'disabled';
   if (status === 429) return 'limit';
@@ -99,7 +96,6 @@ async function readErrorCode(response: Response): Promise<string> {
 async function requestSession(
   fetchFn: FetchFn,
   mode: 'open' | 'restore',
-  token?: string,
 ): Promise<SessionResult> {
   let response: Response;
   try {
@@ -108,7 +104,7 @@ async function requestSession(
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
         credentials: 'same-origin',
-        body: JSON.stringify({ token }),
+        body: '{}',
       })
       : await fetchFn('/api/v1/session', {
         method: 'GET',
@@ -132,11 +128,9 @@ async function requestSession(
   return { ok: true, session };
 }
 
-/** 운영자 토큰으로 세션을 연다. 빈 토큰은 요청 없이 거부한다. */
-export function openSession(fetchFn: FetchFn, token: string): Promise<SessionResult> {
-  const trimmed = token.trim();
-  if (trimmed === '') return Promise.resolve({ ok: false, failure: { kind: 'invalid_token', status: 0, code: 'EMPTY_TOKEN' } });
-  return requestSession(fetchFn, 'open', trimmed);
+/** 페이지 연결에 필요한 세션을 자동 생성한다. */
+export function openSession(fetchFn: FetchFn): Promise<SessionResult> {
+  return requestSession(fetchFn, 'open');
 }
 
 /** 이미 열린 세션(쿠키)을 조회한다. 토큰을 다시 보내지 않는다. */
@@ -181,16 +175,12 @@ export async function logoutSession(fetchFn: FetchFn, csrfToken: string): Promis
 /** 화면에 표시할 사유. 토큰 값이나 서버 내부 정보를 담지 않는다. */
 export function sessionFailureMessage(failure: SessionFailure): string {
   switch (failure.kind) {
-    case 'invalid_token':
-      return failure.code === 'EMPTY_TOKEN'
-        ? '접속 토큰을 입력하세요.'
-        : '토큰이 일치하지 않거나 이미 사용했거나 5분이 지났습니다. 서버를 다시 시작하면 터미널에 새 시작 토큰이 한 번 표시됩니다.';
     case 'no_session':
-      return '열린 세션이 없습니다. 서버를 시작할 때 터미널에 한 번 표시된 시작 토큰을 입력해 세션을 시작하세요. 서버를 다시 시작했다면 새 토큰이 필요합니다.';
+      return '서버 연결을 다시 준비합니다.';
     case 'boundary':
-      return '이 브라우저 주소는 서버가 허용한 loopback origin과 다릅니다. SAFEHANDOFF_WORKFLOW_BROWSER_ORIGIN을 확인하세요.';
+      return '이 브라우저 주소는 서버에 설정된 접속 주소와 다릅니다. SAFEHANDOFF_WORKFLOW_BROWSER_ORIGIN을 확인하세요.';
     case 'disabled':
-      return '이 서버는 작업 API가 꺼져 있어 세션을 열 수 없습니다. 서버를 SAFEHANDOFF_WORKFLOW_ENABLED=1 또는 32자 이상 SAFEHANDOFF_WORKFLOW_TOKEN으로 다시 시작한 뒤 다시 확인을 누르세요.';
+      return '작업 API가 비활성입니다. SAFEHANDOFF_WORKFLOW_ENABLED 설정을 확인하세요.';
     case 'limit':
       return '세션을 더 열 수 없습니다. 서버를 다시 시작하거나 기존 세션이 만료될 때까지 기다리세요.';
     case 'malformed':

@@ -116,7 +116,7 @@ test('server exposes analysis only when an engine is injected, and forwards its 
   }
 });
 
-// Regression for docs/decisions.md's "두 신뢰 경계" entry: /api/sharing, /api/analysis and
+// Regression for docs/product/decisions.md's "두 신뢰 경계" entry: /api/sharing, /api/analysis and
 // /api/documents must share the exact same session/CSRF/Host/Origin boundary as /api/v1/*
 // whenever an operator has turned it on, not stay silently open next to it.
 test('legacy routes share the session boundary once an operator enables it', async () => {
@@ -129,14 +129,14 @@ test('legacy routes share the session boundary once an operator enables it', asy
   const server = createServer((request, response) => { void app(request, response); });
   await new Promise<void>(resolve => server.listen(0, '127.0.0.1', resolve));
   const origin = `http://127.0.0.1:${(server.address() as AddressInfo).port}`;
-  const sessions = new WorkflowSessions({ token: 's'.repeat(32), browserOrigin: origin, serverOrigin: origin });
+  const sessions = new WorkflowSessions({ browserOrigin: origin, serverOrigin: origin });
   app = createApp(store, core, undefined, undefined, sessions);
   // Forge a session the same way workflow-http.test.ts's session-expiry case does, without
   // needing /api/v1/session mounted (this test only exercises the legacy routes' guard).
   let setCookie = '';
   const fakeRequest = { headers: { host: new URL(origin).host, origin } } as import('node:http').IncomingMessage;
   const fakeResponse = { setHeader: (_n: string, v: string) => { setCookie = v; } } as unknown as import('node:http').ServerResponse;
-  const { csrf_token: csrf } = sessions.open(fakeRequest, fakeResponse, 's'.repeat(32));
+  const { csrf_token: csrf } = sessions.open(fakeRequest, fakeResponse);
   const cookie = setCookie.split(';')[0]!;
   const input = { purpose: 'support', recipient: 'vendor', facts: [{ id: 'a', text: 'approved' }] };
   try {

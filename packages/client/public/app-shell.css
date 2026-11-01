@@ -29,11 +29,12 @@
 }
 
 .brand__accent {
-  stroke: var(--color-text-accent);
+  stroke: var(--color-brand-mark);
 }
 
 .brand h1 {
   font-size: var(--type-heading-size);
+  font-weight: var(--font-weight-strong);
   line-height: var(--line-height-tight);
 }
 

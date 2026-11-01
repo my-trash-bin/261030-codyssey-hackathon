@@ -38,7 +38,7 @@ function documentText(value: unknown): string {
 // session/CSRF/Host/Origin boundary as /api/v1/* (packages/server/src/workflow-session.ts),
 // whenever an operator has turned that boundary on (`sessions` present). docs/features/
 // 10-runtime-boundary.md's access rules are not scoped to the workflow API specifically --
-// see docs/decisions.md's "두 신뢰 경계" entry and core.test.ts's
+// see docs/product/decisions.md's "두 신뢰 경계" entry and core.test.ts's
 // "legacy routes share the session boundary once an operator enables it" test for the
 // regression this guards against.
 // `/health` and `/api/core` stay unguarded: they return no raw material and no model output.

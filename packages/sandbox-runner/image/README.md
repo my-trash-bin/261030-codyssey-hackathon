@@ -2,6 +2,17 @@
 
 이 이미지는 의도적인 UTF-8 버퍼 결함의 buggy/fixed 두 모드와 실제 파일을 읽는 supervisor를 포함한다. 임의 프로그램 실행기는 아니다. supervisor는 대상 프로세스 종료 후 `/out/result.bin`의 파일 종류/크기/바이트를 확인하고, 호스트는 base64 바이트와 등록한 합성 입력을 다시 비교한다. 등록 이미지 전체가 신뢰 경계다.
 
+## 실제 앱 자동 준비
+
+`mise install` 후 기존 `just app`은 의존성 설치·빌드·모델 연결 정보 입력을 처리한다.
+config의 reproduction.enabled가 true이고 `SAFEHANDOFF_REPRO_REGISTRY`가 없으면 아래 이미지 빌드와
+등록 파일 생성을 자동 수행하고, 생성한 경로를 실제 앱 프로세스에 전달한다.
+파일은 `.local/app-runtime-*/repro-registration.json`에 저장한다. config·기존 재현 등록은 수정하지 않는다.
+모델 연결 정보는 `.env`가 없으면 `.env.example`을 복사한 뒤 입력받아 `.env`에 저장한다.
+등록 경로가 이미 있으면 이를 사용하며 reproduction이 disabled이면 Docker 준비를 생략한다.
+Linux Docker 설치·데몬·권한은 별도로 준비한다. HTTP/UI 재현 실행은 아직 미구현이다.
+[실행 안내](../../../README.md) 3.2를 참고한다.
+
 ## 설치 시 빌드
 
 Go 도구와 Docker가 설치된 호스트에서 저장소 루트 기준으로 실행한다. Go 표준 라이브러리만 사용한다. 아래 빌드는 업무 실행과 분리하며 다운로드를 하지 않는다.

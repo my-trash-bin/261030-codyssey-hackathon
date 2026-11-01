@@ -28,6 +28,9 @@
   --p-accent-50: #3a5bd9;
   --p-accent-70: #2c47b0;
 
+  /* 로고 전용. 화면 요소에는 쓰지 않는다. */
+  --p-brand-50: #e8734a;
+
   /* 상태 계열. 성공/주의/위험은 글자와 왼쪽 괘선에만 쓴다. */
   --p-success-10: #e3f4ea;
   --p-success-50: #0f7a4d;
@@ -124,6 +127,7 @@
   --color-text-disabled: var(--p-neutral-60);
   --color-text-inverse: var(--p-neutral-0);
   --color-text-accent: var(--p-accent-50);
+  --color-brand-mark: var(--p-brand-50);
   --color-text-on-accent: var(--p-neutral-0);
   --color-text-success: var(--p-success-50);
   --color-text-warning: var(--p-warning-50);

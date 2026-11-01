@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "urn:safehandoff:core-contracts:v1",
   "title": "SafeHandoff P0 core request/model contracts",
-  "description": "Reusable definitions. Validate a named $defs entry; additional domain checks in docs/api.md are mandatory. Extension tool schemas are registered separately.",
+  "description": "Reusable definitions. Validate a named $defs entry; additional domain checks in docs/design/api.md are mandatory. Extension tool schemas are registered separately.",
   "$defs": {
     "scope": {
       "$ref": "urn:safehandoff:core-contracts:shared:v1#/$defs/scope"

@@ -1,4 +1,4 @@
-// F07 domain extension packs (docs/extensions.md §2-3, docs/features/07-domain-extensions.md).
+// F07 domain extension packs (docs/design/extensions.md §2-3, docs/features/07-domain-extensions.md).
 // A pack bundles product-specific instructions following the Agent Skills folder convention
 // (SKILL.md/references/assets/scripts) plus the tool/template ids it requires. Loading one is
 // not a pure transform (it has to walk a filesystem and resolve symlinks), so it is a port
