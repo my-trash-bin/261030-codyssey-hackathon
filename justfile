@@ -40,7 +40,7 @@ setup-presentation:
 
 # 개별 슬라이드 HTML은 편집용이며 통합 HTML·PDF만 생성한다.
 build-presentation:
-    mise exec -- python docs/presentation/build_combined_deck.py
+    mise exec -- node tools/build-presentation-html.mts
     mise exec -- node tools/build-presentation.mjs
 
 # 의존성·브라우저 준비 후 fake-app 화면 시연

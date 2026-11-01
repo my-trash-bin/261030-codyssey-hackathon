@@ -58,7 +58,7 @@ mise run setup-presentation
 mise exec -- just build-presentation
 ```
 
-mise가 고정한 Node/pnpm/just/Python을 설치하고, setup-presentation이 잠금 파일의 Playwright/
+mise가 고정한 Node/pnpm/just를 설치하고, setup-presentation이 잠금 파일의 Playwright/
 한글 글꼴 패키지와 해당 Chromium을 준비한다. mise를 셸에 활성화했다면 마지막 명령은
 `just build-presentation`으로 줄일 수 있다. just가 없어도 `mise install`과 mise task를 먼저 쓸 수 있다.
 
@@ -70,7 +70,7 @@ Linux에서 Chromium 시스템 라이브러리가 없으면 별도로 실행한�
 mise run setup-presentation-system
 ```
 
-`just build-presentation`은 build_combined_deck.py의 SLIDES에 있는 표지와 본문 10쪽을 읽어 **통합 HTML과 PDF**를 생성한다.
+`just build-presentation`은 `tools/build-presentation-html.mts`의 `SLIDES`에 있는 표지와 본문 10쪽을 읽어 **통합 HTML과 PDF**를 생성한다.
 2쪽은 상단 페르소나와 두 가지 문제 스토리라인, 3쪽은 솔루션 및 유저플로우다. 4쪽에는 비교 항목을 세로로 읽는 서비스 차별점 표를 배치하고 SafeHandoff 열을 강조한다. 공개 승인, 승인 사실 기반 재작성, 검수/대조를 핵심 차별점으로 설명한다. 제품군의 대표 접근 방식과 서비스 전체 방향을 비교하며 현재 개발 범위는 5쪽에 구분한다.
 5쪽은 활용 AI 기술 및 직접 개발 범위다. 모델/API, 승인팩 작성/규칙 검사/LLM 대조, 공개 표현의 결정적 변환을 명시한다. 협업/검사 도구와 네 개발 영역을 함께 표시하며, 후보 AI 분류/공개 수준 자동 제안/산업별 프로필은 완료 기능으로 설명하지 않는다. 기존 하단의 규칙 설명/DB 프로필 예시는 제외한다.
 이어 6쪽 기술 스택, 7쪽 팀원 역할, 8쪽 외부 자원 활용 내역, 9쪽 박지훈 캐릭터를 포함한 사용 전후 기대효과, 10쪽 온프레미스 오픈소스/기관 협력 확장 구상을 배치한다. TAM/SAM/SOM과 가격/시장 규모 가정은 발표에서 제외한다.
@@ -86,7 +86,7 @@ mise run setup-presentation-system
 
 빌드는 이미지 로딩/11개 슬라이드/PDF 11쪽을 검사하고, 실패하면 이전 PDF를 덮어쓰지 않는다.
 내용 잘림/문구 의미는 발표자가 별도 확인한다. HTML만 만들 필요가 있을 때는
-`mise exec -- python docs/presentation/build_combined_deck.py`를 사용할 수 있다. 브라우저 캐시/
+`mise exec -- node tools/build-presentation-html.mts`를 사용할 수 있다. 브라우저 캐시/
 node_modules/Python 캐시/PDF는 Git에 넣지 않는다.
 
 이전 CDP 영상 연출 브랜치의 fixture 녹화와 참고 자료(`docs/presentation/video/`)는 현재 client UI와 맞지 않아
