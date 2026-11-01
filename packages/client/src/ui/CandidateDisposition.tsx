@@ -91,6 +91,9 @@ export function CandidateDisposition(props: {
               id={id}
               value={key}
               checked={draft.disposition === option.value}
+              data-role="disposition"
+              data-disposition={key}
+              data-candidate-id={candidate.id}
               data-focus-key={`disposition:${candidate.id}:${key}`}
               aria-describedby={option.value === 'exclude' && showRequiredNotice ? requiredNoticeId : undefined}
               onChange={event => {

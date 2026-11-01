@@ -42,6 +42,9 @@ export function CandidateMode(props: {
                 value={mode}
                 checked={draft.mode === mode}
                 disabled={Boolean(reason)}
+                data-role="representation-mode"
+                data-mode={mode}
+                data-candidate-id={candidate.id}
                 data-focus-key={`mode:${candidate.id}:${mode}`}
                 aria-describedby={reason ? `${id}-reason` : undefined}
                 onChange={event => {

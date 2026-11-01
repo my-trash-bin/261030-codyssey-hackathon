@@ -35,7 +35,7 @@ export function installStage() {
  const panel = document.createElement('aside');
  panel.id = 'demo-stage';
  panel.setAttribute('aria-label', '시연 해설과 재생 제어');
- panel.innerHTML = '<small>SAFEHANDOFF / 실제 CLIENT · FAKE BACKEND · WORKFLOW 미구현</small>'
+ panel.innerHTML = '<small>SAFEHANDOFF / 실제 CLIENT · FAKE CORE · 전체 USER FLOW</small>'
   + '<h2></h2><p id="demo-meaning"></p><nav aria-label="전체 시연 단계"></nav>'
   + '<input id="demo-timeline" type="range" min="0" max="0" value="0" aria-label="이동할 장면">'
   + '<div class="controls"><button id="demo-prev">이전</button>'
@@ -146,7 +146,7 @@ export function installStage() {
   panel.querySelector('h2').textContent = stopped ? '시연을 종료했습니다'
    : seeking ? '선택한 장면으로 이동 중…' : scene ? `${String(scene.chapter).padStart(2, '0')} / ${scene.title}` : '시연 준비 중';
   panel.querySelector('#demo-meaning').textContent = stopped ? '창을 닫으면 전용 서버도 종료됩니다.'
-   : seeking ? '실제 client의 현재 연결 상태를 다시 확인합니다.' : scene?.meaning || '';
+   : seeking ? '실제 client에서 선택한 사용자 흐름 장면을 다시 준비합니다.' : scene?.meaning || '';
   panel.querySelector('#demo-pause').textContent = completed ? '처음으로' : paused ? '재생' : '일시정지';
   panel.querySelector('#demo-prev').disabled = index <= 0 || seeking || stopped;
   panel.querySelector('#demo-next').disabled = index >= plan.length - 1 || seeking || stopped;

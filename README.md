@@ -38,7 +38,7 @@ Node 24(`node:sqlite`, `node --test`) + TypeScript 5.8 + React 19 기반 `pnpm` 
 | `@safehandoff/skill-loader` | 도메인 지침 팩(`SkillPack`) 로더 | `FsSkillPackLoader` (`O_NOFOLLOW` 심볼릭링크 차단, `manifest.json` 및 파일 전체 SHA-256 지문 검증) |
 | `@safehandoff/server` | HTTP 서버 및 SQLite 저장소 | `createServer` (task API, `/health`, `/api/core`), `TaskStore` (`workflow_*` 11개 테이블/migration v2/`TaskStore.analysis` CAS) |
 | `@safehandoff/app` | 실제 실행 서버 (`:8080`) | `RealCore` + `OpenAICompatibleModelClient` + `DockerReproRunner` + SQLite 연결 |
-| `@safehandoff/fake-app` | 시연용 API 서버 (`:8081`) | `FakeCore` + 시연 상태 제어 (`/__demo`, `/api/demo/settings`). `/api/v1` workflow는 아직 제공하지 않음 |
+| `@safehandoff/fake-app` | 시연용 API 서버 (`:8081`) | 외부 모델을 호출하지 않는 `FakeCore` Engine + SQLite workflow + 시연 상태 제어 (`/__demo`, `/api/demo/settings`) |
 | `@safehandoff/client` | 웹 클라이언트 (`:5173` / `:5174`, React 19 + Vite) | 업무용 콘솔 형태의 6단계 작업 화면. 세션, 카탈로그 기반 작업 등록, 원자료, 분석, 공개 결정, 초안/검토/확정, 규칙, 이력, 문서 보관소를 인증된 `/api/v1` 경로로 호출. 상태는 순수 reducer(`disclosure-state.ts`)와 훅(`ui/hooks/`)이 소유 |
 
 ---
@@ -104,16 +104,16 @@ just fake-client
 작업 공간이 자동으로 연결됩니다. 세션 쿠키와 CSRF/Host/Origin/revision/멱등 키 검사는
 요청 무결성을 위해 내부에서 처리합니다. 세션 만료·서버 재시작 뒤에도 화면이 자동 재연결합니다.
 작업 API는 기본 활성화이며 `SAFEHANDOFF_WORKFLOW_ENABLED=0`으로 끌 수 있습니다.
-별도 사용자 인증은 제공하지 않습니다. fake-app에는 작업 API가 없습니다.
+별도 사용자 인증은 제공하지 않습니다. fake-app도 같은 작업 API 계약을 사용하지만 고정 응답 `FakeCore`와 별도 시연 DB에만 연결됩니다.
 상세 DTO는 [docs/design/api.md](docs/design/api.md) 5, 남은 UI 연결은 [docs/ops/ui-api-requests.md](docs/ops/ui-api-requests.md)를 따릅니다.
 
 ### 3.4 CDP 시연 및 OSS Docker 재현 스모크
 
 새 clone에서 `mise install` 후 `just demo`를 실행하면
 `pnpm install --frozen-lockfile`, 빌드, Chromium 설치 후 실제 `@safehandoff/client` 화면을
-별도 포트의 `fake-app`에 연결해 엽니다. 별도 시연 UI clone은 사용하지 않으며, fake-app에 아직
-`/api/v1` workflow가 없어서 실제 UI가 연결 불가를 표시하는 현재 미완성 상태까지가 실행 범위입니다.
-API 키나 Docker는 필요 없습니다. `just demo-check`는 이 상태를 성공 흐름으로 꾸미지 않고 확인합니다.
+별도 포트의 `fake-app`에 연결해 엽니다. 별도 시연 UI clone은 사용하지 않으며, 실제 REST/UI 계약으로
+작업 생성, 원자료 등록, 분석, 공개 결정, 초안/검토, 최종 확정까지 자동 진행합니다.
+API 키나 Docker는 필요 없습니다. `just demo-check`는 이 전체 사용자 흐름을 headless Chromium으로 검증합니다.
 
 ```sh
 mise install
@@ -130,7 +130,7 @@ Linux 브라우저 시스템 라이브러리 설치에는 sudo 권한이 필요�
 아래 OSS CLI는 별도 개발 검증 도구이며 이미지와 installation을 준비한 경우의 수동 명령입니다.
 
 ```sh
-# 실제 client + fake backend의 현재 연결 상태 확인
+# 실제 client + fake core workflow의 전체 사용자 흐름 확인
 mise exec -- just demo
 mise exec -- just demo-check
 mise exec -- just demo-record

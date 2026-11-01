@@ -7,7 +7,7 @@
 실제 앱은 `/health`, `/api/core`와 아래 task API만 제공한다. 원자료를 등록해도 자동 분석하지 않는다.
 구형 `/api/documents`, `/api/sharing`, `/api/analysis` 및 별칭은 실제 앱에서 제거했다.
 fake-app의 `/api/documents`, `/api/sharing`, `/__demo`는 연출 전용이다.
-`/__presentation`은 제거했으며 시연은 실제 client를 사용한다. fake-app의 workflow API는 미지원이다.
+`/__presentation`은 제거했으며 시연은 실제 client를 사용한다. fake-app은 같은 workflow API에 외부 호출 없는 `FakeCore`를 주입한다.
 제거 이유와 추가 후보는 [기능 정리](../product/deferred-features.md)를 따른다.
 
 ## 2. 현행 구현된 엔진/라이브러리 계약 (`@safehandoff/core` / `core-interface`)
@@ -71,8 +71,8 @@ API 프록시의 server origin은 loopback이다. 시작 토큰과 사용자 로
 ## 5. task/공개 결정 API (단일 운영자 개발용)
 
 기존 `/api/analysis`는 stateless로 유지한다. 아래 v1 경로는 실제 앱에서
-기본 활성화된다. `SAFEHANDOFF_WORKFLOW_ENABLED=0` 또는 fake-app은
-503 `WORKFLOW_API_DISABLED`다. 워크플로우 세션을 켜면 기존 `/api/documents`/`/api/sharing`/
+기본 활성화된다. 실제 앱에서 `SAFEHANDOFF_WORKFLOW_ENABLED=0`이면 503 `WORKFLOW_API_DISABLED`다.
+fake-app은 시연 전용 별도 DB와 `FakeCore`로 workflow를 항상 활성화한다. 워크플로우 세션을 켜면 기존 `/api/documents`/`/api/sharing`/
 `/api/analysis`도 **같은** 세션/CSRF/Host/Origin 검사를 거친다(`packages/server/src/app.ts`의
 `GUARDED_PATHS`, `packages/app/src/main.ts`가 `createWorkflowHandler`와 `createApp`에 같은
 `WorkflowSessions` 인스턴스를 공유해 한 쪽에서 연 세션이 다른 쪽에도 통한다). 세션을 켜지 않으면
