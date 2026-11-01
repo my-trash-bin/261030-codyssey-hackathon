@@ -5,37 +5,10 @@ import { useCallback, useEffect, useReducer, useRef } from 'react';
 import { newIdempotencyKey, parseFieldList, parseJob, parsePreview, parseSnapshot, serverErrorCode, toWireRepresentation } from '../../disclosure-contract.ts';
 import type { Mode, Disposition, Draft, Snapshot } from '../../disclosure-contract.ts';
 import { blankDraft, disclosuresReducer, initialDisclosuresState, withFieldSelection, withMode } from '../../disclosure-state.ts';
-import type { BatchRetry, FieldEntry, FieldsOutcome, JobOutcome, PreviewOutcome } from '../../disclosure-state.ts';
+import type { BatchRetry, FieldsOutcome, JobOutcome, PreviewOutcome } from '../../disclosure-state.ts';
 import { batchBlockReason, canGenerate, planApply, planFieldList, planInterpret, planLoadTask, planPreview, planRefreshInterpretation, planRevoke, writeBlockReason } from '../../disclosure-selectors.ts';
-
-export interface DisclosuresApi {
-  readonly snapshot: Snapshot | null;
-  readonly drafts: ReadonlyMap<string, Draft>;
-  /** 후보별 서버 필드 목록 상태(C 선택 필드). 목록 자체가 정본이라 화면은 캐시하지 않는다. */
-  readonly fields: ReadonlyMap<string, FieldEntry>;
-  readonly busy: boolean;
-  readonly message: string;
-  readonly writeBlockReason: string;
-  readonly batchBlockReason: string;
-  readonly canGenerate: boolean;
-  loadTask(id: string): Promise<void>;
-  /** 작업이 삭제된 뒤 이전 snapshot·초안·필드 목록을 모두 버린다. */
-  clearTask(): void;
-  chooseDisposition(id: string, disposition: Disposition | null): void;
-  /** 다음 초안을 함께 돌려준다. 같은 tick에서 미리보기를 이어 부를 때 렌더 지연 없이 쓴다. */
-  chooseMode(id: string, mode: Mode): Draft | null;
-  setCondition(id: string, text: string): void;
-  setReusable(id: string, value: boolean): void;
-  /** C 필드 목록을 서버에서 다시 불러온다. */
-  loadFields(id: string): Promise<void>;
-  /** 체크박스 전이. 다음 초안을 함께 돌려주며, 목록을 모르면 null이다. */
-  toggleField(id: string, field: string, checked: boolean): Draft | null;
-  preview(id: string, draftAtRequest?: Draft): Promise<void>;
-  interpret(id: string): Promise<void>;
-  refreshInterpretation(id: string): Promise<void>;
-  apply(): Promise<void>;
-  revoke(decisionId: string): Promise<void>;
-}
+import type { DisclosuresApi } from './disclosures-api.ts';
+export type { DisclosuresApi } from './disclosures-api.ts';
 
 function readJson(response: Response): Promise<unknown> {
   return response.json().catch(() => null);

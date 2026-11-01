@@ -1,0 +1,314 @@
+/* 버튼 */
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--button-height);
+  max-width: 100%;
+  padding: var(--space-3) var(--space-4);
+  border: var(--border-width) solid var(--color-border-strong);
+  border-radius: var(--button-radius);
+  background: var(--color-surface-raised);
+  color: var(--color-text-primary);
+  font-family: inherit;
+  font-size: var(--type-body-size);
+  font-weight: var(--button-font-weight);
+  line-height: var(--line-height-snug);
+  text-align: start;
+  overflow-wrap: anywhere;
+  cursor: pointer;
+}
+
+@media (hover: hover) {
+  .button:hover:not(:disabled) {
+    text-decoration: underline;
+    text-underline-offset: var(--space-1);
+  }
+}
+
+.button:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--space-1);
+}
+
+/* 점선은 파일을 끌어다 놓는 영역처럼 보인다. 비활성은 면색과 글자색으로만 구분한다. */
+.button:disabled {
+  border-color: var(--color-border-subtle);
+  background: var(--button-background-disabled);
+  color: var(--button-text-disabled);
+  cursor: not-allowed;
+}
+
+.button--solid {
+  border-color: var(--button-background-solid);
+  background: var(--button-background-solid);
+  color: var(--button-text-solid);
+}
+
+@media (hover: hover) {
+  .button--solid:hover:not(:disabled) {
+    border-color: var(--button-background-solid-hover);
+    background: var(--button-background-solid-hover);
+    text-decoration: none;
+  }
+}
+
+.button--solid:disabled {
+  background: var(--button-background-disabled);
+  color: var(--button-text-disabled);
+}
+
+/* 로컬 접속 — 모든 v1 쓰기의 전제라 작업 그리드 위에 전체 폭으로 둔다 */
+
+.session {
+  display: grid;
+  gap: var(--space-5);
+  min-width: 0;
+  margin-bottom: var(--layout-block-gap);
+  padding: var(--space-6) var(--space-7);
+  border: var(--border-width) solid var(--color-border-subtle);
+  border-radius: var(--panel-radius);
+  box-shadow: var(--shadow-panel);
+  background: var(--color-surface-raised);
+}
+
+.session > p {
+  max-width: 68ch;
+}
+
+.session > .form > .button {
+  justify-self: start;
+}
+
+.session__form {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: var(--space-5);
+}
+
+.session__form > .button {
+  min-height: var(--button-height);
+  justify-content: center;
+}
+
+@media (max-width: 640px) {
+  .session {
+    padding: var(--space-5);
+  }
+
+  .session__form {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.action {
+  display: grid;
+  gap: var(--space-3);
+  justify-items: start;
+  min-width: 0;
+}
+
+/* 공개 방식 선택 */
+
+.option {
+  display: flex;
+  align-items: center;
+  gap: var(--control-mark-gap);
+  min-height: var(--button-height-small);
+  min-width: 0;
+}
+
+/* 라디오 크기와 초점 고리는 전역 규칙을 쓴다. */
+
+.option > label {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  align-content: center;
+  gap: 0 var(--space-3);
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: var(--button-height-small);
+  font-size: var(--type-body-size);
+  line-height: var(--line-height-normal);
+  cursor: pointer;
+  overflow-wrap: anywhere;
+}
+
+.option:has(input:checked) > label {
+  font-weight: var(--font-weight-strong);
+}
+
+/* 선택해도 설명까지 굵어지지 않게 한다. */
+.option__note {
+  font-size: var(--type-label-size);
+  font-weight: var(--font-weight-regular);
+  color: var(--color-text-secondary);
+}
+
+/* 동의 문장은 한 줄이 길어 같은 크기로 두면 과하게 무겁다. 본문보다 한 단계 작게, 자간은 그대로. */
+.option--consent > label {
+  font-size: var(--type-body-sm-size);
+  line-height: var(--line-height-relaxed);
+  font-weight: var(--font-weight-regular);
+  /* 46ch는 이 문장(약 60자)에 짧아 마지막 두 글자만 다음 줄로 떨어졌다. 한 줄에 들어갈 폭을 주고,
+     어절이 홀로 남지 않도록 줄바꿈 균형을 브라우저에 맡긴다. */
+  max-width: 62ch;
+  text-wrap: pretty;
+}
+
+.option--consent:has(input:checked) > label {
+  font-weight: var(--font-weight-medium);
+}
+
+.custom {
+  padding-top: var(--space-5);
+  border-top: var(--border-width) solid var(--color-border-strong);
+}
+
+.custom > * + * {
+  margin-top: var(--space-5);
+}
+
+/* 공유 초안 — 주 영역 */
+
+.draft {
+  min-width: 0;
+}
+
+.draft__sheet {
+  margin-top: var(--space-5);
+  padding: var(--space-6) var(--space-7);
+  border: var(--border-width) solid var(--color-border-strong);
+  border-radius: var(--panel-radius);
+  background: var(--color-surface-raised);
+  box-shadow: var(--shadow-panel);
+}
+
+.draft__empty {
+  max-width: 52ch;
+  font-size: var(--type-body-size);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-normal);
+}
+
+.draft__sheet .hint {
+  margin-top: var(--space-4);
+}
+
+.draft__actions {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-5);
+  align-items: start;
+  margin-top: var(--space-5);
+}
+
+/* 보관 — 내부 메모와 저장 목록 */
+
+.archive {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--layout-block-gap);
+  margin-top: var(--layout-block-gap);
+  padding-top: var(--space-7);
+  border-top: var(--border-width) solid var(--color-border-strong);
+}
+
+.documents {
+  overflow-wrap: anywhere;
+}
+
+.documents article {
+  min-width: 0;
+  padding: var(--space-5) 0;
+  border-top: var(--border-width) solid var(--color-border-subtle);
+}
+
+.documents time {
+  display: block;
+  font-size: var(--type-body-sm-size);
+  letter-spacing: var(--letter-spacing-wide);
+  color: var(--color-text-secondary);
+}
+
+.documents pre {
+  margin: var(--space-3) 0 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-family: inherit;
+  font-size: var(--type-body-size);
+  line-height: var(--line-height-normal);
+}
+
+.documents:empty {
+  display: none;
+}
+
+/* 실행 정보 */
+
+.execution {
+  display: grid;
+  gap: var(--space-5);
+  margin-top: var(--layout-block-gap);
+  padding-top: var(--space-7);
+  border-top: var(--border-width) solid var(--color-border-strong);
+}
+
+.execution__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-2) var(--layout-gutter);
+}
+
+.execution__head .hint {
+  flex: 0 1 var(--layout-prose);
+}
+
+.runtime {
+  display: grid;
+  gap: var(--space-4);
+  justify-items: start;
+  min-width: 0;
+}
+
+.runtime__connection {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-2) var(--space-4);
+  min-width: 0;
+}
+
+.env {
+  display: grid;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.plain-list {
+  font-size: var(--type-body-sm-size);
+}
+
+.plain-list li {
+  overflow-wrap: anywhere;
+}
+
+.plain-list li + li {
+  margin-top: var(--space-2);
+}
+
+/* 넓은 화면: 보관소는 두 열로 나눈다. */
+
+@media (min-width: 768px) {
+  .draft__sheet {
+    padding: var(--space-7) var(--space-7);
+  }
+
+  .archive {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

@@ -1,0 +1,224 @@
+/* 입력 */
+
+.field {
+  display: grid;
+  align-content: start;
+  gap: var(--field-gap);
+  min-width: 0;
+}
+
+.field > label {
+  font-size: var(--type-body-sm-size);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--letter-spacing-wide);
+}
+
+/* 입력과 셀렉트는 높이를 고정한다. 글자 크기나 여백이 달라도 컨트롤 높이는 같다. */
+input[type="text"],
+input[type="password"],
+input[type="number"],
+input[type="datetime-local"],
+select,
+textarea {
+  width: 100%;
+  min-width: 0;
+  height: var(--input-height);
+  padding: 0 var(--input-padding-x);
+  border: var(--border-width) solid var(--input-border);
+  border-radius: var(--input-radius);
+  background: var(--input-background);
+  color: var(--input-text);
+  font-family: inherit;
+  font-size: var(--input-font-size);
+  line-height: var(--line-height-snug);
+}
+
+textarea {
+  height: auto;
+  min-height: var(--space-12);
+  padding: var(--input-padding-y) var(--input-padding-x);
+  line-height: var(--line-height-normal);
+  resize: vertical;
+}
+
+/* 브라우저 기본 드롭다운 대신 토큰으로 그린 목록을 쓴다.
+   base-select를 모르는 브라우저는 아래 기본 동작을 그대로 쓴다. */
+@supports (appearance: base-select) {
+  select,
+  select::picker(select) {
+    appearance: base-select;
+  }
+
+  select {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding-inline-end: var(--space-3);
+  }
+
+  select::picker-icon {
+    margin-inline-start: auto;
+    color: var(--color-text-muted);
+    font-size: var(--type-label-size);
+  }
+
+  select::picker(select) {
+    margin-block-start: var(--space-1);
+    padding: var(--select-picker-padding);
+    border: var(--border-width) solid var(--color-border-strong);
+    background: var(--color-surface-raised);
+    color: var(--color-text-primary);
+    max-height: var(--layout-picker-max);
+    overflow-y: auto;
+  }
+
+  select option {
+    padding: var(--select-option-padding-y) var(--select-option-padding-x);
+    font-size: var(--input-font-size);
+    line-height: var(--line-height-snug);
+    border-radius: var(--input-radius);
+  }
+
+  @media (hover: hover) {
+    select option:hover {
+      background: var(--color-surface-muted);
+    }
+  }
+
+  select option:checked {
+    background: var(--color-surface-accent-subtle);
+    color: var(--color-text-accent);
+    font-weight: var(--font-weight-bold);
+  }
+
+  select option::checkmark {
+    content: "✓";
+    margin-inline-start: auto;
+    padding-inline-start: var(--space-3);
+    font-size: var(--type-label-size);
+    color: var(--color-text-accent);
+  }
+
+  select:disabled {
+    background: var(--color-surface-disabled);
+    color: var(--color-text-disabled);
+  }
+}
+
+/* 파일 선택은 입력과 같은 상자 안에 버튼과 파일 이름을 놓는다. */
+.file-field {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: var(--input-height);
+  padding: 0 var(--input-padding-x);
+  border: var(--border-width) solid var(--input-border);
+  border-radius: var(--input-radius);
+  background: var(--input-background);
+  color: var(--color-text-secondary);
+  font-size: var(--type-body-sm-size);
+}
+
+.file-field[data-invalid="true"] {
+  border-color: var(--input-border-invalid);
+}
+
+.file-field[data-disabled="true"] {
+  border-color: var(--color-border-subtle);
+  background: var(--color-surface-disabled);
+  color: var(--color-text-disabled);
+}
+
+.file-field__trigger {
+  display: inline-flex;
+  flex: none;
+  cursor: pointer;
+}
+
+.file-field__trigger:focus-within {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--space-1);
+}
+
+.file-field__button {
+  pointer-events: none;
+}
+
+.file-field__input {
+  position: absolute;
+  width: var(--border-width);
+  height: var(--border-width);
+  margin: calc(-1 * var(--border-width));
+  padding: 0;
+  border: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.file-field__name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 강제 색상 모드에서는 직접 그린 모양 대신 브라우저 기본 컨트롤을 쓴다. */
+@media (forced-colors: active) {
+  select,
+  input[type='checkbox'],
+  input[type='radio'] {
+    appearance: auto;
+  }
+
+  input[type='checkbox']::after,
+  input[type='radio']::after {
+    display: none;
+  }
+}
+
+/* 움직임을 줄이도록 설정한 사용자에게는 전환을 끈다. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms;
+    animation-duration: 0.01ms;
+  }
+}
+
+input[type="text"]:focus-visible,
+input[type="password"]:focus-visible,
+input[type="number"]:focus-visible,
+input[type="datetime-local"]:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--space-1);
+}
+
+input[aria-invalid="true"],
+select[aria-invalid="true"],
+textarea[aria-invalid="true"] {
+  border-color: var(--input-border-invalid);
+}
+
+input[aria-invalid="true"]:focus-visible,
+select[aria-invalid="true"]:focus-visible,
+textarea[aria-invalid="true"]:focus-visible {
+  outline-color: var(--color-border-danger);
+}
+
+.form {
+  display: grid;
+  gap: var(--form-gap) var(--space-6);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3) var(--space-3);
+  margin-top: var(--space-5);
+}

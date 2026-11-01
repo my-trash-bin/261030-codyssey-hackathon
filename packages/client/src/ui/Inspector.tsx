@@ -7,7 +7,7 @@ import type { FlowFacts, StepView } from '../flow-status.ts';
 import type { Snapshot } from '../disclosure-contract.ts';
 import { phaseLabel } from '../task-browser-client.ts';
 import type { ArtifactsApi } from './hooks/useArtifacts.ts';
-import { EvidencePanel } from './DraftSection.tsx';
+import { EvidencePanel } from './EvidencePanel.tsx';
 
 export function Inspector(props: {
   facts: FlowFacts;
