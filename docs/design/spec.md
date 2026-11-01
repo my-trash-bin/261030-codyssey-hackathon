@@ -51,13 +51,22 @@
 
 ### 2.1 작업 범위
 
-`purpose_id`는 `oss_issue`, `vendor_support`, `operations_advice` 중 하나다. `audience`는 `public` 또는 `named_external`이다. 수신자는 등록된 `recipient_id`를 고른다. 첫 카탈로그는 공개 이슈, 가상 공급사 비공개 지원, 가상 외부 운영 자문사다. 수신자 ID의 의미는 불변이며 상대가 달라지면 새 ID를 쓴다. 실제 외부 주소로 전송하지 않으므로 URL 입력이나 발송 자격 증명은 필요 없다.
+입력 개편 설계(미구현)의 정본은 [F01](../features/01-task-intake.md)이다.
+설명은 필수이고 제목(label)·목적·공개 범위는 선택이다. 수신처와 목표는 독립 입력에서 제거한다.
+설명 안에서 목표·목적·공개 조건을 다룰 수 있다. 현재 UI/API의 필수 필드 계약과는 구분한다.
 
-작업의 `goal_variant`는 `default`, `observations_only`, `ask_for_diagnostics`, `reproduction_evidence`다. OSS는 default/observations_only/reproduction_evidence, B2B는 네 종류, 일반 자료는 default를 지원한다. reproduction_evidence는 해당 제품의 등록된 실행 팩이 있어야 선택할 수 있다. default는 관찰 자료로 문의를 준비하는 목표이며 재현은 선행 조건이 아니다. ask_for_diagnostics는 필요한 추가 진단 정보를 묻는 목표다. 목표 축소도 의미 있는 변경이므로 goal_variant 변경은 revision 증가/재분석/공개 결정 재확인으로 처리한다.
+설명은 내부 자료다. 분석 맥락으로 쓰되 원문을 작성기에 그대로 전달하거나 공유 파일에 자동 포함하지 않는다.
+설명에서 해석한 목적·목표·대상·공개 조건은 사용자 공개 허가가 아니며, 충돌·모호함은 필요한 단계에서 확인한다.
+선택하지 않은 목적·공개 범위에 기본값을 채워 허가나 재사용 범위를 만들어서는 안 된다.
 
-공개 선택의 scope는 `project_id + purpose_id + goal_variant + recipient_id + audience + skill_set_hash`다. 저장 기준은 여기에 `schema_id + schema_version + source_slot + selector + transform_id/version`도 일치해야 한다. `output_language` 변경은 재작성/재검토 대상이지만 공개 허용의 의미가 유지되는 한 같은 결정이 사용될 수 있다.
+기존 공개 선택·규칙 범위는 `project_id + purpose_id + goal_variant + recipient_id + audience + skill_set_hash`다.
+이는 현재 구현 및 기존 자료의 계약이며 새 화면의 필수 입력 목록이 아니다.
 
-내부 작업 이름/목적 자유 메모/원본 파일명은 비공개다. 외부 본문의 목적 설명은 등록된 공개 양식에서 가져온다. 다른 회사 맥락을 넣으려면 후보와 공개 결정을 만든다.
+<!-- // TODO: 선택값의 미지정과 설명 변경을 새 범위·판본·규칙 재사용에 연결하는 계약을 설계한다. 가상 recipient_id나 설명에서 자동 추론한 goal_variant로 기존 필수 계약을 우회하지 않는다. -->
+
+목적 3종은 선택을 보조하는 초기 분류이며 제품의 목적 전체를 한정하지 않는다.
+정확히 세 종류인 근거와 `operations_advice`로 일반 설명을 제한하는 적합성은 F01의 TODO로 추적한다.
+출력 언어 변경은 재작성·재검토 대상이며, 내부 제목·설명·원본 파일명은 그 자체로 공개 데이터가 아니다.
 
 ### 2.2 파일 처리
 
@@ -270,3 +279,10 @@ SSE와 일반 앱 로그에는 원문/모델 토큰/자격 증명/trace body를 
 제품 범위는 PRD, 상태/허용 규칙은 이 문서, 데이터/DTO는 ERD/API/contracts를 같은 PR에서 변경한다. 기능 문서만 수정해 예외를 만들지 않는다. 요구사항 변경 시 관련 feature와 QA ID를 추적한다. 자세한 순서는 [작업 계획](../product/plan.md).
 
 기존 문서의 설명/예시도 이 명세와 API/contracts에 맞춘다. 자동 제출/특정 모델/GPU를 요구하지 않으며, 재현 필수 여부는 goal_variant로 판단한다. 기본 수치 예시는 820/1160/1740, 지수는 정수 100/141/212이며 소수 자릿수 기본값은 0이다. 기존 한국어 설계/API/시연 안내는 이 기준의 요약으로 유지한다. 현재 코드가 다른 부분은 구현 공백으로 기록하고, 문서만으로 구현됐다고 표시하지 않는다.
+
+## 핵심 사용자 흐름의 미확정 선택
+
+[핵심 사용자 흐름](user-flow.md)의 UF-02~UF-06은 화면 역할과 현재 선택의 근거·한계를 정리한다.
+후보 수·모든 후보 결정·A~D 고정·작성/검토 화면 분리·수동 검토 체크·별도 확정의 필요성은
+검토 대상이다. 원문 사용의 사용자 결정, 작성기의 승인 정보 경계, 현재 판본과 파일 정합성은 별개로 유지한다.
+검토 결과가 나오기 전에는 이 문서의 기술 계약이나 기존 코드만으로 제품 방향이 확정됐다고 해석하지 않는다.

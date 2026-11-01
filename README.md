@@ -12,6 +12,7 @@
 | --- | --- |
 | [intent.md](intent.md) | 사용자 확정 의도 원문 (`INT-01-INT-12`) |
 | [docs/product/prd.md](docs/product/prd.md) | **현행 제품 요구사항 정본 (`PRD-01-PRD-14`)** - 해커톤 구현 범위 vs 전체 제품 목표 한 장 요약 |
+| [docs/design/user-flow.md](docs/design/user-flow.md) | 핵심 흐름의 화면 목적·선택지 이유·미확정 제약과 UF별 검토 TODO |
 | [docs/product/plan.md](docs/product/plan.md) | **해커톤 2일 수직 슬라이스(`H1-H4`)** vs 제품 마일스톤(`M0-M5`), **5인 실제 팀 역할 분담 및 커밋 구조** |
 | [docs/qa/acceptance-map.csv](docs/qa/acceptance-map.csv) / [docs/qa/traceability.csv](docs/qa/traceability.csv) | 127개 수용 기준(`AC-F01-01-AC-F10-12`) 및 60개 QA 시험(`T01-T60`)과 자동화 테스트 파일 매핑 |
 | [docs/design/architecture.md](docs/design/architecture.md) / [docs/design/api.md](docs/design/api.md) / [docs/design/erd.md](docs/design/erd.md) | TypeScript 9개 패키지 구조, HTTP/엔진 API 계약, SQLite 스키마 |
@@ -184,7 +185,9 @@ provider 확인은 기존 텍스트 경로를 유지합니다.
 
 현재 작업 화면은 자동 세션과 CSRF를 사용하며, 작업 생성 -> 원자료 등록 -> 분석 -> 공개 결정 ->
 초안 작성·검토 -> 확정·다운로드를 연결합니다. 목적을 선택하고 수신처를 직접 입력합니다.
-프로젝트나 수신처를 미리 등록할 필요가 없습니다. 분석은 `분석 시작` 버튼으로 실행하며 별도 동의 체크는 없습니다.
+프로젝트나 수신처를 미리 등록할 필요가 없습니다. 다음 입력 개편은
+[목적과 자료 준비 설계](docs/features/01-task-intake.md)에만 반영했습니다. 설명 필수·제목/목적/공개 범위 선택·
+수신처/목표 필드 제거는 현재 UI/API에 아직 적용되지 않았습니다. 분석은 `분석 시작` 버튼으로 실행하며 별도 동의 체크는 없습니다.
 공개 결정 저장과 파일 확정·작업 삭제도 해당 버튼으로 실행합니다.
 삭제·확정 API에는 별도 확인 문자열이나 확인 불리언을 보내지 않습니다. 작업 목록과 이벤트 이력도 제공합니다.
 

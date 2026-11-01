@@ -6,9 +6,23 @@
 
 사용자가 고른 공개 수준에 맞는 새 본문/표/설명을 만들고 작성 도중 검토/수정/질문을 연결한다. 사용자가 여러 파일을 손으로 맞추는 수고를 줄인다. PRD-06/07/08/11/13, INV-04/05/06/07/08/11/14/15가 핵심이다.
 
+### 초안 작성과 검토는 각각 무엇을 하는가
+
+초안 작성은 승인 정보로 본문·표·첨부를 새로 구성해 사람이 다시 쓰는 부담을 줄인다.
+검토는 그 결과가 공개 선택을 지키고 원하는 도움을 받기에 충분한지 판단하는 일이다.
+원자료·설명 전체를 작성기에 넣거나 초안 편집으로 새 공개 허가를 만들어서는 안 된다.
+단계의 목적·통과/수정/추가 결정/실패의 의미는 [UF-04와 UF-05](../design/user-flow.md)를 따른다.
+
+작성 과정 안의 자동 검토는 핵심 의도다. 그러나 초안·검토 화면을 분리하거나 두 화면에서 같은 판본을
+다시 실행해야 하는 것은 별도 UI 선택이며 그 필요성은 확인되지 않았다.
+사람의 검토 경로 역시 필요하지만 현재 체크 3개·필수 사유·특정 모델 오류만 허용하는 방식 자체가 제품 의도는 아니다.
+
+<!-- // TODO: UF-04 초안·검토의 별도 화면과 반복 실행이 실제 준비 부담을 줄이는지 검토한다. 공개 질문으로 돌아가는 경로와 현재 결과의 변경 상태는 유지한다. -->
+<!-- // TODO: UF-05 수동 검토의 체크 3개·필수 사유·오류 코드 제한의 근거를 검토한다. 의미 검토 의견, 승인·판본·파일의 정합성, 사람 판단을 구분하며 문서만으로 현재 검사를 완화하지 않는다. -->
+
 ## 2. 쓰는 사람과 권한
 
-사용자가 작성/재시도/취소/직접 편집/사람 의미 검토를 요청한다. writer는 승인팩과 등록 공개 양식만 읽는다. reviewer는 내부 근거도 볼 수 있으나 자유 설명을 writer에게 전달하지 못한다. 모델과 등록 도구는 공개 허용을 늘리거나 최종 확인을 대신하지 않는다.
+사용자가 작성/재시도/취소/사람 의미 검토를 요청한다. 직접 편집은 아래 추가 후보로 구분한다. writer는 승인팩과 등록 공개 양식만 읽는다. reviewer는 내부 근거도 볼 수 있으나 자유 설명을 writer에게 전달하지 못한다. 모델과 등록 도구는 공개 허용을 늘리거나 최종 확인을 대신하지 않는다.
 
 사람 의미 검토는 의미 단계만 대체한다. 판본/미승인 원문/깨진 참조/필수검사/미결정 오류는 계속 차단된다. '사람이 봤음' 한 번으로 모든 검사를 해제하는 플래그는 만들지 않는다.
 
@@ -55,11 +69,14 @@ UI-03의 초안 영역과 단계 표시, UI-04의 중간 질문, UI-06 최종 �
 
 모델 호출 단계당2회, 수정2회, 전체12회 중 먼저 도달한 상한에서 needs_attention으로 멈춘다. 네트워크 대기/재시도 중 UI 저장을 막지 않는다. 동작 지연값은 설정에서 바꿀 수 있지만 기록한다.
 
-### 5.3 직접 편집
+### 5.3 직접 편집 (추가 후보, 미구현)
 
-DocAST의 허용 text/list/slot만 편집한다. raw HTML이나 임의 첨부 경로는 받지 않는다. 새 수치/ID/사실이 있으면 추가 후보/결정 또는 삭제가 필요하다. fact ID만 붙여 미승인 정보를 승인한 것으로 만들 수 없다. 직접 편집이 의미 추가인지 완벽히 자동 판별한다고 약속하지 않고 의미 검토를 거친다.
+원시 JSON 편집 UI와 API는 제거했다. 현재는 공개 결정을 수정한 뒤 다시 작성한다.
+일반 문장 편집의 추가 조건은 [DF-005](../product/deferred-features.md)를 따른다.
+아래 편집 관련 수용 기준은 향후 검토 범위이며 현재 제공되는 기능의 증거가 아니다.
 
-직접 편집/선택 변경은 새 revision과 stale 처리를 먼저 한다. 자동 수정은 같은 revision의 artifact_version을 올린다. ready/finalized 이후 다시 작성은 새 revision이다. 전체 재작성으로 수동 문구가 바뀔 수 있음을 화면에 표시하고 이전 판본을 이력에 남긴다.
+편집을 추가해도 새 정보 공개와 문장 수정을 구분하고 현재 결과에 대해 검토해야 한다.
+내부 사실 ID나 JSON 문법을 사용자가 관리하게 하는 화면으로 복구하지 않는다.
 
 ### 5.4 오류/복구
 
@@ -72,7 +89,7 @@ DocAST의 허용 text/list/slot만 편집한다. raw HTML이나 임의 첨부 �
 | F03 -> 작성 | `FactPackService.Build` | 현재 유효 결정/scope -> writer_payload + internal mapping |
 | 작성 시작 | `CompositionService.Start` / POST tasks/{id}/jobs kind=compose | expected_revision, provisional flag -> job |
 | 검토 시작 | `ReviewService.Start` / POST tasks/{id}/jobs kind=review | expected_revision, artifact ID, target kind/hash |
-| 직접 편집 | `CompositionService.Edit` / PUT artifacts/{id}/edit | expected_revision, expected_document_hash, draft.v1 |
+| 일반 문장 편집 (추가 후보) | 현재 원시 JSON 편집 API는 제거됨. 새 API는 미정 | DF-005 검토 후 계약과 재검토 흐름 설계 |
 | 사람 검토 | `ReviewService.RecordHumanReview` / POST artifacts/{id}/human-review | expected_revision, target kind/hash, checklist, fallback reason |
 | F07/F08 도구 | `ToolService.RunRegistered` | tool ID/version + 승인 참조 + typed args -> public projection/내부 진단 |
 | F05 파일 | `BundleService.RenderAndCheck` | DocAST + 슬롯 -> immutable files/hash/findings/review |

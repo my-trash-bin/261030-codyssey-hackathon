@@ -1,14 +1,14 @@
 acceptance_id,feature_id,feature_file,acceptance_criterion,test_ids,hackathon_scope,automated_tests,execution_status
-AC-F01-01,F01,features/01-task-intake.md,목적·수신자·TXT/CSV/JSON을 저장하면 API와 새로고침 화면에서 같은 task/source 판본 확인,T29;T41;T58,hackathon_core,packages/server/src/workflow-http.test.ts;packages/app/src/lifecycle.test.ts,passed
+AC-F01-01,F01,features/01-task-intake.md,설명·자료 저장과 복원. 제목·목적·공개 범위 없이 작업 생성·분석 가능,T29;T41;T58,hackathon_core,packages/server/src/workflow-http.test.ts;packages/app/src/lifecycle.test.ts,partial
 AC-F01-02,F01,features/01-task-intake.md,자료 추가·교체·제외가 각각 불변 과거 판본과 새 현재 집합을 유지하고 revision을 한 번 올림,T26;T29,hackathon_core,packages/server/src/task-store.test.ts;packages/server/src/analysis-store.test.ts,passed
 AC-F01-03,F01,features/01-task-intake.md,"파일 수·파일/합계 바이트 한도 정확히 이하는 허용, 1개/1바이트 초과는 배치 변경 없이 거부",T25,product_backlog,backlog,not_run
 AC-F01-04,F01,features/01-task-intake.md,"깨진 UTF-8·JSON·CSV 또는 잘못된 파일이 한 배치에 있으면 전체 배치 미반영, 오류 항목 표시",T29,product_backlog,backlog,not_run
 AC-F01-05,F01,features/01-task-intake.md,"동일 멱등 요청은 한 번만 적용, 다른 요청의 키 충돌과 오래된 revision은 409",T19;T30,product_backlog,backlog,not_run
 AC-F01-06,F01,features/01-task-intake.md,비인증 요청·다른 task의 source ID·위조 CSRF는 원자료를 읽거나 바꾸지 못함,T42;T43,hackathon_core,packages/server/src/workflow-http.test.ts;packages/app/src/lifecycle.test.ts,partial
 AC-F01-07,F01,features/01-task-intake.md,파일명이 경로·HTML·제어문자를 포함해도 서버 경로로 사용하거나 코드로 실행하지 않음,T28,product_backlog,backlog,not_run
-AC-F01-08,F01,features/01-task-intake.md,"수신자/자료 변경 직후 이전 결과의 복사·확정 불가, 늦은 job이 현재 결과를 덮어쓰지 않음",T03;T06;T26,product_backlog,backlog,not_run
+AC-F01-08,F01,features/01-task-intake.md,"설명/공개 조건/자료 변경 직후 이전 결과의 복사·확정 불가, 늦은 job이 현재 결과를 덮어쓰지 않음",T03;T06;T26,product_backlog,backlog,not_run
 AC-F01-09,F01,features/01-task-intake.md,자료 저장 후 모델 접수 실패 시 입력은 남고 분석만 재시도 가능,T18,product_backlog,backlog,not_run
-AC-F01-10,F01,features/01-task-intake.md,원자료 업로드·프로젝트 이름·내부 메모가 공개결정이나 작성기 공개 입력으로 자동 포함되지 않음,T01;T10;T38,hackathon_core,packages/core-interface/src/interface.test.ts,partial
+AC-F01-10,F01,features/01-task-intake.md,설명·원자료 업로드·제목(label)·내부 메모가 공개결정이나 작성기 공개 입력으로 자동 포함되지 않음,T01;T10;T38,hackathon_core,packages/core-interface/src/interface.test.ts,partial
 AC-F02-01,F02,features/02-evidence-analysis.md,txt/CSV/JSON 근거 ID가 원본 판본·위치·hash와 연결되고 화면에서 원문 대조 가능,T31;T58,hackathon_core,packages/core/src/engine.test.ts;packages/core/src/analyze.test.ts;packages/core/src/evidence-parser.test.ts,passed
 AC-F02-02,F02,features/02-evidence-analysis.md,"timeout과 재시도 성공을 관찰로, 서버 완료/중복/원인을 unknown으로 분리",T09,hackathon_core,packages/core/src/engine.test.ts;packages/core/src/analyze.test.ts;packages/core/src/evidence-parser.test.ts,passed
 AC-F02-03,F02,features/02-evidence-analysis.md,서로 충돌하는 근거를 한 사실로 조용히 합치지 않음,T08,hackathon_core,packages/core/src/engine.test.ts;packages/core/src/analyze.test.ts;packages/core/src/evidence-parser.test.ts,passed

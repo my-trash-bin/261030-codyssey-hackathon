@@ -14,6 +14,7 @@ docs/design/architecture.md
 docs/design/erd.md
 docs/design/extensions.md
 docs/design/ia.md
+docs/design/user-flow.md
 docs/design/security.md
 docs/design/spec.md
 docs/features/00-template.md
