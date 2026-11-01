@@ -153,8 +153,7 @@ export function listTasks(
 }
 
 /**
- * 작업을 삭제한다. 서버는 confirmation="DELETE"와 재사용 규칙 보존 확인을 모두 요구하고
- * 실행 중 job이 끝난 뒤 삭제한다. 화면은 이 요청을 사용자가 직접 확인할 때만 보낸다.
+ * 선택한 작업을 현재 판본으로 삭제한다. 실행 중 job 종료와 기존 규칙 보존은 서버가 처리한다.
  */
 export function deleteTask(
   fetchFn: typeof fetch,
@@ -166,7 +165,7 @@ export function deleteTask(
     method: 'DELETE',
     path: `${base}/tasks/${encodeURIComponent(taskId)}`,
     csrfToken,
-    payload: { expected_revision: expectedRevision, confirmation: 'DELETE', acknowledge_saved_rules_retained: true },
+    payload: { expected_revision: expectedRevision },
     parse: parseDeleted,
   });
 }

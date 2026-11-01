@@ -3,8 +3,6 @@ import { isRecord } from './disclosure-contract.ts';
 
 export interface SessionEnvironment {
   providerOrigin: string | null;
-  approvalStatus: string;
-  verifiedAt: string | null;
 }
 
 export interface SessionInfo {
@@ -37,8 +35,6 @@ function parseEnvironment(value: unknown): SessionEnvironment | null {
   if (!isRecord(value)) return null;
   return {
     providerOrigin: typeof value.provider_origin === 'string' ? value.provider_origin : null,
-    approvalStatus: typeof value.approval_status === 'string' ? value.approval_status : '',
-    verifiedAt: typeof value.verified_at === 'string' ? value.verified_at : null,
   };
 }
 

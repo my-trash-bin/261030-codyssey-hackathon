@@ -29,8 +29,6 @@ function sessionBody(overrides: Record<string, unknown> = {}): unknown {
       expires_at: '2026-10-31T15:00:00.000Z',
       analysis_environment: {
         provider_origin: 'https://api.example.test',
-        approval_status: 'operator_confirmation_required',
-        verified_at: null,
       },
       capabilities: { tasks: true, reusable_rules: false },
       ...overrides,

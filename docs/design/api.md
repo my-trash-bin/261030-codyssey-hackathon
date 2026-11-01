@@ -64,7 +64,7 @@ API 프록시의 server origin은 loopback이다. 시작 토큰과 사용자 로
 | `F05` 확정/내보내기 | `POST /api/v1/artifacts/{id}/finalize`, `GET /api/v1/exports/{id}/archive` | `expected_revision`, `expected_artifact_set_hash`, `Idempotency-Key` | 현재 결정/해시 재검증 후 저장된 동일 바이트 반환 (만료/철회 시 `409 EXPORT_INVALIDATED`) |
 | `F06` 재사용 규칙 | `POST /api/v1/rules`, `POST /api/v1/tasks/{id}/rules/apply`, `POST /api/v1/rules/{id}/revoke` | `expected_revision`, `rule_refs`, `Idempotency-Key` | 6개 scope + `selector` 일치 시 새 자료에서 변환 재계산 (`exact_value` 저장 시 `422`) |
 | `F07/F08` 확장/재현 | `GET /api/v1/catalog`, `POST /api/v1/tasks/{id}/jobs` (`kind=reproduce`) | `target_pair_id`, `synthetic_input_set_id`, `expected_revision` | 고정 digest 확인 후 4회 실행 결과 정형 투영 |
-| `F09/F10` 이력/삭제/세션 | `GET /api/v1/tasks/{id}/events`, `DELETE /api/v1/tasks/{id}`, `POST /api/v1/session` | `expected_revision`, `confirmation="DELETE"`, `acknowledge_saved_rules_retained=true` | 원자료/초안/이력 즉시 삭제 및 재사용 규칙 원작업 FK 해제 |
+| `F09/F10` 이력/삭제/세션 | `GET /api/v1/tasks/{id}/events`, `DELETE /api/v1/tasks/{id}`, `POST /api/v1/session` | `expected_revision` | 원자료/초안/이력 즉시 삭제 및 재사용 규칙 원작업 FK 해제 |
 
 ---
 
@@ -93,10 +93,8 @@ X-CSRF-Token/Idempotency-Key와 Set-Cookie를 전달한다. 임의 origin/와일
   `GET /api/v1/session`은 같은 DTO를 반환한다. 만료·재시작 뒤에는 화면이 자동으로 새 세션을 만든다.
 - 모든 v1 조회도 세션이 필요하다. 세션 없음/만료는 401 `AUTH_REQUIRED`, Host/Origin 거부와
   CSRF 실패는 403이다. GET은 Origin 생략이 가능하고, 쓰기는 정확한 Origin과 CSRF가 필수다.
-- `analysis_environment`는 `{provider_origin:string|null,approval_status:
-  "operator_confirmation_required",verified_at:null}`이다. provider origin은 실제 설정의
-  환경 변수 이름으로 조회하며 경로/query/사용자명/비밀번호를 제거한다. 모델 키는 반환하지 않는다.
-  주소 표시는 사내/로컬 승인이나 모델 연결 성공의 증거가 아니다. 운영자가 확인해야 한다.
+- `analysis_environment`는 `{provider_origin:string|null}`이며 설정된 모델 주소의 origin만 제공한다.
+  사용자 확인을 요구하던 approval_status와 verified_at은 제거했다.
 - `capabilities`는 tasks/selected_fields/reusable_rules/artifacts/exports=true, approved_excerpt=false다.
   세션은 하나의 로컬 운영자 권한이며 task별 사용자 소유권을 구현한 것으로 해석하지 않는다.
 
@@ -125,7 +123,7 @@ X-CSRF-Token/Idempotency-Key와 Set-Cookie를 전달한다. 임의 origin/와일
 | GET /api/v1/jobs/{job_id} | 조건 해석 job. 현재 판본이 다르면 stale/result=null |
 | POST /api/v1/tasks/{id}/decision-batches | `{expected_revision,accept_scope_reduction:boolean,operations:[...]}` -> StoredTask |
 | POST /api/v1/tasks/{id}/decisions/{decision_id}/revoke | `{expected_revision}` -> StoredTask |
-| DELETE /api/v1/tasks/{id} | `{expected_revision,confirmation:"DELETE",acknowledge_saved_rules_retained:true}` -> `{id,deleted:true}` |
+| DELETE /api/v1/tasks/{id} | `{expected_revision}` -> `{id,deleted:true}` |
 
 StoredTask는 id/revision/phase/context/source_set_hash/skill_set_hash/current_candidate_set_id다.
 집계는 여기에 sources/evidence/candidates/decisions/scope/intake와 현재 job/artifact 포인터를 추가한다.
@@ -214,7 +212,7 @@ goal은 default/observations_only/ask_for_diagnostics다.
 | GET /api/v1/tasks/{id}/bundle | 가장 최근 artifact와 실제 파일 목록. 과거 판본은 is_current=false |
 | GET /api/v1/artifacts/{id}/files/{path} | 내부 확인용 실제 UTF-8 파일 바이트. 확정 다운로드 권한과 별개 |
 | POST /api/v1/artifacts/{id}/human-review | `{expected_revision,target_hash,checklist,fallback_reason}` -> 새 revision/artifact |
-| POST /api/v1/tasks/{id}/finalize | `{expected_revision,artifact_id,expected_artifact_set_hash,confirmed:true}` -> 불변 export |
+| POST /api/v1/tasks/{id}/finalize | `{expected_revision,artifact_id,expected_artifact_set_hash}` -> 불변 export |
 | GET /api/v1/exports/{id}/files/{path} | 확정한 동일 바이트, Content-Disposition: attachment |
 | GET /api/v1/exports/{id}/archive | 저장된 동일 ZIP, archive_sha256으로 확인 가능 |
 | GET /api/v1/rules | logical ID별 최신 판본/scope/selector/표현/만료/철회 |
@@ -253,7 +251,7 @@ needs_changes/needs_decision을 우회할 수 없다. 주석/원문 슬롯/등�
 판본별 만료는 확정/다운로드에도 적용한다. 작업을 삭제해도 값/원문 없는 저장 규칙은 남는다.
 
 취소 응답은 202 cancel_requested이며 worker 종료 전에는 완료로 표시하지 않는다. task 삭제는
-confirmation=DELETE와 acknowledge_saved_rules_retained=true를 요구하고 실행 종료를 기다린 뒤 삭제한다.
+현재 expected_revision을 검증하고 실행 종료를 기다린 뒤 삭제한다.
 클라이언트 프록시는 query/Last-Event-ID/스트림과 바이너리 바이트를 보존한다.
 
 모델 통신은 Vercel AI SDK의 OpenAI 호환 provider를 사용한다. SDK 자체 재시도는 비활성화하고
@@ -270,3 +268,14 @@ AI SDK의 tool-call repair는 구문/타입을 로컬에서 복구할 수 있으
 Engine의 단계별 시도 수와 전체 run 예산을 전송 전에 차감한다. SDK의 자동 재시도와 다단계
 실행은 사용하지 않는다. 타임아웃/취소/동시성 제한은 복구 호출에도 적용하며, 응답 usage는
 복구 호출을 포함한 합계다. 측정값이 없는 토큰 필드는 null이다. 인증 키/운영 설정은 추가하지 않았다.
+
+## 중복 확인 제거 (2026-11-01)
+
+분석은 `분석 시작` 버튼으로 실행하며 별도 전송 동의를 받지 않는다. 파일 선택·등록은 모델을 호출하지 않는다.
+필수 후보의 제외 선택 후 전체 적용은 해당 제외 결정을 저장한다. 클라이언트는 실제 필수 제외가 있을 때만
+`accept_scope_reduction:true`를 보낸다. 별도 동의 체크박스는 없다.
+확정은 실제 파일을 검토한 뒤 확정 버튼으로 수행한다. 작업 삭제도 삭제 영역의 명시적 버튼으로 실행하며
+DELETE 문자열 입력과 규칙 보존 확인 체크박스는 없다. 서버의 판본·결정·파일 정합성 검사는 유지한다.
+
+삭제의 `confirmation`·`acknowledge_saved_rules_retained`와 확정의 `confirmed` 필드는 제거했다.
+추가 확인 값 없이 현재 판본과 대상 파일 정보로 요청한다.

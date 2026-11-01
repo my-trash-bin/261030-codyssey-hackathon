@@ -15,7 +15,6 @@ export interface DisclosuresApi {
   readonly fields: ReadonlyMap<string, FieldEntry>;
   readonly busy: boolean;
   readonly message: string;
-  readonly acceptScopeReduction: boolean;
   readonly writeBlockReason: string;
   readonly batchBlockReason: string;
   readonly canGenerate: boolean;
@@ -31,7 +30,6 @@ export interface DisclosuresApi {
   loadFields(id: string): Promise<void>;
   /** 체크박스 전이. 다음 초안을 함께 돌려주며, 목록을 모르면 null이다. */
   toggleField(id: string, field: string, checked: boolean): Draft | null;
-  setScopeReduction(value: boolean): void;
   preview(id: string, draftAtRequest?: Draft): Promise<void>;
   interpret(id: string): Promise<void>;
   refreshInterpretation(id: string): Promise<void>;
@@ -467,7 +465,6 @@ export function useDisclosures(options: {
     drafts: state.drafts,
     busy: state.busy,
     message: state.message,
-    acceptScopeReduction: state.acceptScopeReduction,
     writeBlockReason: writeBlockReason(state, csrfToken),
     batchBlockReason: batchBlockReason(state, csrfToken),
     canGenerate: canGenerate(state),
@@ -499,9 +496,6 @@ export function useDisclosures(options: {
     },
     setReusable: (id: string, value: boolean): void => {
       dispatch({ type: 'draft/reusable', id, value });
-    },
-    setScopeReduction: (value: boolean): void => {
-      dispatch({ type: 'scope/reduction', value });
     },
     preview,
     interpret,

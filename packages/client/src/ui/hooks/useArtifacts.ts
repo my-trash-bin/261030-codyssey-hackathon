@@ -54,14 +54,13 @@ export interface ArtifactsApi {
   readonly goalNotice: string;
   readonly checklist: HumanReviewChecklist;
   readonly fallbackReason: string;
-  readonly finalizeConfirmed: boolean;
+
   readonly exportInfo: ExportInfo | null;
   readonly file: { path: string; text: string } | null;
   readonly fileBusy: boolean;
   readonly downloadBusy: string | null;
   setChecklist: (next: HumanReviewChecklist) => void;
   setFallbackReason: (text: string) => void;
-  setFinalizeConfirmed: (value: boolean) => void;
   reload: () => void;
   compose: () => void;
   reReview: () => void;
@@ -84,7 +83,6 @@ interface State {
   jobBusy: boolean;
   checklist: HumanReviewChecklist;
   fallbackReason: string;
-  finalizeConfirmed: boolean;
   exportInfo: ExportInfo | null;
   file: { path: string; text: string } | null;
   fileBusy: boolean;
@@ -107,7 +105,6 @@ const INITIAL_STATE: State = {
   jobBusy: false,
   checklist: EMPTY_CHECKLIST,
   fallbackReason: '',
-  finalizeConfirmed: false,
   exportInfo: null,
   file: null,
   fileBusy: false,
@@ -242,7 +239,6 @@ function finalizeReason(state: State, csrfToken: string | null, snapshot: Snapsh
     }
     return '정하지 않았거나 보류·만료·철회된 공개 결정이 남아 있어 서버가 확정을 거부합니다.';
   }
-  if (!state.finalizeConfirmed) return '파일을 확인했다는 체크가 필요합니다.';
   return '';
 }
 
@@ -340,7 +336,6 @@ export function useArtifacts(options: ArtifactsOptions): ArtifactsApi {
         ? {
           checklist: EMPTY_CHECKLIST,
           fallbackReason: '',
-          finalizeConfirmed: false,
           file: null,
         }
         : {}),
@@ -617,7 +612,6 @@ export function useArtifacts(options: ArtifactsOptions): ArtifactsApi {
       }
       commit({
         artifact: recorded.value,
-        finalizeConfirmed: false,
         exportInfo: null,
         checklist: EMPTY_CHECKLIST,
         fallbackReason: '',
@@ -641,7 +635,6 @@ export function useArtifacts(options: ArtifactsOptions): ArtifactsApi {
       expected_revision: task.revision,
       artifact_id: artifact.id,
       expected_artifact_set_hash: artifact.artifactSetHash,
-      confirmed: true,
     };
     void (async (): Promise<void> => {
       mutationRef.current = true;
@@ -667,7 +660,6 @@ export function useArtifacts(options: ArtifactsOptions): ArtifactsApi {
       }
       commit({
         exportInfo: finalized.value,
-        finalizeConfirmed: false,
         message: '확정했습니다. 아래에서 ZIP이나 개별 파일을 내려받으세요.',
       });
       await refresh(task.id);
@@ -780,10 +772,6 @@ export function useArtifacts(options: ArtifactsOptions): ArtifactsApi {
     commit({ fallbackReason: text });
   }, [commit]);
 
-  const setFinalizeConfirmed = useCallback((value: boolean): void => {
-    commit({ finalizeConfirmed: value });
-  }, [commit]);
-
   const outOfSync = options.snapshot !== null && state.task !== null &&
     (options.snapshot.id !== state.task.id || options.snapshot.revision !== state.task.revision);
   const writeBlockReason = writeReason(state, options.csrfToken, options.snapshot);
@@ -818,14 +806,12 @@ export function useArtifacts(options: ArtifactsOptions): ArtifactsApi {
     goalNotice,
     checklist: state.checklist,
     fallbackReason: state.fallbackReason,
-    finalizeConfirmed: state.finalizeConfirmed,
     exportInfo: state.exportInfo,
     file: state.file,
     fileBusy: state.fileBusy,
     downloadBusy: state.downloadBusy,
     setChecklist,
     setFallbackReason,
-    setFinalizeConfirmed,
     reload,
     compose,
     reReview,

@@ -123,7 +123,6 @@ test('finalize는 확정 확인·artifact id·파일 집합 hash를 실어 expor
     expected_revision: 8,
     artifact_id: 'artifact-1',
     expected_artifact_set_hash: 'set-hash',
-    confirmed: true,
   });
 });
 

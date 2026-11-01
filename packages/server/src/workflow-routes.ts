@@ -106,12 +106,11 @@ export async function extendedWorkflowRoutes(c: Context, request: IncomingMessag
     send(response, 202, { data: result.result }); return true;
   }
   if (parts[0] === 'tasks' && parts[2] === 'finalize' && parts.length === 3 && request.method === 'POST') {
-    const v = object(input, ['expected_revision', 'artifact_id', 'expected_artifact_set_hash', 'confirmed']);
+    const v = object(input, ['expected_revision', 'artifact_id', 'expected_artifact_set_hash']);
     const previous = store.replay(operation, key, input); if (previous) { send(response, 200, { data: previous.result }); return true; }
     store.assertRevision(parts[1]!, revision(v.expected_revision));
-    if (v.confirmed !== true) deny(400, 'FINAL_CONFIRMATION_REQUIRED');
     const prepared = artifacts.prepareArchive(string(v.artifact_id));
-    const result = store.request(operation, key, input, () => artifacts.finalize(parts[1]!, revision(v.expected_revision), string(v.artifact_id), string(v.expected_artifact_set_hash), true, prepared));
+    const result = store.request(operation, key, input, () => artifacts.finalize(parts[1]!, revision(v.expected_revision), string(v.artifact_id), string(v.expected_artifact_set_hash), prepared));
     send(response, 200, { data: result.result }); return true;
   }
   if (parts[0] === 'artifacts' && parts.length === 3 && parts[2] === 'human-review' && request.method === 'POST') {

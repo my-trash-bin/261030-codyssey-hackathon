@@ -209,15 +209,11 @@
         "expected_artifact_set_hash": {
           "type": "string",
           "pattern": "^[a-f0-9]{64}$"
-        },
-        "confirm": {
-          "const": true
         }
       },
       "required": [
         "expected_revision",
-        "expected_artifact_set_hash",
-        "confirm"
+        "expected_artifact_set_hash"
       ]
     },
     "delete_task": {
@@ -227,18 +223,10 @@
         "expected_revision": {
           "type": "integer",
           "minimum": 1
-        },
-        "confirmation": {
-          "const": "DELETE"
-        },
-        "acknowledge_saved_rules_retained": {
-          "const": true
         }
       },
       "required": [
-        "expected_revision",
-        "confirmation",
-        "acknowledge_saved_rules_retained"
+        "expected_revision"
       ]
     }
   }

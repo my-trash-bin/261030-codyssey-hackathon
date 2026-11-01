@@ -105,8 +105,6 @@ export interface TaskFlowApi {
   submitManual: () => void;
   manualBusy: boolean;
 
-  consent: boolean;
-  setConsent: (value: boolean) => void;
   job: AnalysisJobState | null;
   analysisBusy: boolean;
   cancelBusy: boolean;

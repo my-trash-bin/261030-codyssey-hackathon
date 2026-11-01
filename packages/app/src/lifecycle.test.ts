@@ -76,7 +76,7 @@ async function fixture(t: { after(fn: () => Promise<void>): void }, databasePath
     assert.equal(job.status, 'succeeded', JSON.stringify(job)); return (await call('/artifacts/' + job.artifact_id)).body.data;
   };
   const finalize = (task: any, artifact: any, key?: string) => call(`/tasks/${task.id}/finalize`, 'POST', { expected_revision: artifact.revision,
-    artifact_id: artifact.id, expected_artifact_set_hash: artifact.artifact_set_hash, confirmed: true }, key);
+    artifact_id: artifact.id, expected_artifact_set_hash: artifact.artifact_set_hash }, key);
   return { close, intake, call, raw, poll, create, allow, compose, finalize, store, core, calls, origin,
     pauseWriter: () => { let release!: () => void; writerGate = new Promise<void>(r => { release = r; }); return () => { writerGate = undefined; release(); }; },
     setMode: (v: string) => { mode = v; }, advanceTime: (ms: number) => { now += ms; } };
@@ -90,6 +90,8 @@ test('approved-pack composition reviews actual files, finalizes immutable bytes 
   assert.ok(!writers[0]!.input.includes('PRIVATE_'));
   assert.ok(f.calls.some(c => c.role === 'reviewer' && JSON.parse(c.input).rendered_files?.length > 0));
   const before = Buffer.from(await (await f.raw(`/artifacts/${artifact.id}/files/support-request.md`)).arrayBuffer());
+  assert.equal((await f.finalize(task, { ...artifact, revision: artifact.revision - 1 })).status, 409);
+  assert.equal((await f.finalize(task, { ...artifact, artifact_set_hash: '0'.repeat(64) })).status, 409);
   const finalized = await f.finalize(task, artifact, 'finalize'); assert.equal(finalized.status, 200, JSON.stringify(finalized.body));
   assert.deepEqual((await f.finalize(task, artifact, 'finalize')).body, finalized.body);
   const exported = finalized.body.data;
@@ -185,7 +187,7 @@ test('composition cancellation reports requested until the worker exits and neve
     assert.equal((await f.call(`/tasks/${task.id}/bundle`)).status, 404);
   } finally { release(); }
 });
-test('source exclusion, metadata-only source listing and confirmed deletion preserve saved rules', async t => {
+test('source exclusion, metadata-only source listing and deletion preserve saved rules', async t => {
   const f = await fixture(t), task = await f.allow(await f.create(), true);
   const listed = (await f.call(`/tasks/${task.id}/sources`)).body.data.sources;
   assert.equal(listed[0].raw_bytes, undefined); assert.equal(listed[0].byte_size, Buffer.byteLength('count\n20\n30\n40\n'));
@@ -193,8 +195,8 @@ test('source exclusion, metadata-only source listing and confirmed deletion pres
   const current = (await f.call('/tasks/' + task.id)).body.data;
   assert.deepEqual(current.candidates, []); assert.deepEqual(current.decisions, {});
   assert.equal((await f.call(`/tasks/${task.id}/sources`)).body.data.sources[0].included, false);
-  assert.equal((await f.call('/tasks/' + task.id, 'DELETE', { expected_revision: current.revision })).status, 400);
-  const input = { expected_revision: current.revision, confirmation: 'DELETE', acknowledge_saved_rules_retained: true };
+  assert.equal((await f.call('/tasks/' + task.id, 'DELETE', { expected_revision: current.revision - 1 })).status, 409);
+  const input = { expected_revision: current.revision };
   assert.equal((await f.call('/tasks/' + task.id, 'DELETE', input, 'delete')).status, 200);
   assert.equal((await f.call('/tasks/' + task.id, 'DELETE', input, 'delete')).status, 200);
   const rules = (await f.call('/rules')).body.data.rules; assert.equal(rules.length, 1); assert.ok(!JSON.stringify(rules).includes('PRIVATE_'));

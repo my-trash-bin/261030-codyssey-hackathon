@@ -22,8 +22,15 @@ function RequiredExclude(props: {
   const cancelHelpId = `${noticeId}-cancel-help`;
   return (
     <div className="required-exclude" id={noticeId} data-role="required-exclude" data-candidate-id={candidate.id}>
-      <p className="status">{`필수 후보를 제외합니다. ${target} 이 정보가 빠집니다.`}</p>
-      <p className="hint">제외를 유지하려면 아래 결정 저장에서 범위 축소에 동의하세요. 필수 후보를 제외하면 초안을 만들 수 없습니다.</p>
+      <p className="status">
+        {`필수 후보를 이번 결과에서 제외합니다. ${target} 다음 정보가 빠집니다: “${candidate.statement}”`}
+      </p>
+      <p className="hint">
+        이 정보를 제외하면 목적에 필요한 단서가 부족해질 수 있습니다.
+      </p>
+      <p className="hint">
+        전체 적용을 누르면 이 제외 결정을 저장합니다.
+      </p>
       <button
         className="button"
         type="button"

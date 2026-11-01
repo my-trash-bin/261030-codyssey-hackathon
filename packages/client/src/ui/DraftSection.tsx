@@ -289,19 +289,6 @@ export function DraftSection(props: {
                     {finalizedBefore
                       ? <p className="hint" data-role="finalized-before">이 작업은 이미 확정했습니다. 내려받기 정보는 새로고침하면 사라지므로, 같은 파일로 다시 확정하면 같은 내용을 내려받을 수 있습니다.</p>
                       : <p className="hint">확정 뒤 작업 판본이나 공개 결정이 바뀌면 서버가 다운로드를 거부합니다.</p>}
-                    {artifact.finalizable
-                      ? (
-                        <div className="option">
-                          <input
-                            type="checkbox"
-                            id="finalize-confirm"
-                            checked={workflow.finalizeConfirmed}
-                            onChange={(event) => { workflow.setFinalizeConfirmed(event.target.checked); }}
-                          />
-                          <label htmlFor="finalize-confirm">파일 목록과 내용을 확인했고 이 파일들로 확정합니다.</label>
-                        </div>
-                      )
-                      : null}
                     <div className="action">
                       <button
                         className="button button--solid"

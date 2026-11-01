@@ -70,7 +70,7 @@ test('다음 페이지는 서버 커서를 인코딩해 그대로 전달한다',
   if (result.ok) assert.equal(result.value.nextCursor, null);
 });
 
-test('작업 삭제는 DELETE 확인 문자열과 규칙 보존 확인을 정확히 보낸다', async () => {
+test('작업 삭제는 선택한 작업의 현재 판본으로 요청한다', async () => {
   const { calls, fetchFn } = stubFetch(() => jsonResponse({ data: { id: 'task-1', deleted: true } }));
   const result = await deleteTask(fetchFn, 'csrf-value', 'task-1', 3);
   assert.equal(calls.length, 1);
@@ -79,8 +79,6 @@ test('작업 삭제는 DELETE 확인 문자열과 규칙 보존 확인을 정확
   assert.equal(calls[0]?.headers['x-csrf-token'], 'csrf-value');
   assert.deepEqual(JSON.parse(calls[0]?.body ?? '{}'), {
     expected_revision: 3,
-    confirmation: 'DELETE',
-    acknowledge_saved_rules_retained: true,
   });
   assert.ok(result.ok);
   if (result.ok) assert.equal(result.value.id, 'task-1');

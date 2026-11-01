@@ -105,7 +105,7 @@ test('preview, atomic batch and revoke support retry and reject foreign/stale re
 });
 test('comparison and source content show originals only behind the session and follow current decisions', async t => {
   const f = await fixture(t);
-  const id = (await f.call('/tasks', 'POST', { context })).body.data.id, path = `/tasks/${id}`;
+  const id = (await f.call('/tasks', 'POST', { intake })).body.data.id, path = `/tasks/${id}`;
   await f.call(path + '/sources', 'PUT', { expected_revision: 1, sources: [source] });
   await f.call(path + '/jobs', 'POST', { expected_revision: 2, kind: 'analyze' });
   const task = (await f.call(path)).body.data;
@@ -180,7 +180,7 @@ test('session expiry and duplicate cookies cannot keep authorization alive', asy
   const next = sessions.open(request, response);
   assert.notEqual(next.csrf_token, data.csrf_token);
 });
-test('disclosure cancellation and confirmed deletion wait for physical exit and reject new task writes', async t => {
+test('disclosure cancellation and deletion wait for physical exit and reject new task writes', async t => {
   let release!: () => void, aborted!: () => void;
   const waiting = new Promise<void>(r => { release = r; }), stopped = new Promise<void>(r => { aborted = r; });
   const f = await fixture(t, { proposeDisclosure: async (candidate, _task, options) => {
@@ -193,7 +193,7 @@ test('disclosure cancellation and confirmed deletion wait for physical exit and 
   const startInput = { expected_revision: added.revision, kind: 'interpret_disclosure', arguments: { candidate_id: candidate.id, text: 'fixture' } };
   const started = await f.call(`/tasks/${task.id}/jobs`, 'POST', startInput); assert.equal(started.status, 202);
   try {
-    const deletion = f.call(`/tasks/${task.id}`, 'DELETE', { expected_revision: added.revision, confirmation: 'DELETE', acknowledge_saved_rules_retained: true });
+    const deletion = f.call(`/tasks/${task.id}`, 'DELETE', { expected_revision: added.revision });
     await stopped; assert.equal(f.store.get(task.id).id, task.id);
     assert.equal((await f.call(`/tasks/${task.id}/jobs`, 'POST', startInput)).status, 409);
     release(); assert.equal((await deletion).status, 200);

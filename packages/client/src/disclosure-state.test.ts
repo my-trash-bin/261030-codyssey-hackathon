@@ -284,17 +284,15 @@ test('조회 실패는 기존 스냅샷을 유지하면서 stale로 묶어 저�
   assert.equal(result.current.canGenerate, false);
 });
 
-test('다른 작업을 열면 이전 초안과 범위 축소 동의가 격리된다', async t => {
+test('다른 작업을 열면 이전 선택 초안이 격리된다', async t => {
   const { fetch } = stubFetch(call =>
     call.url.endsWith('/t2') ? jsonResponse(taskEnvelope({ id: 't2' })) : jsonResponse(taskEnvelope()),
   );
   const { result } = await mount(t, { fetch, csrfToken: 'fixture-token' });
   await run(() => result.current.loadTask('t1'));
   await run(() => result.current.chooseDisposition('c1', 'defer'));
-  await run(() => result.current.setScopeReduction(true));
   await run(() => result.current.loadTask('t2'));
   assert.equal(result.current.drafts.size, 0);
-  assert.equal(result.current.acceptScopeReduction, false);
 });
 
 test('로컬 선택은 토큰 없이도 정상 동작한다', async t => {
@@ -591,7 +589,7 @@ test('필수 후보가 미선택이어도 다른 후보의 결정은 저장되�
   assert.deepEqual(sentBody.operations, [{ candidate_id: 'c2', disposition: 'defer' }]);
 });
 
-test('필수 제외만 범위 축소 동의를 요구하고 보류는 동의 없이 저장된다', async t => {
+test('제외와 보류는 선택 후 바로 저장하며 범위 축소는 실제 필수 제외에만 보낸다', async t => {
   const { calls, fetch } = stubFetch(call =>
     call.url.endsWith('/decision-batches')
       ? jsonResponse({ data: {} })
@@ -599,17 +597,17 @@ test('필수 제외만 범위 축소 동의를 요구하고 보류는 동의 없
   );
   const { result } = await mount(t, { fetch, csrfToken: 'fixture-token' });
   await run(() => result.current.loadTask('t1'));
-  await run(() => result.current.chooseDisposition('c1', 'exclude'));
-  await run(() => result.current.apply());
-  assert.ok(!calls.some(call => call.url.endsWith('/decision-batches')));
-  await run(() => result.current.chooseDisposition('c1', 'defer'));
-  assert.equal(result.current.batchBlockReason, '');
-  assert.equal(result.current.canGenerate, false);
-  await run(() => result.current.apply());
-  const sent = calls.find(call => call.url.endsWith('/decision-batches'));
-  assert.ok(sent);
-  const sentBody: { operations: { candidate_id: string; disposition: string }[] } = JSON.parse(sent.body);
-  assert.deepEqual(sentBody.operations, [{ candidate_id: 'c1', disposition: 'defer' }]);
+  for (const disposition of ['exclude', 'defer'] as const) {
+    await run(() => result.current.chooseDisposition('c1', disposition));
+    assert.equal(result.current.batchBlockReason, '');
+    assert.equal(result.current.canGenerate, false);
+    await run(() => result.current.apply());
+    const sent = calls.filter(call => call.url.endsWith('/decision-batches')).at(-1);
+    assert.ok(sent);
+    const body = JSON.parse(sent.body);
+    assert.equal(body.accept_scope_reduction, disposition === 'exclude');
+    assert.deepEqual(body.operations, [{ candidate_id: 'c1', disposition }]);
+  }
 });
 
 test('충돌 묶음은 저장을 임의로 막지 않고 두 후보 결정을 그대로 보낸다', async t => {

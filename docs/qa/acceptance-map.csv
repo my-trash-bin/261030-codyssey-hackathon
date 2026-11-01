@@ -106,7 +106,7 @@ AC-F09-03,F09,features/09-history-recovery.md,"queued/running 중 프로세스 �
 AC-F09-04,F09,features/09-history-recovery.md,"취소 응답이 늦어도 결과 적용 불가, 사용자 새 선택 저장을 막지 않음",T51,hackathon_core,packages/core/src/engine.test.ts;packages/core/src/analyze.test.ts;packages/core/src/evidence-parser.test.ts,partial
 AC-F09-05,F09,features/09-history-recovery.md,"모델/도구 오류·예산 소진을 실제 원인으로 표시, fixture 대체·성공 위장 없음",T18;T40,hackathon_core,packages/core/src/core.test.ts,passed
 AC-F09-06,F09,features/09-history-recovery.md,"제목만 변경해도 revision 증가·이전 결과 stale, 안내와 재검토 경로 제공",T51,product_backlog,backlog,not_run
-AC-F09-07,F09,features/09-history-recovery.md,DELETE 입력·기준 보존 확인 후 원자료·결정·결과·export·trace·event·관련 임시/멱등 내용 제거,T44,product_backlog,backlog,not_run
+AC-F09-07,F09,features/09-history-recovery.md,삭제 버튼 실행 후 원자료·결정·결과·export·trace·event·관련 임시/멱등 내용 제거,T44,product_backlog,backlog,not_run
 AC-F09-08,F09,features/09-history-recovery.md,실행 중 삭제와 늦은 응답 이후에도 task/자료가 부활하지 않음,T44,product_backlog,backlog,not_run
 AC-F09-09,F09,features/09-history-recovery.md,"확인 불일치/오래된 revision은 미변경, 이미 삭제된 요청 재전송은 민감 응답을 복원하지 않음",T44,product_backlog,backlog,not_run
 AC-F09-10,F09,features/09-history-recovery.md,원작업 삭제 후 규칙은 최소 비민감 provenance로 남고 사용자에게 남는 사실을 표시,T45,product_backlog,backlog,not_run

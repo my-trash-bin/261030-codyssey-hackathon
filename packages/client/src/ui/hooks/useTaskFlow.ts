@@ -112,8 +112,6 @@ export function useTaskFlow(options: TaskFlowOptions): TaskFlowApi {
   const [manualBusy, setManualBusy] = useState(false);
   const manualBusyRef = useRef(false);
 
-  const [consent, setConsentState] = useState(false);
-  const consentRef = useRef(false);
   const [job, setJob] = useState<AnalysisJobState | null>(null);
   const jobRef = useRef<AnalysisJobState | null>(null);
   const [analysisBusy, setAnalysisBusy] = useState(false);
@@ -138,11 +136,6 @@ export function useTaskFlow(options: TaskFlowOptions): TaskFlowApi {
   useEffect(() => {
     aliveRef.current = true;
     return () => { aliveRef.current = false; };
-  }, []);
-
-  const resetConsent = useCallback((): void => {
-    consentRef.current = false;
-    setConsentState(false);
   }, []);
 
   const loadTask = useCallback(async (id: string): Promise<void> => {
@@ -214,7 +207,7 @@ export function useTaskFlow(options: TaskFlowOptions): TaskFlowApi {
       sourcesRef.current = [];
       setSources([]);
       setSourcesBusy(false);
-      resetConsent();
+
       return;
     }
     const next = { id: snapshot.id, revision: snapshot.revision };
@@ -229,7 +222,7 @@ export function useTaskFlow(options: TaskFlowOptions): TaskFlowApi {
     analysisBusyRef.current = false;
     setAnalysisBusy(false);
     setTaskPhase(null);
-    resetConsent();
+
     sourcesRef.current = [];
     setSources([]);
     const cachedBytes = taskCachesRef.current.get(snapshot.id) ?? new Map<string, WireSource>();
@@ -241,37 +234,26 @@ export function useTaskFlow(options: TaskFlowOptions): TaskFlowApi {
     setEvidenceIds([]);
     setManualInvalid(null);
     void refreshSources(snapshot.id, epochRef.current);
-  }, [options.snapshot, refreshSources, resetConsent]);
-
-  // 원자료 구성이 바뀌면(추가·교체·삭제) 외부 전송 동의를 해제한다.
-  const sourceSignature = sources.map((source) => `${source.sourceId}:${source.version}:${source.included}`).join('|');
-  const sourceSignatureRef = useRef('');
-  useEffect(() => {
-    if (sourceSignatureRef.current === sourceSignature) return;
-    sourceSignatureRef.current = sourceSignature;
-    resetConsent();
-  }, [sourceSignature, resetConsent]);
+  }, [options.snapshot, refreshSources]);
 
   const setField = useCallback((field: StringField, value: string): void => {
     formRef.current = { ...formRef.current, [field]: value } as IntakeForm;
     setForm(formRef.current);
     setInvalidField(null);
-    // 목적·수신처·공개 범위·언어가 바뀌면 분석 동의를 다시 받는다.
-    if (field !== 'internalTitle') resetConsent();
-  }, [resetConsent]);
+  }, []);
 
   const setFiles = useCallback((next: File[]): void => {
     filesRef.current = next;
     setFilesState(next);
     setInvalidField(null);
-    resetConsent();
-  }, [resetConsent]);
+
+  }, []);
 
   const setAddFiles = useCallback((next: File[]): void => {
     addFilesRef.current = next;
     setAddFilesState(next);
-    resetConsent();
-  }, [resetConsent]);
+
+  }, []);
 
   const setManualMode = useCallback((mode: ManualMode): void => {
     manualModeRef.current = mode;
@@ -291,11 +273,6 @@ export function useTaskFlow(options: TaskFlowOptions): TaskFlowApi {
     evidenceIdsRef.current = next;
     setEvidenceIds(next);
     setManualInvalid(null);
-  }, []);
-
-  const setConsent = useCallback((value: boolean): void => {
-    consentRef.current = value;
-    setConsentState(value);
   }, []);
 
   const buildIntake = useCallback((input: IntakeForm): TaskIntake => ({
@@ -371,7 +348,7 @@ export function useTaskFlow(options: TaskFlowOptions): TaskFlowApi {
         // 만든 작업의 입력이 폼에 남으면 수정 화면처럼 보인다. 다음 작업은 빈 폼에서 시작한다.
         formRef.current = INITIAL_FORM;
         setForm(INITIAL_FORM);
-        report(`작업을 만들고 원자료 ${wire.length}개를 등록했습니다. 분석 동의를 확인한 뒤 분석을 시작하세요.`);
+        report(`작업을 만들고 원자료 ${wire.length}개를 등록했습니다. 분석을 시작하세요.`);
         await loadTask(created.value.id);
       } finally {
         // 작업을 새로 만들면 snapshot 작업 id가 바뀌어 epoch가 올라간다. 이 작업 자신의 busy는 풀어야 한다.
@@ -438,7 +415,7 @@ export function useTaskFlow(options: TaskFlowOptions): TaskFlowApi {
         addFilesRef.current = [];
         setAddFilesState([]);
         setClearAddSignal((count) => count + 1);
-        report(`원자료 ${appended.length}개를 추가해 판본 ${result.value.revision}이 되었습니다. 분석 동의를 다시 확인하세요.`);
+        report(`원자료 ${appended.length}개를 추가해 판본 ${result.value.revision}이 되었습니다. 다시 분석할 수 있습니다.`);
         await loadTask(task.id);
         if (!isCurrent(epoch)) return;
         await refreshSources(task.id, epoch);
@@ -469,7 +446,7 @@ export function useTaskFlow(options: TaskFlowOptions): TaskFlowApi {
         }
         cacheRef.current.delete(sourceId);
         setCachedSourceIds([...cacheRef.current.keys()]);
-        report(`원자료를 해제해 판본 ${result.value.revision}이 되었습니다. 분석 동의를 다시 확인하세요.`);
+        report(`원자료를 해제해 판본 ${result.value.revision}이 되었습니다. 다시 분석할 수 있습니다.`);
         await loadTask(task.id);
         if (!isCurrent(epoch)) return;
         await refreshSources(task.id, epoch);
@@ -522,7 +499,7 @@ export function useTaskFlow(options: TaskFlowOptions): TaskFlowApi {
         filesRef.current = [];
         setFilesState([]);
         setClearFilesSignal((count) => count + 1);
-        report(`원자료 ${wire.length}개로 교체해 판본 ${result.value.revision}이 되었습니다. 분석 동의를 다시 확인하세요.`);
+        report(`원자료 ${wire.length}개로 교체해 판본 ${result.value.revision}이 되었습니다. 다시 분석할 수 있습니다.`);
         await loadTask(task.id);
         if (!isCurrent(epoch)) return;
         await refreshSources(task.id, epoch);
@@ -676,10 +653,6 @@ export function useTaskFlow(options: TaskFlowOptions): TaskFlowApi {
       report('이미 실행 중인 분석이 있습니다. 상태 재확인이나 분석 취소를 먼저 이용하세요.');
       return;
     }
-    if (!consentRef.current) {
-      report('원자료가 외부 분석 환경으로 전송되는 것에 동의해야 분석을 시작할 수 있습니다.');
-      return;
-    }
     if (!sourcesRef.current.some((source) => source.included)) {
       report('등록된 원자료가 없습니다. 원자료를 먼저 등록하세요.');
       return;
@@ -796,7 +769,6 @@ export function useTaskFlow(options: TaskFlowOptions): TaskFlowApi {
 
   const canStart = selected !== null
     && sources.some((source) => source.included)
-    && consent
     && !analysisBusy
     && (job === null || (job.status !== 'running' && job.status !== 'cancel_requested'))
     && options.csrfToken !== null;
@@ -842,8 +814,6 @@ export function useTaskFlow(options: TaskFlowOptions): TaskFlowApi {
     submitManual,
     manualBusy,
 
-    consent,
-    setConsent,
     job,
     analysisBusy,
     cancelBusy,

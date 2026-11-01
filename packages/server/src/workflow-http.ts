@@ -38,14 +38,10 @@ function fieldList(store: TaskStore, id: string, candidateId: string) {
     fields: [...new Set(evidence.map(e => source.format === 'csv' ? e.locator.column! : e.locator.pointer!))], reusable: false };
 }
 
-// `sessions` defaults to a private instance for callers (tests) that only exercise the
-// workflow API; app.ts's legacy routes (/api/sharing, /api/analysis, /api/documents) need the
-// *same* instance passed in explicitly so a session opened via POST /api/v1/session also
-// covers them -- see app.ts's GUARDED_PATHS and packages/app/src/main.ts.
+// Sessions carry cookies and CSRF state for task API requests.
 export function createWorkflowHandler(store: TaskStore, engine: Engine, access: WorkflowAccess, sessions: WorkflowSessions = new WorkflowSessions(access)) {
   store.recoverJobs();
-  const environment = { provider_origin: access.analysisProviderOrigin ?? null,
-    approval_status: 'operator_confirmation_required', verified_at: null };
+  const environment = { provider_origin: access.analysisProviderOrigin ?? null };
   const sessionData = (data: unknown) => ({ ...(data as Record<string, unknown>), analysis_environment: environment,
     capabilities: { tasks: true, selected_fields: true, reusable_rules: true, artifacts: true, exports: true, approved_excerpt: false } });
   const controllers = new Map<string, AbortController>(), deletingTasks = new Set<string>(), streams = new Set<ServerResponse>(), pending = new Set<Promise<void>>(), jobTasks = new Map<string, string>(), jobPromises = new Map<string, Promise<void>>();
@@ -97,8 +93,7 @@ export function createWorkflowHandler(store: TaskStore, engine: Engine, access: 
       const operation = `${request.method}:${id}:${action}`;
       if (deletingTasks.has(id) && !(request.method === 'DELETE' && !action)) deny(409, 'TASK_DELETING');
       if (request.method === 'DELETE' && !action) {
-        const v = object(input, ['expected_revision', 'confirmation', 'acknowledge_saved_rules_retained']);
-        if (v.confirmation !== 'DELETE' || v.acknowledge_saved_rules_retained !== true) deny(400, 'DELETE_CONFIRMATION_REQUIRED');
+        const v = object(input, ['expected_revision']);
         const replay = store.replay(operation, key, input); if (replay) { send(response, 200, { data: replay.result }); return; }
         store.assertRevision(id, revision(v.expected_revision));
         deletingTasks.add(id);

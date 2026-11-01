@@ -73,7 +73,7 @@ test('real engine parses CSV, HTTP adopts server IDs, selected-field preview and
   const retry = await call(base + '/disclosure-previews', 'POST', input, 'preview');
   assert.equal(retry.body.data.preview_id, preview.body.data.preview_id);
   assert.equal((await call(base + '/disclosure-previews', 'POST', input)).status, 409);
-  assert.equal((await call(base, 'DELETE', { expected_revision: 5, confirmation: 'DELETE', acknowledge_saved_rules_retained: true })).status, 200);
+  assert.equal((await call(base, 'DELETE', { expected_revision: 5 })).status, 200);
   assert.equal((await call(base)).status, 404);
   const tombstone = await call('/tasks', 'POST', { intake: { internal_title: '가상 작업', purpose_id: 'vendor_support', recipient_id: 'fictional', audience: 'named_external', skill_ids: [] } }, 'create');
   assert.deepEqual(tombstone.body.data, { id, deleted: true });

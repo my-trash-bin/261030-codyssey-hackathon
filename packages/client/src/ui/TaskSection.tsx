@@ -1,5 +1,5 @@
 // 작업 만들기 구역. 서버 카탈로그의 실제 선택지만 쓰고, 원자료 등록/추가/교체/해제와
-// 수동 후보, 분석 동의·시작·재확인·취소를 한 작업 판본(snapshot)에 맞춰 진행한다.
+// 수동 후보, 분석 시작·상태 조회·취소를 한 작업 판본(snapshot)에 맞춰 진행한다.
 
 import { useEffect, useRef, useState } from 'react';
 import type { FormEvent, JSX } from 'react';
@@ -358,21 +358,6 @@ export function TaskSection(props: {
       {part === 'analysis' && (
         <section className="panel" id="task-analysis">
           <h3>분석</h3>
-          <div className="option option--consent">
-            <input
-              type="checkbox"
-              id="task-analysis-consent"
-              checked={task.consent}
-              aria-describedby="task-consent-note task-status"
-              onChange={(event): void => { task.setConsent(event.currentTarget.checked); }}
-            />
-            <label htmlFor="task-analysis-consent">
-              {`${environment?.providerOrigin ?? '서버가 알리지 않은 분석 환경'}으로 원자료를 보내 분석하는 데 동의합니다.`}
-            </label>
-          </div>
-          <p className="hint" id="task-consent-note">
-            이 주소가 승인된 사내·로컬 환경인지는 운영자가 직접 확인해야 합니다. 원자료나 목적이 바뀌면 동의는 자동으로 해제됩니다.
-          </p>
           <div className="actions">
             <button
               className="button button--solid"
@@ -380,7 +365,7 @@ export function TaskSection(props: {
               type="button"
               disabled={!task.canStart}
               aria-busy={task.analysisBusy ? 'true' : undefined}
-              aria-describedby="task-consent-note task-status"
+              aria-describedby="task-status"
               onClick={() => { task.startJob(); }}
             >{candidates.length > 0 ? '다시 분석' : '분석 시작'}</button>
             <button

@@ -143,7 +143,6 @@ const ADVICE: Record<string, string> = {
   FINALIZATION_BLOCKED:
     '서버 확정 조건이 남아 있습니다. 미결정·보류·만료·철회된 공개 결정과 파일 검사 상태를 확인하세요. 체크로 우회할 수 없습니다.',
   FINALIZATION_REJECTED: '현재 파일 집합이나 작업 판본이 확정 요청과 다릅니다. 작업을 다시 불러오세요.',
-  FINAL_CONFIRMATION_REQUIRED: '확정에는 현재 파일을 확인했다는 명시적 확인이 필요합니다.',
   EXPORT_INVALIDATED: '작업 판본·결정·규칙이 바뀌어 이 확정 파일은 더 이상 내려받을 수 없습니다.',
   EXPORT_TOO_LARGE: '내보내기 크기 한도(20MiB)를 넘었습니다.',
   FILE_NOT_FOUND: '확정 파일 목록에 그 경로가 없습니다.',
@@ -568,7 +567,6 @@ export async function finalizeTask(
       expected_revision: expectedRevision,
       artifact_id: artifactId,
       expected_artifact_set_hash: expectedArtifactSetHash,
-      confirmed: true,
     },
     idempotencyKey,
   });
