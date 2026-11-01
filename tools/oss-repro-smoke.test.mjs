@@ -3,8 +3,8 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
-import { registerPack } from './pack-register.mjs';
-import { selectToyrecordPack, toyrecordAllowlist } from './toyrecord-pack.mjs';
+import { registerPack } from './pack-register.mts';
+import { selectToyrecordPack, toyrecordAllowlist } from './toyrecord-pack.mts';
 import { runOssReproSmoke, fixtureModel } from './oss-repro-smoke.mjs';
 const config = JSON.parse(await readFile(new URL('../config.example.json', import.meta.url), 'utf8'));
 const fakeRunner = status => () => ({ info: { implementation: 'fake', ready: true }, async reproduce(request) {

@@ -76,7 +76,7 @@ AC-F06-08,F06,features/06-decision-reuse.md,열 타입 불일치·결측·0 기�
 AC-F06-09,F06,features/06-decision-reuse.md,원래 작업 삭제 후에도 남긴 기준에는 원문·개별 값·작업의 비밀 설명이 없음,T45,product_backlog,backlog,not_run
 AC-F06-10,F06,features/06-decision-reuse.md,late job·중복 요청이 current decision과 revision을 이중 변경하지 않음,T03;T19,product_backlog,backlog,not_run
 AC-F06-11,F06,features/06-decision-reuse.md,최종 확인 화면에서 적용 범위·변환 결과를 확인할 수 있고 기준 재사용이 최종 확인을 생략하지 않음,T58,product_backlog,backlog,not_run
-AC-F07-01,F07,features/07-domain-extensions.md,두 팩을 catalog에서 선택하고 각 제품의 다른 질문·양식이 적용됨,T47;T58,hackathon_ext,tools/pack-register.test.mjs,passed
+AC-F07-01,F07,features/07-domain-extensions.md,두 팩을 catalog에서 선택하고 각 제품의 다른 질문·양식이 적용됨,T47;T58,hackathon_ext,tools/pack-register.test.mts,passed
 AC-F07-02,F07,features/07-domain-extensions.md,writer 실제 요청에는 공개 지침만 있고 내부 제품 문서·SKILL.md 전문은 없음,T01;T47,hackathon_ext,packages/core-interface/src/role-documents.test.ts,passed
 AC-F07-03,F07,features/07-domain-extensions.md,승인한 새 설정은 문맥 조건에 따라 IP finding만 해소됨,T11,hackathon_ext,packages/core/src/builtin-tools.test.ts,partial
 AC-F07-04,F07,features/07-domain-extensions.md,같은 IP가 원래 접속 로그에 있으면 새 설정 예외로 해소되지 않음,T11,product_backlog,backlog,not_run

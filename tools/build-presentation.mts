@@ -1,4 +1,3 @@
-// @ts-check
 import { readFile, rename, rm, writeFile } from 'node:fs/promises';
 import { randomUUID } from 'node:crypto';
 import { fileURLToPath, pathToFileURL } from 'node:url';
@@ -10,7 +9,8 @@ const output = fileURLToPath(new URL('../docs/presentation/SafeHandoff_발표자
 async function fontStyles() {
   const cssURL = import.meta.resolve('@fontsource-variable/noto-sans-kr/index.css');
   let css = await readFile(new URL(cssURL), 'utf8');
-  const paths = [...new Set([...css.matchAll(/url\(([^)]+)\)/g)].map(match => match[1]))];
+  const paths = [...new Set([...css.matchAll(/url\(([^)]+)\)/g)]
+    .map(match => match[1]).filter((path): path is string => path !== undefined))];
   const embedded = await Promise.all(paths.map(async path => ({ path,
     data: (await readFile(new URL(path, cssURL))).toString('base64') })));
   for (const { path, data } of embedded) css = css.replaceAll(`url(${path})`, `url(data:font/woff2;base64,${data})`);
@@ -38,9 +38,10 @@ async function main() {
       await document.fonts.ready;
     });
     const slides = await page.locator('.slide-scope').count();
-    const images = await page.locator('img').evaluateAll(elements => elements.map(image => ({
-      source: image.getAttribute('src'), loaded: image.complete && image.naturalWidth > 0,
-    })));
+    const images = await page.locator('img').evaluateAll(elements => elements.map(element => {
+      const image = element as HTMLImageElement;
+      return { source: image.getAttribute('src'), loaded: image.complete && image.naturalWidth > 0 };
+    }));
     if (slides !== 11 || images.some(image => !image.loaded)) throw new Error('PRESENTATION_SLIDE_OR_IMAGE_MISSING');
     const pdf = await page.pdf({ printBackground: true, preferCSSPageSize: true });
     const pages = (pdf.toString('latin1').match(/\/Type\s*\/Page\b/g) ?? []).length;

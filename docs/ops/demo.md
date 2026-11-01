@@ -71,7 +71,7 @@ just fake-client
 
 ```sh
 # 1. 로컬 카탈로그에 toyrecord-repro 1.0.0 팩 지문 검증/등록
-node tools/pack-register.mjs \
+node tools/pack-register.mts \
   --root fixtures/skills/toyrecord-repro \
   --allowlist fixtures/skills/toyrecord-allowlist.json \
   --catalog .local/toyrecord-catalog.json
@@ -122,7 +122,7 @@ SAFEHANDOFF_TRANSCRIPT_DIR=.local/transcripts SAFEHANDOFF_TRANSCRIPT_CONTENT=1 \
 ## 4. 실제 client + fake core 전체 흐름 확인
 
 - **실행 명령**: `mise exec -- just demo` (탐색/재생 검증: `just demo-check`, macOS MP4 녹화: `just demo-record`).
-- **동작 범위**: [진행 코드](../../scripts/demo/run.mjs)가 `fake-app` API와 실제 `@safehandoff/client`를 별도 루프백 포트로 실행하고 client의 `/`를 연다. [자막](../../scripts/demo/stage.mjs)/[장면 정의](../../scripts/demo/scenes.mjs)/[재생 제어](../../scripts/demo/playback.mjs)는 client 위에만 주입된다. CDP는 실제 화면 입력과 버튼을 통해 작업 생성 -> 분석 -> 공개 결정 -> 작성/검토 -> 최종 확정을 수행한다.
+- **동작 범위**: [진행 코드](../../scripts/demo/run.mjs)가 `fake-app` API와 실제 `@safehandoff/client`를 별도 루프백 포트로 실행하고 client의 `/`를 연다. [자막](../../scripts/demo/stage.mjs)/[장면 정의](../../scripts/demo/scenes.mts)/[재생 제어](../../scripts/demo/playback.mjs)는 client 위에만 주입된다. CDP는 실제 화면 입력과 버튼을 통해 작업 생성 -> 분석 -> 공개 결정 -> 작성/검토 -> 최종 확정을 수행한다.
 - **영상**: 전용 UI clone으로 만든 기존 MP4·미리보기는 tracked 파일에서 제거했다. 현재 client 기반 흐름의 성공 영상은 아직 없다.
 
 ## 5. 시연 중 실패/질문 대응 기준

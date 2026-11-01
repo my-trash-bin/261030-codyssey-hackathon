@@ -3,9 +3,9 @@ import { mkdir, mkdtemp, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { root, environment, run, ask, prepare } from './common.mjs';
-import { ensureEnvFile, saveEnvValues } from './env-file.mjs';
+import { ensureEnvFile, saveEnvValues } from './env-file.mts';
 import { runServices } from './services.mjs';
-import { configureWorkflow } from './workflow.mjs';
+import { configureWorkflow } from './workflow.mts';
 
 export function launchMode(args) {
  if (!args.length) return 'app';

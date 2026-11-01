@@ -137,7 +137,7 @@ mise exec -- just demo-check
 mise exec -- just demo-record
 
 # ToyRecord 스킬 팩 등록 및 Docker 4회 재현 + 작성/검토 스모크 실행
-node tools/pack-register.mjs \
+node tools/pack-register.mts \
   --root fixtures/skills/toyrecord-repro \
   --allowlist fixtures/skills/toyrecord-allowlist.json \
   --catalog .local/toyrecord-catalog.json
@@ -216,7 +216,7 @@ provider 확인은 기존 텍스트 경로를 유지합니다.
 아래 수치는 React 전환 작업을 마친 시점에 실행한 기록입니다. 원격 `main`을 병합한 트리에서 다시 실행한 결과가 아니므로 병합 뒤 전체 검사 결과로 인용하지 않습니다.
 
 - `mise exec -- pnpm typecheck`로 전체 패키지 빌드와 타입 검사를 통과했습니다. 이어
-  `mise exec -- pnpm -r test`와 `mise exec -- node --test tools/*.test.mjs`에서 합계 192개
+  `mise exec -- pnpm -r test`와 `mise exec -- node --test tools/*.test.mjs tools/*.test.mts`에서 합계 192개
   통과, 실패 0개, 건너뜀 21개를 확인했습니다. 클라이언트 73개와 fake-app 4개가 포함되며, 건너뜀은
   Linux 전용 파일 시스템 검사 19개와 실제 Docker 실행 검사 2개입니다. Node는 고정 버전 24.21.0입니다.
 - 클라이언트 상태 회귀 검사는 jsdom 안의 실제 React root에 훅을 렌더링하고 `React act`로 전이를

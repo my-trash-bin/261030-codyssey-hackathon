@@ -7,10 +7,10 @@ import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { setTimeout as delay } from 'node:timers/promises';
 import { CDP } from './cdp.mjs';
-import { browserExecutable } from './browser.mjs';
+import { browserExecutable } from './browser.mts';
 import { installStage } from './stage.mjs';
 import { Playback, Seek } from './playback.mjs';
-import { scenes } from './scenes.mjs';
+import { scenes } from './scenes.mts';
 import { Recording, buildEncoder } from './recording.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '../..');

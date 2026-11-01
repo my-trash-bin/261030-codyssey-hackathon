@@ -13,7 +13,7 @@
 - packages/fake-core: 연출용 결과 템플릿.
 - packages/app: server와 진짜 core만 조립하는 최종 앱.
 - packages/fake-app: 연출/연결 지연/실패와 가짜 코어를 조립하는 별도 앱.
-- tools/architecture.test.mjs: workspace와 실제 import의 의존성 경계 검사.
+- tools/architecture.test.mts: workspace와 실제 import의 의존성 경계 검사.
 - packages/client: 독립 화면/API 프록시와 테스트.
 - mise.toml, pnpm-workspace.yaml, pnpm-lock.yaml: 도구/패키지/의존성 고정.
 - .qg.yaml, justfile, package.json, tools/qg.test.mjs: 검사 실행과 정책 회귀.

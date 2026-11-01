@@ -1,20 +1,19 @@
-// @ts-check
 import assert from 'node:assert/strict';
 import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import test from 'node:test';
-import { registerPack } from './pack-register.mjs';
+import test, { type TestContext } from 'node:test';
+import { registerPack, type CatalogEntry } from './pack-register.mts';
 
-const linuxTest = (name, run) => test(name, {
+const linuxTest = (name: string, run: (context: TestContext) => void | Promise<void>) => test(name, {
   skip: process.platform !== 'linux' ? 'Requires Linux descriptor-relative /proc filesystem traversal' : false,
 }, run);
 
 test('unsupported platforms reject registration without writing a catalog', {
   skip: process.platform === 'linux' ? 'Non-Linux platform contract' : false,
 }, async () => {
-  const catalog = [];
+  const catalog: CatalogEntry[] = [];
   await assert.rejects(registerPack({ packRoot, allowlist, catalog }), /PACK_MANIFEST_INVALID/);
   assert.deepEqual(catalog, []);
 });
@@ -30,7 +29,9 @@ linuxTest('registering a new pack appends a pinned catalog entry', async () => {
   assert.equal(result.pin.version, '1.0.0');
   assert.match(result.pin.manifest_sha256, /^[a-f0-9]{64}$/);
   assert.equal(result.catalog.length, 1);
-  assert.equal(result.catalog[0].root, packRoot);
+  const registered = result.catalog[0];
+  assert(registered);
+  assert.equal(registered.root, packRoot);
 });
 
 linuxTest('re-registering the identical pack is a no-op, not a duplicate entry', async () => {
@@ -54,7 +55,9 @@ linuxTest('same id+version with different bytes is rejected without --force', as
     const forced = await registerPack({ packRoot: root, allowlist, catalog: first.catalog, force: true });
     assert.equal(forced.changed, true);
     assert.equal(forced.catalog.length, 1);
-    assert.notEqual(forced.catalog[0].pack_sha256, first.pin.pack_sha256);
+  const replacement = forced.catalog[0];
+  assert(replacement);
+  assert.notEqual(replacement.pack_sha256, first.pin.pack_sha256);
   } finally { await rm(parent, { recursive: true, force: true }); }
 });
 

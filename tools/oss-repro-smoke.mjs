@@ -9,7 +9,7 @@ import { RealCore, builtinArgumentsHash, createBuiltinTools } from '../packages/
 import { composeFactPack, judgeReproduction } from '../packages/core-interface/dist/index.js';
 import { DockerReproRunner, reproductionRequest } from '../packages/sandbox-runner/dist/index.js';
 import { OpenAICompatibleModelClient } from '../packages/model-adapter/dist/index.js';
-import { selectToyrecordPack } from './toyrecord-pack.mjs';
+import { selectToyrecordPack } from './toyrecord-pack.mts';
 import { loadConfig, configuredTranscripts } from '../packages/app/dist/config.js';
 const root = fileURLToPath(new URL('../', import.meta.url));
 const hash = value => createHash('sha256').update(value).digest('hex');

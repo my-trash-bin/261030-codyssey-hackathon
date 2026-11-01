@@ -8,7 +8,7 @@
 
 | 종류 | 맡는 일 | 이번 PoC |
 | --- | --- | --- |
-| 업무 지침 팩 | 필요한 정보/미확인 사항/질문 순서/공개 양식 정의 | `vendorstore-support`, `toyrecord-repro` 두 팩 (`FsSkillPackLoader` 및 `pack-register.mjs`) |
+| 업무 지침 팩 | 필요한 정보/미확인 사항/질문 순서/공개 양식 정의 | `vendorstore-support`, `toyrecord-repro` 두 팩 (`FsSkillPackLoader` 및 `pack-register.mts`) |
 | 결정적 변환 | 승인한 사실로 추이/시간/예시 설정을 계산 | builtin TypeScript 함수 5종 (`packages/core/src/builtin-tools.ts`) |
 | 맥락 검사기 | 제품 구조/생성 경위/현재 승인과 finding의 일치 검사 | 내장 IP checker와 동일 계약의 process 실행기 |
 | 재현 레시피 | 고정 대상/입력 계약/실행법/관찰 판정 지정 | 의도적 결함이 있는 `toyrecord` (`DockerReproRunner` 4회 실행) |
@@ -178,7 +178,7 @@ RFC 5737의 문서 예시용 대역인 `192.0.2.0/24`, `198.51.100.0/24`, `203.0
 
 새 팩 작성 -> 내부용/공개용 지침 분리 -> schema/도구/검사 등록 -> 정상/경계/오류 예시 작성 -> 공개 결과와 권한 검토 -> digest 고정 -> catalog 등록 순서로 진행한다. 코드를 붙였다는 이유만으로 지원 제품 목록에 올리지 않고 실제 대상과 입력에서 시험한다.
 
-현행 구현에서는 `node tools/pack-register.mjs --root <팩경로> --allowlist <허용목록> --catalog <카탈로그JSON>`으로 `FsSkillPackLoader.load()` 검증을 통과한 팩의 `manifest_sha256`과 `pack_sha256`을 로컬 카탈로그에 고정한다. `toyrecord-repro` 팩은 `assets/reproduction.v1.json`(`toyrecord_reproduction.v1`)과 운영자 설치 핀(`toyrecord_installation.v1`)을 `FsSkillPackLoader.verify()`로 대조한 뒤에만 `tools/oss-repro-smoke.mjs`에서 실행한다.
+현행 구현에서는 `node tools/pack-register.mts --root <팩경로> --allowlist <허용목록> --catalog <카탈로그JSON>`으로 `FsSkillPackLoader.load()` 검증을 통과한 팩의 `manifest_sha256`과 `pack_sha256`을 로컬 카탈로그에 고정한다. `toyrecord-repro` 팩은 `assets/reproduction.v1.json`(`toyrecord_reproduction.v1`)과 운영자 설치 핀(`toyrecord_installation.v1`)을 `FsSkillPackLoader.verify()`로 대조한 뒤에만 `tools/oss-repro-smoke.mjs`에서 실행한다.
 
 문서와 도구를 추가해도 `INV-03`, `INV-04`, `INV-07`, `INV-09`, `INV-12-16`은 유지한다. 필요한 권한 변경은 기능 파일에만 숨기지 말고 [spec](spec.md), [API](api.md), [ERD](erd.md)를 같은 변경으로 갱신한다.
 

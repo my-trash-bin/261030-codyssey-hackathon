@@ -1,4 +1,3 @@
-// @ts-check
 // F07 submission/registration CLI (docs/design/extensions.md §10).
 // Loads+validates a pack directory with the install-time allowlist and appends a digest-pinned
 // entry to a local catalog file. Never installs a pack by its own asserted product/purpose/tool
@@ -7,21 +6,37 @@ import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { FsSkillPackLoader } from '../packages/skill-loader/dist/index.js';
+import type { SkillCatalog, SkillPackPin } from '../packages/skill-loader/dist/index.js';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
 
-async function readCatalog(path) {
-  try { return JSON.parse(await readFile(path, 'utf8')); }
-  catch (error) { if (error.code === 'ENOENT') return []; throw error; }
+export interface CatalogEntry extends SkillPackPin {
+  root: string;
 }
 
-export async function registerPack({ packRoot, allowlist, catalog, force = false }) {
+interface RegisterPackOptions {
+  packRoot: string;
+  allowlist: SkillCatalog;
+  catalog: CatalogEntry[];
+  force?: boolean;
+}
+
+async function readCatalog(path: string): Promise<CatalogEntry[]> {
+  try { return JSON.parse(await readFile(path, 'utf8')); }
+  catch (error) {
+    if ((error as NodeJS.ErrnoException).code === 'ENOENT') return [];
+    throw error;
+  }
+}
+
+export async function registerPack({ packRoot, allowlist, catalog, force = false }: RegisterPackOptions) {
   const loader = new FsSkillPackLoader(allowlist);
   const pack = await loader.load(packRoot);
   const pin = { id: pack.manifest.id, version: pack.manifest.version, manifest_sha256: pack.manifest_sha256, pack_sha256: pack.pack_sha256 };
   const existingIndex = catalog.findIndex(entry => entry.id === pin.id && entry.version === pin.version);
   if (existingIndex >= 0) {
     const existing = catalog[existingIndex];
+    if (!existing) throw new Error('PACK_CATALOG_INVALID');
     const unchanged = existing.manifest_sha256 === pin.manifest_sha256 && existing.pack_sha256 === pin.pack_sha256;
     if (unchanged) return { catalog, changed: false, pin };
     // extensions.md §2: "version 문자열만 같고 바이트가 달라진 팩은 원래 판본으로 인정하지 않는다".
@@ -35,7 +50,10 @@ export async function registerPack({ packRoot, allowlist, catalog, force = false
 
 async function main() {
   const args = process.argv.slice(2);
-  const flag = name => { const i = args.indexOf(`--${name}`); return i < 0 ? undefined : args[i + 1]; };
+  const flag = (name: string): string | undefined => {
+    const index = args.indexOf(`--${name}`);
+    return index < 0 ? undefined : args[index + 1];
+  };
   const packRoot = flag('root'), allowlistPath = flag('allowlist'), catalogPath = flag('catalog'), force = args.includes('--force');
   const known = new Set(['--root', '--allowlist', '--catalog', '--force']);
   if (!packRoot || !allowlistPath || !catalogPath || args.some((arg, i) => !known.has(arg) && args[i - 1] !== '--root' &&
@@ -51,9 +69,10 @@ async function main() {
   console.log(JSON.stringify({ changed: result.changed, pin: result.pin, catalog: catalogFile }));
 }
 if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
-  main().catch(error => {
+  main().catch((error: unknown) => {
     const known = new Set(['PACK_REGISTER_ARGUMENTS_REQUIRED', 'PACK_VERSION_BYTES_CHANGED']);
-    console.error(known.has(error.message) ? error.message : (error.code || 'PACK_REGISTER_FAILED'));
+    const failure = error as NodeJS.ErrnoException;
+    console.error(known.has(failure.message) ? failure.message : (failure.code || 'PACK_REGISTER_FAILED'));
     process.exitCode = 1;
   });
 }

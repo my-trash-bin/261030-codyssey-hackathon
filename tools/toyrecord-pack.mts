@@ -1,21 +1,54 @@
-// @ts-check
 import { isDeepStrictEqual } from 'node:util';
 import { FsSkillPackLoader, skillSetHash } from '../packages/skill-loader/dist/index.js';
+import type { SkillCatalog, SkillPackPin } from '../packages/skill-loader/dist/index.js';
 
 // Operator-owned allowlist and supported runner contract; never derive authority from the pack.
-export const toyrecordAllowlist = Object.freeze({ productIds: ['toyrecord'], purposeIds: ['oss_issue'],
+export const toyrecordAllowlist: SkillCatalog = Object.freeze({ productIds: ['toyrecord'], purposeIds: ['oss_issue'],
   toolIds: ['make_synthetic_inputs_v1', 'run_repro_v1'], templateIds: ['oss_issue.v1'] });
 const specification = { schema_version: 'toyrecord_reproduction.v1', target_pair_id: 'toyrecord.sandbox-observation.v1',
   oracle_id: 'toyrecord.encode.v1', supervisor: 'sandbox_observation.v1', targets: ['buggy', 'fixed'],
   input_kinds: ['ascii', 'multibyte'], codepoint_count: 6, tool_ids: ['make_synthetic_inputs_v1', 'run_repro_v1'], result_contract: 'target_run.v1' };
-function requireValue(condition, code) { if (!condition) throw new Error(code); }
-const keys = value => value && typeof value === 'object' && !Array.isArray(value) ? Object.keys(value).sort().join(',') : '';
+interface CatalogEntry extends SkillPackPin {
+  root: string;
+}
 
-export async function selectToyrecordPack({ catalog, version, installation }) {
+interface Installation {
+  schema_version: string;
+  image: string;
+  pack: SkillPackPin;
+  target_pair_id: string;
+}
+
+interface ReproductionSpecification {
+  schema_version: string;
+  target_pair_id: string;
+  oracle_id: string;
+  supervisor: string;
+  targets: string[];
+  input_kinds: string[];
+  codepoint_count: number;
+  tool_ids: string[];
+  result_contract: string;
+}
+
+interface SelectionOptions {
+  catalog: CatalogEntry[];
+  version: string;
+  installation: Installation;
+}
+
+function requireValue(condition: unknown, code: string): asserts condition {
+  if (!condition) throw new Error(code);
+}
+const keys = (value: unknown): string => value && typeof value === 'object' && !Array.isArray(value)
+  ? Object.keys(value).sort().join(',') : '';
+
+export async function selectToyrecordPack({ catalog, version, installation }: SelectionOptions) {
   requireValue(Array.isArray(catalog) && typeof version === 'string' && version.length > 0, 'TOYRECORD_CATALOG_INVALID');
   const selected = catalog.filter(entry => entry?.id === 'toyrecord-repro' && entry.version === version);
   requireValue(selected.length === 1, 'TOYRECORD_PACK_SELECTION_INVALID');
   const entry = selected[0];
+  requireValue(entry, 'TOYRECORD_PACK_SELECTION_INVALID');
   requireValue(keys(entry) === 'id,manifest_sha256,pack_sha256,root,version' && typeof entry.root === 'string' && entry.root.startsWith('/'), 'TOYRECORD_CATALOG_INVALID');
   const { root, ...pin } = entry;
   const pack = await new FsSkillPackLoader(toyrecordAllowlist).verify(root, pin);
@@ -25,10 +58,10 @@ export async function selectToyrecordPack({ catalog, version, installation }) {
     specification.tool_ids.every(id => pack.manifest.tool_ids.includes(id)), 'TOYRECORD_PACK_CONTRACT_INVALID');
   const asset = pack.files.find(file => file.relative_path === 'assets/reproduction.v1.json');
   requireValue(asset, 'TOYRECORD_SPEC_INVALID');
-  let spec;
+  let spec: ReproductionSpecification;
   try {
     const bytes = Buffer.from(asset.bytes, 'base64');
-    spec = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes));
+    spec = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes)) as ReproductionSpecification;
     // Canonical asset bytes also reject duplicate JSON keys without a second JSON parser.
     requireValue(bytes.toString('utf8').trim() === JSON.stringify(spec, null, 2), 'TOYRECORD_SPEC_INVALID');
   } catch { throw new Error('TOYRECORD_SPEC_INVALID'); }

@@ -1,4 +1,3 @@
-// @ts-check
 import { chromium } from 'playwright';
 
 // Keep explicit operator selection; otherwise use the browser installed by mise setup-presentation.

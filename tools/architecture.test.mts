@@ -1,4 +1,3 @@
-// @ts-check
 import assert from 'node:assert/strict';
 import { readFile, readdir } from 'node:fs/promises';
 import { dirname, relative, resolve } from 'node:path';
@@ -7,8 +6,7 @@ import test from 'node:test';
 import ts from 'typescript';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
-/** @type {Record<string, string[]>} */
-const allowed = {
+const allowed: Record<string, string[]> = {
   'core-interface': [],
   core: ['core-interface'],
   'fake-core': ['core-interface'],
@@ -20,12 +18,11 @@ const allowed = {
   'fake-app': ['core-interface', 'fake-core', 'server'],
   client: ['core-interface'],
 };
-/** @param {string} directory @returns {Promise<string[]>} */
-async function sourceFiles(directory) {
+async function sourceFiles(directory: string): Promise<string[]> {
   const entries = await readdir(directory, { withFileTypes: true });
-  const lists = await Promise.all(entries.map(entry => {
+  const lists: string[][] = await Promise.all(entries.map(async entry => {
     const path = resolve(directory, entry.name);
-    return entry.isDirectory() ? sourceFiles(path) : Promise.resolve(path.endsWith('.ts') || path.endsWith('.tsx') ? [path] : []);
+    return entry.isDirectory() ? sourceFiles(path) : path.endsWith('.ts') || path.endsWith('.tsx') ? [path] : [];
   }));
   return lists.flat();
 }
@@ -41,10 +38,8 @@ test('implementation dependencies obey the app/server/core boundaries', async ()
     }
     for (const file of await sourceFiles(resolve(directory, 'src'))) {
       const source = ts.createSourceFile(file, await readFile(file, 'utf8'), ts.ScriptTarget.Latest, true);
-      /** @param {ts.Node} node */
-      function inspect(node) {
-        /** @type {string | undefined} */
-        let specifier;
+      function inspect(node: ts.Node): void {
+        let specifier: string | undefined;
         if ((ts.isImportDeclaration(node) || ts.isExportDeclaration(node)) && node.moduleSpecifier && ts.isStringLiteral(node.moduleSpecifier)) {
           specifier = node.moduleSpecifier.text;
         }

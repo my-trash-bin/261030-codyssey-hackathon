@@ -5,7 +5,7 @@ import { mkdtemp, readFile, writeFile, stat, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { resolve } from 'node:path';
 import { parseEnv } from 'node:util';
-import { ensureEnvFile, saveEnvValues } from '../scripts/bootstrap/env-file.mjs';
+import { ensureEnvFile, saveEnvValues } from '../scripts/bootstrap/env-file.mts';
 import { modelEnvironment } from '../scripts/bootstrap/app.mjs';
 
 async function fixture(t, template) {

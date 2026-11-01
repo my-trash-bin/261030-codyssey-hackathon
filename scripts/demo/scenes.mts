@@ -1,4 +1,3 @@
-// @ts-check
 // 전용 UI clone 없이 현재 실제 client 상태만 보여 준다.
 export function scenes() {
  return [

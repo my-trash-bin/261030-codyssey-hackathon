@@ -318,7 +318,7 @@ mise exec -- node --conditions=development --test packages/client/src/*.test.ts 
 분석 결과의 내부 저장/채택을 추가한 `main`을 병합한 트리에서 다시 검사했다.
 
 - `mise exec -- pnpm typecheck`가 워크스페이스 전체에서 통과했다.
-- `mise exec -- pnpm test`가 패키지 검사와 `tools` 검사에서 실패 0으로 끝났다. 첫 실행에서는 로컬 설치에 `playwright`가 없어 `tools/demo-browser.test.mjs`가 모듈 없음으로 실패했고, 잠금 파일대로 설치한 뒤 통과했다. 설치 누락이었으며 분석 변경과 무관하다.
+- `mise exec -- pnpm test`가 패키지 검사와 `tools` 검사에서 실패 0으로 끝났다. 첫 실행에서는 로컬 설치에 `playwright`가 없어 `tools/demo-browser.test.mts`가 모듈 없음으로 실패했고, 잠금 파일대로 설치한 뒤 통과했다. 설치 누락이었으며 분석 변경과 무관하다.
 - 병합 트리에서도 루프백 모델로 실제 앱/UI를 실행해 근거 3개/후보 1개가 표시되고 공유 초안 생성이 비활성인 것을 확인했다. 기존 문서 저장/조회는 201/200으로 유지됐다.
 - 같은 실행은 `SAFEHANDOFF_WORKFLOW_TOKEN` 없이 띄운 앱이라 `GET /api/v1/tasks`가 404였고
   데이터베이스에 workflow 테이블이 생기지 않았다. 앱은 token이 있을 때만 `TaskStore`를
