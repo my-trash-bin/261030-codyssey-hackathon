@@ -3,7 +3,7 @@
 
 import type { JSX } from 'react';
 import { currentStepId } from '../flow-status.ts';
-import type { FlowFacts, StepId, StepView } from '../flow-status.ts';
+import type { FlowFacts, StepView } from '../flow-status.ts';
 import type { Snapshot } from '../disclosure-contract.ts';
 import { phaseLabel } from '../task-browser-client.ts';
 import type { ArtifactsApi } from './hooks/useArtifacts.ts';
@@ -15,14 +15,12 @@ export function Inspector(props: {
   facts: FlowFacts;
   steps: StepView[];
   status: string;
-  taskId: string | null;
   taskPhase: string | null;
-  revision: number | null;
   session: SessionApi;
   snapshot: Snapshot | null;
   workflow: ArtifactsApi;
 }): JSX.Element {
-  const { facts, steps, status, taskId, taskPhase, revision, session, snapshot, workflow } = props;
+  const { facts, steps, status, taskPhase, session, snapshot, workflow } = props;
   const next = steps.find((step) => step.id === currentStepId(steps)) as StepView;
   const allDone = steps.every((step) => step.state === 'done');
   const factRows: { label: string; value: string }[] = [
@@ -36,7 +34,7 @@ export function Inspector(props: {
       <section className="inspector__block" aria-labelledby="inspector-next-heading">
         <h2 className="meta" id="inspector-next-heading">다음에 할 일</h2>
         {allDone
-          ? <p className="inspector__lead">모든 단계를 마쳤습니다. 내려받은 파일과 해시를 확인하세요.</p>
+          ? <p className="inspector__lead">모든 단계를 마쳤습니다. 내려받은 파일을 직접 전달하세요.</p>
           : (
             <>
               <p className="inspector__lead">{next.index}단계 · {next.title}</p>
@@ -55,14 +53,11 @@ export function Inspector(props: {
             </div>
           ))}
         </dl>
-        <p className="hint">
-          {taskId === null
-            ? '고른 작업이 없습니다.'
-            : `작업 ${taskId.slice(0, 8)} · 판본 ${revision ?? '-'}${taskPhase ? ` · ${phaseLabel(taskPhase)}` : ''}`}
-        </p>
+        <p className="hint">{taskPhase ? `서버 상태: ${phaseLabel(taskPhase)}` : '고른 작업이 없습니다.'}</p>
       </section>
 
-      <section className="inspector__block" aria-labelledby="inspector-status-heading">
+      {/* 스크린 리더 알림 대상이라 문구가 없어도 요소는 남기고 제목만 숨긴다. */}
+      <section className="inspector__block" hidden={status === ''} aria-labelledby="inspector-status-heading">
         <h2 className="meta" id="inspector-status-heading">최근 실행</h2>
         <p className="status" id="task-status" role="status" aria-live="polite">{status}</p>
       </section>

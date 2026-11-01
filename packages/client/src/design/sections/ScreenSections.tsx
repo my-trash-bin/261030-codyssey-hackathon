@@ -8,11 +8,11 @@ import type { JSX, ReactNode } from 'react';
 const RAIL_SAMPLE = [
   { number: '01', title: '목적과 자료', detail: '완료 · 원자료 2개', state: 'done' },
   { number: '02', title: '자료 분석', detail: '완료 · 후보 1개', state: 'done' },
-  { number: '03', title: '공개 결정', detail: '결정 1 / 1', state: 'current' },
+  { number: '03', title: '공개 결정', detail: '결정 1 / 1', state: 'ready' },
   { number: '04', title: '초안 작성', detail: '대기 · 파일 없음', state: 'waiting' },
 ];
 
-const PROGRESS_STATES = ['done', 'done', 'current', 'waiting', 'waiting', 'waiting'];
+const PROGRESS_STATES = ['done', 'done', 'next', 'waiting', 'waiting', 'waiting'];
 
 function Section(props: { id: string; title: string; lede: string; children: ReactNode }): JSX.Element {
   return (
@@ -37,8 +37,8 @@ export function ShellSection(): JSX.Element {
         <header className="masthead">
           <div className="masthead__inner">
             <div className="masthead__brand">
-              <h1>덜어쓰기</h1>
-              <p className="masthead__tagline">공개 전 확인 작업 공간</p>
+              <h1>SafeHandoff</h1>
+              <p className="masthead__tagline">외부 공유 검토 콘솔</p>
             </div>
             <dl className="masthead__facts">
               <div><dt className="meta">모드</dt><dd>개발 예시</dd></div>
@@ -60,13 +60,12 @@ export function ShellSection(): JSX.Element {
         <nav className="rail" aria-label="작업 흐름 예시">
           <div className="rail__head">
             <p className="meta">작업 흐름</p>
-            <p className="rail__hint">자료를 올리고, 공개 범위를 정하고, 초안을 확인합니다.</p>
           </div>
           <ol className="rail__steps">
             {RAIL_SAMPLE.map(step => (
               <li key={step.number}>
                 <button
-                  className={`rail__step rail__step--${step.state}${step.state === 'current' ? ' rail__step--active' : ''}`}
+                  className={`rail__step rail__step--${step.state}${step.state === 'ready' ? ' rail__step--active' : ''}`}
                   type="button"
                 >
                   <span className="rail__number" aria-hidden="true">{step.number}</span>

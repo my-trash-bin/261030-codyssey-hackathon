@@ -194,7 +194,7 @@ export function useTaskBrowser(options: UseTaskBrowserOptions): TaskBrowserApi {
     if (actionRef.current !== null) return;
     actionRef.current = 'delete';
     setBusyKey('delete');
-    setMessage(`작업 ${current.id} 삭제를 요청했습니다. 실행 중 job이 끝날 때까지 기다립니다.`);
+    setMessage('작업 삭제를 요청했습니다. 실행 중인 작업이 끝날 때까지 기다립니다.');
     void (async (): Promise<void> => {
       try {
         const result = await deleteTask(fetchRef.current, sessionToken, current.id, current.revision);

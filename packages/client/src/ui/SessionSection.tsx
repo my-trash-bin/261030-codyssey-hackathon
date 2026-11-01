@@ -32,20 +32,19 @@ function environmentLines(session: SessionInfo): string[] {
   if (!environment) return ['분석 환경 정보가 응답에 없습니다. 이 화면은 모델 연결 승인을 확인했다고 표시하지 않습니다.'];
   const lines = [
     environment.providerOrigin
-      ? `분석 provider 주소 ${environment.providerOrigin}`
-      : '분석 provider 주소가 응답에 없습니다.',
-    '주소 표시는 모델 연결 성공이나 승인의 증거가 아닙니다.',
+      ? `분석 모델 주소 ${environment.providerOrigin}`
+      : '분석 모델 주소를 서버가 알리지 않았습니다.',
   ];
   if (environment.approvalStatus === 'operator_confirmation_required') {
     lines.push('모델 연결 승인: 운영자가 직접 확인해야 합니다. 이 화면은 승인 여부를 판정하지 않습니다.');
   } else if (environment.approvalStatus === '') {
     lines.push('모델 연결 승인 상태를 서버가 밝히지 않았습니다. 승인된 것으로 보지 않습니다.');
   } else {
-    lines.push(`모델 연결 승인 상태 값: ${environment.approvalStatus}. 이 화면은 자동으로 승인 처리하지 않습니다.`);
+    lines.push(`모델 연결 승인 상태: ${environment.approvalStatus}. 이 화면은 승인 처리하지 않습니다.`);
   }
   lines.push(environment.verifiedAt
-    ? `환경 검증 시각 ${environment.verifiedAt} (승인 증거로 쓰지 않습니다.)`
-    : '환경 검증 시각 없음.');
+    ? `환경 확인 시각 ${environment.verifiedAt} (승인 증거가 아닙니다)`
+    : '환경 확인 시각 없음');
   return lines;
 }
 
@@ -91,13 +90,9 @@ export function SessionSection(props: { session: SessionApi; heading?: 'h2' | 'h
     return (
       <section className="session" id="session" aria-labelledby="session-heading">
         <Heading id="session-heading">로컬 접속</Heading>
-        <p className="hint" id="session-hint">
-          세션이 열려 있어 공개 결정 영역의 쓰기가 가능합니다. 세션은 서버가 정한 8시간 고정이며 연장되지 않습니다.
-          만료되거나 닫히면 같은 시작 토큰을 다시 쓸 수 없으므로, 계속하려면 서버를 다시 시작해 새로 표시되는
-          토큰을 입력해야 합니다.
-        </p>
+        <p className="hint" id="session-hint">세션은 연장되지 않습니다. 만료되거나 닫으면 서버를 다시 시작해 새 토큰으로 열어야 합니다.</p>
         <ul className="hint" id="session-facts" aria-label="열린 세션 정보">
-          <li>만료 {formatSessionExpiry(opened.expiresAt)} (연장 없음)</li>
+          <li>만료 {formatSessionExpiry(opened.expiresAt)}</li>
           {environmentLines(opened).map((line) => <li key={line}>{line}</li>)}
           {capabilityLines(opened.capabilities).map((line) => <li key={line}>{line}</li>)}
         </ul>
@@ -156,11 +151,17 @@ export function SessionSection(props: { session: SessionApi; heading?: 'h2' | 'h
   return (
     <section className="session" id="session" aria-labelledby="session-heading">
       <Heading id="session-heading">로컬 접속</Heading>
+      {session.unavailable
+        ? (
+          <div className="action">
+            <p className="status" id="session-status" role="status" aria-live="polite">{session.status}</p>
+            <button className="button" id="session-recheck" type="button" onClick={(): void => { session.recheck(); }}>다시 확인</button>
+          </div>
+        )
+        : (
+      <>
       <p className="hint" id="session-hint">
-        서버를 SAFEHANDOFF_WORKFLOW_ENABLED=1로 시작하면 터미널에 5분 동안 한 번만 쓸 수 있는 시작 토큰이 표시됩니다.
-        그 토큰으로 세션을 엽니다. 토큰은 이 화면의 메모리에만 쓰고 저장하지 않습니다. 세션은 8시간 고정이며
-        연장되지 않습니다. 세션이 만료되거나 닫힌 뒤에는 같은 토큰을 다시 쓸 수 없으므로, 계속하려면 서버를 다시
-        시작해 새로 표시되는 토큰을 입력해야 합니다.
+        서버를 시작할 때 터미널에 표시된 시작 토큰을 입력하세요. 한 번만 쓸 수 있고 저장하지 않습니다. 세션은 8시간이며 연장되지 않습니다.
       </p>
       <form
         className="form session__form"
@@ -196,6 +197,8 @@ export function SessionSection(props: { session: SessionApi; heading?: 'h2' | 'h
         >세션 열기</button>
       </form>
       <p className="status" id="session-status" role="status" aria-live="polite">{session.status}</p>
+      </>
+        )}
     </section>
   );
 }

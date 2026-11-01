@@ -69,7 +69,7 @@ export function useRuntimeInfo(): RuntimeInfoApi {
         const readyNote = info.implementation === 'fake'
           ? '실제 모델은 호출하지 않습니다.'
           : '설정 상태이며 모델 호출 성공을 뜻하지 않습니다.';
-        setStatus(`작성 코어: ${readyText}. ${readyNote}`);
+        setStatus(`모델 설정: ${readyText}. ${readyNote}`);
       } catch {
         showUnknown('서버에 연결할 수 없습니다.');
       } finally {

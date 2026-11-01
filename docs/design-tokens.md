@@ -1,13 +1,13 @@
 # 디자인 토큰
 
 작업 화면의 색, 글자, 간격, 반경, 버튼과 입력 크기는 `packages/client/public/tokens.css`에만 정의한다. 화면 CSS
-(`style.css`, `flow.css`, `disclosure.css`, `design-system.css`)는 이 토큰을 참조하고 직접 값을 적지 않는다.
+(`style.css`, `flow.css`, `app-shell.css`, `disclosure.css`, `design-system.css`)는 이 토큰을 참조하고 직접 값을 적지 않는다.
 `packages/client/src/design/tokens.test.ts`가 이 규칙을 검사하므로, 값을 직접 적으면 테스트가 실패한다.
 
 ## 외부 참고 자료
 
 토큰의 단계 구분, 이름 규칙, 눈금 구조는 대한민국 정부 디자인 시스템 KRDS의 안내를 참고했다. 색 팔레트와
-서체는 이 제품의 문서 분위기(종이/잉크/인주)에 맞춘 자체 값이며 KRDS 색을 그대로 쓰지 않는다.
+서체는 업무용 콘솔 분위기(중립 회색, 흰 표면, 파란 강조)에 맞춘 자체 값이며 KRDS 색을 그대로 쓰지 않는다.
 
 | 참고 자료 | 사용한 부분 | 확인일 |
 | --- | --- | --- |
@@ -33,29 +33,29 @@ KRDS는 글자 크기를 10px 기준 rem(예: 1.9rem = 19px)으로 적는다. �
 
 | 역할 | 토큰 | 값 |
 | --- | --- | --- |
-| 바탕 | `--color-surface-page` | 종이 10 (`#f6f2e9`) |
-| 카드 | `--color-surface-raised` | 종이 0 (`#fffcf4`) |
+| 바탕 | `--color-surface-page` | 중립 0 (`#ffffff`) |
+| 카드, 사이드바, 패널 | `--color-surface-raised` | 중립 0 (`#ffffff`) |
 | 본문 | `--color-text-primary` | 잉크 90 (`#1a1917`) |
-| 보조 글자 | `--color-text-secondary` | 종이 80 (`#423e36`) |
-| 힌트 | `--color-text-muted` | 종이 70 (`#655f53`) |
-| 헤어라인 | `--color-border-subtle` | 종이 40 (`#d9d1c0`) |
-| 구조 경계 | `--color-border-strong` | 종이 60 (`#8f8472`) |
-| 강조 | `--color-text-accent` / `--color-surface-accent` / `--color-border-accent` | 인주 50 (`#9c2b21`) |
-| 성공, 주의, 위험 | `--color-text-success` / `--color-text-warning` / `--color-text-danger` | 초록 50, 황토 50, 인주 50 |
+| 보조 글자 | `--color-text-secondary` | 중립 80 (`#414d68`) |
+| 힌트 | `--color-text-muted` | 중립 70 (`#5f6b85`) |
+| 헤어라인 | `--color-border-subtle` | 중립 40 (`#e4e8f0`) |
+| 구조 경계 | `--color-border-strong` | 중립 60 (`#8690a6`) |
+| 강조 | `--color-text-accent` / `--color-surface-accent` / `--color-border-accent` | 강조 50 (`#3a5bd9`) |
+| 성공, 주의, 위험 | `--color-text-success` / `--color-text-warning` / `--color-text-danger` | 초록 50 (`#0f7a4d`), 황토 50 (`#8a5a00`), 빨강 50 (`#b42318`) |
 
 - 강조색은 결정과 선택 표시에만 쓴다. 두 번째 강조색을 만들지 않는다.
 - 상태를 색만으로 구분하지 않는다. 칩과 상태 문구는 항상 글자를 함께 쓴다.
-- 계산된 대비(종이 바탕): 본문 15.7:1, 보조 글자 9.5:1, 힌트 5.7:1, 인주 6.8:1, 구조 경계 3.3:1. 글자에는 4.5:1 이상인 값만 쓴다.
+- 계산된 대비(흰 바탕): 본문 14.3:1, 보조 글자 8.4:1, 힌트 5.3:1, 강조 5.7:1, 구조 경계 3.2:1. 옅은 강조 면의 강조 글자 5.0:1, 옅은 초록 면의 성공 글자 4.7:1, 비활성 버튼 글자 4.6:1.
 
 ## 눈금
 
 | 종류 | 값 |
 | --- | --- |
 | 간격 | `--space-1` 2px, `2` 4px, `3` 8px, `4` 12px, `5` 16px, `6` 20px, `7` 24px, `8` 32px, `9` 40px, `10` 48px, `11` 64px, `12` 80px |
-| 글자 | `--font-size-12/14/16/20/24/40` 여섯 값만 쓴다 |
-| 줄 높이 | `--line-height-tight` 1.2, `snug` 1.35, `normal` 1.55, `relaxed` 1.65 |
+| 글자 | `--font-size-12/13/14/16/20/24/40` 일곱 값만 쓴다. 지금 쓰는 단위는 라벨 12, 보조 13, 본문 14, 구역 제목 16, 단계 제목 20이다 |
+| 줄 높이 | `--line-height-tight` 1.2, `snug` 1.35, `normal` 1.5, `relaxed` 1.5 |
 | 굵기 | `regular` 400, `medium` 500, `bold` 600, `strong` 700 |
-| 반경 | `--radius-none` 0 (기본), `--radius-full` 999px (원형 표시만) |
+| 반경 | `--radius-none` 0, `--radius-sm` 4px (입력, 버튼, 칩, 카드), `--radius-md` 6px (패널), `--radius-full` 999px (원형 표시) |
 | 테두리 | `--border-width` 1px, `--border-width-strong` 2px, `--border-width-focus` 3px |
 
 여백과 패딩, 간격은 간격 눈금에서만 고른다. `13px`, `18px`처럼 눈금 밖 값은 쓰지 않는다. 미디어 쿼리
@@ -82,11 +82,11 @@ KRDS는 글자 크기를 10px 기준 rem(예: 1.9rem = 19px)으로 적는다. �
 
 | 컨트롤 | 높이 | 방법 |
 | --- | --- | --- |
-| 한 줄 입력, 셀렉트 | 40px (`--input-height`) | `height` 고정, 안쪽 여백은 가로만 준다 |
+| 한 줄 입력, 셀렉트 | 36px (`--input-height`) | `height` 고정, 안쪽 여백은 가로만 준다. 640px 이하에서는 모바일 확대를 막으려 글자만 16px로 키운다 |
 | 여러 줄 입력 | 최소 80px (`--space-12`), 자동 확장 | 세로 여백을 주고 `resize: vertical` |
-| 버튼 | 40 / 36 / 32px | `--button-height*` |
-| 셀렉트 목록 | `::picker(select)` | `appearance: base-select`를 지원하는 브라우저에서 종이색 목록과 헤어라인, 선택 표시를 그린다. 지원하지 않으면 브라우저 기본 목록을 쓴다 |
-| 체크박스, 라디오 | 20px | `appearance: none` + `::after`로 선택 표시를 그린다. 선택 시 인주색 바탕에 종이색 표시 |
+| 버튼 | 36 / 32 / 28px | `--button-height*` |
+| 셀렉트 목록 | `::picker(select)` | `appearance: base-select`를 지원하는 브라우저에서 토큰 색 목록과 헤어라인, 선택 표시를 그린다. 지원하지 않으면 브라우저 기본 목록을 쓴다 |
+| 체크박스, 라디오 | 16px | `appearance: none` + `::after`로 선택 표시를 그린다. 선택 시 강조색을 쓴다 |
 | 파일 선택 | 40px | `FileField` 컴포넌트가 입력과 같은 상자 안에 작은 버튼과 고른 파일 이름을 보여 준다. 실제 파일 입력은 라벨 안에 숨겨 키보드와 스크린 리더 동작을 지킨다 |
 
 여백 규칙은 하나다. 라벨과 컨트롤 사이는 8px(`--field-gap`), 필드와 필드 사이는 16px(`--form-gap`)이며, 이 값은 화면
@@ -143,7 +143,7 @@ mise exec -- pnpm --filter @safehandoff/client dev
 shadcn/ui는 기존 Vite 프로젝트에 넣을 때 Tailwind CSS(`@import "tailwindcss"`), `@/*` 경로 별칭,
 `components.json`이 필요하고 컴포넌트는 Tailwind 클래스로 생성된다(확인일 2026-11-01,
 <https://ui.shadcn.com/docs/installation/vite>). 이 앱은 UI 의존성 없이 `react`만 쓰고 토큰 CSS 3장으로
-화면을 그리므로, 도입하면 Preflight 초기화, 이중 서체, 인주 팔레트를 Tailwind 쪽으로 다시 옮겨야 한다.
+화면을 그리므로, 도입하면 Preflight 초기화, 토큰 팔레트를 Tailwind 쪽으로 다시 옮겨야 한다.
 
 스타일을 강제하지 않는 대체 라이브러리를 npm 레지스트리 기준으로 비교했다(확인일 2026-11-01).
 

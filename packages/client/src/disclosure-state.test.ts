@@ -3,6 +3,7 @@ import test from 'node:test';
 import type { TestContext } from 'node:test';
 import { act } from 'react';
 
+import { orderCandidates } from './disclosure-format.ts';
 import type { Draft } from './disclosure-state.ts';
 import { renderHook } from './test-helpers/react-hook.ts';
 import type { HookResult } from './test-helpers/react-hook.ts';
@@ -192,6 +193,56 @@ test('revision이 바뀌면 미리보기·해석은 무효화되고 조건은 �
   assert.equal(draft.interpretation, 'uninterpreted');
   assert.equal(draft.condition, '조건');
   assert.equal(draft.disposition, 'allow');
+});
+
+test('결정을 저장하면 재조회가 저장 결과 문구를 지우지 않는다', async t => {
+  let saved = false;
+  const { fetch } = stubFetch(call => {
+    if (call.url.endsWith('/decision-batches')) { saved = true; return jsonResponse({ data: {} }); }
+    return jsonResponse(taskEnvelope({ revision: saved ? 2 : 1, candidates: [candidate({ id: 'c1' }), candidate({ id: 'c2' })] }));
+  });
+  const { result } = await mount(t, { fetch, csrfToken: 'fixture-token' });
+  await run(() => result.current.loadTask('t1'));
+  await run(() => result.current.chooseDisposition('c1', 'exclude'));
+  await run(() => result.current.chooseDisposition('c2', 'defer'));
+  await run(() => result.current.apply());
+  assert.match(result.current.message, /결정 2개를 저장했습니다/);
+  assert.match(result.current.message, /보류 1개/);
+});
+
+test('판본만 오른 재조회는 문구를 남기지 않는다', async t => {
+  let revision = 1;
+  const { fetch } = stubFetch(() => jsonResponse(taskEnvelope({ revision })));
+  const { result } = await mount(t, { fetch, csrfToken: 'fixture-token' });
+  await run(() => result.current.loadTask('t1'));
+  revision = 2;
+  await run(() => result.current.loadTask('t1'));
+  assert.equal(result.current.message, '');
+});
+
+test('비운 미리보기가 있으면 판본 변경을 알린다', async t => {
+  let revision = 1;
+  const { fetch } = stubFetch(call =>
+    call.url.endsWith('/disclosure-previews') ? jsonResponse(previewEnvelope()) : jsonResponse(taskEnvelope({ revision })),
+  );
+  const { result } = await mount(t, { fetch, csrfToken: 'fixture-token' });
+  await run(() => result.current.loadTask('t1'));
+  await run(() => result.current.chooseDisposition('c1', 'allow'));
+  await run(() => result.current.chooseMode('c1', 'A'));
+  await run(() => result.current.preview('c1'));
+  revision = 2;
+  await run(() => result.current.loadTask('t1'));
+  assert.match(result.current.message, /미리보기와 조건 해석을 다시/);
+});
+
+test('후보는 필수 먼저, 확인된 사실 먼저 정렬하고 원본을 바꾸지 않는다', () => {
+  const input = [
+    { id: 'a', required: false, kind: 'unknown' },
+    { id: 'b', required: false, kind: 'observation' },
+    { id: 'c', required: true, kind: 'hypothesis' },
+  ];
+  assert.deepEqual(orderCandidates(input).map(item => item.id), ['c', 'b', 'a']);
+  assert.equal(input[0]?.id, 'a');
 });
 
 test('작업 aggregate는 소비 필드를 검증하고 엉뚱한 응답을 성공으로 두지 않는다', async t => {

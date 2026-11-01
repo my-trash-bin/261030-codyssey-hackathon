@@ -33,12 +33,9 @@ export function ArchiveSection(props: { documents: DocumentsApi }): JSX.Element 
   return (
     <div className="archive">
       <section className="block" aria-labelledby="store-heading">
-        <h2 id="store-heading">내부 텍스트 보관</h2>
-        <p className="hint" id="store-hint">내부 텍스트 보관일 뿐이며 자료 분석·공개 승인·공유 초안 생성이 아닙니다.</p>
-
-        <details className="fold" id="internal-note-panel">
-          <summary>내부 메모 작성</summary>
-          <div className="fold__body">
+        <h3 id="store-heading">내부 메모 작성</h3>
+        <div id="internal-note-panel">
+          <div>
             <form
               className="form"
               id="save-form"
@@ -50,7 +47,7 @@ export function ArchiveSection(props: { documents: DocumentsApi }): JSX.Element 
               }}
             >
               <div className="field">
-                <label htmlFor="text">저장할 내부 텍스트</label>
+                <label htmlFor="text">메모 내용</label>
                 <textarea
                   id="text"
                   name="text"
@@ -62,7 +59,7 @@ export function ArchiveSection(props: { documents: DocumentsApi }): JSX.Element 
                   onChange={(event): void => { documents.setText(event.currentTarget.value); }}
                 />
               </div>
-              <p className="hint" id="text-help">비어 있는 텍스트는 저장할 수 없습니다.</p>
+              <p className="visually-hidden" id="text-help">비어 있는 메모는 저장할 수 없습니다.</p>
               <button
                 className="button button--solid"
                 id="save"
@@ -73,22 +70,21 @@ export function ArchiveSection(props: { documents: DocumentsApi }): JSX.Element 
             </form>
             <p className="status" id="status" role="status" aria-live="polite">{documents.saveStatus}</p>
           </div>
-        </details>
+        </div>
       </section>
 
       <section className="block" id="saved-documents" aria-labelledby="saved-heading" tabIndex={-1}>
         <div className="block__head">
-          <h2 id="saved-heading">저장된 내부 문서</h2>
+          <h3 id="saved-heading">저장된 메모</h3>
           <button
-            className="button"
+            className="button button--small"
             id="refresh"
             type="button"
             disabled={documents.busy}
             aria-busy={documents.busy ? 'true' : undefined}
             onClick={() => { documents.load(); }}
-          >목록 새로고침</button>
+          >새로 고침</button>
         </div>
-        <p className="hint">내부 텍스트 보관 목록입니다. 공유 결과나 승인 기록이 아닙니다.</p>
         <p className="status" id="documents-status" role="status" aria-live="polite">{documents.status}</p>
         <div className="documents" id="documents">
           {documents.records.map((record) => <DocumentItem record={record} key={record.id} />)}

@@ -104,6 +104,15 @@ test('이력은 측정하지 않은 소요·사용량을 null로 남긴다', asy
   assert.match(result.value[1]?.usage ?? '', /input_tokens/);
 });
 
+test('실행 정보의 모델은 app이 최상위로 보내는 model_id를 읽는다', async () => {
+  const { fetchFn } = stubFetch(() => jsonResponse({
+    data: { core: { ready: true }, model_id: 'fixture-model', app_version: 'x', reproduction: {}, debug: {} },
+  }));
+  const result = await readRuntime(fetchFn);
+  assert.ok(result.ok);
+  assert.equal(result.value.model, 'fixture-model');
+});
+
 test('실행 정보는 없는 값을 null로 두고 추정하지 않는다', async () => {
   const { calls, fetchFn } = stubFetch(() => jsonResponse({
     data: {

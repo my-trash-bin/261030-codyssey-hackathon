@@ -54,27 +54,27 @@ function EvidenceItem(props: { snapshot: Snapshot; evidenceId: string }): JSX.El
   const { snapshot, evidenceId } = props;
   const evidence: Evidence | undefined = snapshot.evidence.find(entry => entry.id === evidenceId);
   if (!evidence) {
-    return <li className="evidence"><p className="hint">{`근거 ${evidenceId}: task 응답에 상세가 없습니다.`}</p></li>;
+    return <li className="evidence"><p className="hint">{'근거 상세를 찾지 못했습니다.'}</p></li>;
   }
   const source = findSource(snapshot, evidence.source_version_id);
   const locator = evidence.locator;
-  const meta: string[] = [
-    source ? source.display_name : `원자료 ${evidence.source_version_id}`,
-    source ? `형식 ${source.format}` : '형식 미확인',
-    `바이트 ${evidence.start}–${evidence.end}`,
-    `locator ${locator.kind}`,
-  ];
+  const meta: string[] = [source ? source.display_name : '원자료 미확인'];
   if (locator.kind === 'csv_cell') {
-    if (locator.row !== undefined) meta.push(`행 ${locator.row}`);
-    if (locator.column) meta.push(`열 ${locator.column}`);
+    if (locator.column) meta.push(`${locator.column} 열`);
+    if (locator.row !== undefined) meta.push(`${locator.row}행`);
+  } else if (locator.kind === 'json_pointer' && locator.pointer) {
+    meta.push(locator.pointer);
+  } else {
+    meta.push(`${evidence.start}–${evidence.end}바이트`);
   }
-  if (locator.kind === 'json_pointer' && locator.pointer) meta.push(locator.pointer);
+  // 서버가 원문을 다시 내려주지 않는 경우가 기본이다. 근거마다 같은 안내를 반복하지 않고 위치만 보여 준다.
+  const excerpt = locator.kind === 'byte_range' && source && decodeSource(source)
+    ? excerptText(source, evidence.start, evidence.end)
+    : null;
   return (
     <li className="evidence">
       <p className="evidence__meta">{meta.join(' · ')}</p>
-      {locator.kind === 'byte_range'
-        ? <p className="evidence__excerpt">{excerptText(source, evidence.start, evidence.end)}</p>
-        : <p className="hint">바이트 구간 근거가 아니어서 원문 발췌를 표시하지 않습니다.</p>}
+      {excerpt === null ? null : <p className="evidence__excerpt">{excerpt}</p>}
     </li>
   );
 }
@@ -82,8 +82,8 @@ function EvidenceItem(props: { snapshot: Snapshot; evidenceId: string }): JSX.El
 export function EvidenceList(props: { snapshot: Snapshot; evidenceIds: string[] | null; heading: string }): JSX.Element {
   const { snapshot, evidenceIds, heading } = props;
   return (
-    <div className="candidate__evidence">
-      <h3>{heading}</h3>
+    <details className="candidate__evidence fold fold--plain">
+      <summary>{`${heading} ${evidenceIds?.length ?? 0}개`}</summary>
       {!evidenceIds || evidenceIds.length === 0
         ? <p className="hint">이 후보에 연결된 근거가 없습니다.</p>
         : (
@@ -93,7 +93,7 @@ export function EvidenceList(props: { snapshot: Snapshot; evidenceIds: string[] 
             ))}
           </ul>
         )}
-    </div>
+    </details>
   );
 }
 
@@ -148,10 +148,10 @@ export function ConflictBlock(props: { snapshot: Snapshot; candidate: Candidate 
         </div>
       ))}
       {peers.length === 0
-        ? <p className="hint">같은 충돌 묶음의 다른 후보가 task 응답에 없습니다.</p>
+        ? <p className="hint">같은 충돌 묶음의 다른 후보를 찾지 못했습니다.</p>
         : null}
       <p className="hint">
-        어느 근거가 맞는지는 이 화면에서 확인할 수 없습니다. 양쪽 후보의 문장과 근거 출처·바이트 구간을 비교해 남길 내용을 직접 판단하세요.
+        어느 근거가 맞는지는 이 화면에서 확인할 수 없습니다. 양쪽 후보의 문장과 근거 위치를 비교해 남길 내용을 직접 판단하세요.
       </p>
     </div>
   );

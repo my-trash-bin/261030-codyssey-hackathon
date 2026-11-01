@@ -1,6 +1,6 @@
-/* SafeHandoff 작업 화면 — 검토용 문서(도시에)
-   따뜻한 종이 바탕 / 잉크빛 본문 / 헤어라인은 종이색 회색 / 인주빛 단일 강조.
-   제목만 명조 계열, 본문은 산세리프. 직각, 그림자·그라디언트·장식 아이콘 없음. */
+/* SafeHandoff 작업 화면 — 업무용 콘솔
+   중립 회색 바탕 / 흰 표면 / 파란 단일 강조 / 산세리프 단일 서체.
+   표면은 공통 반경과 한 단계 그림자만 쓰고 그라디언트·장식 아이콘은 없음. */
 
 
 *,
@@ -144,14 +144,13 @@ legend {
 
 h1 {
   font-family: var(--font-title);
-  font-size: clamp(var(--font-size-24), 4vw, var(--font-size-40));
+  font-size: var(--type-display-size);
   font-weight: var(--font-weight-bold);
   letter-spacing: var(--letter-spacing-tight);
   line-height: var(--line-height-tight);
 }
 
-h2,
-legend {
+h2 {
   font-family: var(--font-title);
   font-size: var(--type-heading-size);
   font-weight: var(--font-weight-bold);
@@ -159,12 +158,18 @@ legend {
   line-height: var(--line-height-tight);
 }
 
+/* 구역 제목은 본문과 같은 크기의 굵은 글자다. 본문보다 작으면 제목으로 읽히지 않는다. */
 h3 {
-  font-size: var(--type-label-size);
+  font-size: var(--type-subheading-size);
   font-weight: var(--font-weight-bold);
-  letter-spacing: var(--letter-spacing-wider);
+  line-height: var(--type-subheading-line);
+  color: var(--color-text-primary);
+}
+
+legend {
+  font-size: var(--type-body-sm-size);
+  font-weight: var(--font-weight-bold);
   line-height: var(--line-height-snug);
-  color: var(--color-text-secondary);
 }
 
 a {
@@ -244,7 +249,8 @@ a:focus-visible {
 /* 머리말 — 짧은 제목과 항상 보이는 현재 모드 */
 
 .masthead {
-  border-bottom: var(--border-width-focus) double var(--color-border-strong);
+  border-bottom: var(--border-width) solid var(--color-border-subtle);
+  background: var(--color-surface-raised);
 }
 
 .masthead__inner {
@@ -255,7 +261,7 @@ a:focus-visible {
   gap: var(--space-3) var(--layout-gutter);
   max-width: var(--layout-measure);
   margin: 0 auto;
-  padding: var(--space-7) var(--layout-gutter) var(--space-5);
+  padding: var(--space-3) var(--layout-gutter);
 }
 
 .masthead__brand {
@@ -284,7 +290,7 @@ a:focus-visible {
 .workspace {
   max-width: var(--layout-measure);
   margin: 0 auto;
-  padding: var(--space-9) var(--layout-gutter) var(--space-12);
+  padding: var(--space-7) var(--layout-gutter) var(--space-12);
 }
 
 .workspace:focus {
@@ -604,7 +610,7 @@ textarea[aria-invalid="true"]:focus-visible {
   color: var(--color-text-primary);
   font-family: inherit;
   font-size: var(--type-body-size);
-  font-weight: var(--font-weight-bold);
+  font-weight: var(--button-font-weight);
   line-height: var(--line-height-snug);
   text-align: start;
   overflow-wrap: anywhere;
@@ -623,29 +629,31 @@ textarea[aria-invalid="true"]:focus-visible {
   outline-offset: var(--space-1);
 }
 
+/* 점선은 파일을 끌어다 놓는 영역처럼 보인다. 비활성은 면색과 글자색으로만 구분한다. */
 .button:disabled {
-  border-style: dashed;
-  border-color: var(--color-border-default);
-  color: var(--color-text-secondary);
+  border-color: var(--color-border-subtle);
+  background: var(--button-background-disabled);
+  color: var(--button-text-disabled);
   cursor: not-allowed;
 }
 
 .button--solid {
-  background: var(--color-surface-inverse);
-  color: var(--color-text-inverse);
+  border-color: var(--button-background-solid);
+  background: var(--button-background-solid);
+  color: var(--button-text-solid);
 }
 
 @media (hover: hover) {
   .button--solid:hover:not(:disabled) {
-    background: var(--color-surface-page);
-    color: var(--color-text-primary);
+    border-color: var(--button-background-solid-hover);
+    background: var(--button-background-solid-hover);
     text-decoration: none;
   }
 }
 
 .button--solid:disabled {
-  background: var(--color-surface-page);
-  color: var(--color-text-secondary);
+  background: var(--button-background-disabled);
+  color: var(--button-text-disabled);
 }
 
 /* 로컬 접속 — 모든 v1 쓰기의 전제라 작업 그리드 위에 전체 폭으로 둔다 */
@@ -704,25 +712,22 @@ textarea[aria-invalid="true"]:focus-visible {
   display: flex;
   align-items: center;
   gap: var(--control-mark-gap);
-  min-height: var(--button-height);
-  padding: var(--space-2) 0;
+  min-height: var(--button-height-small);
   min-width: 0;
-  border-top: var(--border-width) solid var(--color-border-subtle);
-}
-
-.option:first-child {
-  border-top: 0;
 }
 
 /* 라디오 크기와 초점 고리는 전역 규칙을 쓴다. */
 
 .option > label {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
+  align-content: center;
+  gap: 0 var(--space-3);
   flex: 1 1 auto;
   min-width: 0;
-  min-height: var(--button-height);
-  font-size: var(--type-body-sm-size);
+  min-height: var(--button-height-small);
+  font-size: var(--type-body-size);
   line-height: var(--line-height-normal);
   cursor: pointer;
   overflow-wrap: anywhere;
@@ -730,6 +735,13 @@ textarea[aria-invalid="true"]:focus-visible {
 
 .option:has(input:checked) > label {
   font-weight: var(--font-weight-strong);
+}
+
+/* 선택해도 설명까지 굵어지지 않게 한다. */
+.option__note {
+  font-size: var(--type-label-size);
+  font-weight: var(--font-weight-regular);
+  color: var(--color-text-secondary);
 }
 
 /* 동의 문장은 한 줄이 길어 같은 크기로 두면 과하게 무겁다. 본문보다 한 단계 작게, 자간은 그대로. */
@@ -779,7 +791,6 @@ textarea[aria-invalid="true"]:focus-visible {
 }
 
 .draft__sheet .hint {
-  max-width: 46ch;
   margin-top: var(--space-4);
 }
 

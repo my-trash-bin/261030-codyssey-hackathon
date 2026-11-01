@@ -116,7 +116,7 @@ export function withMode(candidate: Candidate, draft: Draft, mode: Mode, evidenc
       message: 'C(선택 필드)를 골랐습니다. 서버가 후보 근거의 필드 목록을 주면 공개할 필드를 고르세요.',
     };
   }
-  return { ...base, message: 'D는 아래 조건을 적고 조건 확인(해석)이 지원(supported)되어야 미리보기가 가능합니다.' };
+  return { ...base, message: 'D는 아래 조건을 적고 조건 해석이 끝나야 미리보기가 가능합니다.' };
 }
 
 export function withDisposition(draft: Draft, disposition: Disposition | null): Draft {
@@ -189,7 +189,7 @@ export function applyProposal(draft: Draft, candidateId: string, result: Proposa
       interpretation: 'supported',
       representation: result.representation,
       preview: null,
-      message: '조건이 지원(supported)됩니다. 미리보기를 확인한 뒤 전체 적용하세요.',
+      message: '이 조건을 적용할 수 있습니다. 미리보기를 확인한 뒤 결정을 저장하세요.',
     };
   }
   if (result.status === 'supported') {
@@ -207,7 +207,7 @@ export function applyProposal(draft: Draft, candidateId: string, result: Proposa
       interpretation: 'ambiguous',
       representation: null,
       preview: null,
-      message: '조건이 모호(ambiguous)해 미리보기가 차단됩니다. 조건을 고쳐 다시 확인하세요.',
+      message: '조건이 모호해 미리보기를 만들 수 없습니다. 조건을 고쳐 다시 확인하세요.',
     };
   }
   return {
@@ -215,7 +215,7 @@ export function applyProposal(draft: Draft, candidateId: string, result: Proposa
     interpretation: 'unsupported',
     representation: null,
     preview: null,
-    message: '조건이 지원되지 않아(unsupported) 미리보기가 차단됩니다. 조건을 고쳐 다시 확인하세요.',
+    message: '지원하지 않는 조건이라 미리보기를 만들 수 없습니다. 조건을 고쳐 다시 확인하세요.',
   };
 }
 
@@ -281,7 +281,7 @@ function previewResult(
   if (result.kind === 'http') {
     if (result.status === 409) {
       return {
-        ...withDraftMessage(state, id, '작업 revision이 바뀌었습니다(409). 최신 상태를 다시 불러옵니다.'),
+        ...withDraftMessage(state, id, '작업 판본이 바뀌었습니다. 최신 상태를 다시 불러옵니다.'),
         reload: reloadOf(state, state.snapshot?.id ?? ''),
       };
     }
@@ -300,12 +300,12 @@ function previewResult(
     preview.input_revision !== request.revision ||
     representationSignature(preview.representation) !== request.signature
   ) {
-    return withDraftMessage(state, id, '미리보기 응답이 요청한 후보·revision·표현과 달라 폐기했습니다.');
+    return withDraftMessage(state, id, '미리보기 응답이 요청한 후보·판본·표현과 달라 폐기했습니다.');
   }
   return withDraft(state, id, {
     ...draft,
     preview,
-    message: '미리보기를 확인했습니다. 해시를 대조한 뒤 전체 적용에 쓰세요.',
+    message: '미리보기를 만들었습니다. 내용을 확인한 뒤 결정을 저장하세요.',
   });
 }
 
@@ -332,7 +332,7 @@ function jobResult(
   if (result.kind === 'http') {
     if (usage === 'interpret' && result.status === 409) {
       return {
-        ...withDraftMessage(state, id, '작업 revision이 바뀌었습니다(409). 최신 상태를 다시 불러옵니다.'),
+        ...withDraftMessage(state, id, '작업 판본이 바뀌었습니다. 최신 상태를 다시 불러옵니다.'),
         reload: reloadOf(state, state.snapshot?.id ?? ''),
       };
     }
@@ -402,10 +402,19 @@ function jobResult(
   });
 }
 
+const LOADING_MESSAGE = '작업을 불러오는 중입니다.';
+
+function batchSavedMessage(drafts: ReadonlyMap<string, Draft>): string {
+  const sent = [...drafts.values()].filter((draft) => draft.disposition !== null);
+  const deferred = sent.filter((draft) => draft.disposition === 'defer').length;
+  return `결정 ${sent.length}개를 저장했습니다.${deferred > 0 ? ` 보류 ${deferred}개는 최종 확정 전에 허용이나 제외로 바꿔야 합니다.` : ''}`;
+}
+
 export function disclosuresReducer(state: DisclosuresState, action: DisclosuresAction): DisclosuresState {
   switch (action.type) {
     case 'task/load-start':
-      return { ...state, busy: true, message: '작업을 불러오는 중입니다.' };
+      // 이미 보이는 작업을 다시 읽을 때는 방금 끝난 동작의 결과 문구를 지우지 않는다.
+      return { ...state, busy: true, message: state.snapshot ? state.message : LOADING_MESSAGE };
     case 'task/clear':
       // 작업이 삭제되면 이전 snapshot·초안·필드 목록을 모두 버린다. 늦은 응답은 loadSeq로 걸러진다.
       return {
@@ -417,7 +426,7 @@ export function disclosuresReducer(state: DisclosuresState, action: DisclosuresA
         stale: false,
         loadSeq: state.loadSeq + 1,
         reload: null,
-        message: '작업을 비웠습니다. 다른 작업 ID를 조회하세요.',
+        message: '작업을 비웠습니다. 1단계에서 다른 작업을 고르세요.',
       };
     case 'task/loaded': {
       const previous = state.snapshot;
@@ -435,12 +444,14 @@ export function disclosuresReducer(state: DisclosuresState, action: DisclosuresA
           drafts: new Map<string, Draft>(),
           fieldLists: new Map<string, FieldEntry>(),
           acceptScopeReduction: false,
-          message: '작업을 불러왔습니다.',
+          message: '',
         };
       }
       if (previous && previous.revision !== snapshot.revision) {
         const drafts = new Map<string, Draft>();
+        let invalidated = false;
         for (const [id, draft] of state.drafts) {
+          if (draft.preview || draft.jobId) invalidated = true;
           drafts.set(id, {
             ...draft,
             preview: null,
@@ -456,12 +467,13 @@ export function disclosuresReducer(state: DisclosuresState, action: DisclosuresA
           ...next,
           drafts,
           fieldLists: new Map<string, FieldEntry>(),
-          message:
-            `작업 revision이 ${previous.revision}에서 ${snapshot.revision}으로 바뀌어 미리보기와 해석 결과를 무효화했습니다. ` +
-            '조건 입력은 유지되며, C(선택 필드)는 필드 목록부터 다시 확인해야 합니다.',
+          // 비울 미리보기가 없으면 방금 끝난 동작의 결과 문구를 그대로 둔다. 재조회 자체는 알릴 일이 아니다.
+          message: invalidated
+            ? `작업 판본이 ${snapshot.revision}(으)로 바뀌어 미리보기와 조건 해석을 다시 해야 합니다. 입력한 조건은 남아 있습니다.`
+            : state.message,
         };
       }
-      return { ...next, message: '작업을 새로고침했습니다.' };
+      return { ...next, message: state.message === LOADING_MESSAGE ? '' : state.message };
     }
     case 'task/unreadable':
       return {
@@ -602,7 +614,7 @@ export function disclosuresReducer(state: DisclosuresState, action: DisclosuresA
           ...state,
           drafts,
           message:
-            '필드 목록의 revision이 현재 task revision과 달라 선택과 미리보기를 폐기했습니다. ' +
+            '필드 목록의 판본이 현재 작업 판본과 달라 선택과 미리보기를 폐기했습니다. ' +
             '작업을 다시 조회한 뒤 필드 목록을 새로 불러오세요.',
           reload: reloadOf(state, state.snapshot.id),
         }, action.id, {
@@ -611,7 +623,7 @@ export function disclosuresReducer(state: DisclosuresState, action: DisclosuresA
           inputRevision: list.inputRevision,
           fields: [],
           requestId: request.requestId,
-          message: '목록 revision이 현재 작업과 다릅니다. 작업 재조회 뒤 필드 목록을 다시 불러오세요.',
+          message: '목록 판본이 현재 작업과 다릅니다. 작업을 다시 불러온 뒤 필드 목록을 다시 불러오세요.',
         });
       }
       const drafts = new Map(state.drafts);
@@ -662,15 +674,15 @@ export function disclosuresReducer(state: DisclosuresState, action: DisclosuresA
       return {
         ...state,
         message:
-          `전체 적용에 실패했습니다(${action.status}${action.code}). 기존 결정은 그대로 유지됩니다.`,
+          `결정을 저장하지 못했습니다(${action.status}${action.code}). 기존 결정은 그대로 유지됩니다.`,
       };
     case 'batch/sent':
       // 저장한 선택은 서버의 결정으로 확정됐다. 같은 초안을 다시 보내면 필드·미리보기가
       // 판본 변경으로 비워진 채 남아 다음 배치가 거부되므로, 카드의 편집 상태를 초기화한다.
       return {
         ...state,
-        drafts: new Map([...state.drafts].map(([id, draft]) => [id, blankDraft()])),
-        message: '결정을 저장했습니다. 최신 상태를 다시 불러옵니다.',
+        drafts: new Map([...state.drafts].map(([id]) => [id, blankDraft()])),
+        message: batchSavedMessage(state.drafts),
       };
     case 'revoke/network-error':
       return { ...state, message: '철회 전송에 실패했습니다. 기존 결정은 그대로 유지됩니다.' };

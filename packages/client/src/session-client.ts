@@ -190,7 +190,7 @@ export function sessionFailureMessage(failure: SessionFailure): string {
     case 'boundary':
       return '이 브라우저 주소는 서버가 허용한 loopback origin과 다릅니다. SAFEHANDOFF_WORKFLOW_BROWSER_ORIGIN을 확인하세요.';
     case 'disabled':
-      return '인증 API가 비활성입니다. 서버를 SAFEHANDOFF_WORKFLOW_ENABLED=1로 시작하면 터미널에 5분 동안 한 번만 쓸 수 있는 시작 토큰이 표시됩니다. 32자 이상 SAFEHANDOFF_WORKFLOW_TOKEN을 설정한 경우에는 그 토큰을 그대로 입력하세요.';
+      return '이 서버는 작업 API가 꺼져 있어 세션을 열 수 없습니다. 서버를 SAFEHANDOFF_WORKFLOW_ENABLED=1 또는 32자 이상 SAFEHANDOFF_WORKFLOW_TOKEN으로 다시 시작한 뒤 다시 확인을 누르세요.';
     case 'limit':
       return '세션을 더 열 수 없습니다. 서버를 다시 시작하거나 기존 세션이 만료될 때까지 기다리세요.';
     case 'malformed':

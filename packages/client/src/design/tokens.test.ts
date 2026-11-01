@@ -7,7 +7,7 @@ import test from 'node:test';
  * 새 값을 직접 적으면 실패하므로, 색/간격이 다시 파편화되는 것을 막는다.
  */
 
-const STYLE_FILES = ['style.css', 'flow.css', 'disclosure.css', 'design-system.css'];
+const STYLE_FILES = ['style.css', 'flow.css', 'app-shell.css', 'disclosure.css', 'design-system.css'];
 const dir = new URL('../../public/', import.meta.url);
 const read = (name: string): string => readFileSync(new URL(name, dir), 'utf8');
 

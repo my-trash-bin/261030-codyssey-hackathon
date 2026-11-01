@@ -4,6 +4,7 @@ import { createHash } from 'node:crypto';
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import { CoreError, ModelError } from '@safehandoff/core-interface';
 import type { Engine, Representation, SourceDocument, TaskContext } from '@safehandoff/core-interface';
+import { disclosureComparison, sourceContent } from './source-views.ts';
 import { TaskStore, TaskStoreError } from './task-store.ts';
 import type { DecisionInput } from './task-store.ts';
 import { deny, WorkflowHTTPError, WorkflowSessions } from './workflow-session.ts';
@@ -78,6 +79,10 @@ export function createWorkflowHandler(store: TaskStore, engine: Engine, access: 
             status: controllers.get(job.id)?.signal.aborted ? 'cancel_requested' : job.status } });
         } else if (parts.length === 5 && parts[0] === 'tasks' && parts[2] === 'candidates' && parts[4] === 'fields') {
           send(response, 200, { data: fieldList(store, parts[1]!, parts[3]!) });
+        } else if (parts.length === 3 && parts[0] === 'tasks' && parts[2] === 'disclosure-comparison') {
+          send(response, 200, { data: disclosureComparison(store, parts[1]!) });
+        } else if (parts.length === 5 && parts[0] === 'tasks' && parts[2] === 'sources' && parts[4] === 'content') {
+          send(response, 200, { data: sourceContent(store, parts[1]!, parts[3]!) });
         } else if (parts.length === 2 && parts[0] === 'jobs') {
           try { send(response, 200, { data: store.disclosureJob(parts[1]!) }); }
           catch (error) { if (!(error instanceof TaskStoreError) || error.message !== 'ANALYSIS_NOT_FOUND') throw error;

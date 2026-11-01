@@ -1,0 +1,591 @@
+/* 앱 셸의 모양: 사이드바, 상단바, 흰 본문, 오른쪽 패널, 표와 카드.
+   flow.css가 격자 배치와 단계 구조를, 이 파일이 업무용 콘솔의 표면을 맡는다. */
+
+.app__sidebar,
+.rail {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+/* 사이드바 머리 */
+
+.sidebar-head {
+  display: grid;
+  gap: var(--space-5);
+  padding-inline: var(--space-5);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.brand__mark {
+  display: block;
+  flex: none;
+  width: var(--layout-brand-mark);
+  height: var(--layout-brand-mark);
+  color: var(--color-text-primary);
+}
+
+.brand__accent {
+  stroke: var(--color-text-accent);
+}
+
+.brand h1 {
+  font-size: var(--type-heading-size);
+  line-height: var(--line-height-tight);
+}
+
+.brand__tagline {
+  font-size: var(--type-label-size);
+  color: var(--color-text-muted);
+}
+
+.sidebar-progress {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.sidebar-progress .progress__count {
+  justify-content: space-between;
+  font-size: var(--type-label-size);
+}
+
+.sidebar-progress .progress {
+  gap: var(--space-1);
+}
+
+.sidebar-progress .progress__segment {
+  display: block;
+  height: var(--space-2);
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-full);
+  background: var(--color-surface-muted);
+}
+
+.sidebar-progress .progress__segment--done {
+  background: var(--color-text-success);
+}
+
+.sidebar-progress .progress__segment--next {
+  background: var(--color-surface-accent);
+}
+
+/* 내비게이션. 지금 보는 항목만 강조색 글자와 왼쪽 막대를 쓴다. */
+
+.rail {
+  position: static;
+  gap: var(--space-5);
+}
+
+.rail__head {
+  padding-inline: var(--space-5);
+}
+
+.rail__steps {
+  display: grid;
+  border-top: 0;
+}
+
+.rail__step {
+  align-items: start;
+  padding: var(--space-3) var(--space-4) var(--space-3) var(--space-5);
+  border-bottom: 0;
+  border-left: var(--border-width-marker) solid transparent;
+}
+
+.rail__step:hover {
+  background: var(--color-surface-sunken);
+}
+
+.rail__step--active,
+.rail__step--active:hover {
+  background: var(--color-surface-accent-subtle);
+  border-left-color: var(--color-border-accent);
+}
+
+.rail__step--active .rail__title {
+  color: var(--color-text-accent);
+}
+
+.rail__number {
+  display: inline-grid;
+  place-content: center;
+  width: var(--layout-step-badge);
+  height: var(--layout-step-badge);
+  border: var(--border-width) solid var(--color-border-default);
+  border-radius: var(--radius-full);
+  font-size: var(--type-label-size);
+  line-height: var(--line-height-tight);
+  color: var(--color-text-muted);
+}
+
+.rail__step--done .rail__number {
+  border-color: var(--color-surface-success);
+  background: var(--color-surface-success);
+  color: var(--color-text-success);
+}
+
+.rail__step--next .rail__number {
+  border-color: var(--color-surface-accent);
+  background: var(--color-surface-accent);
+  color: var(--color-text-on-accent);
+}
+
+.rail__detail {
+  color: var(--color-text-muted);
+}
+
+.rail__secondary {
+  gap: var(--space-1);
+}
+
+.rail__secondary > .meta {
+  padding-inline: var(--space-5);
+}
+
+.rail__view {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-5);
+  border-left: var(--border-width-marker) solid transparent;
+  color: var(--color-text-secondary);
+}
+
+.rail__view:hover {
+  background: var(--color-surface-sunken);
+  text-decoration: none;
+}
+
+.rail__view--active {
+  border-left-color: var(--color-border-accent);
+  background: var(--color-surface-accent-subtle);
+  color: var(--color-text-accent);
+  font-weight: var(--font-weight-bold);
+}
+
+.rail__icon {
+  flex: none;
+  width: var(--layout-icon);
+  height: var(--layout-icon);
+  fill: currentColor;
+}
+
+@media (max-width: 899px) {
+  .rail__steps {
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(var(--layout-mobile-step), 1fr);
+    overflow-x: auto;
+    border-bottom: var(--border-width) solid var(--color-border-subtle);
+  }
+
+  .rail__step {
+    grid-template-columns: var(--layout-rail-number) minmax(0, 1fr);
+    padding: var(--space-3);
+    border-left: 0;
+    border-bottom: var(--border-width-marker) solid transparent;
+  }
+
+  .rail__step--active,
+  .rail__step--active:hover {
+    border-bottom-color: var(--color-border-accent);
+  }
+
+  .rail__views {
+    display: flex;
+    flex-wrap: wrap;
+    padding-inline: var(--space-3);
+  }
+
+  .rail__view {
+    width: auto;
+    padding: var(--space-2) var(--space-3);
+    border-left: 0;
+    border-radius: var(--radius-sm);
+  }
+}
+
+/* 상단바 */
+
+.topbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2) var(--space-7);
+  min-height: var(--layout-topbar);
+  padding: var(--space-2) var(--panel-padding-x);
+  border-bottom: var(--border-width) solid var(--color-border-subtle);
+  background: var(--color-surface-raised);
+}
+
+.topbar__title {
+  font-size: var(--type-heading-size);
+  font-weight: var(--font-weight-medium);
+  overflow-wrap: anywhere;
+}
+
+.masthead__facts > div {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+}
+
+.masthead__facts dd {
+  font-size: var(--type-body-sm-size);
+}
+
+.masthead__facts #mode-label,
+.masthead__facts #session-label {
+  font-weight: var(--font-weight-medium);
+}
+
+.meta {
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-muted);
+}
+
+/* 본문은 상자 없이 흰 면에 놓는다. 구역은 제목과 간격으로 나눈다. */
+
+.step,
+.screen {
+  gap: var(--space-7);
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.step__head,
+.screen__head {
+  gap: var(--space-2);
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+
+.step__head h2,
+.screen__head h2 {
+  font-weight: var(--font-weight-medium);
+}
+
+.step__body {
+  gap: var(--space-8);
+}
+
+.panel > h3 {
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+
+.panel {
+  gap: var(--space-4);
+}
+
+h3 {
+  font-weight: var(--font-weight-medium);
+}
+
+.step__body h3 {
+  margin-top: var(--space-5);
+}
+
+.step__body .panel > h3:first-child,
+.step__body .block__head h3 {
+  margin-top: 0;
+}
+
+.fold > summary {
+  padding: var(--space-3) 0;
+  font-size: var(--type-body-size);
+  font-weight: var(--font-weight-medium);
+}
+
+.fold--plain > summary {
+  font-size: var(--type-body-sm-size);
+  font-weight: var(--font-weight-regular);
+}
+
+.doc-preview {
+  padding: var(--space-6);
+  border-radius: var(--panel-radius);
+  font-size: var(--type-body-size);
+}
+
+.session {
+  padding: var(--space-6) var(--space-7);
+}
+
+.workspace {
+  max-width: var(--layout-measure);
+  margin: 0;
+}
+
+/* 오른쪽 정보 패널 */
+
+.inspector {
+  position: static;
+  align-content: start;
+  gap: 0;
+  padding: var(--space-3) var(--space-6) var(--space-7);
+  border-top: var(--border-width) solid var(--color-border-subtle);
+  background: var(--color-surface-raised);
+}
+
+@media (min-width: 1280px) {
+  .inspector {
+    position: sticky;
+    top: var(--layout-topbar);
+    align-self: start;
+    height: calc(100vh - var(--layout-topbar));
+    max-height: none;
+    overflow-y: auto;
+    border-top: 0;
+    border-left: var(--border-width) solid var(--color-border-subtle);
+  }
+}
+
+.inspector__block {
+  padding-block: var(--space-4);
+  border-bottom: var(--border-width) solid var(--color-border-subtle);
+}
+
+.inspector__fold,
+.block--fold--internal {
+  padding-block: var(--space-4);
+  border-bottom: var(--border-width) solid var(--color-border-subtle);
+}
+
+.inspector__fold > summary {
+  padding: 0;
+}
+
+.inspector .session {
+  margin: var(--space-3) 0 0;
+  padding: 0;
+  border: 0;
+  box-shadow: none;
+}
+
+.block--fold--internal > summary {
+  padding: 0;
+  border-inline-start: 0;
+}
+
+.block--fold--internal .fold__body {
+  padding-inline-start: 0;
+}
+
+.factgrid > div {
+  padding: var(--space-3);
+  border: 0;
+  background: var(--color-surface-sunken);
+}
+
+.preview__table tbody tr:hover {
+  background: var(--color-surface-sunken);
+}
+
+.preview__table tbody tr[aria-current="true"] {
+  background: var(--color-surface-accent-subtle);
+}
+
+.task-table__title {
+  font-weight: var(--font-weight-medium);
+}
+
+.task-table__action {
+  text-align: end;
+}
+
+.candidate-summary {
+  grid-template-columns: repeat(auto-fit, minmax(var(--layout-card-min), 1fr));
+  gap: var(--space-4);
+}
+
+.candidate-summary li {
+  border: var(--border-width) solid var(--color-border-subtle);
+  border-top: var(--border-width-marker) solid var(--color-border-default);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-raised);
+  align-content: start;
+  gap: var(--space-3);
+  padding: var(--space-5);
+}
+
+.candidate-summary .candidate-summary__required {
+  border-top-color: var(--color-border-accent);
+}
+
+/* 원문과 공개 내용 대조 */
+
+.compare,
+.source-files {
+  display: grid;
+  gap: var(--space-5);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.source-files {
+  gap: var(--space-1);
+}
+
+.compare__row {
+  display: grid;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.compare__pair {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, var(--layout-card-min)), 1fr));
+  gap: var(--space-3);
+}
+
+.compare__side {
+  display: grid;
+  align-content: start;
+  gap: var(--space-2);
+  min-width: 0;
+  padding: var(--space-4);
+  border: var(--border-width) solid var(--color-border-subtle);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-raised);
+  overflow-wrap: anywhere;
+}
+
+.compare__side--original {
+  background: var(--color-surface-sunken);
+}
+
+.compare__side--allowed {
+  background: var(--color-surface-accent-subtle);
+}
+
+.compare__side--excluded {
+  background: var(--color-surface-muted);
+}
+
+.compare__side--pending {
+  background: var(--color-surface-warning);
+}
+
+.compare__label {
+  font-size: var(--type-label-size);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-muted);
+}
+
+.compare__state {
+  font-weight: var(--font-weight-medium);
+}
+
+.compare__span {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.compare__text {
+  font-family: var(--font-mono);
+  font-size: var(--type-body-sm-size);
+  white-space: pre-wrap;
+}
+
+.notice {
+  padding: var(--space-5) var(--space-6);
+  border-radius: var(--radius-sm);
+}
+
+.chip {
+  border-radius: var(--chip-radius);
+  white-space: nowrap;
+}
+
+.chip--ready,
+.chip--current {
+  border-color: var(--color-surface-accent-subtle);
+  background: var(--color-surface-accent-subtle);
+  color: var(--color-text-accent);
+}
+
+.chip--done {
+  border-color: var(--color-surface-success);
+  background: var(--color-surface-success);
+  color: var(--color-text-success);
+}
+
+.chip--waiting {
+  border-color: var(--color-surface-muted);
+  background: var(--color-surface-muted);
+  color: var(--color-text-muted);
+}
+
+.step__nav {
+  padding-top: var(--space-5);
+}
+
+/* 좁은 화면의 입력은 16px를 유지한다. 그보다 작으면 모바일 브라우저가 초점을 받을 때 화면을 확대한다. */
+@media (max-width: 640px) {
+  input[type="text"],
+  input[type="password"],
+  select,
+  textarea {
+    font-size: var(--font-size-16);
+  }
+}
+
+/* 표처럼 내용이 넓은 항목이 격자 칸을 밀어 페이지를 넘기지 않게 한다. 표는 자기 영역 안에서만 스크롤한다. */
+.step,
+.screen,
+.step__body {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+/* 1280px 미만에서 패널이 본문 아래로 내려오면 본문과 같은 여백을 쓴다. */
+@media (max-width: 1279px) {
+  .inspector {
+    padding-inline: var(--panel-padding-x);
+  }
+}
+
+@media (max-width: 640px) {
+  .step,
+  .screen,
+  .topbar,
+  .inspector {
+    padding-inline: var(--space-5);
+  }
+}
+
+/* macOS의 기본 스크롤바는 평소에 숨어 있어 잘린 표나 긴 패널이 스크롤되는지 알 수 없다. 항상 보이게 그린다.
+   페이지 스크롤바는 내용 길이에 따라 폭이 흔들리지 않도록 늘 자리를 잡아 둔다. */
+html {
+  overflow-y: scroll;
+}
+
+::-webkit-scrollbar {
+  width: var(--layout-scrollbar);
+  height: var(--layout-scrollbar);
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-surface-sunken);
+}
+
+::-webkit-scrollbar-thumb {
+  border-radius: var(--radius-full);
+  background: var(--color-border-default);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-border-strong);
+}
+
+/* 표 안의 화면 밖 글자(visually-hidden)가 스크롤 영역을 벗어나 페이지 폭을 늘리지 않게 기준점을 둔다. */
+.preview__scroll {
+  position: relative;
+}

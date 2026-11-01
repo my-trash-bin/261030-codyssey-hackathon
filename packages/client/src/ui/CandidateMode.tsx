@@ -7,7 +7,7 @@ import type { JSX } from 'react';
 import { seriesBlockReason } from '../disclosure-state.ts';
 import type { Candidate, Draft, Mode } from '../disclosure-state.ts';
 import type { DisclosuresApi } from './hooks/useDisclosures.ts';
-import { MODE_LABELS, representationLabel, interpretationText } from '../disclosure-format.ts';
+import { MODE_LABELS, interpretationText } from '../disclosure-format.ts';
 import { CandidateFields } from './CandidateFields.tsx';
 
 export function CandidateMode(props: {
@@ -28,11 +28,7 @@ export function CandidateMode(props: {
   return (
     <fieldset className="candidate__mode">
       <legend>표현 방식</legend>
-      <p className="hint">
-        {canRequest
-          ? 'A·B를 고르면 서버에 미리보기를 요청합니다(결정 저장 아님). C는 필드 목록에서 필드를 고른 뒤, D는 조건 해석이 지원된 뒤에 요청합니다.'
-          : 'A·B를 고르면 표현만 정해집니다. 지금은 쓰기 차단 사유가 있어 미리보기를 요청하지 않으며, C·D도 같은 조건에서만 요청할 수 있습니다.'}
-      </p>
+      {canRequest ? null : <p className="hint">{workspace.writeBlockReason}</p>}
       {(['A', 'B', 'C', 'D'] as Mode[]).map(mode => {
         const reason = reasons[mode];
         const id = `${groupName}-${mode}`;
@@ -64,13 +60,6 @@ export function CandidateMode(props: {
           </Fragment>
         );
       })}
-      {draft.mode === 'D' && draft.interpretation !== 'supported'
-        ? (
-          <p className="hint">
-            D는 조건 해석이 지원(supported)으로 끝나야 미리보기를 만들 수 있습니다.
-          </p>
-        )
-        : null}
       {draft.mode === 'C'
         ? (
           <CandidateFields
@@ -80,13 +69,6 @@ export function CandidateMode(props: {
             uid={uid}
             token={token}
           />
-        )
-        : null}
-      {draft.representation
-        ? (
-          <p className="meta" data-role="representation" data-candidate-id={candidate.id}>
-            {`선택된 표현: ${representationLabel(draft.representation)}`}
-          </p>
         )
         : null}
     </fieldset>
@@ -117,7 +99,7 @@ export function CandidateCondition(props: {
         />
       </div>
       <p className="hint" id={`${textareaId}-help`}>
-        조건을 바꾸면 기존 해석과 미리보기가 폐기됩니다. 이 문장은 공개 승인이 아닙니다.
+        조건을 바꾸면 해석과 미리보기를 다시 해야 합니다. 이 문장 자체는 공개 승인이 아닙니다.
       </p>
       <div className="action">
         <button
@@ -148,19 +130,10 @@ export function CandidateCondition(props: {
           : null}
       </div>
       <p className="hint">
-        {writeReason
-          ? `쓰기 차단: ${writeReason}`
-          : draft.condition.trim()
-            ? '해석은 job(interpret_disclosure)으로 요청하며 결과를 자동으로 반복 조회하지 않습니다.'
-            : '조건을 입력하세요.'}
+        {writeReason || (draft.condition.trim() ? '해석 결과는 자동으로 갱신되지 않습니다. 끝나면 해석 결과 조회를 누르세요.' : '조건을 입력하세요.')}
       </p>
       <p className="status" role="status" aria-live="polite" data-role="interpretation" data-candidate-id={candidate.id}>
         {interpretationText(draft)}
-      </p>
-      <p className="hint">
-        {draft.jobId
-          ? `해석 job ${draft.jobId} · 상태 ${draft.jobStatus ?? '미확인'}`
-          : '해석 요청 기록이 없습니다.'}
       </p>
       {draft.message ? <p className="hint">{draft.message}</p> : null}
     </div>

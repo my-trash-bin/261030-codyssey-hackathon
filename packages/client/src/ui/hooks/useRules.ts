@@ -100,24 +100,24 @@ export function useRules(options: UseRulesOptions): RulesApi {
     rulesLoadedRef.current = true;
     setRules(result.value);
     setRulesStatus(result.value.length === 0
-      ? '저장된 규칙이 없습니다. 작업을 선택해 유효한 allow 결정에서 규칙을 저장할 수 있습니다.'
+      ? '저장된 규칙이 없습니다. 작업의 허용 결정에서 규칙을 저장할 수 있습니다.'
       : `규칙 ${result.value.length}개를 불러왔습니다. 규칙마다 최신 판본만 표시합니다.`);
   }, []);
 
   const loadDetail = useCallback(async (sessionToken: string, taskId: string): Promise<void> => {
     const owner = ++detailSeqRef.current;
     setTaskDetail(null);
-    setTaskStatus('작업의 intake·scope를 확인하는 중입니다.');
+    setTaskStatus('작업의 저장 범위를 확인하는 중입니다.');
     const result = await readTaskDetail(fetchRef.current, taskId);
     if (!aliveRef.current || owner !== detailSeqRef.current || tokenRef.current !== sessionToken || snapshotRef.current?.id !== taskId) return;
     if (!result.ok) {
-      setTaskStatus(`작업의 intake·scope를 확인하지 못했습니다. ${workflowFailureMessage(result.failure)}`);
+      setTaskStatus(`작업의 저장 범위를 확인하지 못했습니다. ${workflowFailureMessage(result.failure)}`);
       return;
     }
     setTaskDetail(result.value);
     setTaskStatus(result.value.intake === null
       ? `작업 ${result.value.id}은(는) catalog intake가 없는 작업입니다. 규칙 저장은 서버가 422 RULE_SCOPE_REQUIRED로 거부하고, 명시 적용도 거부합니다.`
-      : `작업 ${result.value.id}에 catalog intake가 있습니다. scope와 goal이 정확히 같은 규칙만 적용됩니다.`);
+      : '이 작업과 저장 범위가 정확히 같은 규칙만 적용됩니다.');
   }, []);
 
   const refreshTask = useCallback(async (taskId: string): Promise<void> => {
@@ -150,7 +150,7 @@ export function useRules(options: UseRulesOptions): RulesApi {
     if (snapshotId === null) {
       detailSeqRef.current += 1;
       setTaskDetail(null);
-      setTaskStatus('선택한 작업이 없습니다. 작업 목록에서 작업을 선택하면 intake·scope를 확인합니다.');
+      setTaskStatus('선택한 작업이 없습니다. 1단계에서 작업을 고르세요.');
       return;
     }
     void loadDetail(token, snapshotId);
@@ -174,7 +174,7 @@ export function useRules(options: UseRulesOptions): RulesApi {
       return;
     }
     if (!current) {
-      setMessage('먼저 작업을 선택하세요. 규칙 저장은 현재 작업의 유효한 allow 결정에서만 됩니다.');
+      setMessage('먼저 작업을 고르세요. 규칙은 현재 작업의 허용 결정에서만 저장합니다.');
       return;
     }
     if (actionRef.current !== null) return;
@@ -324,7 +324,7 @@ export function useRules(options: UseRulesOptions): RulesApi {
           }
           return;
         }
-        setMessage(`규칙 ${refs.length}개를 작업 ${current.id} revision ${result.value.revision}에 적용했습니다. 후보·결정을 서버에서 다시 조회합니다.`);
+        setMessage(`규칙 ${refs.length}개를 적용했습니다. 후보·결정을 서버에서 다시 조회합니다.`);
         await refreshTask(current.id);
       } finally {
         if (aliveRef.current && actionRef.current === 'apply') {

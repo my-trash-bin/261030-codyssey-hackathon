@@ -35,7 +35,7 @@ export function CandidateReusable(props: {
         {forbidden
           ? '이 표현(정확한 값·승인 발췌·선택 필드)은 재사용 기준으로 저장할 수 없습니다.'
           : draft.representation
-            ? '재사용 기준은 결정 배치에 함께 저장됩니다.'
+            ? '결정을 저장할 때 함께 저장합니다.'
             : '표현 방식을 먼저 고르세요.'}
       </p>
     </div>

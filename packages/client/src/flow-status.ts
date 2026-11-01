@@ -3,15 +3,18 @@
 
 export type StepId = 'purpose' | 'analysis' | 'decision' | 'draft' | 'review' | 'files';
 
-export type StepState = 'done' | 'current' | 'ready' | 'waiting';
+export type StepState = 'done' | 'ready' | 'waiting';
 
 // 서버 응답에서 그대로 뽑은 집계. 화면은 이 값만 보고 단계 상태를 정한다.
 export interface FlowFacts {
   hasTask: boolean;
   sourceCount: number;
   candidateCount: number;
+  // 허용·제외로 끝난 후보 수. 보류는 서버 확정 조건을 채우지 않으므로 따로 센다.
   decidedCount: number;
+  deferredCount: number;
   analysisRunning: boolean;
+  hasDraft: boolean;
   artifactFileCount: number;
   reviewResult: 'pass' | 'needs_changes' | 'needs_decision' | 'error' | null;
   hasHumanReview: boolean;
@@ -40,8 +43,8 @@ export const STEP_META: readonly StepMeta[] = [
   { id: 'analysis', title: '자료 분석', purpose: '원자료에서 관찰 사실과 확인하지 못한 부분을 뽑습니다.' },
   { id: 'decision', title: '공개 결정', purpose: '후보마다 공개 방법을 고르고 적용해 확정합니다.' },
   { id: 'draft', title: '초안 작성', purpose: '확정된 공개 범위로 공유 문서를 만듭니다.' },
-  { id: 'review', title: '검토', purpose: '자동 검토와 사람 의미 검토로 문장과 근거를 확인합니다.' },
-  { id: 'files', title: '파일 확인', purpose: '내보낼 파일과 해시를 확인하고 압축을 내려받습니다.' },
+  { id: 'review', title: '검토', purpose: '자동 검토 결과와 초안 문장을 확인합니다.' },
+  { id: 'files', title: '파일 확인', purpose: '내보낼 파일을 확인하고 확정한 뒤 내려받습니다.' },
 ];
 
 export const EMPTY_FACTS: FlowFacts = {
@@ -49,7 +52,9 @@ export const EMPTY_FACTS: FlowFacts = {
   sourceCount: 0,
   candidateCount: 0,
   decidedCount: 0,
+  deferredCount: 0,
   analysisRunning: false,
+  hasDraft: false,
   artifactFileCount: 0,
   reviewResult: null,
   hasHumanReview: false,
@@ -73,21 +78,30 @@ function decisionState(facts: FlowFacts): StepState {
   return 'ready';
 }
 
+function hasDraft(facts: FlowFacts): boolean {
+  return facts.hasDraft || facts.artifactFileCount > 0;
+}
+
+// 사람 의미 검토는 모델 실패로 자동 검토 결과가 없을 때만 기록된다. 수정 필요 판정을 덮지 않는다.
+function reviewCleared(facts: FlowFacts): boolean {
+  return facts.reviewResult === 'pass' || (facts.reviewResult === null && facts.hasHumanReview);
+}
+
 function draftState(facts: FlowFacts): StepState {
-  if (facts.artifactFileCount > 0) return 'done';
+  if (hasDraft(facts)) return 'done';
   if (facts.decidedCount === 0) return 'waiting';
   return 'ready';
 }
 
 function reviewState(facts: FlowFacts): StepState {
-  if (facts.artifactFileCount === 0) return 'waiting';
-  if (facts.reviewResult === 'pass' && facts.hasHumanReview) return 'done';
-  return 'ready';
+  if (!hasDraft(facts)) return 'waiting';
+  return reviewCleared(facts) ? 'done' : 'ready';
 }
 
 function filesState(facts: FlowFacts): StepState {
   if (facts.exported) return 'done';
-  if (facts.artifactFileCount === 0) return 'waiting';
+  // 검토가 끝나지 않았거나 정하지 않은 후보가 있으면 서버가 확정을 거부한다.
+  if (!hasDraft(facts) || !reviewCleared(facts) || facts.decidedCount < facts.candidateCount) return 'waiting';
   return 'ready';
 }
 
@@ -100,6 +114,13 @@ const STATE_FUNCTIONS: Record<StepId, (facts: FlowFacts) => StepState> = {
   files: filesState,
 };
 
+const REVIEW_DETAIL: Record<NonNullable<FlowFacts['reviewResult']>, string> = {
+  pass: '통과',
+  needs_changes: '수정 필요',
+  needs_decision: '공개 결정 필요',
+  error: '오류',
+};
+
 function detailFor(id: StepId, facts: FlowFacts): string {
   switch (id) {
     case 'purpose':
@@ -110,18 +131,19 @@ function detailFor(id: StepId, facts: FlowFacts): string {
       return facts.candidateCount > 0 ? `후보 ${facts.candidateCount}개` : '후보 없음';
     case 'decision':
       if (facts.candidateCount === 0) return '후보 없음';
-      return `결정 ${facts.decidedCount} / ${facts.candidateCount}`;
+      return `결정 ${facts.decidedCount} / ${facts.candidateCount}${facts.deferredCount > 0 ? ` · 보류 ${facts.deferredCount}` : ''}`;
     case 'draft':
-      return facts.artifactFileCount > 0 ? `파일 ${facts.artifactFileCount}개` : '초안 없음';
+      if (!hasDraft(facts)) return '초안 없음';
+      return facts.artifactFileCount > 0 ? `파일 ${facts.artifactFileCount}개` : '파일 생성 전';
     case 'review': {
-      if (facts.artifactFileCount === 0) return '초안 없음';
+      if (!hasDraft(facts)) return '초안 없음';
       const auto = facts.reviewResult === null ? '자동 검토 전'
         : facts.reviewResult === 'pass' ? '자동 검토 통과'
-        : `자동 검토 ${facts.reviewResult}`;
+        : `자동 검토 ${REVIEW_DETAIL[facts.reviewResult]}`;
       return facts.hasHumanReview ? `${auto} · 사람 검토 기록됨` : auto;
     }
     case 'files':
-      return facts.exported ? '내려받기 가능' : '확정 전';
+      return facts.exported ? '확정됨' : '확정 전';
   }
 }
 

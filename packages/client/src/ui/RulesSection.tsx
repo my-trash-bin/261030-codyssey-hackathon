@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from 'react';
 import type { FormEvent, JSX } from 'react';
 import type { Snapshot } from '../disclosure-state.ts';
 import { scopeSummary } from '../disclosure-format.ts';
+import type { ScopeNames } from '../disclosure-format.ts';
 import {
   RULE_TRANSFORM_OPTIONS,
   isRuleTransformId,
@@ -21,6 +22,7 @@ export interface RulesSectionProps {
   csrfToken: string | null;
   snapshot: Snapshot | null;
   onTaskChanged: (id: string) => Promise<void> | void;
+  names?: ScopeNames | null;
 }
 
 let ruleCounter = 0;
@@ -36,11 +38,12 @@ function expiryInput(value: string | null): string {
 
 function RuleItem(props: {
   rule: RuleRecord;
+  names: ScopeNames | null;
   busy: boolean;
   onVersion: (ruleId: string, expectedVersion: number, draft: RuleVersionDraft) => void;
   onRevoke: (ruleId: string, expectedVersion: number) => void;
 }): JSX.Element {
-  const { rule, busy, onVersion, onRevoke } = props;
+  const { rule, names, busy, onVersion, onRevoke } = props;
   const [uid] = useState(() => {
     ruleCounter += 1;
     return `rule-${ruleCounter}`;
@@ -89,10 +92,10 @@ function RuleItem(props: {
 
   return (
     <li>
-      <p className="meta">{`규칙 ${rule.id} · 판본 ${rule.version} · ${state}`}</p>
-      <p className="hint">{`범위: ${scopeSummary(rule.scope)}`}</p>
-      <p className="hint">{`goal ${rule.goalVariant === null ? '표시 없음' : rule.goalVariant} · 만료 ${expires}`}</p>
-      <p className="hint">{`selector ${rule.selector}`}</p>
+      <p className="meta">{`규칙 ${rule.id.slice(0, 8)} · 판본 ${rule.version} · ${state}`}</p>
+      <p className="hint">{`범위: ${scopeSummary(rule.scope, names)}`}</p>
+      <p className="hint">{`문서 목표 ${rule.goalVariant === null ? '기본' : rule.goalVariant} · 만료 ${expires}`}</p>
+      <p className="hint">{`대상 열 ${rule.selector}`}</p>
       <p className="hint">
         {`표현 ${ruleRepresentationLabel(rule.representation)}`
           + (supported ? '' : ' · 이 표현은 새 작업에 자동 적용되지 않고 새 판본으로 바꿔야 합니다.')}
@@ -102,7 +105,7 @@ function RuleItem(props: {
         <summary>새 판본 작성</summary>
         <div className="fold__body">
           {rule.revoked
-            ? <p className="hint">철회된 규칙은 새 판본을 만들 수 없습니다. 새 규칙은 현재 작업의 allow 결정에서 다시 저장하세요.</p>
+            ? <p className="hint">철회된 규칙은 새 판본을 만들 수 없습니다. 새 규칙은 현재 작업의 허용 결정에서 다시 저장하세요.</p>
             : (
               <form className="form" noValidate aria-busy={busy ? 'true' : undefined} onSubmit={submitVersion}>
             <div className="field">
@@ -257,20 +260,19 @@ export function RulesSection(props: RulesSectionProps): JSX.Element {
 
   return (
     <section className="block" id="reusable-rules" aria-labelledby="reusable-rules-heading">
-      <h2 id="reusable-rules-heading">재사용 규칙</h2>
-      <p className="hint">
-        규칙은 값이나 과거 문장을 저장하지 않고, 서버가 인증한 숫자 CSV 열 selector와 방향·지수 변환만 저장합니다. 같은 scope와 goal의 새 원자료에서만 다시 계산하고, 최신 활성 판본만 새 적용에 씁니다.
+      <p className="hint" id="reusable-rules-heading">
+        규칙은 값이나 과거 문장을 저장하지 않고, 숫자 CSV 열과 방향·지수 변환만 저장합니다. 같은 프로젝트·목적·수신처·문서 목표의 새 원자료에서만 다시 계산합니다.
       </p>
 
       <div className="actions">
         <button
-          className="button"
+          className="button button--small"
           type="button"
           disabled={rules.rulesBusy || props.csrfToken === null}
           aria-busy={rules.rulesBusy ? 'true' : undefined}
           onClick={() => { rules.refresh(); }}
         >
-          규칙 목록 새로 고침
+          새로 고침
         </button>
       </div>
       <p className="status" role="status" aria-live="polite" data-role="rules-status">{rules.rulesStatus}</p>
@@ -283,6 +285,7 @@ export function RulesSection(props: RulesSectionProps): JSX.Element {
               <RuleItem
                 key={rule.id}
                 rule={rule}
+                names={props.names ?? null}
                 busy={busy}
                 onVersion={rules.createVersion}
                 onRevoke={rules.revoke}
@@ -298,18 +301,14 @@ export function RulesSection(props: RulesSectionProps): JSX.Element {
         <p className="status" role="status" aria-live="polite" data-role="rules-task-status">{rules.taskStatus}</p>
         {props.snapshot === null
           ? (
-            <p className="hint">작업을 선택하면 그 작업의 유효한 allow 결정에서 규칙을 저장할 수 있습니다.</p>
+            <p className="hint">작업을 고르면 그 작업의 허용 결정에서 규칙을 저장할 수 있습니다.</p>
           )
           : (
             <>
-              <p className="hint">
-                {`작업 ${props.snapshot.id} · revision ${props.snapshot.revision} · 범위 ${scopeSummary(props.snapshot.scope)}`}
-              </p>
-              <p className="hint">
-                방향·지수 변환이 저장된 allow 결정만 후보로 보입니다. 선택·후보·근거가 숫자 CSV 한 열 조건을 만족하지 않으면 서버가 저장을 거부합니다.
-              </p>
+              <p className="hint">{scopeSummary(props.snapshot.scope, props.names)}</p>
+              <p className="hint">방향·지수 변환으로 저장한 허용 결정만 보입니다. 숫자 CSV 한 열이 아니면 서버가 저장을 거부합니다.</p>
               {eligible.length === 0
-                ? <p className="hint">저장할 수 있는 결정이 없습니다. allow 결정에 방향·지수 미리보기가 저장되어 있어야 합니다.</p>
+                ? <p className="hint">저장할 수 있는 결정이 없습니다. 추이(B)로 허용한 결정이 있어야 합니다.</p>
                 : (
                   <fieldset className="candidate__disposition">
                     <legend>저장할 결정</legend>
@@ -328,7 +327,7 @@ export function RulesSection(props: RulesSectionProps): JSX.Element {
                             onChange={() => { setDecisionId(entry.decision.id); }}
                           />
                           <label htmlFor={inputId}>
-                            {`후보 ${entry.candidateId} · ${ruleRepresentationLabel(entry.decision.representation)}`}
+                            {`${props.snapshot?.candidates.find(candidate => candidate.id === entry.candidateId)?.statement ?? '후보'} · ${ruleRepresentationLabel(entry.decision.representation)}`}
                           </label>
                         </div>
                       );
@@ -336,7 +335,7 @@ export function RulesSection(props: RulesSectionProps): JSX.Element {
                   </fieldset>
                 )}
               {intakeKnown && !hasIntake
-                ? <p className="hint">이 작업에는 catalog intake가 없어 서버가 규칙 저장을 422 RULE_SCOPE_REQUIRED로 거부합니다. intake로 만든 작업에서만 저장할 수 있습니다.</p>
+                ? <p className="hint">기존 방식으로 만든 작업이라 규칙을 저장할 수 없습니다. 프로젝트와 수신처를 고른 작업에서만 저장할 수 있습니다.</p>
                 : null}
               <div className="action">
                 <button
@@ -350,9 +349,9 @@ export function RulesSection(props: RulesSectionProps): JSX.Element {
                 </button>
                 <p className="hint" id={saveHintId}>
                   {saveReady
-                    ? '현재 작업 판본을 expected_revision으로 보내고, 서버가 selector·표현을 다시 검증합니다.'
+                    ? '서버가 대상 열과 표현을 다시 검증합니다.'
                     : !intakeKnown
-                      ? '이 작업의 저장 범위를 확인한 뒤 저장할 수 있습니다. 규칙 목록 새로 고침으로 다시 확인하세요.'
+                      ? '이 작업의 저장 범위를 확인한 뒤 저장할 수 있습니다. 새로 고침으로 다시 확인하세요.'
                       : !hasIntake
                         ? '저장 범위가 없는 작업이라 저장할 수 없습니다.'
                         : '저장할 결정을 선택하면 열립니다.'}
@@ -363,9 +362,9 @@ export function RulesSection(props: RulesSectionProps): JSX.Element {
       </section>
 
       <section className="batch" aria-labelledby="rules-apply-heading">
-        <h3 id="rules-apply-heading">선택한 작업에 규칙 명시 적용</h3>
+        <h3 id="rules-apply-heading">현재 작업에 규칙 적용</h3>
         {props.snapshot === null
-          ? <p className="hint">작업을 선택하면 적용할 규칙을 고를 수 있습니다. 적용은 저장된 규칙을 새 작업의 후보에 다시 계산하는 쓰기 요청입니다.</p>
+          ? <p className="hint">작업을 고르면 적용할 규칙을 고를 수 있습니다. 저장된 규칙을 이 작업의 후보에 다시 계산합니다.</p>
           : rules.rules.filter(rule => ruleIsActive(rule)).length === 0
             ? <p className="hint">적용할 수 있는 활성 규칙이 없습니다. 철회되었거나 만료된 규칙은 새 적용에 쓰이지 않습니다.</p>
             : (
@@ -391,7 +390,7 @@ export function RulesSection(props: RulesSectionProps): JSX.Element {
                         }}
                       />
                       <label htmlFor={inputId}>
-                        {`규칙 ${rule.id} 판본 ${rule.version} · ${ruleRepresentationLabel(rule.representation)}`}
+                        {`규칙 ${rule.id.slice(0, 8)} 판본 ${rule.version} · ${ruleRepresentationLabel(rule.representation)}`}
                       </label>
                     </div>
                   );
@@ -414,15 +413,12 @@ export function RulesSection(props: RulesSectionProps): JSX.Element {
               : !intakeKnown
                 ? '이 작업의 저장 범위를 확인한 뒤 적용할 수 있습니다.'
                 : !hasIntake
-                  ? 'catalog intake가 없는 작업이라 명시 적용할 수 없습니다.'
+                  ? '기존 방식으로 만든 작업이라 규칙을 적용할 수 없습니다.'
                   : refs.length === 0
-                    ? '규칙을 하나 이상 선택하세요. 서버는 전부 성공 또는 전부 거부만 합니다.'
-                    : `작업 ${props.snapshot.id} revision ${props.snapshot.revision}에 ${refs.length}개를 한 번에 보냅니다. 충돌하면 작업을 다시 조회합니다.`}
+                    ? '규칙을 하나 이상 고르세요.'
+                    : `${refs.length}개를 한 번에 적용합니다. 하나라도 맞지 않으면 아무것도 적용되지 않습니다.`}
           </p>
         </div>
-        <p className="hint">
-          과거 판본 fallback은 없습니다. 적용 중 하나라도 scope·goal·후보 조건과 맞지 않거나 계산 결과가 충돌하면 아무 규칙도 반영되지 않습니다. 한 번에 보낼 수 있는 규칙 참조는 서버 한도에 따라 최대 100개입니다.
-        </p>
       </section>
     </section>
   );

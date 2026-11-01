@@ -4,7 +4,6 @@
 import type { JSX } from 'react';
 
 import type { Candidate, Draft } from '../disclosure-state.ts';
-import { SELECTED_FIELDS_TRANSFORM } from '../disclosure-contract.ts';
 import type { DisclosuresApi } from './hooks/useDisclosures.ts';
 
 export function CandidateFields(props: {
@@ -21,10 +20,7 @@ export function CandidateFields(props: {
   return (
     <div className="custom" data-role="field-list" data-candidate-id={candidate.id}>
       <h3>공개할 필드</h3>
-      <p className="hint" id={listId}>
-        서버가 후보 근거에서 뽑은 필드 목록입니다. 고른 필드의 값만 남기며, 표현은 {SELECTED_FIELDS_TRANSFORM}입니다.
-        목록은 화면에서 만들지 않고 서버 응답을 그대로 씁니다.
-      </p>
+      <p className="hint" id={listId}>후보 근거에서 뽑은 필드입니다. 고른 필드의 값만 남습니다.</p>
       {entry === null
         ? (
           <p className="status" role="status" aria-live="polite">
@@ -48,7 +44,7 @@ export function CandidateFields(props: {
         ? (
           <>
             <fieldset className="candidate__mode">
-              <legend>{`선택 가능한 필드 ${entry.fields.length}개 · 입력 revision ${entry.inputRevision ?? '-'}`}</legend>
+              <legend>{`선택 가능한 필드 ${entry.fields.length}개`}</legend>
               {entry.fields.map((field, index) => {
                 const id = `${listId}-${index}`;
                 return (
@@ -62,7 +58,7 @@ export function CandidateFields(props: {
                       aria-describedby={listId}
                       onChange={event => workspace.toggleField(candidate.id, field, event.currentTarget.checked)}
                     />
-                    <label htmlFor={id}>{field === '' ? '(빈 JSON pointer · 문서 루트)' : field}</label>
+                    <label htmlFor={id}>{field === '' ? '문서 전체' : field}</label>
                   </div>
                 );
               })}
@@ -86,9 +82,7 @@ export function CandidateFields(props: {
           필드 목록 다시 불러오기
         </button>
       </div>
-      <p className="hint">
-        {`선택 필드 표현은 재사용 기준으로 저장할 수 없습니다(서버가 재사용 불가로 표시). 필드 수 상한은 1~100개이며, 목록 revision이 현재 작업과 다르면 선택과 미리보기를 버리고 작업을 다시 조회합니다.`}
-      </p>
+      <p className="hint">선택 필드 표현은 재사용 기준으로 저장할 수 없습니다.</p>
       {draft.message ? <p className="hint">{draft.message}</p> : null}
     </div>
   );

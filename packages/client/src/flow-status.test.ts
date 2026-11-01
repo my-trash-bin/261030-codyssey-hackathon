@@ -51,31 +51,48 @@ test('결정이 하나라도 남으면 결정 단계는 끝나지 않는다', ()
   assert.equal(currentStepId(remaining), 'decision');
 });
 
-test('초안이 생기면 작성 단계가 끝나고 검토가 열린다', () => {
+test('초안이 생기고 자동 검토가 통과하면 검토 단계가 끝난다', () => {
   const steps = describeSteps(facts({ hasTask: true, sourceCount: 1, candidateCount: 2, decidedCount: 2, artifactFileCount: 3, reviewResult: 'pass' }));
   assert.equal(stepView(steps, 'draft').state, 'done');
   assert.equal(stepView(steps, 'draft').detail, '파일 3개');
-  assert.equal(stepView(steps, 'review').state, 'ready');
+  assert.equal(stepView(steps, 'review').state, 'done');
   assert.equal(stepView(steps, 'review').detail, '자동 검토 통과');
+  assert.equal(stepView(steps, 'files').state, 'ready');
+  assert.equal(currentStepId(steps), 'files');
+});
+
+test('자동 검토 통과 뒤 확정하면 여섯 단계가 모두 끝난다', () => {
+  const steps = describeSteps(facts({ hasTask: true, sourceCount: 1, candidateCount: 2, decidedCount: 2, artifactFileCount: 3, reviewResult: 'pass', exported: true }));
+  assert.equal(completionCount(steps), 6);
+  assert.equal(stepView(steps, 'files').detail, '확정됨');
+});
+
+test('모델 실패로 자동 검토가 없으면 사람 검토 기록으로 검토 단계가 끝난다', () => {
+  const pending = describeSteps(facts({ hasTask: true, sourceCount: 1, candidateCount: 2, decidedCount: 2, artifactFileCount: 3 }));
+  assert.equal(stepView(pending, 'review').state, 'ready');
+  assert.equal(stepView(pending, 'files').state, 'waiting');
+
+  const recorded = describeSteps(facts({ hasTask: true, sourceCount: 1, candidateCount: 2, decidedCount: 2, artifactFileCount: 3, hasHumanReview: true }));
+  assert.equal(stepView(recorded, 'review').state, 'done');
+  assert.equal(stepView(recorded, 'files').state, 'ready');
+});
+
+test('자동 검토가 수정 필요면 파일 없는 초안도 검토 단계로 보내고 사람 기록으로 덮지 않는다', () => {
+  const steps = describeSteps(facts({ hasTask: true, sourceCount: 1, candidateCount: 2, decidedCount: 2, hasDraft: true, reviewResult: 'needs_changes', hasHumanReview: true }));
+  assert.equal(stepView(steps, 'draft').state, 'done');
+  assert.equal(stepView(steps, 'draft').detail, '파일 생성 전');
+  assert.equal(stepView(steps, 'review').state, 'ready');
+  assert.equal(stepView(steps, 'review').detail, '자동 검토 수정 필요 · 사람 검토 기록됨');
+  assert.equal(stepView(steps, 'files').state, 'waiting');
   assert.equal(currentStepId(steps), 'review');
 });
 
-test('사람 의미 검토까지 남아 있으면 검토 단계는 끝나지 않는다', () => {
-  const steps = describeSteps(facts({ hasTask: true, sourceCount: 1, candidateCount: 2, decidedCount: 2, artifactFileCount: 3, reviewResult: 'pass', hasHumanReview: false }));
-  assert.equal(stepView(steps, 'review').state, 'ready');
-  assert.equal(stepView(steps, 'files').state, 'ready');
-
-  const recorded = describeSteps(facts({ hasTask: true, sourceCount: 1, candidateCount: 2, decidedCount: 2, artifactFileCount: 3, reviewResult: 'pass', hasHumanReview: true, exported: true }));
-  assert.equal(stepView(recorded, 'review').state, 'done');
-  assert.equal(stepView(recorded, 'files').state, 'done');
-  assert.equal(stepView(recorded, 'files').detail, '내려받기 가능');
-  assert.equal(currentStepId(recorded), 'files');
-});
-
-test('자동 검토가 통과하지 않았으면 검토 단계는 남는다', () => {
-  const steps = describeSteps(facts({ hasTask: true, sourceCount: 1, candidateCount: 2, decidedCount: 2, artifactFileCount: 3, reviewResult: 'needs_changes', hasHumanReview: true }));
-  assert.equal(stepView(steps, 'review').state, 'ready');
-  assert.equal(stepView(steps, 'review').detail, '자동 검토 needs_changes · 사람 검토 기록됨');
+test('보류한 후보가 남으면 초안이 통과해도 공개 결정으로 돌려보낸다', () => {
+  const steps = describeSteps(facts({ hasTask: true, sourceCount: 1, candidateCount: 3, decidedCount: 2, deferredCount: 1, artifactFileCount: 3, reviewResult: 'pass' }));
+  assert.equal(stepView(steps, 'decision').state, 'ready');
+  assert.equal(stepView(steps, 'decision').detail, '결정 2 / 3 · 보류 1');
+  assert.equal(stepView(steps, 'files').state, 'waiting');
+  assert.equal(currentStepId(steps), 'decision');
 });
 
 test('다음·이전 단계는 목록 양끝을 넘지 않는다', () => {

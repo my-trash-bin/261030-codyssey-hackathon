@@ -4,6 +4,7 @@ import { createServer, request as httpRequest } from 'node:http';
 import type { AddressInfo } from 'node:net';
 import test from 'node:test';
 import type { AnalyzeResult, Engine } from '@safehandoff/core-interface';
+import { excerpt } from './source-views.ts';
 import { createWorkflowHandler } from './workflow-http.ts';
 import { TaskStore } from './task-store.ts';
 const sha = (s: string) => createHash('sha256').update(s).digest('hex');
@@ -90,6 +91,37 @@ test('preview, atomic batch and revoke support retry and reject foreign/stale re
   assert.equal((await f.call(path + `/decisions/${decision.id}/revoke`, 'POST', revoke, { 'Idempotency-Key': 'revoke' })).status, 200);
   assert.deepEqual(f.store.effectiveAllows(task.id), []);
   assert.equal((await f.call(path + '/decision-batches', 'POST', batch)).status, 409);
+});
+test('comparison and source content show originals only behind the session and follow current decisions', async t => {
+  const f = await fixture(t);
+  const id = (await f.call('/tasks', 'POST', { context })).body.data.id, path = `/tasks/${id}`;
+  await f.call(path + '/sources', 'PUT', { expected_revision: 1, sources: [source] });
+  await f.call(path + '/jobs', 'POST', { expected_revision: 2, kind: 'analyze' });
+  const task = (await f.call(path)).body.data;
+  assert.equal(JSON.stringify(task).includes(source.raw_bytes), false);
+  const before = (await f.call(path + '/disclosure-comparison')).body.data;
+  assert.equal(before.input_revision, task.revision);
+  assert.deepEqual(before.sources, [{ id: 'version', display_name: 'fictional.txt', format: 'txt', byte_size: 9 }]);
+  const row = before.candidates[0];
+  assert.equal(row.statement, '가상 사실'); assert.equal(row.disposition, null); assert.equal(row.disclosed, null);
+  assert.equal(row.originals[0].text, 'fictional'); assert.equal(row.originals[0].truncated, false);
+  assert.equal(JSON.stringify(before).includes('raw_bytes'), false);
+  assert.equal((await f.call(path + '/sources/version/content')).body.data.text, 'fictional');
+  assert.equal((await f.call(path + '/sources/foreign/content')).status, 404);
+  const saved = await f.call(path + '/decision-batches', 'POST', { expected_revision: task.revision, accept_scope_reduction: false,
+    operations: [{ candidate_id: row.candidate_id, disposition: 'exclude' }] });
+  assert.equal(saved.status, 200);
+  const after = (await f.call(path + '/disclosure-comparison')).body.data.candidates[0];
+  assert.equal(after.disposition, 'exclude'); assert.equal(after.disclosed, null); assert.equal(after.originals[0].text, 'fictional');
+  f.setCookie('');
+  assert.equal((await f.call(path + '/disclosure-comparison')).status, 401);
+  assert.equal((await f.call(path + '/sources/version/content')).status, 401);
+});
+test('excerpt caps long spans and never ends on a split UTF-8 character', () => {
+  const bytes = Buffer.from('가'.repeat(1000));
+  const capped = excerpt(bytes, 0, bytes.length);
+  assert.equal(capped.truncated, true); assert.equal(capped.text, '가'.repeat(682));
+  assert.deepEqual(excerpt(bytes, 0, 3), { text: '가', truncated: false });
 });
 test('late model completion after HTTP cancellation never creates candidates or permission', async t => {
   let resolve!: (value: AnalyzeResult) => void, signal: AbortSignal | undefined;

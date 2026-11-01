@@ -135,11 +135,11 @@ const ADVICE: Record<string, string> = {
   NEEDS_DISCLOSURE_DECISION: '승인된 공개 사실이 없어 작성할 수 없습니다. 공개 결정을 먼저 저장하세요.',
   DECISION_INVALIDATED: '공개 결정이 바뀌거나 만료되어 이전 판본을 쓸 수 없습니다. 작업을 다시 불러오세요.',
   ARTIFACT_STALE: '초안이 현재 작업 판본과 맞지 않습니다. 작업을 다시 불러온 뒤 시도하세요.',
-  ARTIFACT_HASH_CONFLICT: '검토 대상 hash가 현재 파일 집합과 다릅니다. 최신 초안을 다시 불러오세요.',
-  ARTIFACT_CORRUPT: '서버가 보관한 파일 bytes와 hash가 맞지 않아 이 초안으로는 진행할 수 없습니다.',
-  DOCUMENT_HASH_CONFLICT: '편집 대상 문서가 이미 바뀌었습니다. 최신 DocAST를 다시 불러온 뒤 편집하세요.',
+  ARTIFACT_HASH_CONFLICT: '검토 대상 해시가 현재 파일 집합과 다릅니다. 최신 초안을 다시 불러오세요.',
+  ARTIFACT_CORRUPT: '서버가 보관한 파일 내용과 해시가 맞지 않아 이 초안으로는 진행할 수 없습니다.',
+  DOCUMENT_HASH_CONFLICT: '편집 대상 문서가 이미 바뀌었습니다. 최신 초안을 다시 불러온 뒤 편집하세요.',
   HUMAN_REVIEW_REJECTED:
-    '서버의 사람 검토 조건을 만족하지 않았습니다. 현재 파일 hash, 모델 검토 실패 상태, 체크리스트, 사유를 확인하세요.',
+    '서버의 사람 검토 조건을 만족하지 않았습니다. 현재 파일, 모델 검토 실패 상태, 확인 항목, 사유를 확인하세요.',
   FINALIZATION_BLOCKED:
     '서버 확정 조건이 남아 있습니다. 미결정·보류·만료·철회된 공개 결정과 파일 검사 상태를 확인하세요. 체크로 우회할 수 없습니다.',
   FINALIZATION_REJECTED: '현재 파일 집합이나 작업 판본이 확정 요청과 다릅니다. 작업을 다시 불러오세요.',
@@ -147,9 +147,9 @@ const ADVICE: Record<string, string> = {
   EXPORT_INVALIDATED: '작업 판본·결정·규칙이 바뀌어 이 확정 파일은 더 이상 내려받을 수 없습니다.',
   EXPORT_TOO_LARGE: '내보내기 크기 한도(20MiB)를 넘었습니다.',
   FILE_NOT_FOUND: '확정 파일 목록에 그 경로가 없습니다.',
-  JOB_NOT_FOUND: '작성/검토 job을 찾을 수 없습니다. 초안을 다시 불러오세요.',
-  JOB_LIMIT: '서버가 허용하는 동시 job 수를 넘었습니다. 실행 중인 job이 끝난 뒤 다시 시도하세요.',
-  INVALID_DRAFT: 'DocAST가 draft.v1 허용 구조가 아닙니다. 블록 type·text·items·fact_ids를 확인하세요.',
+  JOB_NOT_FOUND: '초안 작성·검토 기록을 찾을 수 없습니다. 초안을 다시 불러오세요.',
+  JOB_LIMIT: '서버가 허용하는 동시 실행 수를 넘었습니다. 실행 중인 작업이 끝난 뒤 다시 시도하세요.',
+  INVALID_DRAFT: '문서 구조가 허용 형식이 아닙니다. 블록의 type·text·items·fact_ids를 확인하세요.',
   MISSING_REQUIRED_FACT: '필수 승인 사실 참조가 빠졌습니다. 공개 결정에서 허용한 사실을 다시 넣으세요.',
   UNSUPPORTED_PUBLIC_SLOT: '이 서버 경로는 승인 발췌·공개 자산 슬롯 파일 생성을 지원하지 않습니다.',
   MODEL_TIMEOUT: '모델 호출이 시간 안에 끝나지 않았습니다.',
@@ -167,7 +167,7 @@ export function artifactFailureMessage(failure: ArtifactFailure): string {
     case 'boundary':
       return '요청이 서버의 Host·Origin 검사에서 거부되었습니다. 브라우저 주소를 확인하세요.';
     case 'conflict':
-      return `현재 판본·hash와 요청이 맞지 않습니다.${suffix}`;
+      return `현재 판본·해시와 요청이 맞지 않습니다.${suffix}`;
     case 'invalid':
       return `서버가 요청을 거부했습니다.${suffix}`;
     case 'not_found':
@@ -288,14 +288,15 @@ export function parseDraftText(text: string): { draft: DraftDocument } | { error
   try {
     return { draft: parseDraftDocument(value) };
   } catch (error) {
-    return { error: error instanceof Error ? error.message : 'DocAST 구조를 확인하지 못했습니다.' };
+    return { error: error instanceof Error ? error.message : '문서 구조를 확인하지 못했습니다.' };
   }
 }
 
 function parseReviewIssue(value: unknown): ReviewIssueView | null {
   if (!isRecord(value) || !isRecord(value.target)) return null;
   const targetKind = asString(value.target.kind);
-  const blockId = nullableString(value.target.block_id);
+  // 문서 전체를 가리키는 지적에는 서버가 block_id를 넣지 않는다.
+  const blockId = value.target.block_id === undefined ? null : nullableString(value.target.block_id);
   const reasonCode = asString(value.reason_code);
   const action = nullableString(value.action);
   const approved = stringArray(value.approved_fact_ids);

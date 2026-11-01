@@ -382,7 +382,7 @@ export function useTaskFlow(options: TaskFlowOptions): TaskFlowApi {
         const registered = await replaceSources(defaultFetch, token, created.value.id, created.value.revision, wire);
         if (!isCurrent(epoch)) return;
         if (!registered.ok) {
-          report(`작업 ${created.value.id}은(는) 만들어졌지만 원자료 등록에 실패했습니다. ${taskFailureMessage(registered.failure)}`);
+          report(`작업은 만들어졌지만 원자료 등록에 실패했습니다. ${taskFailureMessage(registered.failure)}`);
           return;
         }
         const createdCache = new Map(wire.map((source) => [source.source_id, source]));
@@ -392,7 +392,10 @@ export function useTaskFlow(options: TaskFlowOptions): TaskFlowApi {
         filesRef.current = [];
         setFilesState([]);
         setClearFilesSignal((count) => count + 1);
-        report(`작업 ${created.value.id}을(를) 만들고 원자료 ${wire.length}개를 판본 ${registered.value.revision}에 등록했습니다. 분석 동의를 확인한 뒤 분석을 시작하세요.`);
+        // 만든 작업의 입력이 폼에 남으면 수정 화면처럼 보인다. 다음 작업은 빈 폼에서 시작한다.
+        formRef.current = INITIAL_FORM;
+        setForm(INITIAL_FORM);
+        report(`작업을 만들고 원자료 ${wire.length}개를 등록했습니다. 분석 동의를 확인한 뒤 분석을 시작하세요.`);
         await loadTask(created.value.id);
       } finally {
         // 작업을 새로 만들면 snapshot 작업 id가 바뀌어 epoch가 올라간다. 이 작업 자신의 busy는 풀어야 한다.
@@ -668,7 +671,7 @@ export function useTaskFlow(options: TaskFlowOptions): TaskFlowApi {
           jobRef.current = null;
           setJob(null);
           if (value.status === 'succeeded') {
-            report('분석이 끝났습니다. 공개 결정 영역에서 후보를 확인하세요.');
+            report('분석이 끝났습니다. 공개 결정 단계에서 후보를 확인하세요.');
             await loadTask(taskId);
             return;
           }
@@ -711,7 +714,7 @@ export function useTaskFlow(options: TaskFlowOptions): TaskFlowApi {
     let handedOff = false;
     void (async (): Promise<void> => {
       try {
-        report('분석 job을 시작하는 중입니다…');
+        report('분석을 시작하는 중입니다…');
         const started = await startAnalysis(defaultFetch, token, task.id, task.revision);
         if (!isCurrent(epoch)) return;
         if (!started.ok) {

@@ -108,7 +108,7 @@ export function DesignSystemPage(): JSX.Element {
   return (
     <div className="ds">
       <header className="ds-hero">
-        <p className="ds-eyebrow">덜어쓰기 · 디자인 시스템</p>
+        <p className="ds-eyebrow">SafeHandoff · 디자인 시스템</p>
         <h1>디자인 토큰과 컴포넌트 기준</h1>
         <p className="ds-lede">
           모든 값은 <code>tokens.css</code>에만 있다. 화면 CSS는 토큰을 참조하고 직접 값을 쓰지 않는다.
@@ -133,7 +133,7 @@ export function DesignSystemPage(): JSX.Element {
 
         <h3 className="ds-subhead">프리미티브</h3>
         <ul className="ds-swatches">
-          {SAND.map(step => <Swatch key={`sand-${step}`} token={`p-sand-${step}`} label={`종이 ${step}`} read={read} />)}
+          {SAND.map(step => <Swatch key={`neutral-${step}`} token={`p-neutral-${step}`} label={`종이 ${step}`} read={read} />)}
         </ul>
         <ul className="ds-swatches">
           {[...ACCENT.map(step => ({ token: `p-accent-${step}`, label: `인주 ${step}` })),
@@ -289,7 +289,7 @@ export function DesignSystemPage(): JSX.Element {
           <span className="chip chip--done">완료</span>
         </div>
         <div className="ds-progress" role="img" aria-label="진행 3단계 중 2단계 완료">
-          {['done', 'done', 'current', 'waiting', 'waiting', 'waiting'].map((state, index) => (
+          {['done', 'done', 'next', 'waiting', 'waiting', 'waiting'].map((state, index) => (
             <span key={index} className={`progress__segment progress__segment--${state}`}>
               <span className="progress__number">{String(index + 1).padStart(2, '0')}</span>
             </span>

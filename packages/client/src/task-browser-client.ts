@@ -118,7 +118,8 @@ function parseRuntime(body: unknown): WorkflowRuntime | null {
   const contentLogging = debug['content_logging'];
   return {
     provider: asString(core['provider']),
-    model: asString(core['model']),
+    // app은 model_id를 최상위로 보내고, core.model은 코어가 직접 알릴 때만 있다.
+    model: asString(data['model_id']) ?? asString(core['model']),
     ready: typeof ready === 'boolean' ? ready : null,
     appVersion: asString(data['app_version']),
     extensions: labelList(data['extensions']),
@@ -242,6 +243,8 @@ export function phaseLabel(phase: string): string {
 }
 
 const EVENT_LABELS: Record<string, string> = {
+  task_created: '작업 생성',
+  task_changed: '작업 변경',
   writer_started: '초안 작성 시작',
   review_started: '초안 검토 시작',
   files_review_started: '파일 검토 시작',

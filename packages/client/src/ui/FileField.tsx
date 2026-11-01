@@ -14,16 +14,19 @@ export type FileFieldProps = {
   invalid?: boolean;
   disabled?: boolean;
   emptyLabel?: string;
+  /** 훅이 선택을 들고 있을 때 넘긴다. 화면을 다시 그려도 실제 선택과 표시가 어긋나지 않는다. */
+  selectedNames?: readonly string[];
   onFiles: (files: File[]) => void;
 };
 
 export function FileField(props: FileFieldProps): JSX.Element {
   const [names, setNames] = useState<string[]>([]);
-  const summary = names.length === 0
+  const shown = props.selectedNames ?? names;
+  const summary = shown.length === 0
     ? (props.emptyLabel ?? '선택한 파일 없음')
-    : names.length === 1
-      ? names[0]!
-      : `${names[0]!} 외 ${names.length - 1}개`;
+    : shown.length === 1
+      ? shown[0]!
+      : `${shown[0]!} 외 ${shown.length - 1}개`;
 
   return (
     <div

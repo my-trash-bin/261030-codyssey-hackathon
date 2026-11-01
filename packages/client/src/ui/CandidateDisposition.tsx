@@ -17,20 +17,13 @@ function RequiredExclude(props: {
   const { workspace, snapshot, candidate, noticeId, setFocusFallback } = props;
   const purpose = purposeName(snapshot.scope);
   const target = purpose
-    ? `현재 작업 목적 ${purpose}의 공유 결과와 근거에서`
-    : 'task 응답에 목적이 없어 목적을 표시할 수 없지만, 이번 공유 결과와 근거에서';
+    ? `${purpose} 공유 결과에서`
+    : '이번 공유 결과에서';
   const cancelHelpId = `${noticeId}-cancel-help`;
   return (
     <div className="required-exclude" id={noticeId} data-role="required-exclude" data-candidate-id={candidate.id}>
-      <p className="status">
-        {`필수 후보를 이번 결과에서 제외합니다. ${target} 다음 정보가 빠집니다: “${candidate.statement}”`}
-      </p>
-      <p className="hint">
-        이 정보가 필수로 분류된 구체적인 이유는 제공되지 않았습니다. 위의 근거를 확인하고, 정보를 빼고 공유하려면 아래에서 범위 축소에 동의하세요.
-      </p>
-      <p className="hint">
-        제외를 유지하면 아래 전체 적용의 범위 축소 동의로 이 결정을 그대로 저장할 수 있습니다.
-      </p>
+      <p className="status">{`필수 후보를 제외합니다. ${target} 이 정보가 빠집니다.`}</p>
+      <p className="hint">제외를 유지하려면 아래 결정 저장에서 범위 축소에 동의하세요. 필수 후보를 제외하면 초안을 만들 수 없습니다.</p>
       <button
         className="button"
         type="button"
@@ -46,9 +39,7 @@ function RequiredExclude(props: {
       >
         제외 취소
       </button>
-      <p className="hint" id={cancelHelpId}>
-        제외 취소는 이 후보를 미선택으로 되돌립니다. 미선택은 허용으로 자동 선택되지 않으며, 제외한 필수 후보 목록과 범위 축소 동의 대상에서도 빠집니다.
-      </p>
+      <p className="hint" id={cancelHelpId}>이 후보를 미선택으로 되돌립니다. 허용으로 자동 선택되지는 않습니다.</p>
     </div>
   );
 }
@@ -58,20 +49,23 @@ export function CandidateDisposition(props: {
   snapshot: Snapshot;
   candidate: Candidate;
   draft: Draft;
+  saved: boolean;
   uid: string;
   token: string;
   setFocusFallback: (key: string) => void;
 }): JSX.Element {
-  const { workspace, snapshot, candidate, draft, uid, token, setFocusFallback } = props;
+  const { workspace, snapshot, candidate, draft, saved, uid, token, setFocusFallback } = props;
   const options: { value: Disposition | null; label: string; note: string }[] = [
-    { value: null, label: '아직 결정하지 않음', note: '결정을 저장하지 않습니다.' },
+    saved
+      ? { value: null, label: '바꾸지 않음', note: '저장된 결정을 그대로 둡니다.' }
+      : { value: null, label: '아직 결정하지 않음', note: '이번 저장에서 뺍니다.' },
     {
       value: 'allow',
-      label: '허용 — 미리보기를 승인해 포함',
-      note: '표현을 고르고 미리보기를 만든 뒤에만 배치에 넣을 수 있습니다.',
+      label: '허용',
+      note: '표현을 고르고 미리보기를 확인한 뒤 공유 결과에 넣습니다.',
     },
-    { value: 'exclude', label: '이번 결과에서 제외', note: '이 후보의 내용은 공유 결과에 포함하지 않습니다.' },
-    { value: 'defer', label: '나중에 결정', note: '보류로 저장하고 이번 결과에는 포함하지 않습니다.' },
+    { value: 'exclude', label: '이번 결과에서 제외', note: '공유 결과에 넣지 않습니다.' },
+    { value: 'defer', label: '나중에 결정(보류)', note: '초안은 만들 수 있지만, 최종 확정 전에 허용이나 제외로 바꿔야 합니다.' },
   ];
   const groupName = `${uid}-disposition-${token}`;
   const requiredNoticeId = `${uid}-required-exclude-${token}`;
@@ -79,9 +73,6 @@ export function CandidateDisposition(props: {
   return (
     <fieldset className="candidate__disposition">
       <legend>결정</legend>
-      <p className="hint">
-        기본 상태는 허용 미선택입니다. 고르지 않은 후보는 배치에서 빠집니다.
-      </p>
       {options.map(option => {
         const key = option.value ?? 'none';
         const id = `${groupName}-${key}`;
@@ -100,7 +91,10 @@ export function CandidateDisposition(props: {
                 workspace.chooseDisposition(candidate.id, option.value);
               }}
             />
-            <label htmlFor={id}>{`${option.label} — ${option.note}`}</label>
+            <label htmlFor={id}>
+              <span className="option__label">{option.label}</span>
+              <span className="option__note">{option.note}</span>
+            </label>
           </div>
         );
       })}

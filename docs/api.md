@@ -156,7 +156,7 @@ X-CSRF-Token/Idempotency-Key와 Set-Cookie를 전달한다. 임의 origin/와일
 
 StoredTask는 id/revision/phase/context/source_set_hash/skill_set_hash/current_candidate_set_id다.
 집계는 여기에 sources/evidence/candidates/decisions/scope/intake와 현재 job/artifact 포인터를 추가한다.
-sources는 메타데이터만 반환하고 raw_bytes는 되돌려주지 않는다. 원자료 바이트는 내부 snapshot에만 보관한다. candidates는 서버 id,
+sources는 메타데이터만 반환하고 raw_bytes는 되돌려주지 않는다. 원문은 세션 사용자의 대조용 경로(`disclosure-comparison`, `sources/{version_id}/content`)에서만 텍스트로 읽고, 모델 입력이나 공유 파일에 쓰지 않는다. candidates는 서버 id,
 분석 local_key, origin(model/manual), selector=null, conflicts, required와 기존 Candidate 필드를
 포함한다. 임시 local_key->영속 id 대응은 이 목록으로 확인한다. decisions는 candidate_id별 현재
 결정 객체이며 representation/projection_sha256/revoked/expires_at을 포함한다. scope는 task ID와
@@ -231,6 +231,8 @@ ask_for_diagnostics/reproduction_evidence다. 연결되지 않은 확장 팩을 
 | GET /api/v1/tasks?cursor=... | 최근 수정순 30개, tasks와 next_cursor. 원자료/모델 응답 없음 |
 | POST /api/v1/tasks | `{intake:{internal_title,project_id,purpose_id,recipient_id,audience,skill_ids,goal_variant?,output_language?}}` |
 | GET /api/v1/tasks/{id}/sources | 등록 판본 메타데이터/byte_size/선택 여부. raw_bytes 없음 |
+| GET /api/v1/tasks/{id}/sources/{version_id}/content | 세션 사용자의 내부 확인용. 현재 선택된 원자료의 `{id,display_name,format,text}`. 없거나 해제한 판본은 404 `SOURCE_NOT_FOUND` |
+| GET /api/v1/tasks/{id}/disclosure-comparison | 세션 사용자의 내부 확인용. `{input_revision,sources[],candidates[]}`. 후보마다 `candidate_id/kind/statement/required/disposition/representation/disclosed`와 `originals[]`(`evidence_id/source_name/locator/start/end/text/truncated`, 구간당 2048바이트 상한)를 준다. 철회/만료 결정은 `disposition=null` |
 | DELETE /api/v1/tasks/{id}/sources/{source_id} | `{expected_revision}`. logical source_id 선택 해제/후보/결정 무효화 |
 | GET /api/v1/tasks/{id}/events?after=seq | 시간순 seq/revision/kind/created_at. duration_ms/usage는 미측정(null) |
 | GET /api/v1/tasks/{id}/events (Accept: text/event-stream) | Last-Event-ID 이후 재생과 새 이벤트. 세션 만료/종료 시 닫음 |

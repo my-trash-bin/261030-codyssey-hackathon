@@ -2,15 +2,8 @@
 // 각 단계 구역 컴포넌트가 그린다.
 
 import type { JSX, ReactNode } from 'react';
-import { nextStepId, previousStepId } from '../flow-status.ts';
+import { currentStepId, nextStepId, previousStepId } from '../flow-status.ts';
 import type { StepId, StepView } from '../flow-status.ts';
-
-const STATE_LABEL: Record<StepView['state'], string> = {
-  done: '완료',
-  current: '진행',
-  ready: '할 일',
-  waiting: '대기',
-};
 
 export function StepFrame(props: {
   step: StepView;
@@ -23,6 +16,8 @@ export function StepFrame(props: {
   const nextId = nextStepId(steps, step.id);
   const previous = steps.find((item) => item.id === previousId);
   const next = steps.find((item) => item.id === nextId);
+  const isCurrent = currentStepId(steps) === step.id;
+  const stateLabel = step.state === 'done' ? '완료' : step.state === 'waiting' ? '대기' : isCurrent ? '할 일' : '진행 가능';
   return (
     <section
       className="step"
@@ -33,7 +28,7 @@ export function StepFrame(props: {
       <header className="step__head">
         <p className="step__eyebrow">
           <span className="meta">단계 {String(step.index).padStart(2, '0')} / {String(steps.length).padStart(2, '0')}</span>
-          <span className={`chip chip--${step.state}`}>{STATE_LABEL[step.state]}</span>
+          <span className={`chip chip--${step.state}`}>{stateLabel}</span>
           <span className="meta" id={`step-${step.id}-detail`}>{step.detail}</span>
         </p>
         <h2 id={`step-${step.id}-heading`}>{step.title}</h2>
@@ -42,25 +37,32 @@ export function StepFrame(props: {
 
       <div className="step__body">{children}</div>
 
+      {/* 끝 단계에서는 갈 곳이 없으므로 비활성 버튼을 남기지 않는다. 빈 칸은 다음 버튼을 오른쪽에 붙여 둔다. */}
       <footer className="step__nav">
-        <button
-          className="button button--quiet"
-          id={`step-${step.id}-previous`}
-          type="button"
-          disabled={previousId === step.id}
-          onClick={(): void => { onSelect(previousId); }}
-        >
-          이전{previous && previous.id !== step.id ? ` · ${previous.title}` : ''}
-        </button>
-        <button
-          className="button"
-          id={`step-${step.id}-next`}
-          type="button"
-          disabled={nextId === step.id}
-          onClick={(): void => { onSelect(nextId); }}
-        >
-          다음{next && next.id !== step.id ? ` · ${next.title}` : ''}
-        </button>
+        {previous && previous.id !== step.id
+          ? (
+            <button
+              className="button button--quiet"
+              id={`step-${step.id}-previous`}
+              type="button"
+              onClick={(): void => { onSelect(previousId); }}
+            >
+              이전 · {previous.title}
+            </button>
+          )
+          : <span />}
+        {next && next.id !== step.id
+          ? (
+            <button
+              className={`button${step.state === 'done' ? ' button--solid' : ''}`}
+              id={`step-${step.id}-next`}
+              type="button"
+              onClick={(): void => { onSelect(nextId); }}
+            >
+              다음 · {next.title}
+            </button>
+          )
+          : null}
       </footer>
     </section>
   );

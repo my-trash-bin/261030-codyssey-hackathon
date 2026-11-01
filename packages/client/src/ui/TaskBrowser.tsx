@@ -3,6 +3,8 @@
 import { useEffect, useState } from 'react';
 import type { JSX } from 'react';
 import type { Snapshot } from '../disclosure-state.ts';
+import { purposeLabel } from '../disclosure-format.ts';
+import type { ScopeNames } from '../disclosure-format.ts';
 import { phaseLabel } from '../task-browser-client.ts';
 import { formatWorkflowTimestamp } from '../workflow-client.ts';
 import { useTaskBrowser } from './hooks/useTaskBrowser.ts';
@@ -13,6 +15,7 @@ export interface TaskBrowserProps {
   onTaskChanged: (id: string) => Promise<void> | void;
   /** 선택한 작업이 삭제된 뒤 메인 작업 공간의 snapshot을 비우는 선택 콜백. */
   onTaskDeleted?: () => void;
+  catalog?: ScopeNames | null;
 }
 
 let mountCounter = 0;
@@ -35,73 +38,79 @@ export function TaskBrowser(props: TaskBrowserProps): JSX.Element {
   const selected = browser.selectedId !== null;
   const busy = browser.busyKey !== null;
   const deleteReady = selected && confirmation === 'DELETE' && retainedAck && !busy;
-  const hintId = `${uid}-hint`;
   const deleteHintId = `${uid}-delete-hint`;
+  const recipientName = (id: string): string =>
+    props.catalog?.recipients.find(recipient => recipient.id === id)?.displayName ?? id;
+
+  // 작업이 하나도 없으면 목록 영역을 그리지 않는다. 처음 온 사람은 아래 만들기 폼부터 보면 된다.
+  if (browser.tasks.length === 0 && !selected) {
+    return (
+      <section id="task-browser" aria-label="작업 목록">
+        <p className="status" role="status" aria-live="polite" data-role="task-list-status">{browser.listStatus}</p>
+      </section>
+    );
+  }
 
   return (
     <section className="block" id="task-browser" aria-labelledby="task-browser-heading">
-      <h2 id="task-browser-heading">작업 목록</h2>
-      <p className="hint" id={hintId}>
-        최근 수정순 30개씩 조회합니다. 목록에는 원자료 본문과 모델 응답이 없습니다. 작업을 선택하면 화면의 모든 기능이 그 작업의 현재 판본을 기준으로 다시 조회됩니다.
-      </p>
-
-      <div className="actions">
+      <div className="block__head">
+        <h3 id="task-browser-heading">작업 목록</h3>
         <button
-          className="button"
+          className="button button--small"
           type="button"
           disabled={browser.listBusy}
           aria-busy={browser.listBusy ? 'true' : undefined}
-          aria-describedby={hintId}
           onClick={() => { browser.reload(); }}
         >
-          목록 새로 고침
+          새로 고침
         </button>
       </div>
-      <p className="status" role="status" aria-live="polite" data-role="task-list-status">{browser.listStatus}</p>
+      <p className="visually-hidden" role="status" aria-live="polite" data-role="task-list-status">{browser.listStatus}</p>
 
-      {browser.tasks.length === 0
-        ? (
-          <div className="disclosures__empty">
-            <p className="hint">작업 만들기에서 작업을 등록하면 이 목록에 나타납니다. 이 화면은 작업을 자동으로 만들거나 삭제하지 않습니다.</p>
-          </div>
-        )
-        : (
-          <ul className="plain-list">
+      <div className="preview__scroll">
+        <table className="preview__table task-table">
+          <thead>
+            <tr>
+              <th scope="col">작업</th>
+              <th scope="col">목적</th>
+              <th scope="col">수신처</th>
+              <th scope="col">상태</th>
+              <th scope="col">수정</th>
+              <th scope="col"><span className="visually-hidden">동작</span></th>
+            </tr>
+          </thead>
+          <tbody>
             {browser.tasks.map(task => {
               const isSelected = task.id === browser.selectedId;
               const title = task.internalTitle === '' ? '제목 없는 작업' : task.internalTitle;
               return (
-                <li key={task.id}>
-                  <button
-                    className="button button--list"
-                    type="button"
-                    aria-current={isSelected ? 'true' : undefined}
-                    disabled={busy}
-                    aria-describedby={hintId}
-                    onClick={() => { browser.select(task.id); }}
-                  >
+                <tr key={task.id} aria-current={isSelected ? 'true' : undefined}>
+                  <td className="task-table__title">{title}</td>
+                  <td>{purposeLabel(task.purpose, props.catalog)}</td>
+                  <td>{recipientName(task.recipient)}</td>
+                  <td><span className="chip">{phaseLabel(task.phase)}</span></td>
+                  <td>{formatWorkflowTimestamp(task.updatedAt)}</td>
+                  <td className="task-table__action">
                     {isSelected
-                      ? (
-                        <>
-                          <span className="chip chip--current" aria-hidden="true">선택됨</span>
-                          {title}
-                        </>
-                      )
-                      : title}
-                  </button>
-                  <p className="meta">
-                    {`작업 ${task.id} · revision ${task.revision} · ${phaseLabel(task.phase)} · 수정 ${formatWorkflowTimestamp(task.updatedAt)}`}
-                  </p>
-                  <p className="hint">
-                    {`목적 ${task.purpose} · 수신처 ${task.recipient}`
-                      + (task.currentJobId === null ? '' : ` · 진행 job ${task.currentJobId}`)
-                      + (task.currentArtifactId === null ? '' : ` · 최근 artifact ${task.currentArtifactId}`)}
-                  </p>
-                </li>
+                      ? <span className="chip chip--current">선택됨</span>
+                      : (
+                        <button
+                          className="button button--small button--solid"
+                          type="button"
+                          aria-label={`${title} 열기`}
+                          disabled={busy}
+                          onClick={() => { browser.select(task.id); }}
+                        >
+                          열기
+                        </button>
+                      )}
+                  </td>
+                </tr>
               );
             })}
-          </ul>
-        )}
+          </tbody>
+        </table>
+      </div>
 
       {browser.nextCursor === null
         ? null
@@ -116,30 +125,25 @@ export function TaskBrowser(props: TaskBrowserProps): JSX.Element {
             >
               다음 30개
             </button>
-            <p className="hint">서버 커서로 이어 조회합니다. 커서가 만료되면 첫 페이지부터 다시 조회하세요.</p>
           </div>
         )}
 
       <p className="status" role="status" aria-live="polite" data-role="task-action-message">{browser.message}</p>
 
       {!selected
-        ? (
-          <p className="hint">삭제는 작업을 선택한 뒤에만 열립니다. 기존 작업은 이 화면에서 자동으로 삭제하지 않습니다.</p>
-        )
+        ? null
         : (
           <div className="danger-zone">
-            <h3 className="danger-zone__label">위험 구역</h3>
             <details className="fold fold--danger">
               <summary>
                 <h4>선택한 작업 삭제</h4>
-                <p className="hint">원자료와 산출물이 서버에서 사라지고 되돌릴 수 없습니다. 열어서 확인 문자열을 입력해야 삭제 요청이 열립니다.</p>
               </summary>
               <div className="fold__body">
                 <p className="hint" id={deleteHintId}>
-                  {`작업 ${browser.selectedId}의 원자료·후보·결정·이력·초안이 서버에서 삭제되며 되돌릴 수 없습니다. 값이나 원문이 없는 저장 규칙은 남습니다. 삭제는 실행 중 job이 끝날 때까지 기다립니다.`}
+                  이 작업의 원자료·후보·결정·이력·초안이 서버에서 삭제되며 되돌릴 수 없습니다. 값이나 원문이 없는 재사용 규칙은 남습니다. 실행 중인 작업이 있으면 끝날 때까지 기다립니다.
                 </p>
                 <div className="field">
-                  <label htmlFor={`${uid}-confirmation`}>확인 문자열</label>
+                  <label htmlFor={`${uid}-confirmation`}>확인 문자열 (DELETE 입력)</label>
                   <input
                     id={`${uid}-confirmation`}
                     type="text"
@@ -152,7 +156,6 @@ export function TaskBrowser(props: TaskBrowserProps): JSX.Element {
                     disabled={busy}
                     onChange={event => { setConfirmation(event.currentTarget.value); }}
                   />
-                  <p className="hint">정확히 DELETE를 입력해야 삭제 요청이 열립니다.</p>
                 </div>
                 <div className="option">
                   <input
@@ -175,11 +178,6 @@ export function TaskBrowser(props: TaskBrowserProps): JSX.Element {
                   >
                     작업 삭제
                   </button>
-                  <p className="hint">
-                    {deleteReady
-                      ? '이 작업만 삭제합니다. 재사용 규칙의 판본과 철회 이력은 저장소에 남습니다.'
-                      : '확인 문자열 DELETE와 재사용 규칙 보존 확인이 모두 있어야 삭제할 수 있습니다.'}
-                  </p>
                 </div>
               </div>
             </details>

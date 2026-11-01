@@ -105,7 +105,7 @@ export function useDocuments(options?: { csrfToken?: string | null; fetch?: type
       setLoaded(true);
       setStatus(parsed.length
         ? `저장된 문서 ${parsed.length}건을 표시했습니다.`
-        : '저장된 내부 텍스트가 없습니다.');
+        : '저장된 메모가 없습니다.');
       return 'ok';
     } catch {
       if (!aliveRef.current) return 'failed';

@@ -53,18 +53,18 @@
 
 .candidate {
   min-width: 0;
-  margin-top: var(--space-7);
-  padding: var(--space-4) var(--space-5);
-  border: 0;
-  border-inline-start: var(--border-width-marker) solid var(--color-border-accent);
-  border-radius: var(--panel-radius);
+  margin-top: var(--space-5);
+  padding: var(--space-6);
+  border: var(--border-width) solid var(--color-border-subtle);
+  border-top: var(--border-width-marker) solid var(--color-border-accent);
+  border-radius: var(--radius-sm);
   background: var(--color-surface-raised);
-  box-shadow: var(--shadow-panel);
 }
 
 /* 위쪽 테두리가 없으므로 범례는 카드 안쪽 첫 줄에 그대로 놓인다. */
 .candidate__legend {
   padding: 0;
+  letter-spacing: var(--letter-spacing-wide);
   font-family: var(--font-body);
   font-size: var(--type-body-sm-size);
   font-weight: var(--font-weight-strong);
@@ -95,6 +95,7 @@
 
 .candidate__statement {
   font-size: var(--type-body-size);
+  font-weight: var(--font-weight-bold);
   overflow-wrap: anywhere;
 }
 
@@ -170,12 +171,19 @@
   font-size: var(--type-body-sm-size);
 }
 
+/* 표는 가로줄만 쓴다. 머리글은 작고 흐리게, 행은 올리면 옅게 칠한다. */
+.preview__table th {
+  font-size: var(--type-label-size);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-muted);
+}
+
 .preview__table th,
 .preview__table td {
-  padding: var(--space-3) var(--space-4);
-  border: var(--border-width) solid var(--color-border-subtle);
+  padding: var(--table-cell-padding-y) var(--table-cell-padding-x);
+  border-bottom: var(--border-width) solid var(--color-border-subtle);
   text-align: left;
-  vertical-align: top;
+  vertical-align: middle;
   white-space: nowrap;
 }
 
@@ -187,10 +195,10 @@
    삭제 폼을 처음부터 펼쳐 두면 읽을 이유가 없는 경고 문단이 화면을 차지한다. */
 .danger-zone {
   display: grid;
-  gap: var(--space-4);
-  margin-top: var(--space-10);
-  padding-top: var(--space-6);
-  border-top: var(--border-width) solid var(--color-border-strong);
+  gap: var(--space-2);
+  margin-top: var(--space-5);
+  padding-top: var(--space-3);
+  border-top: var(--border-width) solid var(--color-border-subtle);
 }
 
 .danger-zone__label {
@@ -202,7 +210,7 @@
 /* 상자 없이 화살표만 쓴다. 표시자가 사라지면 눌러서 열린다는 단서도 사라진다. */
 .danger-zone .fold > summary {
   display: list-item;
-  padding: var(--space-4) 0;
+  padding: var(--space-2) 0;
   color: var(--color-text-danger);
 }
 
@@ -222,6 +230,35 @@
 
 .danger-zone .fold__body {
   padding-bottom: var(--space-2);
+}
+
+/* 카드 위쪽 띠: 결정 전은 강조색, 저장됨은 초록, 보류는 주의색이다. 글자로도 같은 상태를 보여 준다. */
+.candidate--saved {
+  border-top-color: var(--color-text-success);
+}
+
+.candidate--deferred {
+  border-top-color: var(--color-text-warning);
+}
+
+.candidate__saved {
+  font-size: var(--type-body-sm-size);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-success);
+}
+
+.candidate__saved.status--warn {
+  color: var(--color-text-warning);
+}
+
+.candidate h3 {
+  font-size: var(--type-body-sm-size);
+}
+
+.candidate__decisions {
+  display: grid;
+  gap: var(--space-2);
+  justify-items: start;
 }
 
 .batch {

@@ -8,13 +8,13 @@ export const MODE_LABELS: Record<Mode, string> = {
   A: 'A. 사실 요약 — 구체적인 값 없이 사실만 문장으로',
   B: 'B. 추이만 — 관측 순서와 증가·감소 방향만, 값·비율·시각 제외',
   C: 'C. 요청 정보 마스킹 — 고른 필드와 값만 남김',
-  D: 'D. 기타 직접 입력 — 조건 해석이 지원될 때만',
+  D: 'D. 기타 직접 입력 — 조건을 해석해 적용할 수 있을 때만',
 };
 
 export const DISPOSITION_LABELS: Record<Disposition, string> = {
-  allow: '허용(미리보기 승인)',
+  allow: '허용',
   exclude: '이번 결과에서 제외',
-  defer: '나중에 결정',
+  defer: '보류',
 };
 
 export const KIND_LABELS: Record<string, string> = {
@@ -44,12 +44,35 @@ export const PURPOSE_LABELS: Record<string, string> = {
   operations_advice: '외부 운영 자문',
 };
 
+export const AUDIENCE_LABELS: Record<string, string> = {
+  public: '공개',
+  named_external: '지정 외부 수신자',
+};
+
 // exact_value·approved_excerpt·선택 필드는 재사용 기준 저장이 허용되지 않는다.
 export const REUSABLE_FORBIDDEN: readonly Representation['kind'][] = [
   'exact_value',
   'approved_excerpt',
   'selected_fields',
 ];
+
+export const UNCERTAINTY_LABELS: Record<string, string> = {
+  observed: '관찰됨',
+  reported: '전달받음',
+  inferred: '추론함',
+  unknown: '알 수 없음',
+};
+
+const KIND_ORDER = ['observation', 'constraint', 'identifier', 'hypothesis', 'unknown'];
+
+// 서버 후보 순서는 임의 ID 정렬이다. 필수 후보를 앞에 두고 확인된 사실부터 읽게 한다.
+export function orderCandidates<T extends { required: boolean; kind: string }>(candidates: readonly T[]): T[] {
+  const rank = (kind: string): number => {
+    const index = KIND_ORDER.indexOf(kind);
+    return index === -1 ? KIND_ORDER.length : index;
+  };
+  return [...candidates].sort((a, b) => Number(b.required) - Number(a.required) || rank(a.kind) - rank(b.kind));
+}
 
 export function shortId(value: string): string {
   return value.length > 18 ? `${value.slice(0, 15)}…` : value;
@@ -62,7 +85,8 @@ export function kindLabel(kind: string): string {
 export function representationLabel(representation: Representation | null): string {
   if (!representation) return '표현 미선택';
   const name = REPRESENTATION_LABELS[representation.kind] ?? representation.kind;
-  return representation.transform_id ? `${name} · ${representation.transform_id}` : name;
+  return representation.transform_id === 'series_index_base100.v1' ? `${name} · 기준 100 지수`
+    : representation.transform_id === 'series_direction_only.v1' ? `${name} · 방향만` : name;
 }
 
 export function asRecord(value: unknown): Record<string, unknown> {
@@ -74,20 +98,33 @@ export function readString(record: Record<string, unknown>, key: string): string
   return typeof value === 'string' && value ? value : null;
 }
 
-export function scopeSummary(scope: Scope): string {
+/** 카탈로그 표시 이름. 모르는 ID는 이름을 지어내지 않고 ID 그대로 둔다. */
+export interface ScopeNames {
+  projects: readonly { id: string; displayName: string }[];
+  purposes: readonly { id: string; displayName: string }[];
+  recipients: readonly { id: string; displayName: string }[];
+}
+
+function displayName(list: readonly { id: string; displayName: string }[] | undefined, id: string): string | null {
+  return list?.find((item) => item.id === id)?.displayName ?? null;
+}
+
+export function purposeLabel(id: string, names?: ScopeNames | null): string {
+  return displayName(names?.purposes, id) ?? PURPOSE_LABELS[id] ?? id;
+}
+
+export function scopeSummary(scope: Scope, names?: ScopeNames | null): string {
   const record = asRecord(scope);
   const parts: string[] = [];
   const purpose = readString(record, 'purpose_id');
-  if (purpose) parts.push(`목적 ${purpose}`);
+  if (purpose) parts.push(`목적 ${purposeLabel(purpose, names)}`);
   const audience = readString(record, 'audience');
-  if (audience) parts.push(`공개 대상 ${audience}`);
+  if (audience) parts.push(`공개 범위 ${AUDIENCE_LABELS[audience] ?? audience}`);
   const project = readString(record, 'project_id');
-  if (project) parts.push(`프로젝트 ${project}`);
+  if (project) parts.push(`프로젝트 ${displayName(names?.projects, project) ?? project}`);
   const recipient = readString(record, 'recipient_id');
-  if (recipient) parts.push(`수신처 ${recipient}`);
-  const skillHash = readString(record, 'skill_set_hash');
-  if (skillHash) parts.push(`스킬 집합 해시 ${shortId(skillHash)}`);
-  return parts.length > 0 ? parts.join(' · ') : 'task 응답에 범위 정보가 없습니다.';
+  if (recipient) parts.push(`수신처 ${displayName(names?.recipients, recipient) ?? recipient}`);
+  return parts.length > 0 ? parts.join(' · ') : '범위 정보가 없습니다.';
 }
 
 // 목적 ID는 서버 응답 값이다. 표기 이름을 모르는 값에 이름을 지어내지 않고 ID만 덧붙여 보여준다.
@@ -95,7 +132,7 @@ export function purposeName(scope: Scope): string {
   const purpose = readString(asRecord(scope), 'purpose_id');
   if (!purpose) return '';
   const label = PURPOSE_LABELS[purpose];
-  return label ? `${label}(${purpose})` : `${purpose}(표시 이름 없음)`;
+  return label ?? purpose;
 }
 
 export function collapse(value: string): string {
@@ -118,13 +155,13 @@ export function decodeBase64Text(value: string): DecodedText {
 export function interpretationText(draft: Draft): string {
   switch (draft.interpretation) {
     case 'supported':
-      return '해석 결과: 지원됨 — 미리보기를 만들 수 있습니다.';
+      return '해석 결과: 적용할 수 있습니다. 미리보기를 만드세요.';
     case 'ambiguous':
-      return '해석 결과: 모호함 — 조건을 더 구체화해야 하며 미리보기와 적용이 차단됩니다.';
+      return '해석 결과: 모호합니다. 조건을 더 구체적으로 적어야 미리보기를 만들 수 있습니다.';
     case 'unsupported':
-      return '해석 결과: 지원되지 않음 — 이 조건으로는 공개할 수 없습니다.';
+      return '해석 결과: 지원하지 않는 조건이라 이 조건으로는 공개할 수 없습니다.';
     default:
-      return '해석 결과: 아직 해석되지 않았습니다. 미리보기를 만들려면 해석을 먼저 요청하세요.';
+      return '아직 해석하지 않았습니다. 미리보기를 만들려면 조건 해석을 먼저 요청하세요.';
   }
 }
 
@@ -145,13 +182,11 @@ export function emptyDraft(): Draft {
 }
 
 export function writeNoteText(reason: string): string {
-  return reason
-    ? `쓰기 차단: ${reason}`
-    : '쓰기 차단 사유 없음(토큰 제공됨). 실제 API 응답을 확인한 뒤 상태를 갱신합니다.';
+  return reason;
 }
 
 export function previewBlockReason(draft: Draft, writeReason: string, busy: boolean): string | null {
-  if (writeReason) return `쓰기 차단: ${writeReason}`;
+  if (writeReason) return writeReason;
   if (busy) return '다른 요청이 진행 중입니다. 끝난 뒤 다시 시도하세요.';
   if (!draft.representation) {
     return draft.mode === 'C'
@@ -159,7 +194,7 @@ export function previewBlockReason(draft: Draft, writeReason: string, busy: bool
       : '표현 방식을 먼저 고르세요.';
   }
   if (draft.mode === 'D' && draft.interpretation !== 'supported') {
-    return 'D는 조건 해석이 지원됨으로 끝나야 미리보기를 만들 수 있습니다.';
+    return 'D는 조건 해석이 끝나 적용 가능해야 미리보기를 만들 수 있습니다.';
   }
   return null;
 }

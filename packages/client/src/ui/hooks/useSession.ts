@@ -15,6 +15,7 @@ export interface SessionApi {
   invalid: boolean;
   /** 만료·401·로그아웃으로 세션이 닫혔는지. 화면은 토큰 입력으로 초점을 되돌린다. */
   expired: boolean;
+  unavailable: boolean;
   status: string;
   isSessionNotice: boolean;
   /** 열린 세션 정보. 없으면 null이며 이때 작업 공간은 쓰기를 열지 않는다. */
@@ -65,6 +66,8 @@ export function useSession(onCsrfToken: (token: string | null) => void): Session
   const [expired, setExpired] = useState(false);
   const [status, setStatus] = useState('세션 상태를 확인하는 중입니다…');
   const [isSessionNotice, setIsSessionNotice] = useState(false);
+  // 서버의 작업 API가 꺼져 있으면 토큰을 넣어도 열 수 없다. 입력칸 대신 원인만 보여 준다.
+  const [unavailable, setUnavailable] = useState(false);
   const [session, setSession] = useState<SessionInfo | null>(null);
   const busyRef = useRef(false);
   const tokenRef = useRef('');
@@ -126,6 +129,7 @@ export function useSession(onCsrfToken: (token: string | null) => void): Session
     }
     setInvalid(false);
     setExpired(false);
+    setUnavailable(false);
     setIsSessionNotice(true);
     setStatus(`${mode === 'open' ? OPENED_MESSAGE : RESTORED_MESSAGE} ${sessionNote(next)}`);
     onCsrfTokenRef.current(next.csrfToken);
@@ -242,6 +246,7 @@ export function useSession(onCsrfToken: (token: string | null) => void): Session
           return;
         }
         // 네트워크·서버 오류로는 세션을 회수하지 않는다. 서버가 401을 답했을 때만 닫는다.
+        setUnavailable(result.failure.kind === 'disabled');
         setStatus(`세션 상태를 확인하지 못했습니다. ${sessionFailureMessage(result.failure)}${sessionRef.current ? ' 열린 세션은 그대로 둡니다.' : ''}`);
       } finally {
         recheckingRef.current = false;
@@ -262,6 +267,7 @@ export function useSession(onCsrfToken: (token: string | null) => void): Session
       }
       // 그사이 세션을 열었거나 닫았으면 이 실패 응답은 현재 상태를 설명하지 않는다.
       if (sessionRef.current !== null) return;
+      setUnavailable(result.failure.kind === 'disabled');
       setStatus(result.failure.kind === 'no_session'
         ? '아직 세션이 없습니다. 서버를 시작할 때 터미널에 표시된 시작 토큰으로 세션을 시작하세요.'
         : sessionFailureMessage(result.failure));
@@ -277,5 +283,5 @@ export function useSession(onCsrfToken: (token: string | null) => void): Session
     setStatus('');
   }, [invalid, expired]);
 
-  return { token, setToken, busy, invalid, expired, status, isSessionNotice, session, connect, logout, recheck };
+  return { token, setToken, busy, invalid, expired, unavailable, status, isSessionNotice, session, connect, logout, recheck };
 }

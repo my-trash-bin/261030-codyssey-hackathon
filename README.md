@@ -38,7 +38,7 @@ Node 24(`node:sqlite`, `node --test`) + TypeScript 5.8 + React 19 기반 `pnpm` 
 | `@safehandoff/server` | HTTP 서버 및 SQLite 저장소 | `createServer` (`/api/documents`, `/api/sharing`, `/api/analysis`), `TaskStore` (`workflow_*` 11개 테이블/migration v2/`TaskStore.analysis` CAS) |
 | `@safehandoff/app` | 실제 실행 서버 (`:8080`) | `RealCore` + `OpenAICompatibleModelClient` + `DockerReproRunner` + SQLite 연결 |
 | `@safehandoff/fake-app` | 시연/연출용 서버 (`:8081`) | `FakeCore` + 시연 상태 제어 (`/__demo`, `/api/demo/settings`) 및 CDP 연출 화면 (`/__presentation`) |
-| `@safehandoff/client` | 웹 클라이언트 (`:5173` / `:5174`, React 19 + Vite) | Swiss Grid 작업 화면. 세션, 카탈로그 기반 작업 등록, 원자료, 분석, 공개 결정, 초안/검토/확정, 규칙, 이력, 문서 보관소를 인증된 `/api/v1` 경로로 호출. 상태는 순수 reducer(`disclosure-state.ts`)와 훅(`ui/hooks/`)이 소유 |
+| `@safehandoff/client` | 웹 클라이언트 (`:5173` / `:5174`, React 19 + Vite) | 업무용 콘솔 형태의 6단계 작업 화면. 세션, 카탈로그 기반 작업 등록, 원자료, 분석, 공개 결정, 초안/검토/확정, 규칙, 이력, 문서 보관소를 인증된 `/api/v1` 경로로 호출. 상태는 순수 reducer(`disclosure-state.ts`)와 훅(`ui/hooks/`)이 소유 |
 
 ---
 
@@ -141,6 +141,9 @@ provider 확인은 기존 텍스트 경로를 유지합니다.
 - `useArtifacts`가 공유 초안 생성(`compose`)과 자동 검토, DocAST 편집 저장, 사람 의미 검토 기록,
   최종 확정, ZIP/개별 파일 다운로드를 호출합니다(`artifacts-client.ts`). 다운로드는 서버가 준 bytes를
   그대로 저장하며 다시 렌더링하지 않습니다.
+- 자료 분석과 검토 단계는 `GET /api/v1/tasks/{id}/disclosure-comparison`과
+  `GET /api/v1/tasks/{id}/sources/{version_id}/content`로 원문과 공개 내용을 대조합니다
+  (`source-views-client.ts`). 세션 사용자의 내부 확인용이며 모델 입력이나 공유 파일에 쓰지 않습니다.
 - `useRules`/`useTaskBrowser`/`useTaskHistory`가 규칙 저장/목록/새 판본/철회/명시 적용, 작업 목록/
   삭제, 작업 이벤트 조회를 호출합니다(`rules-client.ts`, `task-browser-client.ts`,
   `workflow-client.ts`).
@@ -154,8 +157,8 @@ provider 확인은 기존 텍스트 경로를 유지합니다.
   전송하지 않으며 입력이 바뀌면 동의를 해제합니다. `crypto.subtle`을 쓸 수 없는 보안 문맥에서는
   요청 전에 오류를 안내합니다. 이 경로의 근거/후보 제안은 내부 검토용이며 task 후보나 공개 허가로
   자동 저장하지 않습니다. 내부 메모 저장/조회도 공개 승인/공유 초안과 별개입니다.
-- `/api/v1/runtime`과 `/api/sharing`은 화면이 호출하지 않습니다. 실행 환경 패널은 `/api/core`의 세
-  값과 세션 응답의 `analysis_environment`만 표시합니다.
+- `/api/sharing`은 화면이 호출하지 않습니다. 실행 정보 화면은 `/api/core`와 인증된 `/api/v1/runtime`을,
+  세션 영역은 세션 응답의 `analysis_environment`를 표시합니다.
 
 이 배선은 합성 모델 client와 메모리 저장소로 띄운 서버에 실제 브라우저를 붙여 세션 열기/복원/
 로그아웃, 카탈로그 작업 생성, 원자료 등록/해제, 분석 실행/취소, C 필드 선택과 미리보기, 결정 배치,
@@ -166,8 +169,7 @@ provider 확인은 기존 텍스트 경로를 유지합니다.
 
 시각 기준은 [docs/UI-구현기준.md](docs/UI-구현기준.md)의 시각 기준 절을 따릅니다. 색, 글자, 간격,
 버튼과 입력 크기는 [docs/design-tokens.md](docs/design-tokens.md)의 토큰으로만 정하며, 토큰과 컴포넌트
-상태는 개발 서버에서 `/#design-system` 화면으로 확인합니다. 종이색 바탕과 직각, 무그림자에 12열
-그리드를 쓰고 강조색은 한 색만 쓰며, 제목만 명조 계열이고 나머지는 시스템 글꼴입니다. 외부 웹폰트를 쓰지 않아 기존 CSP와 외부 자산 미호출 경계를 유지합니다. 미연결 사유는
+상태는 개발 서버에서 `/#design-system` 화면으로 확인합니다. 전체 높이 사이드바와 상단바, 흰 본문, 가로줄 표로 구성하고 강조색은 한 색만 쓰며, 서체는 시스템 산세리프 하나입니다. 외부 웹폰트를 쓰지 않아 기존 CSP와 외부 자산 미호출 경계를 유지합니다. 미연결 사유는
 해당 동작 가까이에 짧게 표시하고, 개발용 예시 모드는 실제 실행과 구분해 표시합니다.
 
 빌드된 작업 화면은 `vite build`가 만든 `packages/client/dist/static`을 Node가 서빙하고 API를

@@ -128,6 +128,17 @@ test('finalize는 확정 확인·artifact id·파일 집합 hash를 실어 expor
   });
 });
 
+test('문서 전체 대상 지적은 block_id 없이도 초안을 읽는다', () => {
+  const parsed = parseArtifact(artifactPayload({
+    review: { schema_version: 'review.v1', result: 'needs_changes', issues: [{
+      target: { kind: 'document' }, reason_code: 'UNCERTAINTY_REMOVED', action: null,
+      approved_fact_ids: [], candidate_ids: [], internal_explanation: 'fixture',
+    }] },
+  }));
+  assert.equal(parsed.review?.result, 'needs_changes');
+  assert.equal(parsed.review?.issues[0]?.blockId, null);
+});
+
 test('artifact DTO에서 현재 여부나 확정 가능 여부가 사라지면 적용하지 않는다', () => {
   const parsed = parseArtifact(artifactPayload());
   assert.equal(parsed.id, 'artifact-1');

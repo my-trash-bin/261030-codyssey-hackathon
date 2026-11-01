@@ -7,9 +7,9 @@ import type { DisclosuresState, JobRequest, PreviewRequest } from './disclosure-
 
 export function writeBlockReason(state: DisclosuresState, csrfToken: string, busy: boolean = state.busy): string {
   if (csrfToken === '') return NO_TOKEN_REASON;
-  if (!state.snapshot) return '쓰기가 차단됩니다: 작업을 먼저 불러오세요.';
-  if (state.stale) return '쓰기가 차단됩니다: 표시 중인 작업 정보가 오래되었습니다. 다시 불러온 뒤 시도하세요.';
-  if (busy) return '쓰기가 차단됩니다: 다른 요청을 처리하는 중입니다.';
+  if (!state.snapshot) return '작업을 먼저 고르세요.';
+  if (state.stale) return '표시 중인 작업 정보가 오래되었습니다. 다시 불러온 뒤 시도하세요.';
+  if (busy) return '다른 요청을 처리하는 중입니다.';
   return '';
 }
 
@@ -52,7 +52,7 @@ export function canGenerate(state: DisclosuresState): boolean {
 
 function describe(cand: Candidate): string {
   const short = cand.statement.length > 40 ? `${cand.statement.slice(0, 40)}…` : cand.statement;
-  return `"${short}"(${cand.id})`;
+  return `"${short}"`;
 }
 
 export interface DecisionOperation {
@@ -75,7 +75,7 @@ function allowReadyReason(snapshot: Snapshot, cand: Candidate, draft: Draft): st
   const rep = draft.representation;
   if (!rep) {
     if (draft.mode === 'C') return `${describe(cand)}의 C(선택 필드)는 공개할 필드를 하나 이상 골라야 저장할 수 있습니다.`;
-    return `${describe(cand)}의 공개 방식(A·B·D)을 먼저 고르세요.`;
+    return `${describe(cand)}의 공개 방식(A·B·C·D)을 먼저 고르세요.`;
   }
   if (rep.kind === 'selected_fields') {
     const fields = rep.parameters?.fields;
@@ -88,12 +88,12 @@ function allowReadyReason(snapshot: Snapshot, cand: Candidate, draft: Draft): st
     if (reason !== '') return `${describe(cand)} ${reason}`;
   }
   if (draft.mode === 'D' && draft.interpretation !== 'supported') {
-    return `${describe(cand)}의 D 조건은 해석 지원(supported) 뒤에야 저장할 수 있습니다.`;
+    return `${describe(cand)}의 D 조건은 해석이 끝나 적용 가능해야 저장할 수 있습니다.`;
   }
   const preview = draft.preview;
   if (!preview) return `${describe(cand)}의 미리보기를 먼저 확인하세요.`;
   if (preview.candidate_id !== cand.id || preview.input_revision !== snapshot.revision) {
-    return `${describe(cand)}의 미리보기가 현재 revision과 맞지 않아 다시 확인해야 합니다.`;
+    return `${describe(cand)}의 미리보기가 현재 작업 판본과 맞지 않아 다시 만들어야 합니다.`;
   }
   if (representationSignature(preview.representation) !== representationSignature(rep)) {
     return `${describe(cand)}의 미리보기와 고른 공개 방식이 달라 다시 확인해야 합니다.`;
@@ -125,7 +125,7 @@ export function batchBlockReason(
     }
   }
   const operations = collectOperations(state);
-  if (operations.length === 0) return '적용할 결정이 없습니다. 후보마다 공개·제외·보류 중 하나를 고르세요.';
+  if (operations.length === 0) return '저장할 결정이 없습니다. 후보마다 허용·제외·보류 중 하나를 고르세요.';
   if (operations.length > 30) return '한 번에 30개까지만 저장할 수 있어 임의로 나누어 보내지 않습니다.';
   for (const operation of operations) {
     if (operation.disposition !== 'allow') continue;

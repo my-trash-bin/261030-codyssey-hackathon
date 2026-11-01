@@ -113,7 +113,7 @@ const INITIAL_STATE: State = {
   task: null,
   artifact: null,
   job: null,
-  message: '작업을 불러오면 공유 초안을 만들 수 있습니다.',
+  message: '',
   busy: false,
   jobBusy: false,
   draftText: '',
@@ -131,7 +131,31 @@ const INITIAL_STATE: State = {
 const POLL_INTERVAL_MS = 800;
 const POLL_LIMIT_MS = 180000;
 const HUMAN_REVIEW_CODES: Record<string, true> = { MODEL_TIMEOUT: true, MODEL_UNAVAILABLE: true };
-const JOB_WORD: Record<string, string> = { compose: '작성', review: '검토' };
+const JOB_WORD: Record<string, string> = { compose: '초안 작성', review: '검토' };
+const LOADING_DRAFT_MESSAGE = '초안 정보를 불러오는 중입니다…';
+const MODEL_ERROR_TEXT: Record<string, string> = {
+  MODEL_UNAVAILABLE: '모델에 연결하지 못했습니다',
+  MODEL_TIMEOUT: '모델 응답 시간이 초과됐습니다',
+  MODEL_INVALID_RESPONSE: '모델 응답이 형식에 맞지 않습니다',
+  MODEL_BUDGET_EXCEEDED: '모델 호출 한도를 넘었습니다',
+  MODEL_CANCELLED: '모델 호출이 취소됐습니다',
+};
+
+/** 오류 코드를 사람이 읽는 문구로 바꾼다. 원인 파악을 위해 코드도 함께 남긴다. */
+export function modelErrorText(code: string | null): string {
+  if (code === null) return '';
+  const text = MODEL_ERROR_TEXT[code];
+  return text === undefined ? `(${code})` : `${text} (${code}).`;
+}
+
+function jobDoneMessage(kind: string, artifact: ArtifactView | null): string {
+  const word = kind === 'review' ? '검토를 마쳤습니다.' : '초안을 만들었습니다.';
+  const result = artifact?.review?.result;
+  if (result === 'pass') return `${word} 자동 검토를 통과했습니다.`;
+  if (result === 'needs_changes') return `${word} 자동 검토 결과 수정이 필요합니다. 검토 단계에서 지적 사항을 확인하세요.`;
+  if (result === 'needs_decision') return `${word} 공개 결정이 더 필요합니다. 검토 단계에서 지적 사항을 확인하세요.`;
+  return `${word} 검토 상태를 확인하세요.`;
+}
 
 const defaultFetch: typeof fetch = (input, init) => globalThis.fetch(input, init);
 
@@ -142,14 +166,14 @@ const sleep = (ms: number): Promise<void> => {
 };
 
 function writeReason(state: State, csrfToken: string | null, snapshot: Snapshot | null): string {
-  if (csrfToken === null) return '쓰기가 차단됩니다: 인증된 세션의 CSRF 토큰이 없습니다. 세션을 다시 여세요.';
-  if (snapshot === null) return '쓰기가 차단됩니다: 작업을 먼저 불러오세요.';
-  if (state.task === null) return '쓰기가 차단됩니다: 작업 정보를 아직 불러오지 못했습니다.';
-  if (snapshot.id !== state.task.id) return '쓰기가 차단됩니다: 다른 작업 정보가 표시 중입니다. 작업을 다시 불러오세요.';
-  if (state.busy) return '쓰기가 차단됩니다: 다른 요청을 처리하는 중입니다.';
-  if (state.jobBusy) return '쓰기가 차단됩니다: 작성 또는 검토 job이 실행 중입니다. 끝나거나 취소된 뒤 시도하세요.';
+  if (csrfToken === null) return '세션이 닫혀 있습니다. 세션을 다시 여세요.';
+  if (snapshot === null) return '작업을 먼저 고르세요.';
+  if (state.task === null) return '작업 정보를 불러오는 중입니다.';
+  if (snapshot.id !== state.task.id) return '다른 작업 정보가 표시 중입니다. 작업을 다시 불러오세요.';
+  if (state.busy) return '다른 요청을 처리하는 중입니다.';
+  if (state.jobBusy) return '초안 작성이나 검토가 진행 중입니다. 끝나거나 취소된 뒤 시도하세요.';
   if (snapshot.revision !== state.task.revision) {
-    return `쓰기가 차단됩니다: 공유 작업 정보 판본 ${snapshot.revision}이(가) 서버 판본 ${state.task.revision}과 다릅니다. 작업을 다시 불러오세요.`;
+    return `화면의 작업 판본 ${snapshot.revision}이(가) 서버 판본 ${state.task.revision}과 다릅니다. 작업을 다시 불러오세요.`;
   }
   return '';
 }
@@ -163,7 +187,7 @@ function composeReason(
   const written = writeReason(state, csrfToken, snapshot);
   if (written !== '') return written;
   if (!canGenerate) {
-    return '공개 결정이 모든 필수 후보를 정하고 허용한 사실이 있어야 초안을 만들 수 있습니다. 공개 결정을 먼저 저장하세요.';
+    return '허용 결정이 1개 이상 있고 필수 후보가 모두 허용으로 저장돼야 초안을 만들 수 있습니다. 공개 결정을 먼저 저장하세요.';
   }
   return '';
 }
@@ -175,8 +199,10 @@ function reviewReason(state: State, csrfToken: string | null, snapshot: Snapshot
   const task = state.task;
   if (artifact === null || task === null) return '검토할 초안이 없습니다. 먼저 공유 초안을 만드세요.';
   if (!artifact.isCurrent || artifact.revision !== task.revision) {
-    return '표시 중인 초안이 현재 작업 판본과 맞지 않습니다. 최신 초안을 불러온 뒤 검토하세요.';
+    return '이 초안은 공개 결정이 바뀌기 전 판본입니다. 초안을 다시 만드세요.';
   }
+  // 자동 검토를 통과하지 못한 초안에는 공개 파일이 없어 서버가 재검토·편집을 거부한다.
+  if (artifact.files.length === 0) return '이 초안에는 공개 파일이 없어 다시 검토하거나 편집할 수 없습니다. 초안을 새로 만드세요.';
   return '';
 }
 
@@ -187,11 +213,11 @@ function humanReviewReason(state: State, csrfToken: string | null, snapshot: Sna
   const task = state.task;
   if (artifact === null || task === null) return '사람 검토를 기록할 초안이 없습니다.';
   if (!artifact.isCurrent || artifact.revision !== task.revision) {
-    return '표시 중인 초안이 현재 작업 판본과 맞지 않습니다. 최신 초안을 불러온 뒤 기록하세요.';
+    return '이 초안은 공개 결정이 바뀌기 전 판본입니다. 초안을 다시 만드세요.';
   }
   if (artifact.humanReview !== null) return '이미 사람 의미 검토가 기록된 초안입니다.';
   if (artifact.reviewErrorCode === null || HUMAN_REVIEW_CODES[artifact.reviewErrorCode] !== true) {
-    return '사람 의미 검토는 자동 검토가 모델 실패(MODEL_TIMEOUT·MODEL_UNAVAILABLE)로 끝난 현재 파일에만 기록할 수 있습니다.';
+    return '사람 의미 검토는 모델 연결 실패나 시간 초과로 자동 검토가 끝나지 못한 현재 파일에만 기록할 수 있습니다.';
   }
   if (artifact.hardErrors.length > 0) return '파일 검사 오류가 남아 있어 사람 의미 검토로 대체할 수 없습니다.';
   const allChecked = Object.values(state.checklist).every((value) => value === true);
@@ -207,30 +233,30 @@ function finalizeReason(state: State, csrfToken: string | null, snapshot: Snapsh
   const task = state.task;
   if (artifact === null || task === null) return '확정할 초안이 없습니다.';
   if (task.goalVariant === 'reproduction_evidence') {
-    return '재현 확인 목표는 확정 조건에서 재현 결과를 요구하지만 이 서버 초안 경로에는 그 결과가 없습니다. 목표를 바꾸지 않고 확정할 수 없으며 확인 체크로 우회할 수 없습니다.';
+    return '재현 근거가 목표인 작업은 재현 결과가 있어야 확정할 수 있는데 이 경로에는 그 결과가 없습니다.';
   }
   if (!artifact.isCurrent || artifact.revision !== task.revision) {
-    return '표시 중인 초안이 현재 작업 판본과 맞지 않습니다. 최신 초안을 불러온 뒤 확정하세요.';
+    return '이 초안은 공개 결정이 바뀌기 전 판본입니다. 초안을 다시 만드세요.';
   }
   const already = state.exportInfo;
   if (already !== null && already.artifactId === artifact.id && already.artifactSetHash === artifact.artifactSetHash &&
     already.revision === task.revision) {
-    return '이미 이 파일 집합으로 확정했습니다. 새 판본이 필요하면 편집하거나 다시 작성하세요.';
+    return '이미 이 파일들로 확정했습니다.';
   }
   if (!artifact.finalizable) {
     if (artifact.hardErrors.length > 0) {
-      return `파일 검사가 끝나지 않아 확정할 수 없습니다. (${artifact.hardErrors.join(', ')})`;
+      return '공개 파일이 아직 만들어지지 않아 확정할 수 없습니다. 자동 검토를 통과하면 파일이 만들어집니다.';
     }
     const reviewed = artifact.review?.result === 'pass' && artifact.reviewTargetHash === artifact.artifactSetHash;
     const human = artifact.humanReview !== null && artifact.humanReview.targetHash === artifact.artifactSetHash;
     if (!reviewed && !human) {
       return artifact.reviewErrorCode !== null
-        ? '모델 검토가 실패했습니다. 현재 파일 hash에 대한 사람 의미 검토를 먼저 기록해야 합니다.'
-        : '현재 파일 hash에 대한 자동 검토 통과나 사람 검토 기록이 없습니다. 재검토를 실행하세요.';
+        ? '모델 검토가 실패했습니다. 검토 단계에서 사람 의미 검토를 먼저 기록해야 합니다.'
+        : '현재 파일의 자동 검토 통과나 사람 검토 기록이 없습니다. 검토 단계에서 다시 검토하세요.';
     }
-    return '서버가 이 파일 집합을 확정 가능으로 보지 않습니다. 미결정·보류·만료·철회된 공개 결정과 필수 검사 상태를 확인하세요.';
+    return '정하지 않았거나 보류·만료·철회된 공개 결정이 남아 있어 서버가 확정을 거부합니다.';
   }
-  if (!state.finalizeConfirmed) return '현재 파일 목록을 확인했다는 체크가 필요합니다.';
+  if (!state.finalizeConfirmed) return '파일을 확인했다는 체크가 필요합니다.';
   return '';
 }
 
@@ -248,7 +274,7 @@ function downloadReason(state: State): string {
     return '현재 초안과 확정 파일 집합이 다릅니다. 현재 파일들로 다시 확정하세요.';
   }
   if (state.busy) return '다른 요청을 처리하는 중입니다. 끝난 뒤 내려받으세요.';
-  if (state.jobBusy) return '작성/검토 job이 실행 중입니다. 끝나거나 취소된 뒤 내려받으세요.';
+  if (state.jobBusy) return '초안 작성이나 검토가 진행 중입니다. 끝나거나 취소된 뒤 내려받으세요.';
   if (state.downloadBusy !== null) return '다운로드를 준비하는 중입니다.';
   return '';
 }
@@ -313,7 +339,7 @@ export function useArtifacts(options: ArtifactsOptions): ArtifactsApi {
       : null;
     // 불러오기 성공은 '불러오는 중' 문구를 지운다. 다만 방금 끝난 동작의 결과 문구는
     // 이 재조회가 덮지 않는다. 동작이 남긴 메시지가 없을 때만 로드 결과를 적는다.
-    const loadingMessage = prev.message === '' || (prev.message.startsWith('작업 ') && prev.message.endsWith('의 초안 정보를 불러오는 중입니다…'));
+    const loadingMessage = prev.message === '' || prev.message === LOADING_DRAFT_MESSAGE;
     commit({
       taskId: task.id,
       task,
@@ -322,7 +348,7 @@ export function useArtifacts(options: ArtifactsOptions): ArtifactsApi {
         ? {
           message: artifact === null
             ? '아직 공유 초안이 없습니다. 승인된 공개 결정을 저장한 뒤 공유 초안 생성을 누르세요.'
-            : '초안 정보를 불러왔습니다. 파일 목록과 검토 상태를 확인하세요.',
+            : '초안을 불러왔습니다.',
         }
         : {}),
       ...(changed
@@ -369,7 +395,7 @@ export function useArtifacts(options: ArtifactsOptions): ArtifactsApi {
       if (!aliveRef.current || seq !== loadSeqRef.current || taskIdRef.current !== taskId) return false;
       if (resumed.ok && (resumed.value.status === 'running' || resumed.value.status === 'cancel_requested')) {
         const label = JOB_WORD[resumed.value.kind] ?? resumed.value.kind;
-        commit({ job: resumed.value, jobBusy: true, message: `${label} job이 서버에서 계속 실행 중입니다…` });
+        commit({ job: resumed.value, jobBusy: true, message: `${label}: 서버에서 계속 진행 중입니다…` });
         const resume = pollJobRef.current;
         if (resume !== null) void resume(resumed.value, label);
       } else if (resumed.ok) {
@@ -405,7 +431,7 @@ export function useArtifacts(options: ArtifactsOptions): ArtifactsApi {
       const reset: State = {
         ...INITIAL_STATE,
         taskId: snapshot.id,
-        message: `작업 ${snapshot.id}의 초안 정보를 불러오는 중입니다…`,
+        message: LOADING_DRAFT_MESSAGE,
       };
       stateRef.current = reset;
       setState(reset);
@@ -439,43 +465,44 @@ export function useArtifacts(options: ArtifactsOptions): ArtifactsApi {
         if (Date.now() - startedAt > POLL_LIMIT_MS) {
           commit({
             jobBusy: true,
-            message: `${label} job이 3분 안에 끝나지 않았습니다. 계속 실행 중일 수 있어 쓰기를 막아 둡니다. 취소를 요청하거나 작업을 다시 불러와 상태를 이어서 확인하세요.`,
+            message: `${label}: 3분 안에 끝나지 않았습니다. 계속 진행 중일 수 있어 다른 동작을 막아 둡니다. 취소하거나 작업을 다시 불러와 확인하세요.`,
           });
           return;
         }
         const polled = await readArtifactJob(fetchFn, taskId, job.id);
         if (!aliveRef.current || taskIdRef.current !== taskId || stateRef.current.job?.id !== job.id) return;
         if (!polled.ok) {
-          commit({ jobBusy: false, message: `${label} job 상태를 읽지 못했습니다. ${artifactFailureMessage(polled.failure)}` });
+          commit({ jobBusy: false, message: `${label} 상태를 읽지 못했습니다. ${artifactFailureMessage(polled.failure)}` });
           return;
         }
         current = polled.value;
         commit({
           job: current,
-          message: `${label} job이 ${current.status === 'cancel_requested' ? '취소 요청됨' : '실행 중'}입니다… ${elapsed}초`,
+          message: `${label} ${current.status === 'cancel_requested' ? '취소를 요청했습니다' : '진행 중입니다'}… ${elapsed}초`,
         });
         if (current.status === 'running' || current.status === 'cancel_requested') continue;
         commit({ jobBusy: false });
         await refresh(taskId);
         if (!aliveRef.current || taskIdRef.current !== taskId) return;
         if (current.status === 'succeeded') {
-          commit({ message: `${label} job이 끝났습니다. 현재 파일 목록과 검토 상태를 확인하세요.` });
+          // 초안을 읽지 못했으면 refresh가 남긴 오류 문구를 성공 문구로 덮지 않는다.
+          if (stateRef.current.artifact !== null) commit({ message: jobDoneMessage(current.kind, stateRef.current.artifact) });
           await notify(taskId);
         } else if (current.status === 'failed') {
           const artifact = stateRef.current.artifact;
           const humanPossible = artifact !== null && artifact.reviewErrorCode !== null &&
             HUMAN_REVIEW_CODES[artifact.reviewErrorCode] === true;
           commit({
-            message: `${label} job이 실패했습니다.${current.errorCode === null ? '' : ` (${current.errorCode})`}${humanPossible
-              ? ' 실제 파일 기준 사람 의미 검토를 기록할 수 있습니다.'
-              : ' 서버가 남긴 현재 초안과 파일 상태를 확인하세요.'}`,
+            message: `${label}에 실패했습니다. ${modelErrorText(current.errorCode)}${humanPossible
+              ? ' 검토 단계에서 사람 의미 검토를 기록할 수 있습니다.'
+              : artifact === null ? ' 초안은 저장되지 않았습니다. 다시 시도하세요.' : ' 이전 초안은 그대로 있습니다. 다시 시도하세요.'}`,
           });
           await notify(taskId);
         } else if (current.status === 'cancelled') {
-          commit({ message: `${label} job이 취소되었습니다. 필요하면 다시 시작할 수 있습니다.` });
+          commit({ message: `${label}: 취소했습니다. 필요하면 다시 시작할 수 있습니다.` });
           await notify(taskId);
         } else {
-          commit({ message: '작업 판본이 바뀌어 job 결과가 무효가 되었습니다. 최신 작업을 확인하세요.' });
+          commit({ message: '작업 판본이 바뀌어 결과를 쓰지 않았습니다. 최신 작업을 확인하세요.' });
           await notify(taskId);
         }
         return;
@@ -507,12 +534,12 @@ export function useArtifacts(options: ArtifactsOptions): ArtifactsApi {
     };
     const key = keyFor(`job:${kind}:${artifact?.id ?? ''}:${task.revision}:${artifact?.artifactSetHash ?? ''}`, body);
     mutationRef.current = true;
-    commit({ busy: true, message: `${label} job을 시작하는 중입니다…` });
+    commit({ busy: true, message: `${label}: 시작하는 중입니다…` });
     const started = await startArtifactJob(fetchFn, token, task.id, task.revision, kind, args, key);
     mutationRef.current = false;
     if (!aliveRef.current || taskIdRef.current !== task.id) return;
     if (!started.ok) {
-      commit({ busy: false, message: `${label} job을 시작하지 못했습니다. ${artifactFailureMessage(started.failure)}` });
+      commit({ busy: false, message: `${label}: 시작하지 못했습니다. ${artifactFailureMessage(started.failure)}` });
       if (started.failure.kind === 'conflict') await refresh(task.id);
       return;
     }
@@ -520,7 +547,7 @@ export function useArtifacts(options: ArtifactsOptions): ArtifactsApi {
     const advanced: TaskAggregate = task.revision === started.value.inputRevision
       ? task
       : { ...task, revision: started.value.inputRevision, phase: 'processing', currentJobId: started.value.id };
-    commit({ busy: false, jobBusy: true, job: started.value, task: advanced, message: `${label} job이 실행 중입니다…` });
+    commit({ busy: false, jobBusy: true, job: started.value, task: advanced, message: `${label} 진행 중입니다…` });
     await pollJob(started.value, label);
   }, [commit, fetchFn, keyFor, pollJob, refresh]);
 
@@ -529,7 +556,7 @@ export function useArtifacts(options: ArtifactsOptions): ArtifactsApi {
     const task = current.task;
     if (!writeReady(composeReason(current, csrfTokenRef.current, snapshotRef.current, canGenerateRef.current))) return;
     if (task === null) return;
-    void runJob('compose', null, task, '작성');
+    void runJob('compose', null, task, '초안 작성');
   }, [runJob, writeReady]);
 
   const reReview = useCallback((): void => {
@@ -548,16 +575,16 @@ export function useArtifacts(options: ArtifactsOptions): ArtifactsApi {
     const token = csrfTokenRef.current;
     if (job === null || task === null || token === null) return;
     if (job.status !== 'running' && job.status !== 'cancel_requested') {
-      commit({ message: '이미 끝난 job이라 취소할 수 없습니다. 작업을 다시 불러오세요.' });
+      commit({ message: '이미 끝난 작업이라 취소할 수 없습니다. 작업을 다시 불러오세요.' });
       return;
     }
     void (async (): Promise<void> => {
       const body = { expected_revision: task.revision };
-      commit({ message: 'job 취소를 요청하는 중입니다…' });
+      commit({ message: '취소를 요청하는 중입니다…' });
       const result = await cancelArtifactJob(fetchFn, token, task.id, job.id, task.revision, keyFor(`cancel:${job.id}`, body));
       if (!aliveRef.current || taskIdRef.current !== task.id) return;
       if (!result.ok) {
-        commit({ message: `job을 취소하지 못했습니다. ${artifactFailureMessage(result.failure)}` });
+        commit({ message: `취소하지 못했습니다. ${artifactFailureMessage(result.failure)}` });
         if (result.failure.kind === 'conflict') await refresh(task.id);
         return;
       }
@@ -565,7 +592,7 @@ export function useArtifacts(options: ArtifactsOptions): ArtifactsApi {
         job: { ...job, status: result.value.cancelRequested ? 'cancel_requested' : job.status },
         message: result.value.cancelRequested
           ? '취소 요청을 접수했습니다. 실행이 멈추면 상태가 취소로 바뀝니다.'
-          : '이미 끝난 job이라 취소되지 않았습니다. 작업을 다시 불러오세요.',
+          : '이미 끝난 작업이라 취소되지 않았습니다. 작업을 다시 불러오세요.',
       });
     })();
   }, [commit, fetchFn, keyFor, refresh]);
@@ -579,7 +606,7 @@ export function useArtifacts(options: ArtifactsOptions): ArtifactsApi {
     if (artifact === null || task === null || token === null) return;
     const parsed = parseDraftText(current.draftText);
     if ('error' in parsed) {
-      commit({ draftError: parsed.error, message: `DocAST를 저장하지 않았습니다. ${parsed.error}` });
+      commit({ draftError: parsed.error, message: `편집을 저장하지 않았습니다. ${parsed.error}` });
       return;
     }
     const body = {
@@ -589,7 +616,7 @@ export function useArtifacts(options: ArtifactsOptions): ArtifactsApi {
     };
     void (async (): Promise<void> => {
       mutationRef.current = true;
-      commit({ busy: true, draftError: '', message: 'DocAST 편집을 새 판본으로 저장하는 중입니다…' });
+      commit({ busy: true, draftError: '', message: '편집을 새 판본으로 저장하는 중입니다…' });
       const edited = await editArtifact(
         fetchFn,
         token,
@@ -730,7 +757,7 @@ export function useArtifacts(options: ArtifactsOptions): ArtifactsApi {
       commit({
         exportInfo: finalized.value,
         finalizeConfirmed: false,
-        message: `확정했습니다. export ${finalized.value.id}의 ZIP과 개별 파일은 확정된 동일 bytes로 내려받습니다.`,
+        message: '확정했습니다. 아래에서 ZIP이나 개별 파일을 내려받으세요.',
       });
       await refresh(task.id);
       mutationRef.current = false;
@@ -749,7 +776,7 @@ export function useArtifacts(options: ArtifactsOptions): ArtifactsApi {
       return;
     }
     void (async (): Promise<void> => {
-      commit({ fileBusy: true, message: `${path}의 실제 서버 bytes를 읽는 중입니다…` });
+      commit({ fileBusy: true, message: `${path} 내용을 읽는 중입니다…` });
       const result = await readArtifactFile(fetchFn, artifact.id, path);
       if (!aliveRef.current || taskIdRef.current !== artifact.taskId) return;
       if (!result.ok) {
@@ -759,7 +786,7 @@ export function useArtifacts(options: ArtifactsOptions): ArtifactsApi {
       const digest = await sha256Hex(result.value.bytes);
       if (!aliveRef.current || taskIdRef.current !== artifact.taskId) return;
       if (digest !== null && digest !== meta.sha256) {
-        commit({ fileBusy: false, message: `${path} bytes가 파일 목록의 hash와 달라 표시하지 않았습니다.` });
+        commit({ fileBusy: false, message: `${path} 내용이 파일 목록의 해시와 달라 표시하지 않았습니다.` });
         return;
       }
       let text: string;
@@ -769,7 +796,7 @@ export function useArtifacts(options: ArtifactsOptions): ArtifactsApi {
         commit({ fileBusy: false, message: `${path}는 UTF-8 텍스트가 아니어서 화면에 표시하지 않습니다.` });
         return;
       }
-      commit({ fileBusy: false, file: { path, text }, message: `${path}의 실제 서버 bytes를 텍스트로 표시합니다.` });
+      commit({ fileBusy: false, file: { path, text }, message: `${path} 내용을 표시합니다.` });
     })();
   }, [commit, fetchFn]);
 
@@ -808,7 +835,7 @@ export function useArtifacts(options: ArtifactsOptions): ArtifactsApi {
       commit({
         downloadBusy: null,
         message: saved
-          ? `확정된 동일 bytes(${result.value.filename})를 내려받기 시작했습니다.`
+          ? `${result.value.filename}을(를) 내려받기 시작했습니다.`
           : '브라우저가 파일 저장을 시작하지 못했습니다. 다운로드가 성공한 것으로 표시하지 않습니다.',
       });
     })();
@@ -861,10 +888,10 @@ export function useArtifacts(options: ArtifactsOptions): ArtifactsApi {
   const finalizeBlockReason = finalizeReason(state, options.csrfToken, options.snapshot);
   const downloadBlockReason = downloadReason(state);
   const goalNotice = state.task?.goalVariant === 'reproduction_evidence'
-    ? '재현 확인 목표(reproduction_evidence)입니다. 이 서버 초안 경로는 재현 결과를 만들지 않으므로 최종 확정은 서버가 막습니다. 목표를 낮추려면 별도의 goal 변경이 필요하며 확정 확인 체크로 우회할 수 없습니다.'
+    ? '재현 근거가 목표인 작업입니다. 이 경로는 재현 결과를 만들지 않으므로 최종 확정은 서버가 막습니다.'
     : '';
   const broadcastMessage = outOfSync && options.snapshot !== null && state.task !== null
-    ? `공유 작업 정보 판본 ${options.snapshot.revision}이(가) 서버 판본 ${state.task.revision}과 다릅니다. 작업을 다시 불러오면 이 영역의 쓰기와 확정이 다시 열립니다.`
+    ? `화면의 작업 판본 ${options.snapshot.revision}이(가) 서버 판본 ${state.task.revision}과 다릅니다. 작업을 다시 불러오세요.`
     : '';
 
   return {

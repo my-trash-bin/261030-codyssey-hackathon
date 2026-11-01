@@ -20,7 +20,7 @@ async function close(server: Server): Promise<void> {
 async function uiRoot(): Promise<string> {
   const root = await mkdtemp(join(tmpdir(), 'safehandoff-client-'));
   await mkdir(join(root, 'assets'));
-  await writeFile(join(root, 'index.html'), '<!doctype html><title>덜어쓰기</title>');
+  await writeFile(join(root, 'index.html'), '<!doctype html><title>SafeHandoff</title>');
   await writeFile(join(root, 'style.css'), 'body { margin: 0; }');
   await writeFile(join(root, 'assets', 'app.js'), 'export const ready = true;');
   return root;
