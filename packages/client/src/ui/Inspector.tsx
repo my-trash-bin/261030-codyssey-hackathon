@@ -7,20 +7,17 @@ import type { FlowFacts, StepView } from '../flow-status.ts';
 import type { Snapshot } from '../disclosure-contract.ts';
 import { phaseLabel } from '../task-browser-client.ts';
 import type { ArtifactsApi } from './hooks/useArtifacts.ts';
-import type { SessionApi } from './hooks/useSession.ts';
 import { EvidencePanel } from './DraftSection.tsx';
-import { SessionSection } from './SessionSection.tsx';
 
 export function Inspector(props: {
   facts: FlowFacts;
   steps: StepView[];
   status: string;
   taskPhase: string | null;
-  session: SessionApi;
   snapshot: Snapshot | null;
   workflow: ArtifactsApi;
 }): JSX.Element {
-  const { facts, steps, status, taskPhase, session, snapshot, workflow } = props;
+  const { facts, steps, status, taskPhase, snapshot, workflow } = props;
   const next = steps.find((step) => step.id === currentStepId(steps)) as StepView;
   const allDone = steps.every((step) => step.state === 'done');
   const factRows: { label: string; value: string }[] = [
@@ -61,11 +58,6 @@ export function Inspector(props: {
         <h2 className="meta" id="inspector-status-heading">최근 실행</h2>
         <p className="status" id="task-status" role="status" aria-live="polite">{status}</p>
       </section>
-
-      <details className="inspector__fold" id="inspector-session">
-        <summary className="meta">서버 연결</summary>
-        <SessionSection session={session} heading="h3" />
-      </details>
 
       <EvidencePanel snapshot={snapshot} workflow={workflow} />
     </aside>

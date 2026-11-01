@@ -114,7 +114,6 @@ const CODE_MESSAGES: Record<string, string> = {
   REVISION_CONFLICT: '작업 판본이 이미 바뀌었습니다. 최신 작업을 다시 불러온 뒤 다시 시도하세요.',
   TASK_DELETING: '이 작업은 삭제가 진행 중입니다. 다른 작업을 선택하세요.',
   INVALID_CURSOR: '목록 커서가 만료되었습니다. 첫 페이지부터 다시 조회하세요.',
-  DELETE_CONFIRMATION_REQUIRED: '삭제 확인 문자열 DELETE와 재사용 규칙 보존 확인이 모두 필요합니다.',
   INVALID_RULE: '표현 변환 값이나 만료 시각이 서버 규칙에 맞지 않습니다.',
   RULE_SCOPE_REQUIRED: '기존 방식으로 만든 작업이라 재사용 규칙을 저장하거나 적용할 수 없습니다. 프로젝트와 수신처를 고른 작업에서만 가능합니다.',
   RULE_NOT_REUSABLE: '선택한 결정의 값은 재사용 규칙으로 저장할 수 없습니다. 숫자 CSV 한 열의 방향·지수 변환만 저장됩니다.',

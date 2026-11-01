@@ -1,7 +1,7 @@
 // 작업 목록·삭제·이력·실행 정보 API 소비자 동작. 커서 전달, 확인 본문, 미측정 null 보존만 확인한다.
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { deleteTask, listTaskEvents, listTasks, readRuntime } from './task-browser-client.ts';
+import { deleteTask, listTaskEvents, listTasks } from './task-browser-client.ts';
 
 interface Call {
   url: string;
@@ -70,7 +70,7 @@ test('다음 페이지는 서버 커서를 인코딩해 그대로 전달한다',
   if (result.ok) assert.equal(result.value.nextCursor, null);
 });
 
-test('작업 삭제는 DELETE 확인 문자열과 규칙 보존 확인을 정확히 보낸다', async () => {
+test('작업 삭제는 선택한 작업의 현재 판본으로 요청한다', async () => {
   const { calls, fetchFn } = stubFetch(() => jsonResponse({ data: { id: 'task-1', deleted: true } }));
   const result = await deleteTask(fetchFn, 'csrf-value', 'task-1', 3);
   assert.equal(calls.length, 1);
@@ -79,8 +79,6 @@ test('작업 삭제는 DELETE 확인 문자열과 규칙 보존 확인을 정확
   assert.equal(calls[0]?.headers['x-csrf-token'], 'csrf-value');
   assert.deepEqual(JSON.parse(calls[0]?.body ?? '{}'), {
     expected_revision: 3,
-    confirmation: 'DELETE',
-    acknowledge_saved_rules_retained: true,
   });
   assert.ok(result.ok);
   if (result.ok) assert.equal(result.value.id, 'task-1');
@@ -102,49 +100,4 @@ test('이력은 측정하지 않은 소요·사용량을 null로 남긴다', asy
   assert.equal(result.value[0]?.usage, null);
   assert.equal(result.value[1]?.durationMs, 1200);
   assert.match(result.value[1]?.usage ?? '', /input_tokens/);
-});
-
-test('실행 정보의 모델은 app이 최상위로 보내는 model_id를 읽는다', async () => {
-  const { fetchFn } = stubFetch(() => jsonResponse({
-    data: { core: { ready: true }, model_id: 'fixture-model', app_version: 'x', reproduction: {}, debug: {} },
-  }));
-  const result = await readRuntime(fetchFn);
-  assert.ok(result.ok);
-  assert.equal(result.value.model, 'fixture-model');
-});
-
-test('실행 정보는 없는 값을 null로 두고 추정하지 않는다', async () => {
-  const { calls, fetchFn } = stubFetch(() => jsonResponse({
-    data: {
-      core: { provider: 'fake', model: 'fixture-model', ready: true },
-      app_version: 'unversioned',
-      extensions: [],
-      checkers: ['docast.v1', 'public-file-integrity.v1'],
-      reproduction: { status: 'not_configured' },
-      debug: { content_logging: false, retention: 'operator_managed' },
-    },
-  }));
-  const result = await readRuntime(fetchFn);
-  assert.equal(calls[0]?.url, '/api/v1/runtime');
-  assert.ok(result.ok);
-  if (!result.ok) return;
-  assert.equal(result.value.provider, 'fake');
-  assert.equal(result.value.ready, true);
-  assert.deepEqual(result.value.checkers, ['docast.v1', 'public-file-integrity.v1']);
-  assert.equal(result.value.reproductionStatus, 'not_configured');
-  assert.equal(result.value.contentLogging, false);
-});
-
-test('실행 정보의 null 필드는 null 그대로 남는다', async () => {
-  const { fetchFn } = stubFetch(() => jsonResponse({
-    data: { core: { provider: null }, app_version: null, reproduction: { status: null }, debug: {} },
-  }));
-  const result = await readRuntime(fetchFn);
-  assert.ok(result.ok);
-  if (!result.ok) return;
-  assert.equal(result.value.provider, null);
-  assert.equal(result.value.model, null);
-  assert.equal(result.value.ready, null);
-  assert.equal(result.value.contentLogging, null);
-  assert.equal(result.value.retention, null);
 });

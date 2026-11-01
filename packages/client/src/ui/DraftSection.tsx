@@ -289,19 +289,6 @@ export function DraftSection(props: {
                     {finalizedBefore
                       ? <p className="hint" data-role="finalized-before">이 작업은 이미 확정했습니다. 내려받기 정보는 새로고침하면 사라지므로, 같은 파일로 다시 확정하면 같은 내용을 내려받을 수 있습니다.</p>
                       : <p className="hint">확정 뒤 작업 판본이나 공개 결정이 바뀌면 서버가 다운로드를 거부합니다.</p>}
-                    {artifact.finalizable
-                      ? (
-                        <div className="option">
-                          <input
-                            type="checkbox"
-                            id="finalize-confirm"
-                            checked={workflow.finalizeConfirmed}
-                            onChange={(event) => { workflow.setFinalizeConfirmed(event.target.checked); }}
-                          />
-                          <label htmlFor="finalize-confirm">파일 목록과 내용을 확인했고 이 파일들로 확정합니다.</label>
-                        </div>
-                      )
-                      : null}
                     <div className="action">
                       <button
                         className="button button--solid"
@@ -389,7 +376,7 @@ export function DraftSection(props: {
         ? (
           <div className="notice notice--warn" data-role="recompose">
             <p className="status">자동 검토를 통과하지 못해 공개 파일이 아직 없습니다.</p>
-            <p className="hint">문서를 고쳐 다시 검토하거나 초안을 새로 만드세요. 공개 결정을 바꿔야 한다면 공개 결정 단계로 돌아가세요.</p>
+            <p className="hint">다시 검토하거나 초안을 새로 만드세요. 공개 결정을 바꿔야 한다면 공개 결정 단계로 돌아가세요.</p>
             <button
               className="button button--solid"
               type="button"
@@ -417,44 +404,6 @@ export function DraftSection(props: {
           {workflow.reviewBlockReason === '' ? '현재 초안으로 모델 검토를 다시 실행합니다.' : workflow.reviewBlockReason}
         </p>
       </div>
-
-      <details className="fold" id="draft-docast-editor">
-        <summary>문서 구조 직접 편집</summary>
-        <div className="fold__body">
-          <p className="hint">
-            허용된 블록의 글, 항목, 사실 참조만 고칠 수 있습니다. 저장하면 새 판본이 만들어지고 자동 검토를 다시 거칩니다. 공개 결정은 바뀌지 않습니다.
-          </p>
-          <div className="field">
-            <label htmlFor="draft-docast">문서 구조(JSON)</label>
-            <textarea
-              id="draft-docast"
-              value={workflow.draftText}
-              onChange={(event) => { workflow.setDraftText(event.target.value); }}
-              rows={18}
-              spellCheck={false}
-              aria-invalid={workflow.draftError !== ''}
-              aria-describedby="draft-docast-error"
-            />
-          </div>
-          <p className="hint" id="draft-docast-error" aria-live="polite">
-            {workflow.draftError === ''
-              ? (workflow.draftDirty ? '저장하지 않은 편집이 있습니다.' : '')
-              : workflow.draftError}
-          </p>
-          <div className="action">
-            <button
-              className="button"
-              type="button"
-              onClick={workflow.saveEdit}
-              disabled={workflow.editBlockReason !== ''}
-              aria-describedby="draft-edit-reason"
-            >
-              편집 저장 후 다시 검토
-            </button>
-            <p className="hint" id="draft-edit-reason">{workflow.editBlockReason}</p>
-          </div>
-        </div>
-      </details>
 
       {(humanReviewApplies || artifact.humanReview !== null) && (
         <div className="notice" data-role="human-review">

@@ -113,17 +113,6 @@ export function batchBlockReason(
   if (blocked !== '') return blocked;
   const snapshot = state.snapshot;
   if (!snapshot) return '작업을 먼저 불러오세요.';
-  for (const cand of snapshot.candidates) {
-    if (!cand.required) continue;
-    const draft = state.drafts.get(cand.id);
-    // 미선택 required는 저장을 막지 않는다(F03:95~99 저장과 최종화 구분).
-    // operations에서 빠질 뿐 자동 allow로 채우지 않으며, 미완료 표시는 canGenerate가 맡는다.
-    // 범위 축소 동의는 required를 이번 결과에서 빼는 exclude에만 요구한다.
-    // defer는 최종 확정 전 해소할 임시 결정이라 동의 대상이 아니다(F03:96).
-    if (draft && draft.disposition === 'exclude' && !state.acceptScopeReduction) {
-      return `필수 ${describe(cand)}를 이번 결과에서 제외하려면 범위 축소에 동의해야 합니다.`;
-    }
-  }
   const operations = collectOperations(state);
   if (operations.length === 0) return '저장할 결정이 없습니다. 후보마다 허용·제외·보류 중 하나를 고르세요.';
   if (operations.length > 30) return '한 번에 30개까지만 저장할 수 있어 임의로 나누어 보내지 않습니다.';
@@ -322,7 +311,7 @@ export function planApply(
     taskId: snapshot.id,
     body: JSON.stringify({
       expected_revision: snapshot.revision,
-      accept_scope_reduction: state.acceptScopeReduction,
+      accept_scope_reduction: operations.some(op => op.disposition === 'exclude' && snapshot.candidates.some(c => c.id === op.candidate_id && c.required)),
       operations,
     }),
   };

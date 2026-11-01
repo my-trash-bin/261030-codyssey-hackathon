@@ -1,11 +1,7 @@
 import { randomBytes, timingSafeEqual } from 'node:crypto';
 import type { IncomingMessage, ServerResponse } from 'node:http';
 
-export interface WorkflowCatalog {
-  projects: { id: string; display_name: string }[];
-  recipients: { id: string; display_name: string }[];
-}
-export interface WorkflowAccess { browserOrigin: string; serverOrigin: string; catalog?: WorkflowCatalog; runtime?: Record<string, unknown>; analysisProviderOrigin?: string | null }
+export interface WorkflowAccess { browserOrigin: string; serverOrigin: string; analysisProviderOrigin?: string | null; modelStatus?: Record<string, unknown> }
 export class WorkflowHTTPError extends Error {
   readonly status: number;
   constructor(status: number, code: string) { super(code); this.status = status; }
@@ -42,13 +38,6 @@ export class WorkflowSessions {
     this.sessions.set(id, { csrf, expires });
     response.setHeader('Set-Cookie', `safehandoff_session=${id}; HttpOnly; SameSite=Strict; Path=/; Max-Age=28800`);
     return { csrf_token: csrf, expires_at: new Date(expires).toISOString() };
-  }
-  logout(request: IncomingMessage, response: ServerResponse): void {
-    this.checkBoundary(request, true);
-    const cookie = (request.headers.cookie ?? '').split(';').map(s => s.trim()).find(s => s.startsWith('safehandoff_session='));
-    const id = cookie?.slice('safehandoff_session='.length);
-    if (id && this.sessions.has(id)) { this.require(request, true); this.sessions.delete(id); }
-    response.setHeader('Set-Cookie', 'safehandoff_session=; HttpOnly; SameSite=Strict; Path=/; Max-Age=0');
   }
   require(request: IncomingMessage, write: boolean): { csrf_token: string; expires_at: string } {
     this.checkBoundary(request, write);

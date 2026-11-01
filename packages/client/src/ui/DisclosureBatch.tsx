@@ -1,4 +1,4 @@
-// 결정 저장 영역. 범위 축소 동의 대상은 지금 제외한 필수 후보의 실제 문장만 보여준다.
+// 현재 선택을 한 번에 저장한다. 제외할 필수 정보는 적용 전에 표시한다.
 
 import type { JSX } from 'react';
 
@@ -17,7 +17,6 @@ export function DisclosureBatch(props: { workspace: DisclosuresApi; snapshot: Sn
   for (const decision of validSavedDecisions(snapshot).values()) saved[decision.disposition] += 1;
   const chosenTotal = chosen.allow + chosen.exclude + chosen.defer;
   const savedTotal = saved.allow + saved.exclude + saved.defer;
-  const scopeId = `${uid}-scope-reduction`;
   const excludedRequired = snapshot.candidates.filter(candidate =>
     candidate.required && workspace.drafts.get(candidate.id)?.disposition === 'exclude');
   const blocked = workspace.batchBlockReason;
@@ -33,18 +32,7 @@ export function DisclosureBatch(props: { workspace: DisclosuresApi; snapshot: Sn
         ? null
         : (
           <div className="notice notice--warn" data-role="scope-reduction-detail">
-            <div className="option">
-              <input
-                type="checkbox"
-                id={scopeId}
-                checked={workspace.acceptScopeReduction}
-                data-focus-key="scope-reduction"
-                aria-describedby={`${scopeId}-help`}
-                onChange={event => workspace.setScopeReduction(event.currentTarget.checked)}
-              />
-              <label htmlFor={scopeId}>아래 필수 후보를 이번 결과에서 빼는 데 동의합니다.</label>
-            </div>
-            <ul className="plain-list" id={`${scopeId}-help`}>
+            <ul className="plain-list">
               {excludedRequired.map(candidate => <li key={candidate.id}>{candidate.statement}</li>)}
             </ul>
           </div>

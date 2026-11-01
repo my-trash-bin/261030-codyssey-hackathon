@@ -60,7 +60,6 @@ export type DisclosuresAction =
   | { type: 'draft/mode'; id: string; mode: Mode }
   | { type: 'draft/condition'; id: string; text: string }
   | { type: 'draft/reusable'; id: string; value: boolean }
-  | { type: 'scope/reduction'; value: boolean }
   | { type: 'draft/preview-result'; id: string; request: PreviewRequest; result: PreviewOutcome }
   | { type: 'draft/job-result'; id: string; usage: 'interpret' | 'refresh'; request: JobRequest; result: JobOutcome }
   | { type: 'fields/start'; id: string; requestId: number }

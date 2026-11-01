@@ -1,13 +1,25 @@
 // 분석 모델 연결 확인. 서버가 고정 문구만 보내므로 원자료는 나가지 않는다.
 // 응답이 왔다는 사실은 그 주소가 승인된 사내 환경이라는 증거가 아니다.
 import { asString, isRecord } from './disclosure-contract.ts';
-import type { WorkflowRuntime } from './task-browser-client.ts';
 import { requestJson } from './workflow-client.ts';
 import type { WorkflowResult } from './workflow-client.ts';
 
 export type ModelCheckResult =
   | { status: 'reachable' | 'not_configured' | 'not_applicable' }
   | { status: 'failed'; code: string };
+
+export interface ModelSetup {
+  baseUrlEnv: string;
+  missing: string[];
+  baseUrlRejected: boolean;
+}
+
+export interface ModelStatus {
+  implementation: string | null;
+  model: string | null;
+  ready: boolean | null;
+  modelSetup: ModelSetup | null;
+}
 
 export interface ModelStateView {
   label: string;
@@ -22,6 +34,28 @@ export function parseModelCheck(body: unknown): ModelCheckResult | null {
   if (status === 'reachable' || status === 'not_configured' || status === 'not_applicable') return { status };
   if (status === 'failed') return { status, code: asString(body.data.code) ?? '' };
   return null;
+}
+
+export function parseModelStatus(body: unknown): ModelStatus | null {
+  if (!isRecord(body) || !isRecord(body.data)) return null;
+  const { core, model_id: model, model_setup: setup } = body.data;
+  const info = isRecord(core) ? core : {};
+  return {
+    implementation: asString(info.implementation),
+    model: asString(model),
+    ready: typeof info.ready === 'boolean' ? info.ready : null,
+    modelSetup: isRecord(setup)
+      ? {
+        baseUrlEnv: asString(setup.base_url_env) ?? '',
+        missing: Array.isArray(setup.missing) ? setup.missing.filter((name): name is string => typeof name === 'string') : [],
+        baseUrlRejected: setup.base_url_rejected === true,
+      }
+      : null,
+  };
+}
+
+export function readModelStatus(fetchFn: typeof fetch): Promise<WorkflowResult<ModelStatus>> {
+  return requestJson(fetchFn, { method: 'GET', path: '/api/v1/model-status', parse: parseModelStatus });
 }
 
 export function checkModel(fetchFn: typeof fetch, csrfToken: string): Promise<WorkflowResult<ModelCheckResult>> {
@@ -41,8 +75,8 @@ const FAILURES: Record<string, { label: string; hint: string }> = {
 };
 const UNREACHABLE = { label: '연결 실패', hint: '모델 서버에 닿지 못했거나 요청이 거부됐습니다. 주소, 모델 이름, API 키와 서버 상태를 확인하세요.' };
 
-function setupHint(runtime: WorkflowRuntime): string {
-  const setup = runtime.modelSetup;
+function setupHint(status: ModelStatus): string {
+  const setup = status.modelSetup;
   if (setup === null) return '서버의 모델 설정을 확인하세요.';
   const parts: string[] = [];
   if (setup.missing.length > 0) parts.push(`서버 환경 변수 ${setup.missing.join(', ')}이(가) 비어 있습니다.`);
@@ -52,13 +86,13 @@ function setupHint(runtime: WorkflowRuntime): string {
 }
 
 /** 서버 설정과 마지막 확인 결과로 화면 문구를 정한다. 설정이 있어도 확인 전에는 연결됐다고 말하지 않는다. */
-export function modelStateView(runtime: WorkflowRuntime | null, result: ModelCheckResult | null): ModelStateView {
-  if (runtime === null) return { label: '확인 불가', tone: 'warn', hint: '서버에서 모델 설정을 읽지 못했습니다.', canCheck: false };
-  if (runtime.implementation === 'fake' || result?.status === 'not_applicable') {
+export function modelStateView(status: ModelStatus | null, result: ModelCheckResult | null): ModelStateView {
+  if (status === null) return { label: '확인 불가', tone: 'warn', hint: '서버에서 모델 설정을 읽지 못했습니다.', canCheck: false };
+  if (status.implementation === 'fake' || result?.status === 'not_applicable') {
     return { label: '연출용 실행', tone: 'neutral', hint: '이 실행은 실제 모델에 연결하지 않습니다.', canCheck: false };
   }
-  if (runtime.ready !== true || result?.status === 'not_configured') {
-    return { label: '연결 설정 필요', tone: 'warn', hint: setupHint(runtime), canCheck: false };
+  if (status.ready !== true || result?.status === 'not_configured') {
+    return { label: '연결 설정 필요', tone: 'warn', hint: setupHint(status), canCheck: false };
   }
   if (result?.status === 'reachable') {
     return { label: '연결 확인됨', tone: 'ok', hint: '모델이 응답했습니다. 이 주소가 승인된 환경인지는 운영자가 확인해야 합니다.', canCheck: true };

@@ -28,7 +28,6 @@ export interface DisclosuresState {
   fieldLists: ReadonlyMap<string, FieldEntry>;
   busy: boolean;
   message: string;
-  acceptScopeReduction: boolean;
   stale: boolean;
   // 작업 조회가 성공할 때마다 증가한다. 늦게 도착한 응답의 폐기 판단에 쓴다.
   loadSeq: number;
@@ -43,7 +42,6 @@ export const initialDisclosuresState: DisclosuresState = {
   fieldLists: new Map<string, FieldEntry>(),
   busy: false,
   message: '',
-  acceptScopeReduction: false,
   stale: false,
   loadSeq: 0,
   reload: null,
@@ -422,7 +420,6 @@ export function disclosuresReducer(state: DisclosuresState, action: DisclosuresA
         snapshot: null,
         drafts: new Map<string, Draft>(),
         fieldLists: new Map<string, FieldEntry>(),
-        acceptScopeReduction: false,
         stale: false,
         loadSeq: state.loadSeq + 1,
         reload: null,
@@ -443,7 +440,6 @@ export function disclosuresReducer(state: DisclosuresState, action: DisclosuresA
           ...next,
           drafts: new Map<string, Draft>(),
           fieldLists: new Map<string, FieldEntry>(),
-          acceptScopeReduction: false,
           message: '',
         };
       }
@@ -547,8 +543,6 @@ export function disclosuresReducer(state: DisclosuresState, action: DisclosuresA
       const draft = checked.state.drafts.get(action.id) ?? blankDraft();
       return withDraft(checked.state, action.id, withReusable(draft, action.value));
     }
-    case 'scope/reduction':
-      return { ...state, acceptScopeReduction: action.value };
     case 'draft/preview-result':
       return previewResult(state, action.id, action.request, action.result);
     case 'draft/job-result':

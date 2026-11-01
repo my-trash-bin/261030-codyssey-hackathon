@@ -142,16 +142,7 @@ export class ArtifactStore {
       const bytes = Buffer.from(f.bytes, 'base64'); return bytes.toString('base64') !== f.bytes || bytes.length !== f.size || digest(bytes) !== f.sha256;
     }) || (artifact.artifact_set_hash !== '' || files.length > 0) && digest(JSON.stringify(files.map(f => ({ path: f.path, size: f.size, sha256: f.sha256 })))) !== artifact.artifact_set_hash) deny(409, 'ARTIFACT_CORRUPT');
   }
-  edit(id: string, revision: number, expectedHash: string, draft: Draft): Artifact {
-    return this.c.hooks.transaction(() => {
-      const prior = this.get(id); this.c.store.assertRevision(prior.task_id, revision); this.guard(prior);
-      if (prior.document_hash !== expectedHash) deny(409, 'DOCUMENT_HASH_CONFLICT');
-      validateDocument(draft, prior.pack); const files = renderFiles(draft, prior.pack), updated = this.c.hooks.advance(this.c.store.get(prior.task_id));
-      const value: Artifact = { ...prior, ...files, id: randomUUID(), revision: updated.revision, draft, review: null,
-        hard_errors: [], review_error_code: null, review_target_hash: null, human_review: null, authorization_hash: this.authorization(prior.task_id) };
-      this.save(value); return value;
-    });
-  }
+
   humanReview(id: string, revision: number, targetHash: string, checklist: Record<string, boolean>, reason: string): Artifact {
     return this.c.hooks.transaction(() => {
       const prior = this.get(id); this.c.store.assertRevision(prior.task_id, revision); this.guard(prior);
@@ -177,16 +168,16 @@ export class ArtifactStore {
     const artifact = this.get(artifactId);
     return { artifact_id: artifactId, artifact_set_hash: artifact.artifact_set_hash, bytes: archive(artifact.files) };
   }
-  finalize(id: string, revision: number, artifactId: string, setHash: string, confirmed: boolean,
+  finalize(id: string, revision: number, artifactId: string, setHash: string,
     prepared: ReturnType<ArtifactStore['prepareArchive']>) {
     return this.c.hooks.transaction(() => {
       const task = this.c.store.assertRevision(id, revision), artifact = this.get(artifactId);
-      if (artifact.task_id !== id || this.current(id)?.id !== artifactId || !confirmed || artifact.artifact_set_hash !== setHash) deny(409, 'FINALIZATION_REJECTED');
+      if (artifact.task_id !== id || this.current(id)?.id !== artifactId || artifact.artifact_set_hash !== setHash) deny(409, 'FINALIZATION_REJECTED');
       this.guard(artifact);
       this.finalGate(artifact);
       if (prepared.artifact_id !== artifactId || prepared.artifact_set_hash !== setHash) deny(409, 'ARTIFACT_STALE');
       const bytes = prepared.bytes, exportId = randomUUID(), updated = this.c.hooks.advance(task);
-      // Finalization changes revision but preserves the confirmed immutable artifact bytes.
+      // Finalization changes revision but preserves the immutable artifact bytes.
       const bound = { ...artifact, id: randomUUID(), revision: updated.revision, authorization_hash: this.authorization(id) }; this.save(bound);
       this.c.db.prepare('INSERT INTO workflow_exports VALUES(?,?,?,?,?,?,?,?)').run(exportId, id, updated.revision, bound.id, setHash, bytes, digest(bytes), this.c.hooks.now());
       return { id: exportId, task_id: id, revision: updated.revision, artifact_id: bound.id, artifact_set_hash: setHash, archive_sha256: digest(bytes) };

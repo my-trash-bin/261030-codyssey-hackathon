@@ -6,7 +6,6 @@ import {
   cancelArtifactJob,
   finalizeTask,
   parseArtifact,
-  parseDraftText,
   readExportBytes,
   startArtifactJob,
 } from './artifacts-client.ts';
@@ -124,7 +123,6 @@ test('finalize는 확정 확인·artifact id·파일 집합 hash를 실어 expor
     expected_revision: 8,
     artifact_id: 'artifact-1',
     expected_artifact_set_hash: 'set-hash',
-    confirmed: true,
   });
 });
 
@@ -149,13 +147,6 @@ test('artifact DTO에서 현재 여부나 확정 가능 여부가 사라지면 �
   assert.throws(() => parseArtifact(artifactPayload({ files: [{ path: '', media_type: 'text/plain', size: 1, sha256: 'x' }] })));
 });
 
-test('DocAST 편집 문자열은 JSON과 draft.v1 경계만 확인하고 서버 구조 판정을 대신하지 않는다', () => {
-  const accepted = parseDraftText('{"schema_version":"draft.v1","blocks":[{"type":"paragraph","text":"본문","fact_ids":["f1"]}]}');
-  assert.equal('draft' in accepted, true);
-  assert.equal('error' in parseDraftText('{"schema_version":"draft.v1"'), true);
-  assert.equal('error' in parseDraftText('{"schema_version":"draft.v2","blocks":[]}'), true);
-  assert.equal('error' in parseDraftText('{"schema_version":"draft.v1","blocks":[{"text":"타입 없음"}]}'), true);
-});
 
 test('확정 파일 다운로드는 저장된 바이트와 응답 파일명을 그대로 돌려준다', async () => {
   const bytes = new TextEncoder().encode('hello');

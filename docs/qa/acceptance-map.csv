@@ -1,10 +1,10 @@
 acceptance_id,feature_id,feature_file,acceptance_criterion,test_ids,hackathon_scope,automated_tests,execution_status
-AC-F01-01,F01,features/01-task-intake.md,목적·수신자·TXT/CSV/JSON을 저장하면 API와 새로고침 화면에서 같은 task/source 판본 확인,T29;T41;T58,hackathon_core,packages/server/src/server.test.ts,passed
+AC-F01-01,F01,features/01-task-intake.md,목적·수신자·TXT/CSV/JSON을 저장하면 API와 새로고침 화면에서 같은 task/source 판본 확인,T29;T41;T58,hackathon_core,packages/server/src/workflow-http.test.ts;packages/app/src/lifecycle.test.ts,passed
 AC-F01-02,F01,features/01-task-intake.md,자료 추가·교체·제외가 각각 불변 과거 판본과 새 현재 집합을 유지하고 revision을 한 번 올림,T26;T29,hackathon_core,packages/server/src/task-store.test.ts;packages/server/src/analysis-store.test.ts,passed
 AC-F01-03,F01,features/01-task-intake.md,"파일 수·파일/합계 바이트 한도 정확히 이하는 허용, 1개/1바이트 초과는 배치 변경 없이 거부",T25,product_backlog,backlog,not_run
 AC-F01-04,F01,features/01-task-intake.md,"깨진 UTF-8·JSON·CSV 또는 잘못된 파일이 한 배치에 있으면 전체 배치 미반영, 오류 항목 표시",T29,product_backlog,backlog,not_run
 AC-F01-05,F01,features/01-task-intake.md,"동일 멱등 요청은 한 번만 적용, 다른 요청의 키 충돌과 오래된 revision은 409",T19;T30,product_backlog,backlog,not_run
-AC-F01-06,F01,features/01-task-intake.md,비인증 요청·다른 task의 source ID·위조 CSRF는 원자료를 읽거나 바꾸지 못함,T42;T43,hackathon_core,packages/server/src/server.test.ts,partial
+AC-F01-06,F01,features/01-task-intake.md,비인증 요청·다른 task의 source ID·위조 CSRF는 원자료를 읽거나 바꾸지 못함,T42;T43,hackathon_core,packages/server/src/workflow-http.test.ts;packages/app/src/lifecycle.test.ts,partial
 AC-F01-07,F01,features/01-task-intake.md,파일명이 경로·HTML·제어문자를 포함해도 서버 경로로 사용하거나 코드로 실행하지 않음,T28,product_backlog,backlog,not_run
 AC-F01-08,F01,features/01-task-intake.md,"수신자/자료 변경 직후 이전 결과의 복사·확정 불가, 늦은 job이 현재 결과를 덮어쓰지 않음",T03;T06;T26,product_backlog,backlog,not_run
 AC-F01-09,F01,features/01-task-intake.md,자료 저장 후 모델 접수 실패 시 입력은 남고 분석만 재시도 가능,T18,product_backlog,backlog,not_run
@@ -106,7 +106,7 @@ AC-F09-03,F09,features/09-history-recovery.md,"queued/running 중 프로세스 �
 AC-F09-04,F09,features/09-history-recovery.md,"취소 응답이 늦어도 결과 적용 불가, 사용자 새 선택 저장을 막지 않음",T51,hackathon_core,packages/core/src/engine.test.ts;packages/core/src/analyze.test.ts;packages/core/src/evidence-parser.test.ts,partial
 AC-F09-05,F09,features/09-history-recovery.md,"모델/도구 오류·예산 소진을 실제 원인으로 표시, fixture 대체·성공 위장 없음",T18;T40,hackathon_core,packages/core/src/core.test.ts,passed
 AC-F09-06,F09,features/09-history-recovery.md,"제목만 변경해도 revision 증가·이전 결과 stale, 안내와 재검토 경로 제공",T51,product_backlog,backlog,not_run
-AC-F09-07,F09,features/09-history-recovery.md,DELETE 입력·기준 보존 확인 후 원자료·결정·결과·export·trace·event·관련 임시/멱등 내용 제거,T44,product_backlog,backlog,not_run
+AC-F09-07,F09,features/09-history-recovery.md,삭제 버튼 실행 후 원자료·결정·결과·export·trace·event·관련 임시/멱등 내용 제거,T44,product_backlog,backlog,not_run
 AC-F09-08,F09,features/09-history-recovery.md,실행 중 삭제와 늦은 응답 이후에도 task/자료가 부활하지 않음,T44,product_backlog,backlog,not_run
 AC-F09-09,F09,features/09-history-recovery.md,"확인 불일치/오래된 revision은 미변경, 이미 삭제된 요청 재전송은 민감 응답을 복원하지 않음",T44,product_backlog,backlog,not_run
 AC-F09-10,F09,features/09-history-recovery.md,원작업 삭제 후 규칙은 최소 비민감 provenance로 남고 사용자에게 남는 사실을 표시,T45,product_backlog,backlog,not_run

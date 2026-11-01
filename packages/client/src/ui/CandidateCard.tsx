@@ -10,7 +10,6 @@ import { ConflictBlock, EvidenceList, hasConflict } from '../disclosure-evidence
 import { DISPOSITION_LABELS, emptyDraft, kindLabel, UNCERTAINTY_LABELS } from '../disclosure-format.ts';
 import { CandidateMode, CandidateCondition } from './CandidateMode.tsx';
 import { CandidateDisposition } from './CandidateDisposition.tsx';
-import { CandidateReusable } from './CandidateReusable.tsx';
 import { CandidateSavedDecisions } from './CandidateSavedDecisions.tsx';
 import { PreviewBlock } from './PreviewBlock.tsx';
 
@@ -63,7 +62,6 @@ export function CandidateCard(props: {
               uid={uid}
               token={token}
             />
-            <CandidateReusable workspace={workspace} candidate={candidate} draft={draft} uid={uid} token={token} />
           </>
         )
         : null}

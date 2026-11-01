@@ -31,25 +31,7 @@ export interface TaskEvent {
   usage: string | null;
 }
 
-export interface ModelSetup {
-  baseUrlEnv: string;
-  missing: string[];
-  baseUrlRejected: boolean;
-}
 
-export interface WorkflowRuntime {
-  implementation: string | null;
-  provider: string | null;
-  model: string | null;
-  ready: boolean | null;
-  appVersion: string | null;
-  extensions: string[];
-  checkers: string[];
-  reproductionStatus: string | null;
-  contentLogging: boolean | null;
-  retention: string | null;
-  modelSetup: ModelSetup | null;
-}
 
 const base = '/api/v1';
 
@@ -112,36 +94,6 @@ function labelList(value: unknown): string[] {
   return labels;
 }
 
-function parseRuntime(body: unknown): WorkflowRuntime | null {
-  if (!isRecord(body)) return null;
-  const data = body['data'];
-  if (!isRecord(data)) return null;
-  const rawCore = data['core'];
-  const rawReproduction = data['reproduction'];
-  const rawDebug = data['debug'];
-  const core = isRecord(rawCore) ? rawCore : {};
-  const reproduction = isRecord(rawReproduction) ? rawReproduction : {};
-  const debug = isRecord(rawDebug) ? rawDebug : {};
-  const ready = core['ready'];
-  const contentLogging = debug['content_logging'];
-  const setup = data['model_setup'];
-  return {
-    implementation: asString(core['implementation']),
-    modelSetup: isRecord(setup)
-      ? { baseUrlEnv: asString(setup['base_url_env']) ?? '', missing: labelList(setup['missing']), baseUrlRejected: setup['base_url_rejected'] === true }
-      : null,
-    provider: asString(core['provider']),
-    // app은 model_id를 최상위로 보내고, core.model은 코어가 직접 알릴 때만 있다.
-    model: asString(data['model_id']) ?? asString(core['model']),
-    ready: typeof ready === 'boolean' ? ready : null,
-    appVersion: asString(data['app_version']),
-    extensions: labelList(data['extensions']),
-    checkers: labelList(data['checkers']),
-    reproductionStatus: asString(reproduction['status']),
-    contentLogging: typeof contentLogging === 'boolean' ? contentLogging : null,
-    retention: asString(debug['retention']),
-  };
-}
 
 function measuredUsage(value: unknown): string | null {
   if (value === null || value === undefined) return null;
@@ -201,8 +153,7 @@ export function listTasks(
 }
 
 /**
- * 작업을 삭제한다. 서버는 confirmation="DELETE"와 재사용 규칙 보존 확인을 모두 요구하고
- * 실행 중 job이 끝난 뒤 삭제한다. 화면은 이 요청을 사용자가 직접 확인할 때만 보낸다.
+ * 선택한 작업을 현재 판본으로 삭제한다. 실행 중 job 종료와 기존 규칙 보존은 서버가 처리한다.
  */
 export function deleteTask(
   fetchFn: typeof fetch,
@@ -214,7 +165,7 @@ export function deleteTask(
     method: 'DELETE',
     path: `${base}/tasks/${encodeURIComponent(taskId)}`,
     csrfToken,
-    payload: { expected_revision: expectedRevision, confirmation: 'DELETE', acknowledge_saved_rules_retained: true },
+    payload: { expected_revision: expectedRevision },
     parse: parseDeleted,
   });
 }
@@ -233,13 +184,6 @@ export function listTaskEvents(
 }
 
 /** 인증된 실행 정보를 읽는다. 값이 없으면 null로 남기고 다른 값으로 추정하지 않는다. */
-export function readRuntime(fetchFn: typeof fetch): Promise<WorkflowResult<WorkflowRuntime>> {
-  return requestJson(fetchFn, {
-    method: 'GET',
-    path: `${base}/runtime`,
-    parse: parseRuntime,
-  });
-}
 
 const PHASE_LABELS: Record<string, string> = {
   needs_analysis: '분석 전',

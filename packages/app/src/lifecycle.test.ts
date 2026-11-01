@@ -46,8 +46,7 @@ async function fixture(t: { after(fn: () => Promise<void>): void }, databasePath
   const server = createServer((req, res) => { void handler(req, res); });
   await new Promise<void>(r => server.listen(0, '127.0.0.1', r));
   const origin = `http://127.0.0.1:${(server.address() as AddressInfo).port}`;
-  handler = createWorkflowHandler(store, core, { browserOrigin: origin, serverOrigin: origin,
-    catalog: { projects: [{ id: 'fixture-project', display_name: '가상 프로젝트' }], recipients: [{ id: 'fixture-vendor', display_name: '가상 공급사' }] } });
+  handler = createWorkflowHandler(store, core, { browserOrigin: origin, serverOrigin: origin });
   let closed = false;
   const close = async () => { if (closed) return; closed = true; await handler.close(); await new Promise<void>(r => server.close(() => r())); store.close(); };
   t.after(close);
@@ -84,7 +83,7 @@ async function fixture(t: { after(fn: () => Promise<void>): void }, databasePath
     assert.equal(job.status, 'succeeded', JSON.stringify(job)); return (await call('/artifacts/' + job.artifact_id)).body.data;
   };
   const finalize = (task: any, artifact: any, key?: string) => call(`/tasks/${task.id}/finalize`, 'POST', { expected_revision: artifact.revision,
-    artifact_id: artifact.id, expected_artifact_set_hash: artifact.artifact_set_hash, confirmed: true }, key);
+    artifact_id: artifact.id, expected_artifact_set_hash: artifact.artifact_set_hash }, key);
   return { close, intake, call, raw, poll, create, allow, compose, finalize, store, core, calls, origin,
     pauseWriter: () => { let release!: () => void; writerGate = new Promise<void>(r => { release = r; }); return () => { writerGate = undefined; release(); }; },
     setMode: (v: string) => { mode = v; }, advanceTime: (ms: number) => { now += ms; } };
@@ -98,6 +97,8 @@ test('approved-pack composition reviews actual files, finalizes immutable bytes 
   assert.ok(!writers[0]!.input.includes('PRIVATE_'));
   assert.ok(f.calls.some(c => c.role === 'reviewer' && JSON.parse(c.input).rendered_files?.length > 0));
   const before = Buffer.from(await (await f.raw(`/artifacts/${artifact.id}/files/support-request.md`)).arrayBuffer());
+  assert.equal((await f.finalize(task, { ...artifact, revision: artifact.revision - 1 })).status, 409);
+  assert.equal((await f.finalize(task, { ...artifact, artifact_set_hash: '0'.repeat(64) })).status, 409);
   const finalized = await f.finalize(task, artifact, 'finalize'); assert.equal(finalized.status, 200, JSON.stringify(finalized.body));
   assert.deepEqual((await f.finalize(task, artifact, 'finalize')).body, finalized.body);
   const exported = finalized.body.data;
@@ -122,20 +123,14 @@ test('reusable transforms recompute from new numeric bytes, version conflicts an
   assert.deepEqual(preview.projection.rows, [['1', '기준'], ['2', '감소'], ['3', '증가']]);
   const artifact = await f.compose(task), finalized = await f.finalize(task, artifact);
   assert.equal(finalized.status, 200, JSON.stringify(finalized.body));
-  const update = { expected_rule_version: 1, representation: rule.representation, expires_at: null };
-  assert.equal((await f.call(`/rules/${rule.id}/versions`, 'POST', update)).status, 200);
-  assert.equal((await f.call(`/rules/${rule.id}/versions`, 'POST', update)).status, 409);
-  assert.equal((await f.call(`/rules/${rule.id}/revoke`, 'POST', { expected_rule_version: 2 })).status, 200);
+  assert.equal((await f.call(`/rules/${rule.id}/versions`, 'POST', {})).status, 404);
+  assert.equal((await f.call(`/rules/${rule.id}/revoke`, 'POST', { expected_rule_version: 1 })).status, 200);
   assert.equal((await f.call(`/exports/${finalized.body.data.id}/archive`)).body.error, 'EXPORT_INVALIDATED');
   const fresh = await f.create(); assert.deepEqual(fresh.decisions, {});
 });
-test('edits require a new review, manual review cannot override model rejection, fallback binds the current file hash', async t => {
-  const f = await fixture(t), task = await f.allow(await f.create()), artifact = await f.compose(task);
-  const edited = await f.call(`/artifacts/${artifact.id}/edit`, 'PUT', { expected_revision: artifact.revision, expected_document_hash: artifact.document_hash, draft: artifact.draft });
-  assert.equal(edited.status, 200, JSON.stringify(edited.body)); const a = edited.body.data; assert.ok(a.revision > artifact.revision);
-  assert.equal((await f.finalize(task, a)).status, 409);
-  assert.equal((await f.call(`/artifacts/${a.id}/edit`, 'PUT', { expected_revision: a.revision, expected_document_hash: a.document_hash,
-    draft: { schema_version: 'draft.v1', blocks: [{ type: 'table_ref', table_id: 'unapproved' }] } })).status, 400);
+test('raw JSON editing is removed and manual review cannot override a model rejection', async t => {
+  const f = await fixture(t), task = await f.allow(await f.create()), a = await f.compose(task);
+  assert.equal((await f.call(`/artifacts/${a.id}/edit`, 'PUT', {})).status, 404);
   const human = { expected_revision: a.revision, target_hash: a.artifact_set_hash, checklist: { reviewed_all_files: true, approved_facts_only: true, uncertainty_preserved: true }, fallback_reason: 'fixture only' };
   assert.equal((await f.call(`/artifacts/${a.id}/human-review`, 'POST', human)).status, 400);
   f.setMode('unavailable');
@@ -180,24 +175,10 @@ test('a draft the reviewer rejected is not offered for human review when the rep
   assert.equal(job.status, 'failed'); assert.equal(job.artifact_id, null);
   assert.equal((await f.call(`/tasks/${task.id}/bundle`)).status, 404);
 });
-test('a draft without files can be reviewed again and edited', async t => {
-  const f = await fixture(t), task = await f.allow(await f.create()); f.setMode('needs_changes');
-  const blocked = await f.compose(task);
-  assert.deepEqual(blocked.files, []); assert.equal(blocked.artifact_set_hash, ''); assert.equal(blocked.review.result, 'needs_changes');
-  assert.equal((await f.finalize(task, blocked)).status, 400);
-  const edited = await f.call(`/artifacts/${blocked.id}/edit`, 'PUT', { expected_revision: blocked.revision, expected_document_hash: blocked.document_hash, draft: blocked.draft });
-  assert.equal(edited.status, 200, JSON.stringify(edited.body)); assert.ok(edited.body.data.files.length > 0); assert.deepEqual(edited.body.data.hard_errors, []);
-  assert.equal((await f.finalize(task, edited.body.data)).status, 409);
-  f.setMode('pass');
-  const first = (await f.call(`/tasks/${task.id}/bundle`)).body.data;
-  const again = await f.call(`/tasks/${task.id}/jobs`, 'POST', { expected_revision: first.revision, kind: 'review', arguments: { artifact_id: first.id, expected_artifact_set_hash: first.artifact_set_hash } });
-  assert.equal(again.status, 202, JSON.stringify(again.body)); assert.equal((await f.poll('/jobs/' + again.body.data.id)).status, 'succeeded');
-  const passed = (await f.call(`/tasks/${task.id}/bundle`)).body.data;
-  assert.equal(passed.review.result, 'pass'); assert.equal((await f.finalize(task, passed)).status, 200);
-});
-test('a fileless draft goes straight to review without an edit', async t => {
+test('a draft without files cannot be finalized but can be reviewed again', async t => {
   const f = await fixture(t), task = await f.allow(await f.create()); f.setMode('needs_changes');
   const blocked = await f.compose(task); f.setMode('pass');
+  assert.deepEqual(blocked.files, []); assert.equal((await f.finalize(task, blocked)).status, 400);
   const again = await f.call(`/tasks/${task.id}/jobs`, 'POST', { expected_revision: blocked.revision, kind: 'review', arguments: { artifact_id: blocked.id, expected_artifact_set_hash: '' } });
   assert.equal(again.status, 202, JSON.stringify(again.body)); assert.equal((await f.poll('/jobs/' + again.body.data.id)).status, 'succeeded');
   const passed = (await f.call(`/tasks/${task.id}/bundle`)).body.data;
@@ -209,14 +190,14 @@ test('expiry blocks stored downloads without rerunning the model, metadata endpo
   const count = f.calls.length; f.advanceTime(10001);
   assert.equal((await f.call(`/exports/${finalized.body.data.id}/archive`)).body.error, 'EXPORT_INVALIDATED'); assert.equal(f.calls.length, count);
   assert.equal((await f.call(`/tasks/${task.id}`)).body.data.phase, 'needs_attention');
-  const catalog = await f.call('/catalog'); assert.equal(catalog.body.data.projects[0].id, 'fixture-project');
+  const catalog = await f.call('/catalog'); assert.deepEqual(catalog.body.data.projects, []);
   assert.equal((await f.call('/tasks')).body.data.tasks.length, 1);
   const events = (await f.call(`/tasks/${task.id}/events`)).body.data.events;
   assert.ok(events.length > 0); assert.ok(!JSON.stringify(events).includes('PRIVATE_'));
-  const runtime = (await f.call('/runtime')).body.data; assert.ok(!JSON.stringify(runtime).includes(f.origin));
+  assert.equal((await f.call('/runtime')).status, 404);
   assert.equal((await f.call('/session', 'POST', {})).status, 200);
-  assert.equal((await f.call('/session', 'DELETE')).status, 200);
-  assert.equal((await f.call('/tasks')).status, 401);
+  assert.equal((await f.call('/session', 'DELETE')).status, 405);
+  assert.equal((await f.call('/tasks')).status, 200);
 });
 test('conflicting rule results stay undecided and explicit conflicting application rolls back atomically', async t => {
   const f = await fixture(t); await f.allow(await f.create(), true);
@@ -231,18 +212,6 @@ test('conflicting rule results stay undecided and explicit conflicting applicati
   const conflict = await f.call(`/tasks/${fresh.id}/rules/apply`, 'POST', { expected_revision: fresh.revision, rule_refs: rules.map((r: any) => ({ id: r.id, version: r.version })) });
   assert.equal(conflict.status, 409); assert.equal(conflict.body.error, 'RULE_CONFLICT');
   assert.equal(f.store.get(fresh.id).revision, fresh.revision); assert.deepEqual(f.store.decisions(fresh.id), []);
-});
-test('latest expired rules never fall back and zero-baseline auto application leaves candidates for a new decision', async t => {
-  const f = await fixture(t); await f.allow(await f.create(), true);
-  const rule = (await f.call('/rules')).body.data.rules[0], rep = { kind: 'derived_table', transform_id: 'series_index_base100.v1', parameters: {} };
-  assert.equal((await f.call(`/rules/${rule.id}/versions`, 'POST', { expected_rule_version: 1, representation: rep, expires_at: '2026-10-31T12:00:01Z' })).status, 200);
-  f.advanceTime(1001); const expired = await f.create(); assert.deepEqual(expired.decisions, {});
-  assert.equal((await f.call(`/tasks/${expired.id}/rules/apply`, 'POST', { expected_revision: expired.revision, rule_refs: [{ id: rule.id, version: 1 }] })).status, 409);
-  assert.equal((await f.call(`/rules/${rule.id}/versions`, 'POST', { expected_rule_version: 2, representation: rep, expires_at: null })).status, 200);
-  const zero = await f.create([0, 1, 2]); assert.equal(zero.candidates.length, 1); assert.deepEqual(zero.decisions, {});
-  assert.ok((await f.call(`/tasks/${zero.id}/events`)).body.data.events.some((e: any) => e.kind === 'rule_transform_failed'));
-  const applied = await f.call(`/tasks/${zero.id}/rules/apply`, 'POST', { expected_revision: zero.revision, rule_refs: [{ id: rule.id, version: 3 }] });
-  assert.equal(applied.status, 422); assert.equal(f.store.get(zero.id).revision, zero.revision);
 });
 test('late composition after source replacement cannot become the current artifact', async t => {
   const f = await fixture(t), task = await f.allow(await f.create()), release = f.pauseWriter();
@@ -267,7 +236,7 @@ test('composition cancellation reports requested until the worker exits and neve
     assert.equal((await f.call(`/tasks/${task.id}/bundle`)).status, 404);
   } finally { release(); }
 });
-test('source exclusion, metadata-only source listing and confirmed deletion preserve saved rules', async t => {
+test('source exclusion, metadata-only source listing and deletion preserve saved rules', async t => {
   const f = await fixture(t), task = await f.allow(await f.create(), true);
   const listed = (await f.call(`/tasks/${task.id}/sources`)).body.data.sources;
   assert.equal(listed[0].raw_bytes, undefined); assert.equal(listed[0].byte_size, Buffer.byteLength('count\n20\n30\n40\n'));
@@ -275,8 +244,8 @@ test('source exclusion, metadata-only source listing and confirmed deletion pres
   const current = (await f.call('/tasks/' + task.id)).body.data;
   assert.deepEqual(current.candidates, []); assert.deepEqual(current.decisions, {});
   assert.equal((await f.call(`/tasks/${task.id}/sources`)).body.data.sources[0].included, false);
-  assert.equal((await f.call('/tasks/' + task.id, 'DELETE', { expected_revision: current.revision })).status, 400);
-  const input = { expected_revision: current.revision, confirmation: 'DELETE', acknowledge_saved_rules_retained: true };
+  assert.equal((await f.call('/tasks/' + task.id, 'DELETE', { expected_revision: current.revision - 1 })).status, 409);
+  const input = { expected_revision: current.revision };
   assert.equal((await f.call('/tasks/' + task.id, 'DELETE', input, 'delete')).status, 200);
   assert.equal((await f.call('/tasks/' + task.id, 'DELETE', input, 'delete')).status, 200);
   const rules = (await f.call('/rules')).body.data.rules; assert.equal(rules.length, 1); assert.ok(!JSON.stringify(rules).includes('PRIVATE_'));

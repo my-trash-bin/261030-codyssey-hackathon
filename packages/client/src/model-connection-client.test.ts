@@ -1,20 +1,13 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { modelStateView, parseModelCheck } from './model-connection-client.ts';
-import type { WorkflowRuntime } from './task-browser-client.ts';
+import { modelStateView, parseModelCheck, parseModelStatus } from './model-connection-client.ts';
+import type { ModelStatus } from './model-connection-client.ts';
 
-const runtime = (over: Partial<WorkflowRuntime>): WorkflowRuntime => ({
+const runtime = (over: Partial<ModelStatus>): ModelStatus => ({
   implementation: 'real',
-  provider: null,
   model: 'fixture-model',
   ready: true,
-  appVersion: null,
-  extensions: [],
-  checkers: [],
-  reproductionStatus: null,
-  contentLogging: null,
-  retention: null,
   modelSetup: { baseUrlEnv: 'BASE_URL', missing: [], baseUrlRejected: false },
   ...over,
 });
@@ -54,4 +47,10 @@ test('연출용 실행과 읽기 실패는 연결 확인을 열지 않는다', (
 test('모르는 확인 상태는 거부한다', () => {
   assert.equal(parseModelCheck({ data: { status: 'approved' } }), null);
   assert.deepEqual(parseModelCheck({ data: { status: 'failed', code: 'MODEL_TIMEOUT' } }), { status: 'failed', code: 'MODEL_TIMEOUT' });
+});
+
+test('모델 상태 응답은 준비 여부와 비어 있는 설정 이름을 읽는다', () => {
+  const status = parseModelStatus({ data: { core: { implementation: 'real', ready: false }, model_id: null, model_setup: { base_url_env: 'BASE_URL', missing: ['BASE_URL'], base_url_rejected: false } } });
+  assert.equal(status?.ready, false);
+  assert.deepEqual(status?.modelSetup?.missing, ['BASE_URL']);
 });

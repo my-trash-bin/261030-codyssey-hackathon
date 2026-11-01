@@ -38,14 +38,10 @@ function fieldList(store: TaskStore, id: string, candidateId: string) {
     fields: [...new Set(evidence.map(e => source.format === 'csv' ? e.locator.column! : e.locator.pointer!))], reusable: false };
 }
 
-// `sessions` defaults to a private instance for callers (tests) that only exercise the
-// workflow API; app.ts's legacy routes (/api/sharing, /api/analysis, /api/documents) need the
-// *same* instance passed in explicitly so a session opened via POST /api/v1/session also
-// covers them -- see app.ts's GUARDED_PATHS and packages/app/src/main.ts.
+// Sessions carry cookies and CSRF state for task API requests.
 export function createWorkflowHandler(store: TaskStore, engine: Engine, access: WorkflowAccess, sessions: WorkflowSessions = new WorkflowSessions(access)) {
   store.recoverJobs();
-  const environment = { provider_origin: access.analysisProviderOrigin ?? null,
-    approval_status: 'operator_confirmation_required', verified_at: null };
+  const environment = { provider_origin: access.analysisProviderOrigin ?? null };
   const sessionData = (data: unknown) => ({ ...(data as Record<string, unknown>), analysis_environment: environment,
     capabilities: { tasks: true, selected_fields: true, reusable_rules: true, artifacts: true, exports: true, approved_excerpt: false } });
   const controllers = new Map<string, AbortController>(), deletingTasks = new Set<string>(), streams = new Set<ServerResponse>(), pending = new Set<Promise<void>>(), jobTasks = new Map<string, string>(), jobPromises = new Map<string, Promise<void>>();
@@ -64,9 +60,6 @@ export function createWorkflowHandler(store: TaskStore, engine: Engine, access: 
           object(await body(request), []); send(response, 200, { data: sessionData(sessions.open(request, response)) }); return;
         }
         if (request.method === 'GET') { send(response, 200, { data: sessionData(sessions.require(request, false)) }); return; }
-        if (request.method === 'DELETE') {
-          string(request.headers['idempotency-key']); sessions.logout(request, response); send(response, 200, { data: { logged_out: true } }); return;
-        }
         deny(405, 'METHOD_NOT_ALLOWED');
       }
       sessions.require(request, write);
@@ -94,20 +87,13 @@ export function createWorkflowHandler(store: TaskStore, engine: Engine, access: 
       const key = string(request.headers['idempotency-key']);
       if (key.length > 200) deny(400, 'INVALID_IDEMPOTENCY_KEY');
       const input = await body(request);
-      if (request.method === 'POST' && parts.join('/') === 'tasks') {
-        const v = object(input, ['context']);
-        object(v.context, ['purpose', 'recipient'], ['goal_variant', 'output_language']);
-        const result = store.request('create-task', key, input, () => store.create(v.context as unknown as TaskContext, hash('[]'), hash('[]')));
-        send(response, 201, { data: result.result }); return;
-      }
       if (parts[0] !== 'tasks' || parts.length < 2) deny(404, 'ENDPOINT_NOT_FOUND');
       const id = parts[1]!, action = parts.slice(2).join('/');
       // Only known endpoints can consume a mutation key.
       const operation = `${request.method}:${id}:${action}`;
       if (deletingTasks.has(id) && !(request.method === 'DELETE' && !action)) deny(409, 'TASK_DELETING');
       if (request.method === 'DELETE' && !action) {
-        const v = object(input, ['expected_revision', 'confirmation', 'acknowledge_saved_rules_retained']);
-        if (v.confirmation !== 'DELETE' || v.acknowledge_saved_rules_retained !== true) deny(400, 'DELETE_CONFIRMATION_REQUIRED');
+        const v = object(input, ['expected_revision']);
         const replay = store.replay(operation, key, input); if (replay) { send(response, 200, { data: replay.result }); return; }
         store.assertRevision(id, revision(v.expected_revision));
         deletingTasks.add(id);

@@ -50,10 +50,9 @@ export function SidebarHead(props: { steps: StepView[]; completed: number }): JS
 
 export function TopBar(props: {
   modeLabel: string;
-  sessionLabel: string | null;
   taskLabel: string | null;
 }): JSX.Element {
-  const { modeLabel, sessionLabel, taskLabel } = props;
+  const { modeLabel, taskLabel } = props;
   return (
     <header className="topbar">
       <p className="topbar__title" id="task-label">{taskLabel ?? '선택한 작업 없음'}</p>
@@ -61,10 +60,6 @@ export function TopBar(props: {
         <div>
           <dt className="meta">모드</dt>
           <dd id="mode-label" role="status" aria-live="polite">{modeLabel}</dd>
-        </div>
-        <div>
-          <dt className="meta">세션</dt>
-          <dd id="session-label" role="status" aria-live="polite">{sessionLabel ?? '연결 전'}</dd>
         </div>
       </dl>
     </header>

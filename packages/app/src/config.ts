@@ -58,21 +58,10 @@ export function configuredAnalysisOrigin(root: string, env: Record<string, strin
   catch { return null; }
 }
 
-export function configuredWorkflowCatalog(root: string, env: Record<string, string | undefined> = process.env): unknown {
-  if (!env.SAFEHANDOFF_WORKFLOW_CATALOG) return { projects: [], recipients: [] };
-  try { return JSON.parse(readFileSync(resolve(root, env.SAFEHANDOFF_WORKFLOW_CATALOG), 'utf8')); }
-  catch { throw new Error('INVALID_WORKFLOW_CATALOG'); }
-}
-export function configuredRuntime(root: string, env: Record<string, string | undefined> = process.env): Record<string, unknown> {
-  const config = loadConfig(root, env), model = env[config.provider.model_env];
-  const manifest = JSON.parse(readFileSync(resolve(root, 'package.json'), 'utf8'));
-  return { app_version: typeof manifest.version === 'string' ? manifest.version : 'unversioned',
-    model_id: model && model !== env[config.provider.api_key_env] && /^[A-Za-z0-9_.:/-]{1,128}$/.test(model) && !model.includes('://') ? model : null,
-    // Setting names only, never their values.
-    model_setup: { base_url_env: config.provider.base_url_env,
-      missing: [config.provider.base_url_env, config.provider.model_env, config.provider.api_key_env].filter(name => !env[name]),
-      base_url_rejected: Boolean(env[config.provider.base_url_env]) && !providerEndpoint(env[config.provider.base_url_env], config.provider.allow_plain_http) },
-    extensions: [], checkers: ['docast.v1', 'public-file-integrity.v1'],
-    reproduction: { status: config.reproduction.enabled ? 'enabled_unverified' : 'disabled' },
-    debug: { logging_enabled: Boolean(env.SAFEHANDOFF_TRANSCRIPT_DIR), content_logging: env.SAFEHANDOFF_TRANSCRIPT_CONTENT === '1', automatic_retention: false } };
+// Setting names only, never their values.
+export function configuredModelStatus(root: string, env: Record<string, string | undefined> = process.env): Record<string, unknown> {
+  const { provider } = loadConfig(root, env), model = env[provider.model_env], base = env[provider.base_url_env];
+  return { model_id: model && model !== env[provider.api_key_env] && /^[A-Za-z0-9_.:/-]{1,128}$/.test(model) && !model.includes('://') ? model : null,
+    model_setup: { base_url_env: provider.base_url_env, missing: [provider.base_url_env, provider.model_env, provider.api_key_env].filter(name => !env[name]),
+      base_url_rejected: Boolean(base) && !providerEndpoint(base, provider.allow_plain_http) } };
 }

@@ -6,9 +6,7 @@ import type { Snapshot } from '../../disclosure-contract.ts';
 import {
   artifactFailureMessage,
   cancelArtifactJob,
-  editArtifact,
   finalizeTask,
-  parseDraftText,
   readArtifactFile,
   readArtifactJob,
   readCurrentArtifact,
@@ -50,30 +48,23 @@ export interface ArtifactsApi {
   readonly writeBlockReason: string;
   readonly composeBlockReason: string;
   readonly reviewBlockReason: string;
-  readonly editBlockReason: string;
   readonly humanReviewBlockReason: string;
   readonly finalizeBlockReason: string;
   readonly downloadBlockReason: string;
   readonly goalNotice: string;
-  readonly draftText: string;
-  readonly draftError: string;
-  readonly draftDirty: boolean;
   readonly checklist: HumanReviewChecklist;
   readonly fallbackReason: string;
-  readonly finalizeConfirmed: boolean;
+
   readonly exportInfo: ExportInfo | null;
   readonly file: { path: string; text: string } | null;
   readonly fileBusy: boolean;
   readonly downloadBusy: string | null;
-  setDraftText: (text: string) => void;
   setChecklist: (next: HumanReviewChecklist) => void;
   setFallbackReason: (text: string) => void;
-  setFinalizeConfirmed: (value: boolean) => void;
   reload: () => void;
   compose: () => void;
   reReview: () => void;
   cancel: () => void;
-  saveEdit: () => void;
   recordHumanReview: () => void;
   finalize: () => void;
   openFile: (path: string) => void;
@@ -90,12 +81,8 @@ interface State {
   message: string;
   busy: boolean;
   jobBusy: boolean;
-  draftText: string;
-  draftError: string;
-  draftDirty: boolean;
   checklist: HumanReviewChecklist;
   fallbackReason: string;
-  finalizeConfirmed: boolean;
   exportInfo: ExportInfo | null;
   file: { path: string; text: string } | null;
   fileBusy: boolean;
@@ -116,12 +103,8 @@ const INITIAL_STATE: State = {
   message: '',
   busy: false,
   jobBusy: false,
-  draftText: '',
-  draftError: '',
-  draftDirty: false,
   checklist: EMPTY_CHECKLIST,
   fallbackReason: '',
-  finalizeConfirmed: false,
   exportInfo: null,
   file: null,
   fileBusy: false,
@@ -254,7 +237,6 @@ function finalizeReason(state: State, csrfToken: string | null, snapshot: Snapsh
     }
     return '정하지 않았거나 보류·만료·철회된 공개 결정이 남아 있어 서버가 확정을 거부합니다.';
   }
-  if (!state.finalizeConfirmed) return '파일을 확인했다는 체크가 필요합니다.';
   return '';
 }
 
@@ -330,7 +312,6 @@ export function useArtifacts(options: ArtifactsOptions): ArtifactsApi {
   const applyServerState = useCallback((task: TaskAggregate, artifact: ArtifactView | null): void => {
     const prev = stateRef.current;
     const changed = prev.artifact?.id !== artifact?.id;
-    const draftText = artifact === null ? '' : JSON.stringify(artifact.draft, null, 2);
     const exportInfo = prev.exportInfo !== null && artifact !== null && prev.exportInfo.artifactId === artifact.id &&
       prev.exportInfo.artifactSetHash === artifact.artifactSetHash && prev.exportInfo.revision === task.revision
       ? prev.exportInfo
@@ -351,12 +332,8 @@ export function useArtifacts(options: ArtifactsOptions): ArtifactsApi {
         : {}),
       ...(changed
         ? {
-          draftText,
-          draftError: '',
-          draftDirty: false,
           checklist: EMPTY_CHECKLIST,
           fallbackReason: '',
-          finalizeConfirmed: false,
           file: null,
         }
         : {}),
@@ -597,77 +574,6 @@ export function useArtifacts(options: ArtifactsOptions): ArtifactsApi {
     })();
   }, [commit, fetchFn, keyFor, refresh]);
 
-  const saveEdit = useCallback((): void => {
-    const current = stateRef.current;
-    const artifact = current.artifact;
-    const task = current.task;
-    const token = csrfTokenRef.current;
-    if (!writeReady(reviewReason(current, token, snapshotRef.current))) return;
-    if (artifact === null || task === null || token === null) return;
-    const parsed = parseDraftText(current.draftText);
-    if ('error' in parsed) {
-      commit({ draftError: parsed.error, message: `편집을 저장하지 않았습니다. ${parsed.error}` });
-      return;
-    }
-    const body = {
-      expected_revision: task.revision,
-      expected_document_hash: artifact.documentHash,
-      draft: parsed.draft,
-    };
-    void (async (): Promise<void> => {
-      mutationRef.current = true;
-      commit({ busy: true, draftError: '', message: '편집을 새 판본으로 저장하는 중입니다…' });
-      const edited = await editArtifact(
-        fetchFn,
-        token,
-        artifact.id,
-        task.revision,
-        artifact.documentHash,
-        parsed.draft,
-        keyFor(`edit:${artifact.id}`, body),
-      );
-      if (!aliveRef.current || taskIdRef.current !== task.id) {
-        mutationRef.current = false;
-        return;
-      }
-      if (!edited.ok) {
-        mutationRef.current = false;
-        commit({ busy: false, message: `편집을 저장하지 못했습니다. ${artifactFailureMessage(edited.failure)}` });
-        if (edited.failure.kind === 'conflict') await refresh(task.id);
-        return;
-      }
-      commit({
-        artifact: edited.value,
-        draftText: JSON.stringify(edited.value.draft, null, 2),
-        draftError: '',
-        draftDirty: false,
-        exportInfo: null,
-        finalizeConfirmed: false,
-        checklist: EMPTY_CHECKLIST,
-        fallbackReason: '',
-        file: null,
-        message: '편집을 새 판본으로 저장했습니다. 이 판본은 자동 검토를 다시 거쳐야 합니다.',
-      });
-      const reloaded = await refresh(task.id);
-      if (!reloaded) {
-        mutationRef.current = false;
-        commit({ busy: false });
-        return;
-      }
-      const after = stateRef.current;
-      if (after.artifact === null || after.task === null || after.artifact.id !== edited.value.id) {
-        mutationRef.current = false;
-        commit({ busy: false, message: '편집은 저장됐지만 최신 초안을 다시 읽지 못했습니다. 작업을 다시 불러오세요.' });
-        await notify(task.id);
-        return;
-      }
-      mutationRef.current = false;
-      // 새 판본을 공유 작업 정보에도 먼저 알린 뒤, 새 artifact/hash/판본으로 실제 재검토를 시작한다.
-      await notify(task.id);
-      await runJob('review', after.artifact, after.task, '재검토');
-    })();
-  }, [commit, fetchFn, keyFor, notify, refresh, runJob, writeReady]);
-
   const recordHumanReviewAction = useCallback((): void => {
     const current = stateRef.current;
     const artifact = current.artifact;
@@ -706,7 +612,6 @@ export function useArtifacts(options: ArtifactsOptions): ArtifactsApi {
       }
       commit({
         artifact: recorded.value,
-        finalizeConfirmed: false,
         exportInfo: null,
         checklist: EMPTY_CHECKLIST,
         fallbackReason: '',
@@ -730,7 +635,6 @@ export function useArtifacts(options: ArtifactsOptions): ArtifactsApi {
       expected_revision: task.revision,
       artifact_id: artifact.id,
       expected_artifact_set_hash: artifact.artifactSetHash,
-      confirmed: true,
     };
     void (async (): Promise<void> => {
       mutationRef.current = true;
@@ -756,7 +660,6 @@ export function useArtifacts(options: ArtifactsOptions): ArtifactsApi {
       }
       commit({
         exportInfo: finalized.value,
-        finalizeConfirmed: false,
         message: '확정했습니다. 아래에서 ZIP이나 개별 파일을 내려받으세요.',
       });
       await refresh(task.id);
@@ -861,11 +764,6 @@ export function useArtifacts(options: ArtifactsOptions): ArtifactsApi {
     })();
   }, [commit, notify, refresh]);
 
-  const setDraftText = useCallback((text: string): void => {
-    const parsed = parseDraftText(text);
-    commit({ draftText: text, draftDirty: true, draftError: 'error' in parsed ? parsed.error : '' });
-  }, [commit]);
-
   const setChecklist = useCallback((next: HumanReviewChecklist): void => {
     commit({ checklist: next });
   }, [commit]);
@@ -874,16 +772,11 @@ export function useArtifacts(options: ArtifactsOptions): ArtifactsApi {
     commit({ fallbackReason: text });
   }, [commit]);
 
-  const setFinalizeConfirmed = useCallback((value: boolean): void => {
-    commit({ finalizeConfirmed: value });
-  }, [commit]);
-
   const outOfSync = options.snapshot !== null && state.task !== null &&
     (options.snapshot.id !== state.task.id || options.snapshot.revision !== state.task.revision);
   const writeBlockReason = writeReason(state, options.csrfToken, options.snapshot);
   const composeBlockReason = composeReason(state, options.csrfToken, options.snapshot, options.canGenerate);
   const reviewBlockReason = reviewReason(state, options.csrfToken, options.snapshot);
-  const editBlockReason = reviewReason(state, options.csrfToken, options.snapshot);
   const humanReviewBlockReason = humanReviewReason(state, options.csrfToken, options.snapshot);
   const finalizeBlockReason = finalizeReason(state, options.csrfToken, options.snapshot);
   const downloadBlockReason = downloadReason(state);
@@ -907,30 +800,22 @@ export function useArtifacts(options: ArtifactsOptions): ArtifactsApi {
     writeBlockReason,
     composeBlockReason,
     reviewBlockReason,
-    editBlockReason,
     humanReviewBlockReason,
     finalizeBlockReason,
     downloadBlockReason,
     goalNotice,
-    draftText: state.draftText,
-    draftError: state.draftError,
-    draftDirty: state.draftDirty,
     checklist: state.checklist,
     fallbackReason: state.fallbackReason,
-    finalizeConfirmed: state.finalizeConfirmed,
     exportInfo: state.exportInfo,
     file: state.file,
     fileBusy: state.fileBusy,
     downloadBusy: state.downloadBusy,
-    setDraftText,
     setChecklist,
     setFallbackReason,
-    setFinalizeConfirmed,
     reload,
     compose,
     reReview,
     cancel,
-    saveEdit,
     recordHumanReview: recordHumanReviewAction,
     finalize,
     openFile,

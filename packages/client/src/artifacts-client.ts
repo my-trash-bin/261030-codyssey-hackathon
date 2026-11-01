@@ -144,7 +144,6 @@ const ADVICE: Record<string, string> = {
   FINALIZATION_BLOCKED:
     '서버 확정 조건이 남아 있습니다. 미결정·보류·만료·철회된 공개 결정과 파일 검사 상태를 확인하세요. 체크로 우회할 수 없습니다.',
   FINALIZATION_REJECTED: '현재 파일 집합이나 작업 판본이 확정 요청과 다릅니다. 작업을 다시 불러오세요.',
-  FINAL_CONFIRMATION_REQUIRED: '확정에는 현재 파일을 확인했다는 명시적 확인이 필요합니다.',
   EXPORT_INVALIDATED: '작업 판본·결정·규칙이 바뀌어 이 확정 파일은 더 이상 내려받을 수 없습니다.',
   EXPORT_TOO_LARGE: '내보내기 크기 한도(20MiB)를 넘었습니다.',
   FILE_NOT_FOUND: '확정 파일 목록에 그 경로가 없습니다.',
@@ -278,20 +277,7 @@ export function parseDraftDocument(value: unknown): DraftDocument {
   return { schema_version: 'draft.v1', blocks };
 }
 
-/** 편집기가 보낸 JSON 문자열을 서버 draft.v1에 가까운 구조로 확인한다. 내용 규칙은 서버가 최종 판정한다. */
-export function parseDraftText(text: string): { draft: DraftDocument } | { error: string } {
-  let value: unknown;
-  try {
-    value = JSON.parse(text);
-  } catch {
-    return { error: 'JSON 문법이 올바르지 않습니다.' };
-  }
-  try {
-    return { draft: parseDraftDocument(value) };
-  } catch (error) {
-    return { error: error instanceof Error ? error.message : '문서 구조를 확인하지 못했습니다.' };
-  }
-}
+
 
 function parseReviewIssue(value: unknown): ReviewIssueView | null {
   if (!isRecord(value) || !isRecord(value.target)) return null;
@@ -540,26 +526,6 @@ export async function cancelArtifactJob(
   return { ok: true, value: { cancelRequested: data.cancel_requested } };
 }
 
-export async function editArtifact(
-  fetchFn: FetchFn,
-  csrfToken: string,
-  artifactId: string,
-  expectedRevision: number,
-  expectedDocumentHash: string,
-  draft: DraftDocument,
-  idempotencyKey: string = newIdempotencyKey(),
-): Promise<ArtifactResult<ArtifactView>> {
-  const response = await requestJson(fetchFn, 'PUT', `/api/v1/artifacts/${encodeURIComponent(artifactId)}/edit`, csrfToken, {
-    payload: { expected_revision: expectedRevision, expected_document_hash: expectedDocumentHash, draft },
-    idempotencyKey,
-  });
-  if (!response.ok) return response;
-  try {
-    return { ok: true, value: parseArtifact(response.body) };
-  } catch {
-    return malformed(response.status);
-  }
-}
 
 export async function recordHumanReview(
   fetchFn: FetchFn,
@@ -603,7 +569,6 @@ export async function finalizeTask(
       expected_revision: expectedRevision,
       artifact_id: artifactId,
       expected_artifact_set_hash: expectedArtifactSetHash,
-      confirmed: true,
     },
     idempotencyKey,
   });

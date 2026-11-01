@@ -3,23 +3,21 @@
 import { useEffect, useState } from 'react';
 import type { JSX } from 'react';
 
-import { checkModel, modelStateView } from '../model-connection-client.ts';
-import type { ModelCheckResult } from '../model-connection-client.ts';
-import { readRuntime } from '../task-browser-client.ts';
-import type { WorkflowRuntime } from '../task-browser-client.ts';
+import { checkModel, modelStateView, readModelStatus } from '../model-connection-client.ts';
+import type { ModelCheckResult, ModelStatus } from '../model-connection-client.ts';
 
 const defaultFetch: typeof fetch = (input, init) => globalThis.fetch(input, init);
 
 export function ModelConnection(props: { csrfToken: string | null; origin: string | null }): JSX.Element {
   const { csrfToken, origin } = props;
-  const [runtime, setRuntime] = useState<WorkflowRuntime | null>(null);
+  const [status, setStatus] = useState<ModelStatus | null>(null);
   const [result, setResult] = useState<ModelCheckResult | null>(null);
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
     let stale = false;
-    void readRuntime(defaultFetch).then((read) => {
-      if (!stale && read.ok) setRuntime(read.value);
+    void readModelStatus(defaultFetch).then((read) => {
+      if (!stale && read.ok) setStatus(read.value);
     });
     return () => { stale = true; };
   }, []);
@@ -33,7 +31,7 @@ export function ModelConnection(props: { csrfToken: string | null; origin: strin
     });
   };
 
-  const view = modelStateView(runtime, result);
+  const view = modelStateView(status, result);
   return (
     <div className="model-status" id="model-status" data-role="model-status" role="group" aria-labelledby="model-status-heading">
       <h3 id="model-status-heading">분석 모델</h3>
@@ -44,7 +42,7 @@ export function ModelConnection(props: { csrfToken: string | null; origin: strin
         </div>
         <div>
           <dt className="meta">모델</dt>
-          <dd>{runtime?.model ?? '설정 안 됨'}</dd>
+          <dd>{status?.model ?? '설정 안 됨'}</dd>
         </div>
         <div>
           <dt className="meta">상태</dt>

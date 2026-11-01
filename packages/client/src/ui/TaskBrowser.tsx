@@ -1,6 +1,6 @@
 // 작업 목록과 선택, 명시 확인 뒤의 작업 삭제. 목록은 세션이 있으면 snapshot 없이도 조회한다.
 // 선택은 onTaskChanged(id)로 메인 작업 공간에 알리고, 판본이 바뀌면 목록을 다시 조회한다.
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import type { JSX } from 'react';
 import type { Snapshot } from '../disclosure-state.ts';
 import { purposeLabel } from '../disclosure-format.ts';
@@ -26,18 +26,10 @@ export function TaskBrowser(props: TaskBrowserProps): JSX.Element {
     mountCounter += 1;
     return `task-browser-${mountCounter}`;
   });
-  const [confirmation, setConfirmation] = useState('');
-  const [retainedAck, setRetainedAck] = useState(false);
-
-  // 선택한 작업이 바뀌면 이전 작업의 삭제 확인 입력을 그대로 두지 않는다.
-  useEffect(() => {
-    setConfirmation('');
-    setRetainedAck(false);
-  }, [browser.selectedId]);
-
   const selected = browser.selectedId !== null;
   const busy = browser.busyKey !== null;
-  const deleteReady = selected && confirmation === 'DELETE' && retainedAck && !busy;
+  const deleteReady = selected && !busy;
+  const hintId = `${uid}-hint`;
   const deleteHintId = `${uid}-delete-hint`;
   const recipientName = (id: string): string =>
     props.catalog?.recipients.find(recipient => recipient.id === id)?.displayName ?? id;
@@ -142,32 +134,6 @@ export function TaskBrowser(props: TaskBrowserProps): JSX.Element {
                 <p className="hint" id={deleteHintId}>
                   이 작업의 원자료·후보·결정·이력·초안이 서버에서 삭제되며 되돌릴 수 없습니다. 값이나 원문이 없는 재사용 규칙은 남습니다. 실행 중인 작업이 있으면 끝날 때까지 기다립니다.
                 </p>
-                <div className="field">
-                  <label htmlFor={`${uid}-confirmation`}>확인 문자열 (DELETE 입력)</label>
-                  <input
-                    id={`${uid}-confirmation`}
-                    type="text"
-                    autoComplete="off"
-                    spellCheck={false}
-                    value={confirmation}
-                    placeholder="DELETE"
-                    aria-describedby={deleteHintId}
-                    aria-invalid={confirmation !== '' && confirmation !== 'DELETE' ? 'true' : undefined}
-                    disabled={busy}
-                    onChange={event => { setConfirmation(event.currentTarget.value); }}
-                  />
-                </div>
-                <div className="option">
-                  <input
-                    id={`${uid}-retained`}
-                    type="checkbox"
-                    checked={retainedAck}
-                    disabled={busy}
-                    aria-describedby={deleteHintId}
-                    onChange={event => { setRetainedAck(event.currentTarget.checked); }}
-                  />
-                  <label htmlFor={`${uid}-retained`}>저장된 재사용 규칙은 남는다는 것을 확인했습니다.</label>
-                </div>
                 <div className="action">
                   <button
                     className="button"

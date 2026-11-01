@@ -92,8 +92,8 @@ SSE는 Last-Event-ID로 재연결한다. 중복 이벤트는 무시하고 순서
 
 ### 작업 삭제
 
-1. UI가 대상 작업 이름과 삭제 범위를 보여준다. 사용자가 `DELETE`를 입력하고 별도 저장 기준이 남는다는 설명을 확인한다.
-2. 서버가 현재 세션, task 존재, expected_revision, `confirmation="DELETE"`, `acknowledge_saved_rules_retained=true`를 검증한다.
+1. UI가 대상 작업 이름과 삭제 범위를 보여준다. 저장 규칙의 보존 여부를 안내하고 사용자가 삭제 버튼으로 실행한다.
+2. 서버가 현재 세션, task 존재, expected_revision를 검증한다.
 3. 현재 job 취소를 요청하고 task의 원자료/근거/결정/미리보기/팩/결과/export/trace/event와 관련 멱등 응답/캐시를 같은 삭제 계약으로 정리한다.
 4. 해당 작업에서 만든 재사용 규칙의 원작업 FK는 해제한다. 원문/실제값을 복제하지 않은 최소 출처 정보와 조건만 남긴다. 규칙 철회는 F06의 별도 사용자 행동이다.
 5. 실행 임시 데이터와 앱이 관리하는 캐시를 정리한다. 늦은 worker의 결과 저장은 task 존재성/FK/CAS로 거부한다.
@@ -111,7 +111,7 @@ SSE는 Last-Event-ID로 재연결한다. 중복 이벤트는 무시하고 순서
 | 취소 / `POST /api/v1/jobs/{job_id}/cancel` | expected_revision, Idempotency-Key | 취소 요청/실제 상태 |
 | 재시도 / `POST /api/v1/tasks/{id}/jobs` | 현재 expected_revision, kind, typed arguments | 새 job ID. 과거 실패 기록 유지 |
 | `EventService.StreamTaskEvents` / `GET /api/v1/tasks/{id}/events` | Last-Event-ID | task별 안전한 이벤트 |
-| `TaskService.DeleteTask` / `DELETE /api/v1/tasks/{id}` | expected_revision, confirmation="DELETE", acknowledge_saved_rules_retained=true, Idempotency-Key | 삭제 완료. 원문 포함 응답 없음 |
+| `TaskService.DeleteTask` / `DELETE /api/v1/tasks/{id}` | expected_revision, Idempotency-Key | 삭제 완료. 원문 포함 응답 없음 |
 
 F01~F08은 상태 변경 이벤트를 공통 store에 기록한다. 각 기능이 독자 이벤트 저장소/재시도 상태를 만들지 않는다. F05 다운로드는 F09의 과거 성공 이벤트가 아니라 현재 유효성을 조회한다. F10이 세션/외부 telemetry 금지/저장 권한/debug 설정을 집행한다.
 
@@ -129,7 +129,7 @@ F01~F08은 상태 변경 이벤트를 공통 store에 기록한다. 각 기능�
 | AC-F09-04 | 취소 | 취소 응답이 늦어도 결과 적용 불가, 사용자 새 선택 저장을 막지 않음 |
 | AC-F09-05 | 오류 | 모델/도구 오류/예산 소진을 실제 원인으로 표시, fixture 대체/성공 위장 없음 |
 | AC-F09-06 | 판본 | 제목만 변경해도 revision 증가/이전 결과 stale, 안내와 재검토 경로 제공 |
-| AC-F09-07 | 정상 삭제 | DELETE 입력/기준 보존 확인 후 원자료/결정/결과/export/trace/event/관련 임시/멱등 내용 제거 |
+| AC-F09-07 | 정상 삭제 | 삭제 버튼 실행 후 원자료/결정/결과/export/trace/event/관련 임시/멱등 내용 제거 |
 | AC-F09-08 | 삭제 경쟁 | 실행 중 삭제와 늦은 응답 이후에도 task/자료가 부활하지 않음 |
 | AC-F09-09 | 삭제 경계 | 확인 불일치/오래된 revision은 미변경, 이미 삭제된 요청 재전송은 민감 응답을 복원하지 않음 |
 | AC-F09-10 | 재사용 | 원작업 삭제 후 규칙은 최소 비민감 provenance로 남고 사용자에게 남는 사실을 표시 |

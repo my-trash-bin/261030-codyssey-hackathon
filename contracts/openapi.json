@@ -2299,15 +2299,11 @@
                   "expected_artifact_set_hash": {
                     "type": "string",
                     "maxLength": 8192
-                  },
-                  "confirmed": {
-                    "type": "boolean"
                   }
                 },
                 "required": [
                   "expected_revision",
-                  "expected_artifact_set_hash",
-                  "confirmed"
+                  "expected_artifact_set_hash"
                 ],
                 "additionalProperties": false
               }
