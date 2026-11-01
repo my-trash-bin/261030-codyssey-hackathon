@@ -43,14 +43,6 @@ build-presentation:
     mise exec -- python docs/presentation/build_combined_deck.py
     mise exec -- node tools/build-presentation.mjs
 
-# 이전 Go fixture 녹화의 원본 hash를 확인하고 로컬에 준비한다.
-prepare-demo-video:
-    mise exec -- node tools/prepare-demo-video.mjs
-
-# 앱·비공개 설정이 없는 영상 전용 디렉터리만 loopback에 노출한다.
-preview-demo-video: prepare-demo-video
-    mise exec -- python -m http.server 8092 --bind 127.0.0.1 --directory .local/demo-video
-
 # 의존성·브라우저 준비 후 fake-app 화면 시연
 demo *args:
     mise exec -- node scripts/demo/bootstrap.mjs {{args}}

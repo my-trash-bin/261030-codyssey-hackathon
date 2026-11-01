@@ -1,7 +1,0 @@
-# 녹화·인코딩 결과와 브라우저 임시 파일은 로컬에만 둔다.
-*.mp4
-*.webm
-*.mov
-frames/
-recordings/
-chrome-profile/

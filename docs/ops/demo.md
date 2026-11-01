@@ -128,4 +128,6 @@ SAFEHANDOFF_TRANSCRIPT_DIR=.local/transcripts SAFEHANDOFF_TRANSCRIPT_CONTENT=1 \
 ## 5. 시연 중 실패/질문 대응 기준
 
 - **모델 연결 실패 시**: live 모델 실패를 fixture 응답으로 몰래 대체하지 않는다 (`INV-14`). 오류 원인을 그대로 표시하거나 별도 표시된 fixture 시연 모드로 전환해 설명한다.
-- **과거 영상 참고자료 사용 시**: 초기 시제품 녹화 영상(`just preview-demo-video`, [영상 안내](../presentation/video/README.md))을 참고로 보여줄 때는 사전 녹화된 시연 영상임을 명시하고 현재 실시간 실행 결과와 구분한다.
+- **과거 영상**: 초기 Go 시제품 기준 녹화와 그 출처 메타데이터(`docs/presentation/video/`)는 현재 client UI와
+  맞지 않아 2026-11-01에 tracked 파일에서 제거했다. 과거 자료로 참고할 근거가 더 이상 저장소에 없으므로
+  시연에서는 현재 client 기반 실행만 보여준다.

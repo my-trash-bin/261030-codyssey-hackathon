@@ -89,5 +89,5 @@ mise run setup-presentation-system
 `mise exec -- python docs/presentation/build_combined_deck.py`를 사용할 수 있다. 브라우저 캐시/
 node_modules/Python 캐시/PDF는 Git에 넣지 않는다.
 
-이전 CDP 영상 연출 브랜치의 참고 자료는 [시연 안내](../ops/demo.md)에서 구분해 설명한다.
-`just preview-demo-video`로 과거 fixture 영상을 로컬에서 확인하며 현행 앱 실행과 구분한다.
+이전 CDP 영상 연출 브랜치의 fixture 녹화와 참고 자료(`docs/presentation/video/`)는 현재 client UI와 맞지 않아
+2026-11-01에 tracked 파일에서 제거했다. 현재 시연은 [시연 안내](../ops/demo.md)의 실제 client 기반 실행만 쓴다.

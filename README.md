@@ -150,8 +150,9 @@ node tools/oss-repro-smoke.mjs \
   --output .local/toyrecord-pack-smoke-42.json
 ```
 
-자세한 현재 상태와 과거 영상 출처 메타데이터는 [시연 안내](docs/ops/demo.md)와
-[과거 영상 안내](docs/presentation/video/README.md)에서 확인할 수 있습니다. 영상 파일 자체는 tracked 파일에서 제거했습니다.
+자세한 현재 상태는 [시연 안내](docs/ops/demo.md)에서 확인할 수 있습니다. 과거 Go 프로토타입 기준으로 녹화했던
+영상과 그 출처 메타데이터(`docs/presentation/video/`)는 현재 client UI와 맞지 않아 2026-11-01에 tracked 파일에서
+완전히 제거했습니다.
 
 ### 3.5 모델 통신과 결과 인자 복구
 

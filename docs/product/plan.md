@@ -62,7 +62,7 @@
 | --- | --- | --- | --- |
 | **맹주영 (`Juyeong Maing`)** | 코어 엔진 / 분석/검토 / 샌드박스 / 통합 리드 | `F02`(`RealCore.analyze`, `TaskStore.analysis`, `POST /api/analysis`)/`F04`(작성/검토)/`F08`(Docker 재현)/`F10`(실행 경계) 구현, 9개 TypeScript 패키지 설계, 로컬 LLM/Docker 스모크 및 `main` 브랜치 통합 | `packages/core-interface`, `packages/core`, `packages/model-adapter`, `packages/sandbox-runner`, `packages/skill-loader`, `packages/server` |
 | **김민성 (`servercat`)** | 프론트엔드 UI / 공개 결정 / 분석 화면 연결 | `F01`/`F02`/`F03` 작업 화면(`Swiss Grid`), 후보별 공개 결정(`disclosure-state.ts`, `disclosure-view.ts`), 원자료 분석 UI 연결(`analysis-state.ts`, `analysis-view.ts`) 구현 | `packages/client/src/`, `packages/client/public/` |
-| **임재홍 (`andy1398`)** | CDP 시연 자동화 / 제출 영상 녹화 / 검증 | 당시 `fake-app` 전용 화면과 자막/장면 탐색/재생 제어(`scripts/demo/*`), 99.988초 제출 영상 녹화 및 해시 검증. 전용 화면과 tracked 영상은 이후 제거됨 | `scripts/demo/`, `docs/presentation/video/` 출처 기록 |
+| **임재홍 (`andy1398`)** | CDP 시연 자동화 / 제출 영상 녹화 / 검증 | 당시 `fake-app` 전용 화면과 자막/장면 탐색/재생 제어(`scripts/demo/*`), 99.988초 제출 영상 녹화 및 해시 검증. 전용 화면·tracked 영상·그 출처 기록(`docs/presentation/video/`)은 모두 이후 제거됨 | `scripts/demo/` |
 | **김병철** | 도메인 계약 / 수치 변환 / 재사용/확장 규칙 설계 | `F03`/`F05` 계약(`contracts/*.schema.json`), `builtin-tools` 수치/시계열/인용 변환(`100/141/212`, `[가림]`), `F06` `groundFacts` 기본 거부 및 `F07` `SkillPack` 규칙 설계 | `contracts/`, `docs/features/`, `fixtures/skills/` |
 | **이상혁 (`dbralfk12-stack`)** | 발표 패키지 / 3자 가치 비교 실험 / 추적성 검증 | 발표 슬라이드 구성(`docs/presentation/`), 공개 통계 기반 TAM/SAM/SOM 산식 검증, 가상 로그 10건 3자 비교 실험(해커톤 당시 `tools/value-comparison.mjs`, `effect-measure.mjs`로 실행 - 2026-10-31 도구 제거, [구현 상태](submission-status.md)), 127개 AC 매핑 | `docs/presentation/`, `docs/acceptance-map.csv` |
 
