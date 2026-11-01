@@ -7,7 +7,8 @@
 `mise install` 후 기존 `just app`은 의존성 설치·빌드·모델 연결 정보 입력을 처리한다.
 config의 reproduction.enabled가 true이고 `SAFEHANDOFF_REPRO_REGISTRY`가 없으면 아래 이미지 빌드와
 등록 파일 생성을 자동 수행하고, 생성한 경로를 실제 앱 프로세스에 전달한다.
-파일은 `.local/app-runtime-*/repro-registration.json`에 저장한다. 기존 `.env`·config·등록은 수정하지 않는다.
+파일은 `.local/app-runtime-*/repro-registration.json`에 저장한다. config·기존 재현 등록은 수정하지 않는다.
+모델 연결 정보는 `.env`가 없으면 `.env.example`을 복사한 뒤 입력받아 `.env`에 저장한다.
 등록 경로가 이미 있으면 이를 사용하며 reproduction이 disabled이면 Docker 준비를 생략한다.
 Linux Docker 설치·데몬·권한은 별도로 준비한다. HTTP/UI 재현 실행은 아직 미구현이다.
 [실행 안내](../../../README.md) 3.2를 참고한다.

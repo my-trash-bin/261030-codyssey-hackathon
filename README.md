@@ -56,11 +56,21 @@ python tools/validate_docs.py
 
 ### 3.2 서버/클라이언트 실행
 
-`mise install` 후 기존 `just app`과 `just client`를 실행합니다. 두 명령 모두
+`mise install` 후 `just app`으로 API 서버와 웹 화면을 함께 실행합니다.
+API만 실행하려면 `just api`, 웹만 실행하려면 `just web`을 사용합니다. 각 명령은
 `pnpm install --frozen-lockfile`과 빌드를 자동 수행합니다.
+준비 단계는 진행 상태만 표시하고 원시 로그는 `.local/bootstrap-log-*/output.log`에 저장합니다.
+실패하면 해당 로그 경로를 안내합니다.
+`just app`은 준비를 한 번만 수행하고 두 서버를 시작합니다. 웹 화면은 `http://127.0.0.1:5173/`이며
+8080은 API 전용입니다. Ctrl+C 또는 한 서버의 종료 시 함께 실행한 다른 서버도 종료합니다.
+API와 웹은 모두 `.env`의 `HOST`를 수신 주소로 사용합니다. 기본은 `127.0.0.1`이며,
+다른 기기에서 접속하려면 `HOST=0.0.0.0`으로 설정하고 `http://<서버 IP>:5173/`로 접속합니다.
+`.env`가 없으면 먼저 `.env.example`을 복사합니다. 기존 `.env`는 그대로 사용합니다.
 `just app`은 `.env`와 환경 변수(환경 변수 우선), 선택한 config의 provider 변수명을 사용합니다.
 없는 모델 URL·모델명·API 키는 프롬프트로 받으며 키는 숨김 입력입니다. 인증이 없으면 Enter로 생략합니다.
-입력은 이번 실제 앱 프로세스에 전달하고 파일에 저장하지 않습니다. 비대화형 실행은 연결 정보를 미리 설정합니다.
+입력한 값은 루트 `.env`에 저장하고 실제 앱에도 전달합니다. 다음 실행부터 저장된 값을 재사용합니다.
+API 키 없이 Enter로 진행한 경우 빈 값으로 저장하며 다시 묻지 않습니다. `.env`는 소유자만 읽고 쓰도록
+저장하고, 기존의 다른 설정과 주석은 보존합니다. 비대화형 실행은 연결 정보를 미리 설정합니다.
 
 config의 `reproduction.enabled=true`이고 `SAFEHANDOFF_REPRO_REGISTRY`가 없으면,
 Go 실행기·Docker 이미지를 빌드하고 실제 digest 및 새 합성 입력을 등록한 파일을
@@ -69,13 +79,16 @@ Go 실행기·Docker 이미지를 빌드하고 실제 digest 및 새 합성 입�
 새 clone의 `config.example.json`은 reproduction이 disabled이므로 Docker가 필요 없습니다.
 재현을 켜려면 별도 config에서 enabled를 true로 설정합니다.
 Go는 mise에 포함되며 재현 활성화 시 Linux `/usr/bin/docker`, 실행 중인 로컬 데몬과 소켓 권한이 필요합니다.
-기존 `.env`·config·등록 파일은 수정하지 않습니다. 상세는 [실행기 설치 안내](packages/sandbox-runner/image/README.md)를 참고합니다.
+기존 config·재현 등록 파일은 수정하지 않습니다. 상세는 [실행기 설치 안내](packages/sandbox-runner/image/README.md)를 참고합니다.
 runner 주입을 준비하며 HTTP/UI 재현 실행은 아직 미구현입니다.
 
 ```sh
-# 실제 앱 (:8080) + 웹 클라이언트 (:5173)
+# 실제 앱 전체: API (:8080) + 웹 화면 (:5173)
 just app
-just client
+
+# 각각 실행할 때는 두 터미널에서 실행
+just api
+just web
 
 # LLM 없이 시연 흐름을 확인하는 가짜 앱 (:8081) + 웹 클라이언트 (:5174)
 just fake-app
@@ -84,9 +97,11 @@ just fake-client
 
 ### 3.3 UI용 task/공개 결정 HTTP
 
-SAFEHANDOFF_WORKFLOW_TOKEN(32자 이상)을 설정하면 실제 앱에서 세션/CSRF/Host/Origin/revision/멱등 키를
-검사하는 인증된 v1 task API(task 생성/원자료 교체/분석 job/CAS/수동 후보/미리보기/결정 배치/철회)를
-사용할 수 있습니다. HTTP loopback/단일 운영자 개발용이며 미설정/fake-app은 WORKFLOW_API_DISABLED입니다.
+실제 앱은 시작 토큰이나 로그인 없이 접속합니다. `just app`이 출력한 일반 접속 URL을 열면
+작업 공간이 자동으로 연결됩니다. 세션 쿠키와 CSRF/Host/Origin/revision/멱등 키 검사는
+요청 무결성을 위해 내부에서 처리합니다. 세션 만료·서버 재시작 뒤에도 화면이 자동 재연결합니다.
+작업 API는 기본 활성화이며 `SAFEHANDOFF_WORKFLOW_ENABLED=0`으로 끌 수 있습니다.
+별도 사용자 인증은 제공하지 않습니다. fake-app에는 작업 API가 없습니다.
 상세 DTO는 [docs/design/api.md](docs/design/api.md) 5, 남은 UI 연결은 [docs/ops/ui-api-requests.md](docs/ops/ui-api-requests.md)를 따릅니다.
 
 ### 3.4 CDP 시연 및 OSS Docker 재현 스모크
@@ -204,7 +219,7 @@ provider 확인은 기존 텍스트 경로를 유지합니다.
 해당 동작 가까이에 짧게 표시하고, 개발용 예시 모드는 실제 실행과 구분해 표시합니다.
 
 빌드된 작업 화면은 `vite build`가 만든 `packages/client/dist/static`을 Node가 서빙하고 API를
-프록시하며 `pnpm --filter @safehandoff/client start`로 실행합니다. 개발 실행(`just client`,
+프록시하며 `just app` 또는 `just web`으로 실행합니다. 개발 실행(`pnpm dev:client`,
 `just fake-app`)은 같은 Node 서버에 Vite 미들웨어를 붙이며 HMR과 WebSocket을 쓰지 않으므로 편집
 뒤 브라우저를 새로고침합니다. 고정 Node 버전의 네이티브 설정 로더로 Vite 설정을 읽어
 `node --watch`가 임시 설정 번들 때문에 반복 재시작하지 않게 합니다.

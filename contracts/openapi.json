@@ -3,7 +3,7 @@
   "info": {
     "title": "SafeHandoff 실제 API",
     "version": "0.1.0",
-    "description": "로컬 단일 사용자. 먼저 GET /api/v1/session으로 세션 쿠키와 CSRF 토큰을 얻는다. 변경 요청에는 토큰, 멱등 키, 현재 판본이 필요하다. 모델 계약과 API DTO는 별개다."
+    "description": "단일 운영자 PoC. 사용자 로그인 없이 POST /api/v1/session에 빈 JSON을 보내 내부 쿠키와 CSRF 상태를 자동 준비한다. 변경 요청에는 CSRF, 멱등 키, 현재 판본이 필요하다. 모델 계약과 API DTO는 별개다."
   },
   "servers": [
     {
@@ -2982,6 +2982,68 @@
           },
           "500": {
             "$ref": "#/components/responses/Error"
+          }
+        }
+      },
+      "post": {
+        "operationId": "openSession",
+        "summary": "자동 연결 준비 (사용자 인증 없음)",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "정상 응답. data 객체. 파일 응답은 실제 저장 바이트.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data"
+                  ],
+                  "properties": {
+                    "data": {}
+                  },
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error"
+          },
+          "413": {
+            "$ref": "#/components/responses/Error"
+          },
+          "415": {
+            "$ref": "#/components/responses/Error"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false
+              }
+            }
           }
         }
       }

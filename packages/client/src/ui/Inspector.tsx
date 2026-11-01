@@ -68,7 +68,7 @@ export function Inspector(props: {
       </section>
 
       <details className="inspector__fold" id="inspector-session">
-        <summary className="meta">세션</summary>
+        <summary className="meta">서버 연결</summary>
         <SessionSection session={session} heading="h3" />
       </details>
 

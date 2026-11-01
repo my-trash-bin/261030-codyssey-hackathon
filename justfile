@@ -13,12 +13,17 @@ check:
 build:
     mise exec -- pnpm build
 
-# 두 터미널에서 각각 실행
+# 실제 앱 전체: API 서버와 웹 화면을 함께 실행
 app:
-    mise exec -- node scripts/bootstrap/app.mjs
+    @mise exec -- node scripts/bootstrap/app.mjs
 
-client:
-    mise exec -- node scripts/bootstrap/app.mjs --client
+# API 서버만 실행 (:8080)
+api:
+    @mise exec -- node scripts/bootstrap/app.mjs --api
+
+# 웹 화면만 실행 (:5173)
+web:
+    @mise exec -- node scripts/bootstrap/app.mjs --web
 
 # 연출 전용 가짜 앱. 실제 앱과 DB·포트를 공유하지 않음
 fake-app:

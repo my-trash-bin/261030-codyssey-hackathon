@@ -2,7 +2,7 @@
 import { access } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { root, environment, run } from '../bootstrap/common.mjs';
+import { root, environment, run, prepare } from '../bootstrap/common.mjs';
 
 export function demoOptions(args) {
  const allowed = new Set(['--headless', '--fast', '--verify-playback', '--record', '--no-sandbox']);
@@ -14,11 +14,14 @@ export function demoOptions(args) {
 
 export async function main(args = process.argv.slice(2)) {
  const browserArgs = demoOptions(args), env = environment();
- await run('pnpm', ['install', '--frozen-lockfile'], env);
- await run('pnpm', ['build'], env);
+ console.log('[demo] 의존성 설치');
+ await prepare('pnpm', ['install', '--frozen-lockfile'], env);
+ console.log('[demo] 빌드');
+ await prepare('pnpm', ['build'], env);
  if (env.CHROME_PATH) await access(env.CHROME_PATH);
  else {
-  await run('pnpm', ['exec', 'playwright', 'install', ...(process.platform === 'linux' ? ['--with-deps'] : []), 'chromium'], env);
+  console.log('[demo] 브라우저 준비 (시스템 의존성 설치에 sudo 인증이 필요할 수 있음)');
+  await prepare('pnpm', ['exec', 'playwright', 'install', ...(process.platform === 'linux' ? ['--with-deps'] : []), 'chromium'], env);
   const { chromium } = await import('playwright');
   env.CHROME_PATH = chromium.executablePath();
  }

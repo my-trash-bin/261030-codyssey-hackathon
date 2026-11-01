@@ -32,7 +32,7 @@ QA 시험(`T01-T60`, [qa.md](../qa/qa.md))은 `passed` 13 / `partial` 33 / `not_
 
 ## 3. 지금 그대로 심사자에게 보여줄 수 있는 것
 
-- `just app` + `just client`: `packages/app`이 `configuredCore()`로 **실제 `@safehandoff/core`의 `RealCore`**를 조립한다
+- `just app` (API만 `just api`, 웹만 `just web`): `packages/app`이 `configuredCore()`로 **실제 `@safehandoff/core`의 `RealCore`**를 조립한다
   (`packages/app/src/config.ts`). 저장소 루트 `.env`에 `SAFEHANDOFF_LLM_BASE_URL`/`MODEL`/`API_KEY`가 모두 채워져 있어
   모델 호출이 즉시 가능한 상태다. `fake-app`(연출용 가짜 코어, `:8081`)과는 패키지 수준에서 분리되어 있다.
   단, `config.json`의 `reproduction.enabled: true`에 대응하는 `SAFEHANDOFF_REPRO_REGISTRY`가 `.env`에 없어 Docker 합성

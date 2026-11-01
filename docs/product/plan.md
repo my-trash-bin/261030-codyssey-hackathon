@@ -73,7 +73,7 @@
 
 | 제품 마일스톤 | 목표 | 해커톤(`H1-H4`) 내 완료된 부분 | 해커톤 이후 남은 백로그 (`product_backlog`) |
 | --- | --- | --- | --- |
-| `M0` | **기반 계약 / 실행 경계 / 저장소 골격 (`F01`, `F10`)** | 9개 패키지 구조, `contracts/*.schema.json`, SQLite `DocumentStore` + `TaskStore` 7개 테이블, `HttpModelClient`, `/api/health`/`/api/core/status` | 일회용 로컬 접속 토큰(`/api/v1/auth/session`), 8시간 쿠키 세션, CSRF/Host/Origin 미들웨어 전체 라우트 적용 |
+| `M0` | **기반 계약 / 실행 경계 / 저장소 골격 (`F01`, `F10`)** | 9개 패키지 구조, `contracts/*.schema.json`, SQLite `DocumentStore` + `TaskStore` 7개 테이블, `HttpModelClient`, `/api/health`/`/api/core/status` | 시작 토큰 없는 자동 연결(`/api/v1/session`), 내부 8시간 쿠키 세션, CSRF/Host/Origin 미들웨어 전체 라우트 적용 |
 | `M1` | **원자료 근거 파싱 / 분석 / 공개 결정 투영 (`F01`, `F02`, `F03`)** | `parseSources`(txt/md/csv/json 근거 ID), `RealCore.analyze()`, `composeFactPack()`, `builtin-tools` A/B/C/D 변환(`100/141/212`, `기준/증가/감소`, `[가림]`) | 다중 파일 업로드 HTTP API(`/api/v1/tasks/{id}/sources`), UI-04/05 선택 카드/미리보기 해시 저장 API 연결 |
 | `M2` | **승인팩 전용 작성 / 기본 거부 검토 / 수리 루프 (`F04`, `F05`)** | `RealCore.write()`, `review()`, `writeReviewed()`(고정 `reason_code` 1회 수리), `/api/core/generate` 연결, `FileTranscriptSink`(`transcript.v1`) | DocAST 블록 수동 편집 API, `human-review` 체크리스트 저장, `manifest.json` 및 결정적 ZIP 아카이브 다운로드 API(`/api/v1/exports`) |
 | `M3` | **공개 표현 기준(`Rule`) 조건부 재사용 (`F06`, `F09`)** | `Rule`/`Scope` 타입 계약, `groundFacts()` 결정적 검증(`exact_value`/`approved_excerpt` 재사용 차단, 만료/철회/범위/`goal_variant` 불일치 차단), `TaskStore` revision CAS | 서버 `rules` 테이블 CRUD API(`/api/v1/rules`), 분석 채택 시 규칙 자동 매칭, UI-07/08 이력/작업 삭제(`DELETE` 확인) 화면 연결 |

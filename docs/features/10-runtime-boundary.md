@@ -26,7 +26,7 @@
 
 | 화면 | 정상 | 빈 상태/실패 |
 | --- | --- | --- |
-| UI-10 `/connect` | 시작 터미널의 일회 토큰 입력 -> 로컬 세션 | 잘못됨/만료/사용됨을 안전한 공통 문구로 안내 |
+| UI-10 접속 | 일반 URL에서 작업 공간 자동 연결 | 네트워크/설정 오류만 안내 |
 | UI-09 `/settings` | 실행 모드, 내부 모델 설정 여부, 연결 검사, 팩/runner 상태 | 미설정/연결 실패/환경 없음, 현재 가능한 작업 안내 |
 | UI-01/03 | fixture/live 표시, 자료가 내부에서 처리됨을 표시 | 세션 만료 시 작업을 잃지 않고 재접속 안내 |
 | UI-07 | 보관 중인 자료 종류, debug trace 상태, 작업 삭제 | 삭제 중/실패/충돌, 재시도 가능 |
@@ -39,7 +39,6 @@ UI에서 실제 모델 키를 입력/노출하지 않는다. 상세 오류는 �
 | 저장/설정 | 내용 | 수명 |
 | --- | --- | --- |
 | 시작 설정 | 기본 loopback 또는 명시한 listen IP, allowed_hosts, 사내 endpoint, 제한, 등록 도구 | 프로세스 설정, 비밀값은 env |
-| 메모리 접속 토큰 | 토큰 검증 정보/만료/사용 여부 | 5분 일회 |
 | 메모리 세션 | 세션 식별자/만료/CSRF 정보 | 8시간 또는 logout/재시작 |
 | `run_traces` 메타데이터 | 역할/판본/시간/상태/usage | 작업 삭제까지 |
 | raw debug trace | 실제 요청/응답 | 명시 opt-in, 최대 24시간 또는 작업 삭제 |
@@ -54,11 +53,14 @@ UI에서 실제 모델 키를 입력/노출하지 않는다. 상세 오류는 �
 
 ### 접속
 
-기본 바인딩은 `127.0.0.1`이며 사용자가 명시한 `0.0.0.0`/`[::]` 또는 특정 IP도 허용한다. wildcard 바인딩은 서버 인터페이스 IP/loopback의 Host를 허용하며 별도 도메인/접속 주소는 `server.allowed_hosts`에 호스트:포트로 등록한다. 시작 토큰은 암호학적 난수로 만들고 터미널에 표시한다. UI-10에서 `POST /api/v1/auth/session`으로 교환하고 성공 시 소비한다. 토큰은 URL이나 접근 로그에 넣지 않는다. 5분 만료 토큰은 거절하고 재시작 등 안내된 새 발급 절차를 제공한다.
+기본 바인딩은 `127.0.0.1`이며 사용자가 명시한 `0.0.0.0` 또는 특정 IP도 허용한다.
+시작 토큰과 사용자 로그인은 제거했다. 일반 URL을 열면 브라우저가 `POST /api/v1/session`에
+빈 JSON을 보내 작업 공간 연결을 자동 준비한다. 이 연결은 사용자 인증을 제공하지 않는다.
 
-세션은 8시간 고정 만료이며 `HttpOnly`, `SameSite=Strict`, `Path=/` 쿠키를 사용한다. loopback HTTP에서 Secure 쿠키를 쓰지 않는 설정을 원격 배포에 재사용하지 않는다. 서버 재시작은 세션을 폐기한다. task/job의 영속 상태 복구는 F09가 담당한다.
-
-Host는 허용 목록과, Origin은 실제 요청 Host와 정확히 비교하고 외부 CORS를 허용하지 않는다. 상태 변경 요청에는 세션/CSRF/멱등 키를 요구한다. 토큰 교환은 세션 이전 경로이므로 Host/Origin/토큰/크기 제한을 검사하며 일반 작업 API의 공개 예외로 확대하지 않는다. 비인증 health는 liveness만 반환한다.
+내부 세션은 8시간이며 `HttpOnly`, `SameSite=Strict`, `Path=/` 쿠키를 사용한다.
+만료·서버 재시작 뒤에도 화면이 자동 재연결하며, 서버 재시작은 영속 작업을 삭제하지 않는다.
+API 프록시의 Host와 설정된 브라우저 Origin을 정확히 검사하며, 상태 변경에는 CSRF와 멱등 키를 요구한다.
+자동 연결 자체도 Host/Origin/요청 크기를 검사한다. liveness는 `/health`에서 제공한다.
 
 ### 내부 모델
 
@@ -89,7 +91,7 @@ builtin 도구는 등록 인수만 받는다. process 도구는 고정 파일/�
 | 상대 | 공통 함수/경로 | 계약 |
 | --- | --- | --- |
 | 모든 API | `RequireSession`, `ValidateOrigin`, `ValidateCSRF`, `AuthorizeTaskReference` | 순서가 다른 우회 endpoint 없음 |
-| UI-10 | `POST /api/v1/auth/session`, `DELETE /api/v1/auth/session` | 일회 토큰/세션 발급/폐기 |
+| UI-10 | `POST /api/v1/session`, `DELETE /api/v1/session` | 자동 연결 세션 생성/폐기 |
 | UI-09 | `GET /api/v1/runtime`, `POST /api/v1/provider/check`, `GET /api/v1/catalog` | 인증된 실행 환경/설정 여부/등록 목록. 별도 비인증 `GET /api/v1/health`는 liveness만 |
 | F04 | `BuildWriterRequest`, `SanitizeReviewerFeedback` | 승인된 입력만 전달 |
 | F07/F08 | `RunRegisteredTool` | 권한/digest/sandbox/자원 제한 |
@@ -106,8 +108,8 @@ builtin 도구는 등록 인수만 받는다. process 도구는 고정 파일/�
 
 | ID | 조건과 기대 결과 |
 | --- | --- |
-| AC-F10-01 | 명시한 네트워크 바인딩/서버 IP Host 접속 지원, 미등록 Host 거절, 토큰 없이 작업 목록/원자료/파일 API 접근 불가 |
-| AC-F10-02 | 토큰 5분 만료/한 번 사용/세션 8시간 만료/logout/재시작 폐기 시험 |
+| AC-F10-01 | 명시한 바인딩/설정된 브라우저 Origin에서 로그인 없이 자동 연결, 미등록 Host/Origin 거절 |
+| AC-F10-02 | 토큰 입력 없이 작업 공간 연결, 내부 세션 만료/폐기/재시작 뒤 자동 재연결 시험 |
 | AC-F10-03 | 잘못된 Host/Origin/CSRF와 외부 CORS 요청 거절 |
 | AC-F10-04 | source나 모델 출력의 URL/tool_calls가 임의 연결/실행으로 이어지지 않음 |
 | AC-F10-05 | 실제 writer 요청 캡처에 미승인 원문/파일명/검토 설명/stderr 없음 |

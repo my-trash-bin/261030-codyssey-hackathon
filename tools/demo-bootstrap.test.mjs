@@ -2,10 +2,48 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { demoOptions } from '../scripts/demo/bootstrap.mjs';
-import { modelEnvironment, prepareReproduction } from '../scripts/bootstrap/app.mjs';
+import { modelEnvironment, prepareReproduction, launchMode } from '../scripts/bootstrap/app.mjs';
+import { ask, run, prepare } from '../scripts/bootstrap/common.mjs';
+import { PassThrough, Writable } from 'node:stream';
+import { readFile } from 'node:fs/promises';
 
 const config = { provider: { base_url_env: 'MODEL_URL', model_env: 'MODEL_ID', api_key_env: 'MODEL_KEY' },
  reproduction: { enabled: true } };
+
+test('app launches both services and explicit recipes select API or web', () => {
+ assert.equal(launchMode([]), 'app');
+ assert.equal(launchMode(['--api']), 'api');
+ assert.equal(launchMode(['--web']), 'web');
+ assert.throws(() => launchMode(['--client']), /just app \/ just api \/ just web/);
+});
+
+test('terminal prompts keep field labels on a separate line and never echo secrets', async () => {
+ for (const secret of [false, true]) {
+  const input = new PassThrough(); input.isTTY = true;
+  let displayed = '';
+  const output = new Writable({ write(chunk, _encoding, done) { displayed += chunk.toString(); done(); } });
+  const answer = ask('MODEL_FIELD', secret, input, output);
+  assert.match(displayed, /^MODEL_FIELD[^\n]*\n/);
+  input.write('test-input\r');
+  assert.equal(await answer, 'test-input');
+  if (secret) assert(!displayed.includes('test-input'));
+  input.destroy(); output.destroy();
+ }
+});
+
+test('command completion collects output through stream closure', async () => {
+ const env = { ...process.env }; delete env.NODE_TEST_CONTEXT;
+ const result = await run(process.execPath, ['-e', "process.stdout.write('complete')"], env, true);
+ assert.equal(result, 'complete');
+});
+
+test('preparation writes both output streams to a private log and reports its path on failure', async () => {
+ const env = { ...process.env }; delete env.NODE_TEST_CONTEXT;
+ const path = await prepare(process.execPath, ['-e', "console.log('build stdout'); console.error('build stderr')"], env);
+ const text = await readFile(path, 'utf8');
+ assert.match(text, /build stdout/); assert.match(text, /build stderr/);
+ await assert.rejects(prepare(process.execPath, ['-e', 'process.exit(2)'], env), /준비 로그: .*output\.log/);
+});
 
 test('demo only accepts presentation flags and rejects removed execution modes', () => {
  assert.deepEqual(demoOptions([]), []);

@@ -37,9 +37,8 @@ scope를 대조한다. 철회 후 과거 allow로 복귀하지 않는다. 미리
 
 남은 항목은 서버 경로가 없는 기능이 아니라 이미 연결된 흐름의 표시 간격이다.
 
-- 세션: `GET`/`POST`/`DELETE /api/v1/session`을 모두 호출한다. 세션이 인정되지 않으면 화면이
-  세션을 닫고 새 시작 토큰이 필요하다고 안내한다. 서버가 세션을 열지 못하는 환경(503
-  `WORKFLOW_API_DISABLED` 등)은 안내 문구만 확인했다.
+- 연결: `GET`/`POST /api/v1/session`으로 자동 연결한다. 내부 세션이 만료되거나 서버가 재시작되어도
+  입력 없이 다시 연결하며 시작 토큰과 로그인 화면은 없다. 작업 API 비활성/네트워크 오류는 재연결 안내를 표시한다.
 - 작업 등록: catalog 기반 `intake` 폼과 `GET /api/v1/catalog` 선택지, 수동 후보, 원자료 개별
   해제를 모두 호출한다. 기존 `context` 경로는 남아 있지만 기본 화면은 intake를 쓴다.
 - C: 필드 목록의 `input_revision`에 묶어 선택하고 `select_fields.v1` parameters.fields로 요청한다.

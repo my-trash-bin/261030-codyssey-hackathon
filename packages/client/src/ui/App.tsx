@@ -7,7 +7,7 @@ import type { JSX } from 'react';
 import { useDisclosures } from './hooks/useDisclosures.ts';
 import { useRuntimeInfo } from './hooks/useRuntimeInfo.ts';
 import type { RuntimeInfoApi } from './hooks/useRuntimeInfo.ts';
-import { formatSessionExpiry, useSession } from './hooks/useSession.ts';
+import { useSession } from './hooks/useSession.ts';
 import type { SessionApi } from './hooks/useSession.ts';
 import { useTaskFlow } from './hooks/useTaskFlow.ts';
 import { useArtifacts } from './hooks/useArtifacts.ts';
@@ -128,7 +128,7 @@ function WorkflowWorkspace(props: {
     <>
       <Masthead
         modeLabel={runtime.modeLabel}
-        sessionLabel={session.session ? `만료 ${formatSessionExpiry(session.session.expiresAt)}` : null}
+        sessionLabel={null}
         taskLabel={taskLabel}
         steps={steps}
         completed={completed}
@@ -199,8 +199,7 @@ export function App(): JSX.Element {
         />
         <main className="workspace" id="workspace" tabIndex={-1}>
           <p className="hint" id="session-gate-hint">
-            시작 토큰으로 세션을 열면 여섯 단계 작업 공간이 열립니다. 토큰은 서버를 시작할 때 터미널에 한 번만
-            표시됩니다.
+            서버에 연결하고 있습니다.
           </p>
           <SessionSection session={session} />
           <ExecutionSection runtime={runtime} />

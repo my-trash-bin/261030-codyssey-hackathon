@@ -114,8 +114,8 @@ AC-F09-11,F09,features/09-history-recovery.md,"기본 trace 본문 미저장, op
 AC-F09-12,F09,features/09-history-recovery.md,"다른 task의 job/event/artifact ID 혼합·비인증 요청 차단, 내부 저장소 정적 제공 없음",T42;T43;T53,product_backlog,backlog,not_run
 AC-F09-13,F09,features/09-history-recovery.md,과거 finalized 기록이 현재 만료/철회 export를 복원하지 않음,T06;T52,product_backlog,backlog,not_run
 AC-F09-14,F09,features/09-history-recovery.md,"미측정 시간은 미측정, fixture/live·human/model·실패/미수행을 구별",T58;T60,product_backlog,backlog,not_run
-AC-F10-01,F10,features/10-runtime-boundary.md,"명시한 네트워크 바인딩·서버 IP Host 접속 지원, 미등록 Host 거절, 토큰 없이 작업 목록·원자료·파일 API 접근 불가",T42,product_backlog,backlog,not_run
-AC-F10-02,F10,features/10-runtime-boundary.md,토큰 5분 만료·한 번 사용·세션 8시간 만료·logout·재시작 폐기 시험,T42,product_backlog,backlog,not_run
+AC-F10-01,F10,features/10-runtime-boundary.md,"명시한 바인딩·설정된 브라우저 Origin에서 로그인 없이 자동 연결 및 미등록 Host·Origin 거절",T42,product_backlog,backlog,not_run
+AC-F10-02,F10,features/10-runtime-boundary.md,토큰 입력 없이 작업 공간 연결 및 내부 세션 만료·폐기·재시작 뒤 자동 재연결 시험,T42,product_backlog,backlog,not_run
 AC-F10-03,F10,features/10-runtime-boundary.md,잘못된 Host/Origin/CSRF와 외부 CORS 요청 거절,T42,product_backlog,backlog,not_run
 AC-F10-04,F10,features/10-runtime-boundary.md,source나 모델 출력의 URL·tool_calls가 임의 연결·실행으로 이어지지 않음,T10;T27,product_backlog,backlog,not_run
 AC-F10-05,F10,features/10-runtime-boundary.md,실제 writer 요청 캡처에 미승인 원문·파일명·검토 설명·stderr 없음,T01,hackathon_core,backlog,not_run

@@ -8,9 +8,9 @@ SafeHandoff는 심사위원과 사용자가 **실제 동작하는 코드**와 **
 
 | 실행 경로 | 실행 명령 | 포트 | 동작 내용과 표시 |
 | --- | --- | --- | --- |
-| 1. 실제 앱 (`@safehandoff/app`) | `just app` (또는 `pnpm --filter @safehandoff/app start`) | `127.0.0.1:8080` | `RealCore` + OpenAI 호환 모델 어댑터(`HttpModelClient`) + SQLite(`node:sqlite`) 실행. `/api/core/status`, `/api/core/generate`, `/api/documents` 제공 |
+| 1. 실제 앱 (`@safehandoff/app`) | `just api` (또는 `pnpm --filter @safehandoff/app start`) | `127.0.0.1:8080` | `RealCore` + OpenAI 호환 모델 어댑터(`HttpModelClient`) + SQLite(`node:sqlite`) 실행. `/api/core/status`, `/api/core/generate`, `/api/documents` 제공 |
 | 2. 연출용 앱 (`@safehandoff/fake-app`) | `just fake-app` | `127.0.0.1:8081` | 외부 LLM 없이 고정 시나리오 응답(`FakeCore`)과 상태 제어(`POST /__demo`)를 제공. 실제 모델 추론 완료로 집계하지 않음 |
-| 3. 웹 클라이언트 (`@safehandoff/client`) | `just client` / `just fake-client` | `127.0.0.1:5173` / `:5174` | React 19 + Vite UI. 상단 배지로 코어 준비 상태(`ready`)와 연결 모드를 실시간 표시 |
+| 3. 웹 클라이언트 (`@safehandoff/client`) | `just web` / `just fake-client` | `127.0.0.1:5173` / `:5174` | React 19 + Vite UI. 상단 배지로 코어 준비 상태(`ready`)와 연결 모드를 실시간 표시 |
 | 4. OSS 재현/작성/검토 종단간 스모크 | `node tools/oss-repro-smoke.mjs ...` | CLI | `make_synthetic_inputs_v1` -> `DockerReproRunner`(`--network=none`, 4회 실행) -> `composeFactPack` + `groundFacts` -> `RealCore.writeReviewed()` 실행 |
 
 ---
@@ -31,11 +31,12 @@ python tools/validate_docs.py
 `.env` 파일 또는 환경 변수로 OpenAI 호환 모델 정보를 설정한다 (`SAFEHANDOFF_LLM_BASE_URL`, `SAFEHANDOFF_LLM_MODEL`, 선택적 `SAFEHANDOFF_LLM_API_KEY`).
 
 ```sh
-# 터미널 1 - 실제 서버 (:8080)
+# 실제 앱 전체 (API :8080 + 웹 :5173)
 just app
 
-# 터미널 2 - 웹 클라이언트 (:5173 -> :8080 프록시)
-just client
+# 따로 실행하려면 각각 다른 터미널에서
+just api
+just web
 ```
 
 모델 서버가 없는 환경에서 UI 흐름만 먼저 확인할 때는 연출용 서버를 사용한다.
@@ -52,8 +53,10 @@ just fake-client
 
 `just demo`는 의존성 설치·빌드·브라우저 준비 후 기존 fake-app 화면만 실행한다.
 실제 앱은 기존 `just app`이 설치·빌드·모델 연결 정보 입력을 자동 처리한다.
+`.env`가 없으면 `.env.example`을 복사하고 입력한 모델 설정을 `.env`에 저장해 다음 실행에 재사용한다.
 재현 enabled이고 등록 경로가 없으면 이미지·합성 입력 등록을 준비해 실제 앱에 주입한다.
-`just client`도 설치·빌드 후 실제 앱용 클라이언트를 실행한다. 기존 설정은 변경하지 않는다.
+`just app`은 설치·빌드를 한 번 수행하고 API와 웹을 함께 실행·종료한다.
+개별 실행은 `just api`와 `just web`을 사용한다. 입력한 항목 외의 설정과 주석은 보존한다.
 상세 조건은 [README](../../README.md) 3.2 및 3.4를 따른다.
 
 아래 OSS CLI는 이미지 및 installation을 이미 준비한 경우의 수동 개발 검증 단계다.

@@ -63,9 +63,14 @@ HTTP API 계약은 그대로입니다. 연출의 분석과 공개 선택은 브�
 
 ## 3. 연결 설정/Transcript/ToyRecord 스모크 계약
 
+API와 웹의 수신 주소는 공통 `HOST`를 사용한다(기본 `127.0.0.1`). 웹은 `CLIENT_PORT`(기본 5173),
+API는 `PORT`(기본 8080)를 사용한다. `HOST=0.0.0.0`은 두 서버를 모든 IPv4 인터페이스에 바인딩한다.
+기존 `CLIENT_HOST`는 사용하지 않는다. 브라우저 origin은 명시 설정 또는 바인딩/서버 인터페이스로 정하며
+API 프록시의 server origin은 loopback이다. 시작 토큰과 사용자 로그인은 사용하지 않는다.
+
 1. **모델 연결 환경 변수**:
    - `SAFEHANDOFF_LLM_BASE_URL`, `SAFEHANDOFF_LLM_MODEL`, `SAFEHANDOFF_LLM_API_KEY`를 설정 파일(`SAFEHANDOFF_CONFIG`, 기본 `config.json` / `config.example.json`)에 지정된 환경 변수 이름으로 읽는다.
-   - 기존 `just app`은 설치·빌드 후 없는 연결 정보를 프롬프트로 받아 실제 앱에 전달한다. 키는 숨김 입력하며 파일에 저장하지 않는다.
+   - `just app`은 API와 웹을 함께 실행한다. 개별 실행은 `just api`, `just web`이다. `.env`가 없으면 `.env.example`을 복사한다. API 준비 시 없는 연결 정보를 입력받아 루트 `.env`에 저장한다. 키는 숨김 입력하며 파일은 소유자 읽기·쓰기 권한으로 저장한다. 다른 설정과 주석은 보존한다.
    - reproduction.enabled가 true이고 `SAFEHANDOFF_REPRO_REGISTRY`가 없으면 실행기 이미지·합성 입력 등록을 준비해 해당 환경 변수로 앱에 주입한다. 기존 등록과 disabled 설정은 유지한다. HTTP/UI 재현 실행은 아직 미구현이다.
    - 분석/작성/검토는 tool calling이 필요한 `submit` 결과 도구를 사용하며 `response_format`을 전송하지 않는다.
    - `provider.response_mode`는 도구 없는 공개 조건 해석/provider 확인 호출에만 적용한다. text는 프롬프트와 엄격한 응답 검증을 사용하고, json일 때만 JSON 응답 형식 필드를 전송한다.
@@ -93,14 +98,14 @@ HTTP API 계약은 그대로입니다. 연출의 분석과 공개 선택은 브�
 | `F05` 확정/내보내기 | `POST /api/v1/artifacts/{id}/finalize`, `GET /api/v1/exports/{id}/archive` | `expected_revision`, `expected_artifact_set_hash`, `Idempotency-Key` | 현재 결정/해시 재검증 후 저장된 동일 바이트 반환 (만료/철회 시 `409 EXPORT_INVALIDATED`) |
 | `F06` 재사용 규칙 | `POST /api/v1/rules`, `POST /api/v1/tasks/{id}/rules/apply`, `POST /api/v1/rules/{id}/revoke` | `expected_revision`, `rule_refs`, `Idempotency-Key` | 6개 scope + `selector` 일치 시 새 자료에서 변환 재계산 (`exact_value` 저장 시 `422`) |
 | `F07/F08` 확장/재현 | `GET /api/v1/catalog`, `POST /api/v1/tasks/{id}/jobs` (`kind=reproduce`) | `target_pair_id`, `synthetic_input_set_id`, `expected_revision` | 고정 digest 확인 후 4회 실행 결과 정형 투영 |
-| `F09/F10` 이력/삭제/세션 | `GET /api/v1/tasks/{id}/events`, `DELETE /api/v1/tasks/{id}`, `POST /api/v1/auth/session` | `expected_revision`, `confirmation="DELETE"`, `acknowledge_saved_rules_retained=true` | 원자료/초안/이력 즉시 삭제 및 재사용 규칙 원작업 FK 해제 |
+| `F09/F10` 이력/삭제/세션 | `GET /api/v1/tasks/{id}/events`, `DELETE /api/v1/tasks/{id}`, `POST /api/v1/session` | `expected_revision`, `confirmation="DELETE"`, `acknowledge_saved_rules_retained=true` | 원자료/초안/이력 즉시 삭제 및 재사용 규칙 원작업 FK 해제 |
 
 ---
 
-## 5. 인증된 task/공개 결정 API (단일 운영자 개발용)
+## 5. task/공개 결정 API (단일 운영자 개발용)
 
 기존 `/api/analysis`는 stateless로 유지한다. 아래 v1 경로는 실제 앱에서
-`SAFEHANDOFF_WORKFLOW_ENABLED=1`로 켠 경우 활성화된다. 기존 WORKFLOW_TOKEN 설정도 활성화 입력으로 지원한다. 미설정/fake-app은
+기본 활성화된다. `SAFEHANDOFF_WORKFLOW_ENABLED=0` 또는 fake-app은
 503 `WORKFLOW_API_DISABLED`다. 워크플로우 세션을 켜면 기존 `/api/documents`/`/api/sharing`/
 `/api/analysis`도 **같은** 세션/CSRF/Host/Origin 검사를 거친다(`packages/server/src/app.ts`의
 `GUARDED_PATHS`, `packages/app/src/main.ts`가 `createWorkflowHandler`와 `createApp`에 같은
@@ -116,10 +121,10 @@ X-CSRF-Token/Idempotency-Key와 Set-Cookie를 전달한다. 임의 origin/와일
 
 ### 세션
 
-- `POST /api/v1/session`: 정확한 브라우저 Origin, JSON `{ "token": "시작 시 터미널에 표시한 5분/1회용 토큰" }`.
+- `POST /api/v1/session`: 정확한 브라우저 Origin, JSON `{}`. 사용자 인증 토큰 없이 자동 호출한다.
   성공은 `{data:{csrf_token,expires_at,analysis_environment,capabilities}}`와 8시간 고정 HttpOnly/
-  SameSite=Strict/Path=/ 쿠키다. 이 개발 API는 loopback HTTP만 허용하므로 Secure 쿠키를
-  사용하지 않는다. 인증된 `GET /api/v1/session`은 같은 DTO를 반환한다. 서버 재시작 시 세션은 만료된다.
+  SameSite=Strict/Path=/ 쿠키다. 브라우저 origin은 설정한 HTTP 주소와 정확히 일치해야 한다.
+  `GET /api/v1/session`은 같은 DTO를 반환한다. 만료·재시작 뒤에는 화면이 자동으로 새 세션을 만든다.
 - 모든 v1 조회도 세션이 필요하다. 세션 없음/만료는 401 `AUTH_REQUIRED`, Host/Origin 거부와
   CSRF 실패는 403이다. GET은 Origin 생략이 가능하고, 쓰기는 정확한 Origin과 CSRF가 필수다.
 - `analysis_environment`는 `{provider_origin:string|null,approval_status:
@@ -212,11 +217,11 @@ expires_at은 선택 가능하며 과거 시각은 거부한다. 필수 후보 e
 
 ## 초안/파일/규칙/이력 API
 
-`SAFEHANDOFF_WORKFLOW_ENABLED=1`은 암호학적 시작 토큰을 터미널에 한 번 표시한다.
-토큰은 프로세스 시작부터 5분/1회만 유효하고 DB/transcript/응답에 저장하지 않는다.
-기존 SAFEHANDOFF_WORKFLOW_TOKEN(32자 이상)은 같은 수명/사용 제한을 따르며 터미널에 재표시하지 않는다.
-DELETE /api/v1/session은 Origin/CSRF/멱등 키를 확인해 로그아웃하고 쿠키를 지운다.
-세션은 갱신 없는 8시간 고정이며 재시작 시 폐기한다. app/client의 기본 bind는 127.0.0.1이다.
+작업 API는 기본 활성화이며 `SAFEHANDOFF_WORKFLOW_ENABLED=0`이면 비활성화한다.
+시작 토큰, 5분 제한, 1회용 링크와 로그인 화면은 제거했다. `POST /api/v1/session`은 `{}`를 받아
+쿠키와 CSRF 상태를 준비하며 사용자 인증을 수행하지 않는다. 브라우저는 처음 접속하거나
+기존 연결이 만료되면 이를 자동 호출한다. 내부 세션은 8시간이며 서버 재시작 시 폐기한다.
+DELETE /api/v1/session은 Origin/CSRF/멱등 키를 확인해 쿠키를 지운다.
 
 SAFEHANDOFF_WORKFLOW_CATALOG는 운영자 JSON 경로다. 형식은 projects/recipients 배열이며
 각 항목은 `{id,display_name}`이다. 생략 시 두 목록은 빈 배열이다. 가상 예제는

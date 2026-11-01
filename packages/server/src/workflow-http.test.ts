@@ -25,7 +25,7 @@ async function fixture(t: { after(fn: () => Promise<void>): void }, engineOverri
   const server = createServer((req, res) => { void handler(req, res); });
   await new Promise<void>(r => server.listen(0, '127.0.0.1', r));
   const origin = `http://127.0.0.1:${(server.address() as AddressInfo).port}`;
-  handler = createWorkflowHandler(store, engine, { token: 't'.repeat(32), browserOrigin: origin, serverOrigin: origin });
+  handler = createWorkflowHandler(store, engine, { browserOrigin: origin, serverOrigin: origin });
   t.after(async () => { await handler.close(); await new Promise<void>(r => server.close(() => r())); store.close(); });
   let cookie = '', csrf = '';
   const call = async (path: string, method = 'GET', input?: unknown, headers: Record<string, string> = {}) => {
@@ -34,7 +34,7 @@ async function fixture(t: { after(fn: () => Promise<void>): void }, engineOverri
       body: input === undefined ? undefined : JSON.stringify(input) });
     return { status: response.status, body: await response.json() as any, headers: response.headers };
   };
-  const login = await call('/session', 'POST', { token: 't'.repeat(32) });
+  const login = await call('/session', 'POST', {});
   cookie = login.headers.get('set-cookie')!.split(';')[0]!; csrf = login.body.data.csrf_token;
   return { origin, store, call, calls: () => calls, setCookie: (v: string) => { cookie = v; } };
 }
@@ -107,13 +107,25 @@ test('late model completion after HTTP cancellation never creates candidates or 
   assert.equal(status.body.data.status, 'cancelled');
   assert.deepEqual(f.store.analysis.candidates(task.id), []); assert.deepEqual(f.store.decisions(task.id), []);
 });
+test('configured browser connects without login while other origins remain rejected', async () => {
+  const { WorkflowSessions } = await import('./workflow-session.ts');
+  const access = { browserOrigin: 'http://100.66.142.2:5173', serverOrigin: 'http://127.0.0.1:8080' };
+  const sessions = new WorkflowSessions(access);
+  const response = { setHeader: () => {} } as unknown as import('node:http').ServerResponse;
+  const request = { headers: { host: '127.0.0.1:8080', origin: 'http://other.invalid:5173' } } as import('node:http').IncomingMessage;
+  assert.throws(() => sessions.open(request, response), /ORIGIN_REJECTED/);
+  request.headers.origin = access.browserOrigin;
+  assert.ok(sessions.open(request, response).csrf_token);
+  assert.ok(sessions.open(request, response).csrf_token);
+});
+
 test('session expiry and duplicate cookies cannot keep authorization alive', async () => {
   const { WorkflowSessions } = await import('./workflow-session.ts');
   let now = 0, cookie = '';
-  const sessions = new WorkflowSessions({ token: 'x'.repeat(32), browserOrigin: 'http://127.0.0.1:5173', serverOrigin: 'http://127.0.0.1:8080' }, () => now);
+  const sessions = new WorkflowSessions({ browserOrigin: 'http://127.0.0.1:5173', serverOrigin: 'http://127.0.0.1:8080' }, () => now);
   const request = { headers: { host: '127.0.0.1:8080', origin: 'http://127.0.0.1:5173' } } as import('node:http').IncomingMessage;
   const response = { setHeader: (_name: string, value: string) => { cookie = value; } } as unknown as import('node:http').ServerResponse;
-  const data = sessions.open(request, response, 'x'.repeat(32));
+  const data = sessions.open(request, response);
   assert.ok(cookie.includes('HttpOnly; SameSite=Strict; Path=/'));
   request.headers.cookie = cookie.split(';')[0];
   request.headers['x-csrf-token'] = data.csrf_token;
@@ -122,6 +134,8 @@ test('session expiry and duplicate cookies cannot keep authorization alive', asy
   assert.throws(() => sessions.require(request, false), /AUTH_REQUIRED/);
   request.headers.cookie = cookie.split(';')[0]; now = 28800001;
   assert.throws(() => sessions.require(request, false), /AUTH_REQUIRED/);
+  const next = sessions.open(request, response);
+  assert.notEqual(next.csrf_token, data.csrf_token);
 });
 test('disclosure cancellation and confirmed deletion wait for physical exit and reject new task writes', async t => {
   let release!: () => void, aborted!: () => void;

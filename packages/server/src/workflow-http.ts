@@ -60,7 +60,7 @@ export function createWorkflowHandler(store: TaskStore, engine: Engine, access: 
       if (parts.join('/') === 'session') {
         if (request.method === 'POST') {
           sessions.checkBoundary(request, true);
-          const input = object(await body(request), ['token']); send(response, 200, { data: sessionData(sessions.open(request, response, input.token)) }); return;
+          object(await body(request), []); send(response, 200, { data: sessionData(sessions.open(request, response)) }); return;
         }
         if (request.method === 'GET') { send(response, 200, { data: sessionData(sessions.require(request, false)) }); return; }
         if (request.method === 'DELETE') {

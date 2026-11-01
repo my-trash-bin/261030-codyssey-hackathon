@@ -30,7 +30,7 @@ test('real engine parses CSV, HTTP adopts server IDs, selected-field preview and
   const server = createServer((req, res) => { void handler(req, res); });
   await new Promise<void>(r => server.listen(0, '127.0.0.1', r));
   const origin = `http://127.0.0.1:${(server.address() as AddressInfo).port}`;
-  handler = createWorkflowHandler(store, core, { token: 'x'.repeat(32), browserOrigin: origin, serverOrigin: origin });
+  handler = createWorkflowHandler(store, core, { browserOrigin: origin, serverOrigin: origin });
   t.after(async () => { await handler.close(); await new Promise<void>(r => server.close(() => r())); store.close(); });
   let cookie = '', csrf = '';
   const call = async (path: string, method = 'GET', input?: unknown, key: string = randomUUID()) => {
@@ -38,7 +38,7 @@ test('real engine parses CSV, HTTP adopts server IDs, selected-field preview and
       'Content-Type': 'application/json', 'X-CSRF-Token': csrf, 'Idempotency-Key': key }, body: input === undefined ? undefined : JSON.stringify(input) });
     return { status: response.status, body: await response.json() as any, cookie: response.headers.get('set-cookie') };
   };
-  const session = await call('/session', 'POST', { token: 'x'.repeat(32) });
+  const session = await call('/session', 'POST', {});
   cookie = session.cookie!.split(';')[0]!; csrf = session.body.data.csrf_token;
   const created = await call('/tasks', 'POST', { context: { purpose: 'support', recipient: 'fictional' } }, 'create');
   const id = created.body.data.id, base = '/tasks/' + id;

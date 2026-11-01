@@ -178,7 +178,6 @@
     "max_model_calls_per_run": 12,
     "request_timeout_seconds": 120,
     "global_model_concurrency": 1,
-    "bootstrap_token_minutes": 5,
     "session_hours": 8,
     "raw_trace_retention_hours": 24,
     "max_series_count": 9007199254740991
