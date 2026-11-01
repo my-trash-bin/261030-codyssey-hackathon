@@ -31,7 +31,14 @@ export interface TaskEvent {
   usage: string | null;
 }
 
+export interface ModelSetup {
+  baseUrlEnv: string;
+  missing: string[];
+  baseUrlRejected: boolean;
+}
+
 export interface WorkflowRuntime {
+  implementation: string | null;
   provider: string | null;
   model: string | null;
   ready: boolean | null;
@@ -41,6 +48,7 @@ export interface WorkflowRuntime {
   reproductionStatus: string | null;
   contentLogging: boolean | null;
   retention: string | null;
+  modelSetup: ModelSetup | null;
 }
 
 const base = '/api/v1';
@@ -116,7 +124,12 @@ function parseRuntime(body: unknown): WorkflowRuntime | null {
   const debug = isRecord(rawDebug) ? rawDebug : {};
   const ready = core['ready'];
   const contentLogging = debug['content_logging'];
+  const setup = data['model_setup'];
   return {
+    implementation: asString(core['implementation']),
+    modelSetup: isRecord(setup)
+      ? { baseUrlEnv: asString(setup['base_url_env']) ?? '', missing: labelList(setup['missing']), baseUrlRejected: setup['base_url_rejected'] === true }
+      : null,
     provider: asString(core['provider']),
     // app은 model_id를 최상위로 보내고, core.model은 코어가 직접 알릴 때만 있다.
     model: asString(data['model_id']) ?? asString(core['model']),

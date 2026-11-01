@@ -35,6 +35,11 @@ export class RealCore implements Engine {
   get info(): CoreInfo {
     return { implementation: 'real', connection: 'direct', ready: Boolean(this.model?.info.ready && this.config) };
   }
+  // Proves only that the configured model answers. The prompt is fixed and carries no task material.
+  async checkModel(options?: { signal?: AbortSignal }): Promise<void> {
+    if (!this.model) throw new ModelError('MODEL_UNAVAILABLE');
+    await this.model.complete({ role: 'provider_check', input: 'Reply with the single word OK.', maxOutputTokens: 64, responseFormat: 'text' }, { signal: options?.signal });
+  }
   private async call<T>(request: ModelRequest, parse: (text: string) => T, run: Run): Promise<T> {
     if (run.signal?.aborted) throw new CoreError('CORE_CANCELLED');
     if (!this.model || !this.config) throw new CoreError('CORE_NOT_IMPLEMENTED');
@@ -142,10 +147,10 @@ export class RealCore implements Engine {
   }
 
   // Full bounded repair workflow for Engine consumers; generate deliberately uses zero repairs.
-  async writeReviewed(pack: FactPack, options?: { signal?: AbortSignal; maxRepairs?: number; grounding?: ReviewGroundingContext; finalFiles?: (draft: Draft) => PublicReviewFile[]; onProgress?: (kind: string) => void }): Promise<{ draft: Draft; review: Review }> {
+  async writeReviewed(pack: FactPack, options?: { signal?: AbortSignal; maxRepairs?: number; grounding?: ReviewGroundingContext; finalFiles?: (draft: Draft) => PublicReviewFile[]; onProgress?: (kind: string) => void; onDraft?: (draft: Draft | null) => void }): Promise<{ draft: Draft; review: Review }> {
     return this.traced('writeReviewed', trace => this.writeReviewedRun(pack, options, trace));
   }
-  private async writeReviewedRun(pack: FactPack, options?: { signal?: AbortSignal; maxRepairs?: number; grounding?: ReviewGroundingContext; finalFiles?: (draft: Draft) => PublicReviewFile[]; onProgress?: (kind: string) => void }, trace?: TranscriptRun): Promise<{ draft: Draft; review: Review }> {
+  private async writeReviewedRun(pack: FactPack, options?: { signal?: AbortSignal; maxRepairs?: number; grounding?: ReviewGroundingContext; finalFiles?: (draft: Draft) => PublicReviewFile[]; onProgress?: (kind: string) => void; onDraft?: (draft: Draft | null) => void }, trace?: TranscriptRun): Promise<{ draft: Draft; review: Review }> {
     pack = structuredClone(pack);
     const run: Run = { trace, calls: 0, onProgress: options?.onProgress, signal: options?.signal, grounding: options?.grounding ? structuredClone(options.grounding) : undefined };
     const limit = options?.maxRepairs ?? this.config?.workflow.max_review_repairs ?? 0;
@@ -160,12 +165,14 @@ export class RealCore implements Engine {
     let draft = await this.draft(pack, run);
     for (let repairs = 0; ; repairs++) {
       run.publicFiles = undefined;
+      options?.onDraft?.(draft);
       let review = await this.check(draft, pack, run);
       if (review.result === 'pass' && options?.finalFiles) {
         run.publicFiles = options.finalFiles(draft);
         review = await this.check(draft, pack, run);
       }
       if (review.result !== 'needs_changes' || repairs >= limit) return { draft, review };
+      options?.onDraft?.(null);
       // No free-form explanations, actions or candidate IDs cross into the writer session.
       const feedback = review.issues.map(issue => ({ reason_code: issue.reason_code,
         ...(issue.target.kind === 'block' ? { block_id: issue.target.block_id } : {}),

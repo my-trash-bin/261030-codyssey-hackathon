@@ -385,12 +385,11 @@ export function DraftSection(props: {
       <h3>초안 문장</h3>
       <DraftDocumentView draft={artifact.draft} />
 
-      {/* 공개 파일이 없는 초안은 서버가 재검토·편집을 거부한다. 되는 경로만 보여 준다. */}
       {artifact.files.length === 0
         ? (
           <div className="notice notice--warn" data-role="recompose">
-            <p className="status">자동 검토를 통과하지 못해 공개 파일이 만들어지지 않았습니다.</p>
-            <p className="hint">이 초안은 다시 검토하거나 직접 편집할 수 없습니다. 지적 사항을 확인했다면 초안을 새로 만드세요. 공개 결정을 바꿔야 한다면 공개 결정 단계로 돌아가세요.</p>
+            <p className="status">자동 검토를 통과하지 못해 공개 파일이 아직 없습니다.</p>
+            <p className="hint">문서를 고쳐 다시 검토하거나 초안을 새로 만드세요. 공개 결정을 바꿔야 한다면 공개 결정 단계로 돌아가세요.</p>
             <button
               className="button button--solid"
               type="button"
@@ -402,62 +401,60 @@ export function DraftSection(props: {
             {workflow.composeBlockReason === '' ? null : <p className="hint">{workflow.composeBlockReason}</p>}
           </div>
         )
-        : (
-          <>
+        : null}
+
+      <div className="action">
+        <button
+          className="button"
+          type="button"
+          onClick={workflow.reReview}
+          disabled={workflow.reviewBlockReason !== ''}
+          aria-describedby="draft-review-reason"
+        >
+          다시 검토
+        </button>
+        <p className="hint" id="draft-review-reason">
+          {workflow.reviewBlockReason === '' ? '현재 초안으로 모델 검토를 다시 실행합니다.' : workflow.reviewBlockReason}
+        </p>
+      </div>
+
+      <details className="fold" id="draft-docast-editor">
+        <summary>문서 구조 직접 편집</summary>
+        <div className="fold__body">
+          <p className="hint">
+            허용된 블록의 글, 항목, 사실 참조만 고칠 수 있습니다. 저장하면 새 판본이 만들어지고 자동 검토를 다시 거칩니다. 공개 결정은 바뀌지 않습니다.
+          </p>
+          <div className="field">
+            <label htmlFor="draft-docast">문서 구조(JSON)</label>
+            <textarea
+              id="draft-docast"
+              value={workflow.draftText}
+              onChange={(event) => { workflow.setDraftText(event.target.value); }}
+              rows={18}
+              spellCheck={false}
+              aria-invalid={workflow.draftError !== ''}
+              aria-describedby="draft-docast-error"
+            />
+          </div>
+          <p className="hint" id="draft-docast-error" aria-live="polite">
+            {workflow.draftError === ''
+              ? (workflow.draftDirty ? '저장하지 않은 편집이 있습니다.' : '')
+              : workflow.draftError}
+          </p>
           <div className="action">
             <button
               className="button"
               type="button"
-              onClick={workflow.reReview}
-              disabled={workflow.reviewBlockReason !== ''}
-              aria-describedby="draft-review-reason"
+              onClick={workflow.saveEdit}
+              disabled={workflow.editBlockReason !== ''}
+              aria-describedby="draft-edit-reason"
             >
-              다시 검토
+              편집 저장 후 다시 검토
             </button>
-            <p className="hint" id="draft-review-reason">
-              {workflow.reviewBlockReason === '' ? '현재 파일로 모델 검토를 다시 실행합니다.' : workflow.reviewBlockReason}
-            </p>
+            <p className="hint" id="draft-edit-reason">{workflow.editBlockReason}</p>
           </div>
-
-          <details className="fold" id="draft-docast-editor">
-            <summary>문서 구조 직접 편집</summary>
-            <div className="fold__body">
-              <p className="hint">
-                허용된 블록의 글, 항목, 사실 참조만 고칠 수 있습니다. 저장하면 새 판본이 만들어지고 자동 검토를 다시 거칩니다. 공개 결정은 바뀌지 않습니다.
-              </p>
-              <div className="field">
-                <label htmlFor="draft-docast">문서 구조(JSON)</label>
-                <textarea
-                  id="draft-docast"
-                  value={workflow.draftText}
-                  onChange={(event) => { workflow.setDraftText(event.target.value); }}
-                  rows={18}
-                  spellCheck={false}
-                  aria-invalid={workflow.draftError !== ''}
-                  aria-describedby="draft-docast-error"
-                />
-              </div>
-              <p className="hint" id="draft-docast-error" aria-live="polite">
-                {workflow.draftError === ''
-                  ? (workflow.draftDirty ? '저장하지 않은 편집이 있습니다.' : '')
-                  : workflow.draftError}
-              </p>
-              <div className="action">
-                <button
-                  className="button"
-                  type="button"
-                  onClick={workflow.saveEdit}
-                  disabled={workflow.editBlockReason !== ''}
-                  aria-describedby="draft-edit-reason"
-                >
-                  편집 저장 후 다시 검토
-                </button>
-                <p className="hint" id="draft-edit-reason">{workflow.editBlockReason}</p>
-              </div>
-            </div>
-          </details>
-          </>
-        )}
+        </div>
+      </details>
 
       {(humanReviewApplies || artifact.humanReview !== null) && (
         <div className="notice" data-role="human-review">

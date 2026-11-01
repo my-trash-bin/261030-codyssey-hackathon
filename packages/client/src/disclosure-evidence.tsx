@@ -2,10 +2,15 @@
 // 원문 발췌는 서버가 준 raw_bytes를 화면에서 디코딩해 보여주며, 화면이 계산한 값을 만들지 않는다.
 // 클래스 이름과 문구는 이전 DOM 구현(disclosure-evidence.ts)과 같다.
 
+import { createContext, useContext } from 'react';
 import type { JSX } from 'react';
 
 import type { Candidate, Evidence, Snapshot, Source } from './disclosure-state.ts';
 import { collapse, shortId } from './disclosure-format.ts';
+import type { OriginalSpan } from './source-views-client.ts';
+
+// 서버의 원문 대조 응답. 작업 집계에는 원문이 없으므로 근거 id로 찾아 그린다.
+export const OriginalsContext = createContext<ReadonlyMap<string, OriginalSpan>>(new Map());
 
 // 같은 task 응답을 여러 번 그려도 base64 디코딩을 반복하지 않도록 원자료 객체 단위로 캐시한다.
 const sourceBytes = new WeakMap<Source, Uint8Array | null>();
@@ -52,6 +57,7 @@ function excerptText(source: Source | undefined, start: number, end: number): st
 
 function EvidenceItem(props: { snapshot: Snapshot; evidenceId: string }): JSX.Element {
   const { snapshot, evidenceId } = props;
+  const original = useContext(OriginalsContext).get(evidenceId);
   const evidence: Evidence | undefined = snapshot.evidence.find(entry => entry.id === evidenceId);
   if (!evidence) {
     return <li className="evidence"><p className="hint">{'근거 상세를 찾지 못했습니다.'}</p></li>;
@@ -67,14 +73,17 @@ function EvidenceItem(props: { snapshot: Snapshot; evidenceId: string }): JSX.El
   } else {
     meta.push(`${evidence.start}–${evidence.end}바이트`);
   }
-  // 서버가 원문을 다시 내려주지 않는 경우가 기본이다. 근거마다 같은 안내를 반복하지 않고 위치만 보여 준다.
-  const excerpt = locator.kind === 'byte_range' && source && decodeSource(source)
-    ? excerptText(source, evidence.start, evidence.end)
-    : null;
+  // 원문 조회에 실패하면 근거마다 같은 안내를 반복하지 않고 위치만 보여 준다.
+  const excerpt = original !== undefined
+    ? original.text
+    : locator.kind === 'byte_range' && source && decodeSource(source)
+      ? excerptText(source, evidence.start, evidence.end)
+      : null;
   return (
     <li className="evidence">
       <p className="evidence__meta">{meta.join(' · ')}</p>
       {excerpt === null ? null : <p className="evidence__excerpt">{excerpt}</p>}
+      {original?.truncated ? <p className="hint">길어서 앞부분만 표시합니다. 전체는 자료 분석 단계의 원본에서 확인하세요.</p> : null}
     </li>
   );
 }

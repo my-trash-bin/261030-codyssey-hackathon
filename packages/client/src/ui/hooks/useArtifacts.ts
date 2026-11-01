@@ -201,8 +201,6 @@ function reviewReason(state: State, csrfToken: string | null, snapshot: Snapshot
   if (!artifact.isCurrent || artifact.revision !== task.revision) {
     return '이 초안은 공개 결정이 바뀌기 전 판본입니다. 초안을 다시 만드세요.';
   }
-  // 자동 검토를 통과하지 못한 초안에는 공개 파일이 없어 서버가 재검토·편집을 거부한다.
-  if (artifact.files.length === 0) return '이 초안에는 공개 파일이 없어 다시 검토하거나 편집할 수 없습니다. 초안을 새로 만드세요.';
   return '';
 }
 
@@ -336,7 +334,7 @@ export function useArtifacts(options: ArtifactsOptions): ArtifactsApi {
     const exportInfo = prev.exportInfo !== null && artifact !== null && prev.exportInfo.artifactId === artifact.id &&
       prev.exportInfo.artifactSetHash === artifact.artifactSetHash && prev.exportInfo.revision === task.revision
       ? prev.exportInfo
-      : null;
+      : artifact !== null && artifact.latestExport?.revision === task.revision ? artifact.latestExport : null;
     // 불러오기 성공은 '불러오는 중' 문구를 지운다. 다만 방금 끝난 동작의 결과 문구는
     // 이 재조회가 덮지 않는다. 동작이 남긴 메시지가 없을 때만 로드 결과를 적는다.
     const loadingMessage = prev.message === '' || prev.message === LOADING_DRAFT_MESSAGE;
@@ -493,7 +491,9 @@ export function useArtifacts(options: ArtifactsOptions): ArtifactsApi {
           const humanPossible = artifact !== null && artifact.reviewErrorCode !== null &&
             HUMAN_REVIEW_CODES[artifact.reviewErrorCode] === true;
           commit({
-            message: `${label}에 실패했습니다. ${modelErrorText(current.errorCode)}${humanPossible
+            message: current.kind === 'compose' && humanPossible && current.artifactId === artifact?.id
+              ? `초안은 만들었지만 자동 검토를 끝내지 못했습니다. ${modelErrorText(current.errorCode)} 검토 단계에서 사람 의미 검토를 기록하거나 다시 검토할 수 있습니다.`
+              : `${label}에 실패했습니다. ${modelErrorText(current.errorCode)}${humanPossible
               ? ' 검토 단계에서 사람 의미 검토를 기록할 수 있습니다.'
               : artifact === null ? ' 초안은 저장되지 않았습니다. 다시 시도하세요.' : ' 이전 초안은 그대로 있습니다. 다시 시도하세요.'}`,
           });

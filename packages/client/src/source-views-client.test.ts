@@ -12,6 +12,8 @@ const row = {
   disposition: 'exclude',
   representation: null,
   disclosed: null,
+  draft_sentences: ['초안 문장'],
+  draft_table: true,
   originals: [{
     evidence_id: 'e1',
     source_name: '가상.log',
@@ -25,6 +27,7 @@ const row = {
 const body = (candidates: unknown[]) => ({
   data: {
     input_revision: 3,
+    has_draft: true,
     sources: [{ id: 's1', display_name: '가상.log', format: 'txt', byte_size: 4 }],
     candidates,
   },
@@ -36,6 +39,9 @@ test('대조 응답은 원문 구간과 결정을 그대로 읽는다', () => {
   assert.equal(parsed?.sources[0]?.byteSize, 4);
   assert.equal(parsed?.rows[0]?.disposition, 'exclude');
   assert.equal(parsed?.rows[0]?.originals[0]?.text, '원문');
+  assert.equal(parsed?.hasDraft, true);
+  assert.deepEqual(parsed?.rows[0]?.draftSentences, ['초안 문장']);
+  assert.equal(parsed?.rows[0]?.draftTable, true);
 });
 
 test('대조 응답의 모양이 틀리면 일부만 그리지 않고 거부한다', () => {

@@ -38,7 +38,7 @@ export function ShellSection(): JSX.Element {
           <div className="masthead__inner">
             <div className="masthead__brand">
               <h1>SafeHandoff</h1>
-              <p className="masthead__tagline">외부 공유 검토 콘솔</p>
+              <p className="masthead__tagline">공개할 내용만, 안전하게 전달</p>
             </div>
             <dl className="masthead__facts">
               <div><dt className="meta">모드</dt><dd>개발 예시</dd></div>

@@ -242,9 +242,13 @@ export interface Engine extends Core {
   analyze(request: AnalyzeRequest, options?: { signal?: AbortSignal }): Promise<AnalyzeResult>;
   proposeDisclosure(candidate: Candidate, task: TaskContext, options?: { condition?: string; signal?: AbortSignal }): Promise<DisclosureProposal>;
   preview(candidate: Candidate, representation: Representation, inputRevision: number, context?: { sources: SourceDocument[]; evidence: EvidenceSpan[] }): Promise<DisclosurePreview>;
+  // Optional: an engine without a model has nothing to check.
+  checkModel?(options?: { signal?: AbortSignal }): Promise<void>;
   write(factPack: FactPack): Promise<Draft>;
   review(draft: Draft, factPack: FactPack, grounding?: ReviewGroundingContext, options?: { files?: PublicReviewFile[]; signal?: AbortSignal }): Promise<Review>;
   writeReviewed(pack: FactPack, options?: { signal?: AbortSignal; maxRepairs?: number; grounding?: ReviewGroundingContext;
-    finalFiles?: (draft: Draft) => PublicReviewFile[]; onProgress?: (kind: string) => void }): Promise<{ draft: Draft; review: Review }>;
+    finalFiles?: (draft: Draft) => PublicReviewFile[]; onProgress?: (kind: string) => void;
+    // Called with the draft about to be reviewed, and with null once review has rejected it for repair.
+    onDraft?: (draft: Draft | null) => void }): Promise<{ draft: Draft; review: Review }>;
   reproduce(request: ReproduceRequest, options?: { signal?: AbortSignal }): Promise<ReproduceResult>;
 }

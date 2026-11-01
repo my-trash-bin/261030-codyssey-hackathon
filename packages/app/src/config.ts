@@ -2,7 +2,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import type { EngineConfig } from '@safehandoff/core-interface';
 import { FileTranscriptSink, RealCore } from '@safehandoff/core';
-import { OpenAICompatibleModelClient } from '@safehandoff/model-adapter';
+import { OpenAICompatibleModelClient, providerEndpoint } from '@safehandoff/model-adapter';
 import { DockerReproRunner } from '@safehandoff/sandbox-runner';
 
 export function loadConfig(root: string, env: Record<string, string | undefined>): EngineConfig {
@@ -68,6 +68,10 @@ export function configuredRuntime(root: string, env: Record<string, string | und
   const manifest = JSON.parse(readFileSync(resolve(root, 'package.json'), 'utf8'));
   return { app_version: typeof manifest.version === 'string' ? manifest.version : 'unversioned',
     model_id: model && model !== env[config.provider.api_key_env] && /^[A-Za-z0-9_.:/-]{1,128}$/.test(model) && !model.includes('://') ? model : null,
+    // Setting names only, never their values.
+    model_setup: { base_url_env: config.provider.base_url_env,
+      missing: [config.provider.base_url_env, config.provider.model_env, config.provider.api_key_env].filter(name => !env[name]),
+      base_url_rejected: Boolean(env[config.provider.base_url_env]) && !providerEndpoint(env[config.provider.base_url_env], config.provider.allow_plain_http) },
     extensions: [], checkers: ['docast.v1', 'public-file-integrity.v1'],
     reproduction: { status: config.reproduction.enabled ? 'enabled_unverified' : 'disabled' },
     debug: { logging_enabled: Boolean(env.SAFEHANDOFF_TRANSCRIPT_DIR), content_logging: env.SAFEHANDOFF_TRANSCRIPT_CONTENT === '1', automatic_retention: false } };

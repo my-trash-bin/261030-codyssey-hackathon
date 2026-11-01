@@ -192,6 +192,8 @@ provider 확인은 기존 텍스트 경로를 유지합니다.
 - 자료 분석과 검토 단계는 `GET /api/v1/tasks/{id}/disclosure-comparison`과
   `GET /api/v1/tasks/{id}/sources/{version_id}/content`로 원문과 공개 내용을 대조합니다
   (`source-views-client.ts`). 세션 사용자의 내부 확인용이며 모델 입력이나 공유 파일에 쓰지 않습니다.
+- 자료 분석 단계는 분석 모델 주소와 상태를 보여 주고 `POST /api/v1/model-check`로 연결을 확인합니다.
+  주소는 서버 환경 변수(`SAFEHANDOFF_LLM_BASE_URL`)로만 바꾸며, 설정이 비어 있으면 화면이 변수 이름을 안내합니다.
 - `useRules`/`useTaskBrowser`/`useTaskHistory`가 규칙 저장/목록/새 판본/철회/명시 적용, 작업 목록/
   삭제, 작업 이벤트 조회를 호출합니다(`rules-client.ts`, `task-browser-client.ts`,
   `workflow-client.ts`).

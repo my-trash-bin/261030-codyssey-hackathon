@@ -5,6 +5,17 @@ import { postJSON } from './transport.ts';
 import { ModelError } from '@safehandoff/core-interface';
 import type { ModelCallOptions, ModelClient, ModelClientInfo, ModelRequest, ModelResponse, ProviderConfig } from '@safehandoff/core-interface';
 
+// The only base URLs a request may leave for. Invalid configuration stays unavailable; never expose credentials.
+export function providerEndpoint(base: string | undefined, allowPlainHttp: boolean): URL | undefined {
+  if (!base) return undefined;
+  try {
+    const url = new URL(base);
+    if ((url.protocol !== 'https:' && !(url.protocol === 'http:' && allowPlainHttp)) || url.username || url.password || url.search || url.hash) return undefined;
+    url.pathname = `${url.pathname.replace(/\/$/, '')}/chat/completions`;
+    return url;
+  } catch { return undefined; }
+}
+
 export class OpenAICompatibleModelClient implements ModelClient {
   readonly info: ModelClientInfo;
   private readonly endpoint?: URL;
@@ -15,16 +26,7 @@ export class OpenAICompatibleModelClient implements ModelClient {
     this.config = config;
     const model = config ? env[config.model_env] ?? '' : '';
     this.apiKey = config ? env[config.api_key_env] : undefined;
-    try {
-      if (config && env[config.base_url_env]) {
-        const url = new URL(env[config.base_url_env]!);
-        if ((url.protocol === 'https:' || (url.protocol === 'http:' && config.allow_plain_http)) &&
-          !url.username && !url.password && !url.search && !url.hash) {
-          url.pathname = `${url.pathname.replace(/\/$/, '')}/chat/completions`;
-          this.endpoint = url;
-        }
-      }
-    } catch { /* Invalid configuration stays unavailable; never expose credentials. */ }
+    this.endpoint = config ? providerEndpoint(env[config.base_url_env], config.allow_plain_http) : undefined;
     this.info = { provider: 'openai_compatible', model, ready: Boolean(this.endpoint && model && this.apiKey && config &&
       config.global_concurrency > 0 && config.request_timeout_seconds > 0 && config.max_input_bytes > 0) };
   }

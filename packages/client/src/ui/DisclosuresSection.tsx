@@ -1,7 +1,7 @@
 // 공개 결정 화면. 후보별 결정 → 결정 저장 순서로 그린다. 작업은 1단계에서 고른 것을 그대로 쓴다.
 // 상태·전송은 useDisclosures 훅이 맡고, 이 컴포넌트는 표시와 입력만 담당한다.
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import type { JSX } from 'react';
 
 import type { Snapshot } from '../disclosure-state.ts';
@@ -9,9 +9,11 @@ import type { DisclosuresApi } from './hooks/useDisclosures.ts';
 import { orderCandidates, scopeSummary, writeNoteText } from '../disclosure-format.ts';
 import type { ScopeNames } from '../disclosure-format.ts';
 import { validSavedDecisions } from '../disclosure-selectors.ts';
+import { OriginalsContext } from '../disclosure-evidence.tsx';
 import { CandidateCard } from './CandidateCard.tsx';
 import { DisclosureBatch } from './DisclosureBatch.tsx';
 import { useFocusFallback } from './hooks/useFocusFallback.ts';
+import { useComparison } from './SourceViews.tsx';
 
 let mountCounter = 0;
 
@@ -67,6 +69,8 @@ export function DisclosuresSection(props: { workspace: DisclosuresApi; taskId: s
   const snapshot = workspace.snapshot;
   const writeNoteId = `${uid}-write-note`;
   const saved = snapshot === null ? new Map() : validSavedDecisions(snapshot);
+  const { comparison } = useComparison(snapshot?.id ?? null, snapshot?.revision ?? null);
+  const originals = useMemo(() => new Map((comparison?.rows ?? []).flatMap(row => row.originals).map(span => [span.evidenceId, span])), [comparison]);
 
   return (
     <div className="block" ref={containerRef}>
@@ -86,6 +90,7 @@ export function DisclosuresSection(props: { workspace: DisclosuresApi; taskId: s
               {snapshot.candidates.length === 0
                 ? <p className="status">이 작업에는 후보가 없습니다. 2단계에서 자료를 분석하거나 수동 후보를 추가하세요.</p>
                 : (
+                  <OriginalsContext.Provider value={originals}>
                   <div className="candidates">
                     {orderCandidates(snapshot.candidates).map((candidate, index) => (
                       <CandidateCard
@@ -102,6 +107,7 @@ export function DisclosuresSection(props: { workspace: DisclosuresApi; taskId: s
                       />
                     ))}
                   </div>
+                  </OriginalsContext.Provider>
                 )}
               <DisclosureBatch workspace={workspace} snapshot={snapshot} uid={uid} />
             </>

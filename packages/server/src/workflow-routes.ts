@@ -1,4 +1,5 @@
 import type { IncomingMessage, ServerResponse } from 'node:http';
+import { ModelError } from '@safehandoff/core-interface';
 import type { Draft, Engine, Representation } from '@safehandoff/core-interface';
 import type { TaskStore } from './task-store.ts';
 import type { WorkflowAccess } from './workflow-session.ts';
@@ -20,9 +21,11 @@ function binary(response: ServerResponse, bytes: Buffer, mediaType: string, name
     'X-Content-Type-Options': 'nosniff', 'Content-Security-Policy': "default-src 'none'; sandbox", 'Content-Disposition': `${attachment ? 'attachment' : 'inline'}; filename="${name}"` });
   response.end(bytes);
 }
+// A person is waiting on this button, so it does not inherit the much longer job timeout.
+const MODEL_CHECK_TIMEOUT_MS = 20_000;
 function artifactDTO(value: ReturnType<TaskStore['workflow']['artifacts']['get']>, store: TaskStore) {
   const { pack: _pack, grounding: _grounding, authorization_hash: _authorization, files, ...data } = value;
-  return { ...data, files: files.map(({ bytes: _bytes, ...f }) => f), is_current: store.get(value.task_id).revision === value.revision, finalizable: store.workflow.artifacts.canFinalize(value) };
+  return { ...data, files: files.map(({ bytes: _bytes, ...f }) => f), is_current: store.get(value.task_id).revision === value.revision, finalizable: store.workflow.artifacts.canFinalize(value), latest_export: store.workflow.artifacts.exportOf(value) };
 }
 export async function extendedWorkflowRoutes(c: Context, request: IncomingMessage, response: ServerResponse, parts: string[]): Promise<boolean> {
   const { store, engine } = c, workflow = store.workflow, artifacts = workflow.artifacts, rules = workflow.rules;
@@ -66,6 +69,17 @@ export async function extendedWorkflowRoutes(c: Context, request: IncomingMessag
         if (!(error instanceof Error) || error.message !== 'JOB_NOT_FOUND') throw error; return false;
       }
     } else return false;
+    return true;
+  }
+  if (path === 'model-check' && request.method === 'POST') {
+    await body(request);
+    if (!engine.checkModel) { send(response, 200, { data: { status: 'not_applicable' } }); return true; }
+    if (!engine.info.ready) { send(response, 200, { data: { status: 'not_configured' } }); return true; }
+    const signal = AbortSignal.timeout(MODEL_CHECK_TIMEOUT_MS);
+    try { await engine.checkModel({ signal }); send(response, 200, { data: { status: 'reachable' } }); }
+    catch (error) {
+      send(response, 200, { data: { status: 'failed', code: signal.aborted ? 'MODEL_TIMEOUT' : error instanceof ModelError ? error.code : 'MODEL_UNAVAILABLE' } });
+    }
     return true;
   }
   if (parts[0] === 'tasks' && parts[1] && c.deletingTasks.has(parts[1]) && !(request.method === 'DELETE' && parts.length === 2)) deny(409, 'TASK_DELETING');

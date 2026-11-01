@@ -17,7 +17,12 @@ async function fixture(t: { after(fn: () => Promise<void>): void }, databasePath
   let writerGate: Promise<void> | undefined; const calls: ModelRequest[] = [];
   const client: ModelClient = { info: { provider: 'fake', model: 'fixture', ready: true }, complete: async request => {
     calls.push(request);
+    if (request.role === 'provider_check') {
+      if (mode === 'unavailable') throw new ModelError('MODEL_UNAVAILABLE');
+      return { text: 'OK', model: 'fixture', usage: { inputTokens: 1, outputTokens: 1 } };
+    }
     if (request.role === 'writer' && writerGate) await writerGate;
+    if (request.role === 'writer' && mode === 'writer_outage') throw new ModelError('MODEL_UNAVAILABLE');
     const v = JSON.parse(request.input); let value: unknown;
     if (request.role === 'analysis') value = { schema_version: 'candidate_proposals.v1', conflicts: [], candidates: [{ local_key: 'counts',
       kind: 'observation', uncertainty: 'observed', relevance: 'required', purpose_relevance: 'fixture', statement: '가상 요청량',
@@ -28,7 +33,9 @@ async function fixture(t: { after(fn: () => Promise<void>): void }, databasePath
     else {
       assert.equal(request.role, 'reviewer');
       if (mode === 'unavailable') throw new ModelError('MODEL_UNAVAILABLE');
-      value = { schema_version: 'review.v1', result: mode, issues: mode === 'pass' ? [] : [{ target: { kind: 'document' },
+      const result = mode === 'reject_then_outage' ? 'needs_changes' : mode;
+      if (mode === 'reject_then_outage') mode = 'writer_outage';
+      value = { schema_version: 'review.v1', result, issues: result === 'pass' ? [] : [{ target: { kind: 'document' },
         reason_code: 'UNAPPROVED_DISCLOSURE', action: null, approved_fact_ids: [], candidate_ids: [], internal_explanation: 'fixture rejection' }] };
     }
     return { text: JSON.stringify(value), model: 'fixture', usage: { inputTokens: 1, outputTokens: 1 } };
@@ -139,6 +146,62 @@ test('edits require a new review, manual review cannot override model rejection,
   const approved = await f.call(`/artifacts/${fallback.id}/human-review`, 'POST', { ...human, expected_revision: fallback.revision, target_hash: fallback.artifact_set_hash });
   assert.equal(approved.status, 200, JSON.stringify(approved.body));
   assert.equal((await f.finalize(task, approved.body.data)).status, 200);
+});
+test('model check reports reachability with a fixed prompt and no task material', async t => {
+  const f = await fixture(t); await f.create();
+  assert.deepEqual((await f.call('/model-check', 'POST', {})).body.data, { status: 'reachable' });
+  const check = f.calls.at(-1)!;
+  assert.equal(check.role, 'provider_check'); assert.equal(check.input.includes('PRIVATE'), false); assert.equal(check.input.includes('count'), false);
+  f.setMode('unavailable');
+  assert.deepEqual((await f.call('/model-check', 'POST', {})).body.data, { status: 'failed', code: 'MODEL_UNAVAILABLE' });
+  assert.equal((await f.raw('/model-check', 'POST', {}, undefined, { 'X-CSRF-Token': 'wrong' })).status, 403);
+});
+test('a review outage during composition keeps the draft for human review and the export survives a reload', async t => {
+  const f = await fixture(t), task = await f.allow(await f.create()); f.setMode('unavailable');
+  const start = await f.call(`/tasks/${task.id}/jobs`, 'POST', { expected_revision: task.revision, kind: 'compose' });
+  const job = await f.poll('/jobs/' + start.body.data.id);
+  assert.equal(job.status, 'failed'); assert.equal(job.error_code, 'MODEL_UNAVAILABLE'); assert.ok(job.artifact_id);
+  const kept = (await f.call(`/tasks/${task.id}/bundle`)).body.data;
+  assert.equal(kept.review_error_code, 'MODEL_UNAVAILABLE'); assert.ok(kept.files.length > 0); assert.equal(kept.latest_export, null);
+  const compared = (await f.call(`/tasks/${task.id}/disclosure-comparison`)).body.data;
+  assert.equal(compared.has_draft, true); assert.equal(compared.candidates[0].draft_table, true);
+  const approved = await f.call(`/artifacts/${kept.id}/human-review`, 'POST', { expected_revision: kept.revision, target_hash: kept.artifact_set_hash,
+    checklist: { reviewed_all_files: true, approved_facts_only: true, uncertainty_preserved: true }, fallback_reason: 'fixture only' });
+  assert.equal(approved.status, 200, JSON.stringify(approved.body));
+  const final = await f.finalize(task, approved.body.data); assert.equal(final.status, 200, JSON.stringify(final.body));
+  const reloaded = (await f.call(`/tasks/${task.id}/bundle`)).body.data;
+  assert.deepEqual(reloaded.latest_export, final.body.data);
+  assert.equal((await f.raw(`/exports/${reloaded.latest_export.id}/archive`)).status, 200);
+});
+test('a draft the reviewer rejected is not offered for human review when the repair write fails', async t => {
+  const f = await fixture(t), task = await f.allow(await f.create()); f.setMode('reject_then_outage');
+  const start = await f.call(`/tasks/${task.id}/jobs`, 'POST', { expected_revision: task.revision, kind: 'compose' });
+  const job = await f.poll('/jobs/' + start.body.data.id);
+  assert.equal(job.status, 'failed'); assert.equal(job.artifact_id, null);
+  assert.equal((await f.call(`/tasks/${task.id}/bundle`)).status, 404);
+});
+test('a draft without files can be reviewed again and edited', async t => {
+  const f = await fixture(t), task = await f.allow(await f.create()); f.setMode('needs_changes');
+  const blocked = await f.compose(task);
+  assert.deepEqual(blocked.files, []); assert.equal(blocked.artifact_set_hash, ''); assert.equal(blocked.review.result, 'needs_changes');
+  assert.equal((await f.finalize(task, blocked)).status, 400);
+  const edited = await f.call(`/artifacts/${blocked.id}/edit`, 'PUT', { expected_revision: blocked.revision, expected_document_hash: blocked.document_hash, draft: blocked.draft });
+  assert.equal(edited.status, 200, JSON.stringify(edited.body)); assert.ok(edited.body.data.files.length > 0); assert.deepEqual(edited.body.data.hard_errors, []);
+  assert.equal((await f.finalize(task, edited.body.data)).status, 409);
+  f.setMode('pass');
+  const first = (await f.call(`/tasks/${task.id}/bundle`)).body.data;
+  const again = await f.call(`/tasks/${task.id}/jobs`, 'POST', { expected_revision: first.revision, kind: 'review', arguments: { artifact_id: first.id, expected_artifact_set_hash: first.artifact_set_hash } });
+  assert.equal(again.status, 202, JSON.stringify(again.body)); assert.equal((await f.poll('/jobs/' + again.body.data.id)).status, 'succeeded');
+  const passed = (await f.call(`/tasks/${task.id}/bundle`)).body.data;
+  assert.equal(passed.review.result, 'pass'); assert.equal((await f.finalize(task, passed)).status, 200);
+});
+test('a fileless draft goes straight to review without an edit', async t => {
+  const f = await fixture(t), task = await f.allow(await f.create()); f.setMode('needs_changes');
+  const blocked = await f.compose(task); f.setMode('pass');
+  const again = await f.call(`/tasks/${task.id}/jobs`, 'POST', { expected_revision: blocked.revision, kind: 'review', arguments: { artifact_id: blocked.id, expected_artifact_set_hash: '' } });
+  assert.equal(again.status, 202, JSON.stringify(again.body)); assert.equal((await f.poll('/jobs/' + again.body.data.id)).status, 'succeeded');
+  const passed = (await f.call(`/tasks/${task.id}/bundle`)).body.data;
+  assert.ok(passed.files.length > 0); assert.equal(passed.review.result, 'pass'); assert.equal((await f.finalize(task, passed)).status, 200);
 });
 test('expiry blocks stored downloads without rerunning the model, metadata endpoints expose no original bytes', async t => {
   const f = await fixture(t), task = await f.allow(await f.create(), false, '2026-10-31T12:00:10Z');

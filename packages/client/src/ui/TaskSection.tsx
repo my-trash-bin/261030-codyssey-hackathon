@@ -9,6 +9,7 @@ import type { Candidate } from '../disclosure-contract.ts';
 import { KIND_LABELS, UNCERTAINTY_LABELS } from '../disclosure-format.ts';
 import type { CatalogOption } from '../task-client.ts';
 import { FileField } from './FileField.tsx';
+import { ModelConnection } from './ModelConnection.tsx';
 import { AnalysisSources } from './SourceViews.tsx';
 import type { TaskFlowApi } from './hooks/useTaskFlow.ts';
 
@@ -463,6 +464,7 @@ export function TaskSection(props: {
 
       {part === 'analysis' && (
         <section className="panel" id="task-analysis">
+          <ModelConnection csrfToken={csrfToken} origin={environment?.providerOrigin ?? null} />
           <h3>분석</h3>
           <div className="option option--consent">
             <input

@@ -29,11 +29,14 @@ export interface ComparisonRow {
   disposition: Disposition | null;
   representation: Representation | null;
   disclosed: Projection | null;
+  draftSentences: string[];
+  draftTable: boolean;
   originals: OriginalSpan[];
 }
 
 export interface DisclosureComparison {
   revision: number;
+  hasDraft: boolean;
   sources: SourceFileView[];
   rows: ComparisonRow[];
 }
@@ -84,6 +87,8 @@ function parseRow(value: unknown): ComparisonRow | null {
     disposition,
     representation: isRecord(value.representation) ? value.representation as unknown as Representation : null,
     disclosed: isRecord(value.disclosed) ? value.disclosed as unknown as Projection : null,
+    draftSentences: Array.isArray(value.draft_sentences) ? value.draft_sentences.filter((line): line is string => typeof line === 'string') : [],
+    draftTable: value.draft_table === true,
     originals: originals as OriginalSpan[],
   };
 }
@@ -96,7 +101,7 @@ export function parseComparison(body: unknown): DisclosureComparison | null {
   const sources = data.sources.map(parseFile);
   const rows = data.candidates.map(parseRow);
   if (sources.some((file) => file === null) || rows.some((row) => row === null)) return null;
-  return { revision, sources: sources as SourceFileView[], rows: rows as ComparisonRow[] };
+  return { revision, hasDraft: data.has_draft === true, sources: sources as SourceFileView[], rows: rows as ComparisonRow[] };
 }
 
 function parseContent(body: unknown): SourceContent | null {

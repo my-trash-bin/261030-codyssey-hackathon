@@ -74,6 +74,8 @@ export class ArtifactStore {
     const job = this.job(jobId), row = this.c.db.prepare('SELECT snapshot_json FROM workflow_artifact_jobs WHERE id=?').get(jobId)!;
     const snapshot = JSON.parse(String(row.snapshot_json)) as { pack: FactPack; grounding: ReviewGroundingContext; authorization_hash: string; draft?: Draft };
     let rendered: ReturnType<typeof renderFiles> | undefined;
+    // The draft under review when compose fails; a model outage must not lose a validated draft.
+    let unreviewed: Draft | null = null;
     const finalFiles = (draft: Draft) => {
       rendered = renderFiles(draft, snapshot.pack);
       return rendered.files.map(f => ({ path: f.path, sha256: f.sha256, text: Buffer.from(f.bytes, 'base64').toString('utf8') }));
@@ -82,7 +84,7 @@ export class ArtifactStore {
       let draft: Draft, review: Review;
       if (job.kind === 'compose') ({ draft, review } = await engine.writeReviewed(snapshot.pack, { grounding: snapshot.grounding, signal, finalFiles, onProgress: kind => {
         if (this.job(jobId).status === 'running') this.c.store.workflow.event(job.task_id, kind);
-      } }));
+      }, onDraft: next => { unreviewed = next; } }));
       else { draft = snapshot.draft!; review = await engine.review(draft, snapshot.pack, snapshot.grounding, { files: finalFiles(draft), signal }); }
       if (signal.aborted) { this.cancel(jobId, true); return; }
       this.c.hooks.transaction(() => {
@@ -104,12 +106,13 @@ export class ArtifactStore {
       const code = error instanceof WorkflowHTTPError ? error.message : error instanceof Error && 'code' in error ? String(error.code) : 'COMPOSITION_FAILED';
       this.c.db.prepare("UPDATE workflow_artifact_jobs SET status=?,error_code=? WHERE id=? AND status IN ('running','cancel_requested')")
         .run(signal.aborted ? 'cancelled' : 'failed', code, jobId);
-      if (job.kind === 'review' && !signal.aborted && ['MODEL_TIMEOUT', 'MODEL_UNAVAILABLE'].includes(code)) this.c.hooks.transaction(() => {
+      const fallback = job.kind === 'review' ? snapshot.draft! : unreviewed as Draft | null;
+      if (fallback && !signal.aborted && ['MODEL_TIMEOUT', 'MODEL_UNAVAILABLE'].includes(code)) this.c.hooks.transaction(() => {
         const task = this.c.store.get(job.task_id);
         if (task.revision !== job.input_revision || this.authorization(task.id) !== snapshot.authorization_hash) return;
-        const files = renderFiles(snapshot.draft!, snapshot.pack), updated = this.c.hooks.advance(task);
+        const files = renderFiles(fallback, snapshot.pack), updated = this.c.hooks.advance(task);
         const fallbackId = randomUUID();
-        this.save({ id: fallbackId, task_id: task.id, revision: updated.revision, draft: snapshot.draft!, review: null, review_error_code: code,
+        this.save({ id: fallbackId, task_id: task.id, revision: updated.revision, draft: fallback, review: null, review_error_code: code,
           ...files, pack: snapshot.pack, grounding: snapshot.grounding, authorization_hash: this.authorization(task.id),
           review_target_hash: null, hard_errors: [], human_review: null });
         this.c.db.prepare('UPDATE workflow_artifact_jobs SET result_id=? WHERE id=?').run(fallbackId, jobId);
@@ -137,7 +140,7 @@ export class ArtifactStore {
     const files = [...artifact.files].sort((a, b) => a.path < b.path ? -1 : 1);
     if (digest(JSON.stringify(artifact.draft)) !== artifact.document_hash || files.some(f => {
       const bytes = Buffer.from(f.bytes, 'base64'); return bytes.toString('base64') !== f.bytes || bytes.length !== f.size || digest(bytes) !== f.sha256;
-    }) || digest(JSON.stringify(files.map(f => ({ path: f.path, size: f.size, sha256: f.sha256 })))) !== artifact.artifact_set_hash) deny(409, 'ARTIFACT_CORRUPT');
+    }) || (artifact.artifact_set_hash !== '' || files.length > 0) && digest(JSON.stringify(files.map(f => ({ path: f.path, size: f.size, sha256: f.sha256 })))) !== artifact.artifact_set_hash) deny(409, 'ARTIFACT_CORRUPT');
   }
   edit(id: string, revision: number, expectedHash: string, draft: Draft): Artifact {
     return this.c.hooks.transaction(() => {
@@ -145,7 +148,7 @@ export class ArtifactStore {
       if (prior.document_hash !== expectedHash) deny(409, 'DOCUMENT_HASH_CONFLICT');
       validateDocument(draft, prior.pack); const files = renderFiles(draft, prior.pack), updated = this.c.hooks.advance(this.c.store.get(prior.task_id));
       const value: Artifact = { ...prior, ...files, id: randomUUID(), revision: updated.revision, draft, review: null,
-        review_error_code: null, review_target_hash: null, human_review: null, authorization_hash: this.authorization(prior.task_id) };
+        hard_errors: [], review_error_code: null, review_target_hash: null, human_review: null, authorization_hash: this.authorization(prior.task_id) };
       this.save(value); return value;
     });
   }
@@ -188,6 +191,12 @@ export class ArtifactStore {
       this.c.db.prepare('INSERT INTO workflow_exports VALUES(?,?,?,?,?,?,?,?)').run(exportId, id, updated.revision, bound.id, setHash, bytes, digest(bytes), this.c.hooks.now());
       return { id: exportId, task_id: id, revision: updated.revision, artifact_id: bound.id, artifact_set_hash: setHash, archive_sha256: digest(bytes) };
     });
+  }
+  // The export bound to this exact artifact, so a reload can offer the same download again.
+  exportOf(artifact: Artifact) {
+    const row = this.c.db.prepare('SELECT id,task_id,revision,artifact_id,set_hash,sha256 FROM workflow_exports WHERE artifact_id=? ORDER BY rowid DESC LIMIT 1').get(artifact.id);
+    return row ? { id: String(row.id), task_id: String(row.task_id), revision: Number(row.revision), artifact_id: String(row.artifact_id),
+      artifact_set_hash: String(row.set_hash), archive_sha256: String(row.sha256) } : null;
   }
   exported(id: string): { artifact: Artifact; zip: Buffer; sha256: string } {
     const row = this.c.db.prepare('SELECT * FROM workflow_exports WHERE id=?').get(id); if (!row) deny(404, 'EXPORT_NOT_FOUND');

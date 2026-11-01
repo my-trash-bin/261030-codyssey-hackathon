@@ -14,7 +14,7 @@ type Stage = 'analysis' | 'review';
 
 const defaultFetch: typeof fetch = (input, init) => globalThis.fetch(input, init);
 
-function useComparison(taskId: string | null, revision: number | null) {
+export function useComparison(taskId: string | null, revision: number | null) {
   const [comparison, setComparison] = useState<DisclosureComparison | null>(null);
   const [error, setError] = useState('');
   useEffect(() => {
@@ -98,8 +98,20 @@ function ProjectionView(props: { projection: Projection }): JSX.Element {
   );
 }
 
-function AfterSide(props: { row: ComparisonRow; stage: Stage }): JSX.Element {
-  const { row, stage } = props;
+function DraftUse(props: { row: ComparisonRow }): JSX.Element {
+  const { draftSentences, draftTable } = props.row;
+  return (
+    <div className="compare__draft" data-role="draft-use">
+      <p className="compare__label">초안에 쓰인 문장</p>
+      {draftSentences.map((line, index) => <p key={index.toString()}>{line}</p>)}
+      {draftTable ? <p className="hint">표로 함께 공유됩니다.</p> : null}
+      {draftSentences.length === 0 && !draftTable ? <p className="status status--warn">이 내용을 인용한 문장이 초안에 없습니다.</p> : null}
+    </div>
+  );
+}
+
+function AfterSide(props: { row: ComparisonRow; stage: Stage; hasDraft: boolean }): JSX.Element {
+  const { row, stage, hasDraft } = props;
   if (stage === 'analysis') {
     return (
       <div className="compare__side">
@@ -122,6 +134,7 @@ function AfterSide(props: { row: ComparisonRow; stage: Stage }): JSX.Element {
       <div className="compare__side compare__side--allowed" data-disposition="allow">
         <p className="compare__label">{`공개 내용 · ${representationLabel(row.representation)}`}</p>
         {row.disclosed === null ? <p>{row.statement}</p> : <ProjectionView projection={row.disclosed} />}
+        {hasDraft ? <DraftUse row={row} /> : null}
       </div>
     );
   }
@@ -134,7 +147,7 @@ function AfterSide(props: { row: ComparisonRow; stage: Stage }): JSX.Element {
   );
 }
 
-function ComparisonList(props: { rows: readonly ComparisonRow[]; stage: Stage; role: string }): JSX.Element {
+function ComparisonList(props: { rows: readonly ComparisonRow[]; stage: Stage; role: string; hasDraft?: boolean }): JSX.Element {
   return (
     <ul className="compare" data-role={props.role}>
       {orderCandidates(props.rows).map((row) => (
@@ -153,7 +166,7 @@ function ComparisonList(props: { rows: readonly ComparisonRow[]; stage: Stage; r
                   </div>
                 ))}
             </div>
-            <AfterSide row={row} stage={props.stage} />
+            <AfterSide row={row} stage={props.stage} hasDraft={props.hasDraft === true} />
           </div>
         </li>
       ))}
@@ -199,7 +212,7 @@ export function AnalysisSources(props: {
   );
 }
 
-// 검토 단계: 후보마다 원문과 공개하기로 한 표현을 나란히 보여 주고, 실제 문장은 이어지는 초안에서 확인한다.
+// 검토 단계: 후보마다 원문, 공개하기로 한 표현, 그 표현을 인용한 초안 문장을 나란히 보여 준다.
 export function ReviewSources(props: { taskId: string | null; revision: number | null }): JSX.Element | null {
   const { taskId, revision } = props;
   const { comparison, error } = useComparison(taskId, revision);
@@ -207,13 +220,13 @@ export function ReviewSources(props: { taskId: string | null; revision: number |
   return (
     <>
       <h3>원문과 공개 내용 비교</h3>
-      <p className="hint">원문은 이 화면에서만 보이며 공유 파일에 들어가지 않습니다. 공개 내용을 바탕으로 쓴 실제 문장은 아래 초안에서 확인하세요.</p>
+      <p className="hint">원문은 내부 확인용이며 공유 파일에 들어가지 않습니다. 오른쪽에서 허용한 표현과 그 표현을 인용한 초안 문장을 함께 확인하세요.</p>
       {error === '' ? null : <p className="status status--warn" role="status">{error}</p>}
       {comparison === null
         ? null
         : (
           <>
-            <ComparisonList rows={comparison.rows} stage="review" role="review-comparison" />
+            <ComparisonList rows={comparison.rows} stage="review" role="review-comparison" hasDraft={comparison.hasDraft} />
             <details className="fold fold--plain" data-role="review-sources">
               <summary>{`원본 파일 ${comparison.sources.length.toString()}개`}</summary>
               <div className="fold__body">

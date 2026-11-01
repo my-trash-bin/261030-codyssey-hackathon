@@ -117,6 +117,12 @@ test('comparison and source content show originals only behind the session and f
   assert.equal((await f.call(path + '/disclosure-comparison')).status, 401);
   assert.equal((await f.call(path + '/sources/version/content')).status, 401);
 });
+test('model check needs a session and says when the engine has no model to check', async t => {
+  const f = await fixture(t);
+  assert.deepEqual((await f.call('/model-check', 'POST', {})).body.data, { status: 'not_applicable' });
+  f.setCookie('');
+  assert.equal((await f.call('/model-check', 'POST', {})).status, 401);
+});
 test('excerpt caps long spans and never ends on a split UTF-8 character', () => {
   const bytes = Buffer.from('가'.repeat(1000));
   const capped = excerpt(bytes, 0, bytes.length);

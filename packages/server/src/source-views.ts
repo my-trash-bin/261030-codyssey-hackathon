@@ -13,14 +13,21 @@ export function excerpt(bytes: Buffer, start: number, end: number): { text: stri
 }
 
 export function disclosureComparison(store: TaskStore, id: string) {
-  const sources = store.analysis.sources(id), evidence = store.analysis.evidence(id), now = Date.now();
+  const sources = store.analysis.sources(id), evidence = store.analysis.evidence(id), now = Date.now(), task = store.get(id);
+  const artifact = store.workflow.artifacts.current(id), draft = artifact?.revision === task.revision ? artifact.draft : null;
+  // A fact id is the id of the decision that approved it, so blocks link back to candidates without the private pack.
+  const sentences = (decisionId: string) => (draft?.blocks ?? []).flatMap(block => [
+    ...(block.fact_ids?.includes(decisionId) && block.text ? [block.text] : []),
+    ...(block.items ?? []).filter(item => item.fact_ids.includes(decisionId)).map(item => item.text),
+  ]);
   const bytes = new Map(sources.map(s => [s.id, Buffer.from(s.raw_bytes, 'base64')]));
   const names = new Map(sources.map(s => [s.id, s.display_name]));
   const live = new Map(store.decisions(id)
     .filter(d => d.revoked_at === null && (d.expires_at === null || Date.parse(d.expires_at) > now))
     .map(d => [d.candidate_id, d]));
   return {
-    input_revision: store.get(id).revision,
+    input_revision: task.revision,
+    has_draft: draft !== null,
     sources: sources.map(s => ({ id: s.id, display_name: s.display_name, format: s.format, byte_size: bytes.get(s.id)!.length })),
     candidates: store.analysis.candidates(id).map(c => {
       const decision = live.get(c.id);
@@ -30,6 +37,8 @@ export function disclosureComparison(store: TaskStore, id: string) {
         disposition: decision?.disposition ?? null,
         representation: preview?.representation ?? null,
         disclosed: preview?.projection ?? null,
+        draft_sentences: decision ? sentences(decision.id) : [],
+        draft_table: Boolean(decision && draft?.blocks.some(block => block.table_id === decision.id)),
         originals: c.evidence_ids.flatMap(evidenceId => {
           const span = evidence.find(e => e.id === evidenceId), source = span && bytes.get(span.source_version_id);
           if (!span || !source) return [];

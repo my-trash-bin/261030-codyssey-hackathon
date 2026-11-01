@@ -82,6 +82,7 @@ export interface ArtifactView {
   humanReview: HumanReviewView | null;
   isCurrent: boolean;
   finalizable: boolean;
+  latestExport: ExportInfo | null;
 }
 
 export interface TaskAggregate {
@@ -385,6 +386,7 @@ export function parseArtifact(body: unknown): ArtifactView {
     humanReview,
     isCurrent: data.is_current,
     finalizable: data.finalizable,
+    latestExport: isRecord(data.latest_export) ? parseExport({ data: data.latest_export }) : null,
   };
 }
 

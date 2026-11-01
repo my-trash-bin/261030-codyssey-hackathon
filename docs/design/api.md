@@ -234,19 +234,20 @@ ask_for_diagnostics/reproduction_evidence다. 연결되지 않은 확장 팩을 
 | 경로 | 입력과 결과 |
 | --- | --- |
 | GET /api/v1/catalog | 프로젝트/목적/수신자/goal/양식/활성 확장(현재 빈 배열)/실제 한도 |
-| GET /api/v1/runtime | core 모드/model_id/app_version/확장/검사기/재현 설정/debug 정책. URL/키/토큰/내부 경로 제외 |
+| GET /api/v1/runtime | core 모드/model_id/app_version/확장/검사기/재현 설정/debug 정책과 `model_setup`(`base_url_env/missing/base_url_rejected`, 환경 변수 이름만). URL/키/토큰/내부 경로 제외 |
+| POST /api/v1/model-check | 세션/CSRF 필요. 고정 문구로 모델 응답만 확인하며 원자료를 보내지 않는다. `{status:"reachable"|"not_configured"|"not_applicable"|"failed",code?}`. 20초 제한. 연결 확인은 승인 증거가 아니다 |
 | GET /api/v1/tasks?cursor=... | 최근 수정순 30개, tasks와 next_cursor. 원자료/모델 응답 없음 |
 | POST /api/v1/tasks | `{intake:{internal_title,project_id,purpose_id,recipient_id,audience,skill_ids,goal_variant?,output_language?}}` |
 | GET /api/v1/tasks/{id}/sources | 등록 판본 메타데이터/byte_size/선택 여부. raw_bytes 없음 |
 | GET /api/v1/tasks/{id}/sources/{version_id}/content | 세션 사용자의 내부 확인용. 현재 선택된 원자료의 `{id,display_name,format,text}`. 없거나 해제한 판본은 404 `SOURCE_NOT_FOUND` |
-| GET /api/v1/tasks/{id}/disclosure-comparison | 세션 사용자의 내부 확인용. `{input_revision,sources[],candidates[]}`. 후보마다 `candidate_id/kind/statement/required/disposition/representation/disclosed`와 `originals[]`(`evidence_id/source_name/locator/start/end/text/truncated`, 구간당 2048바이트 상한)를 준다. 철회/만료 결정은 `disposition=null` |
+| GET /api/v1/tasks/{id}/disclosure-comparison | 세션 사용자의 내부 확인용. `{input_revision,sources[],candidates[]}`. 후보마다 `candidate_id/kind/statement/required/disposition/representation/disclosed`와 `originals[]`(`evidence_id/source_name/locator/start/end/text/truncated`, 구간당 2048바이트 상한)를 준다. 철회/만료 결정은 `disposition=null`. `has_draft`가 참이면 후보마다 현재 초안에서 그 결정을 인용한 `draft_sentences[]`와 표 공유 여부 `draft_table`을 함께 준다 |
 | DELETE /api/v1/tasks/{id}/sources/{source_id} | `{expected_revision}`. logical source_id 선택 해제/후보/결정 무효화 |
 | GET /api/v1/tasks/{id}/events?after=seq | 시간순 seq/revision/kind/created_at. duration_ms/usage는 미측정(null) |
 | GET /api/v1/tasks/{id}/events (Accept: text/event-stream) | Last-Event-ID 이후 재생과 새 이벤트. 세션 만료/종료 시 닫음 |
 | POST /api/v1/tasks/{id}/jobs | kind=compose, `{expected_revision,kind,arguments?:{provisional?:boolean}}` |
 | POST /api/v1/tasks/{id}/jobs | kind=review, arguments는 `{artifact_id,expected_artifact_set_hash}` |
 | GET /api/v1/jobs/{id} | 분석/조건 해석/초안/검토 job의 kind/status/input_revision/artifact_id/고정 오류 코드 |
-| GET /api/v1/artifacts/{id} | DocAST/검토/파일 메타데이터/hash/현재 여부. 내부 승인팩/grounding은 반환하지 않음 |
+| GET /api/v1/artifacts/{id} | DocAST/검토/파일 메타데이터/hash/현재 여부와 이 판본의 확정 정보 `latest_export`(없으면 null). 내부 승인팩/grounding은 반환하지 않음 |
 | GET /api/v1/tasks/{id}/bundle | 가장 최근 artifact와 실제 파일 목록. 과거 판본은 is_current=false |
 | GET /api/v1/artifacts/{id}/files/{path} | 내부 확인용 실제 UTF-8 파일 바이트. 확정 다운로드 권한과 별개 |
 | PUT /api/v1/artifacts/{id}/edit | `{expected_revision,expected_document_hash,draft}` -> 새 revision/artifact, 검토 무효 |
